@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../../../firebase';
 import { useAuth } from '../../../hooks/useAuth';
 import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
-import { Drink } from '../types';
+import { Drink, DRINKS } from '../types';
 
 export const useWaterData = (selectedDate: Date) => {
   const [intake, setIntake] = useState(0);

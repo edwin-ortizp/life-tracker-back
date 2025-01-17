@@ -21,15 +21,15 @@ export interface Drink {
     },
     milk: { 
       name: 'Leche', 
-      icon: 'Glasses',
+      icon: 'Milk',
       hydrationFactor: 0.9,
-      color: 'text-gray-500',
+      color: 'text-blue-500',
       amounts: [100, 200, 300]
     },
-    tea: {
-      name: 'Té',
-      icon: 'Coffee',
-      hydrationFactor: 0.85,
+    yogurt: {
+      name: 'Yogurt',
+      icon: 'Milk',
+      hydrationFactor: 0.6,
       color: 'text-amber-600',
       amounts: [100, 200, 300]
     },
@@ -46,5 +46,12 @@ export interface Drink {
       hydrationFactor: 0.85,
       color: 'text-orange-500',
       amounts: [100, 200, 300]
+    },
+    soup: {
+      name: 'Sopa',
+      icon: 'Soup',
+      hydrationFactor: 0.6,
+      color: 'text-orange-500',
+      amounts: [200, 400, 600]
     }
   } as const;
