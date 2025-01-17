@@ -19,12 +19,16 @@ export const PomodoroEditModal = ({
   // Actualizar el estado cuando cambia la sesión seleccionada
   useEffect(() => {
     if (session) {
-      // Extraer solo la hora y minutos de las fechas ISO
-      const start = new Date(session.startTime);
-      const end = new Date(session.endTime);
+      const start = new Date(session.startTime.timestamp);
+      const end = new Date(session.endTime.timestamp);
       
-      setStartTime(`${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`);
-      setEndTime(`${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`);
+      // Convertir a hora local y formato HH:mm
+      setStartTime(
+        `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`
+      );
+      setEndTime(
+        `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`
+      );
       setCompleted(session.completed);
     }
   }, [session]);
@@ -32,31 +36,57 @@ export const PomodoroEditModal = ({
   if (!session) return null;
 
   const handleSave = () => {
-    const baseDate = new Date(session.startTime);
+    // Obtener la fecha base de la sesión original
+    const baseDate = new Date(session.startTime.timestamp);
     
-    // Crear nuevas fechas manteniendo el día pero actualizando las horas
+    // Crear fechas nuevas con las horas actualizadas
     const [startHours, startMinutes] = startTime.split(':').map(Number);
     const [endHours, endMinutes] = endTime.split(':').map(Number);
     
     const newStartTime = new Date(baseDate);
-    newStartTime.setHours(startHours, startMinutes, 0);
+    newStartTime.setHours(startHours, startMinutes, 0, 0);
     
     const newEndTime = new Date(baseDate);
-    newEndTime.setHours(endHours, endMinutes, 0);
+    newEndTime.setHours(endHours, endMinutes, 0, 0);
     
     // Si la hora de fin es menor que la de inicio, asumimos que es del día siguiente
     if (newEndTime < newStartTime) {
       newEndTime.setDate(newEndTime.getDate() + 1);
     }
-    
-    const duration = (newEndTime.getTime() - newStartTime.getTime()) / 1000;
 
-    onSave(session, {
-      startTime: newStartTime.toISOString(),
-      endTime: newEndTime.toISOString(),
-      duration,
+    // Crear objeto actualizado con los nuevos timestamps
+    const updatedSession: Partial<PomodoroSession> = {
+      startTime: {
+        timestamp: newStartTime.getTime(),
+        utcOffset: -newStartTime.getTimezoneOffset(),
+        formatted: new Date(newStartTime).toLocaleString('es-ES', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          second: 'numeric',
+          hour12: true
+        }) + ` UTC${-newStartTime.getTimezoneOffset() >= 0 ? '+' : '-'}${Math.abs(Math.floor(-newStartTime.getTimezoneOffset() / 60))}`
+      },
+      endTime: {
+        timestamp: newEndTime.getTime(),
+        utcOffset: -newEndTime.getTimezoneOffset(),
+        formatted: new Date(newEndTime).toLocaleString('es-ES', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          second: 'numeric',
+          hour12: true
+        }) + ` UTC${-newEndTime.getTimezoneOffset() >= 0 ? '+' : '-'}${Math.abs(Math.floor(-newEndTime.getTimezoneOffset() / 60))}`
+      },
+      duration: (newEndTime.getTime() - newStartTime.getTime()) / 1000,
       completed
-    });
+    };
+
+    onSave(session, updatedSession);
     onClose();
   };
 

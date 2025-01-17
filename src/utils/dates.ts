@@ -7,29 +7,40 @@ export const getLocalDateString = (date: Date) => {
     .split('T')[0];
 };
 
-// Obtiene una fecha formateada con UTC explícito
-export const getUTCFormattedDateTime = (date: Date) => {
+export const formatDateToSpanishWithUTC = (date: Date): string => {
+  const months = [
+    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+  ];
+
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  
+  // Formato de 12 horas con AM/PM
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // la hora '0' debe ser '12'
+
+  // Calcular offset UTC
   const offset = -date.getTimezoneOffset();
+  const offsetHours = Math.abs(Math.floor(offset / 60));
   const sign = offset >= 0 ? '+' : '-';
-  const hours = Math.floor(Math.abs(offset) / 60);
-  const mins = Math.abs(offset) % 60;
-  return date.toLocaleString('es-ES', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      hour: '2-digit', 
-      minute: '2-digit',
-      second: '2-digit',
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-  }) + ` UTC${sign}${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+
+  return `${day} de ${month} de ${year}, ${hours}:${minutes}:${seconds} ${ampm} UTC${sign}${offsetHours}`;
 };
 
-// Crea un timestamp manteniendo la información de UTC
-export const createUTCTimestamp = (baseDate: Date, hours: number, minutes: number) => {
-  const localDate = new Date(baseDate);
-  localDate.setHours(hours, minutes, 0, 0);
+// Función auxiliar para crear timestamps con el nuevo formato
+export const createFormattedTimestamp = (baseDate: Date, hours: number, minutes: number) => {
+  const date = new Date(baseDate);
+  date.setHours(hours, minutes, 0, 0);
+  
   return {
-      timestamp: localDate.getTime(),
-      utcOffset: -localDate.getTimezoneOffset()
+    timestamp: date.getTime(),
+    utcOffset: -date.getTimezoneOffset(),
+    formatted: formatDateToSpanishWithUTC(date)
   };
 };

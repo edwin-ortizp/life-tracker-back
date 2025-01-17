@@ -1,28 +1,13 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { CheckCircle, XCircle, ChevronDown, Edit, Trash2 } from 'lucide-react';
 import type { PomodoroSession } from '../types';
+import { formatDateToSpanishWithUTC } from '@/utils/dates';
 
 interface PomodoroHistoryProps {
   sessions: PomodoroSession[];
   onDeleteSession?: (session: PomodoroSession) => void;
   onEditSession?: (session: PomodoroSession) => void;
 }
-
-interface TimestampWithOffset {
-  timestamp: number;
-  utcOffset: number;
-}
-
-const formatTimestampWithOffset = (timestampWithOffset: TimestampWithOffset) => {
-  const date = new Date(timestampWithOffset.timestamp);
-  return new Intl.DateTimeFormat('es-ES', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(date);
-};
 
 export const PomodoroHistory = ({ sessions, onDeleteSession, onEditSession }: PomodoroHistoryProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,6 +19,10 @@ export const PomodoroHistory = ({ sessions, onDeleteSession, onEditSession }: Po
       </div>
     );
   }
+
+  const formatSessionTime = (timestamp: number) => {
+    return formatDateToSpanishWithUTC(new Date(timestamp));
+  };
 
   return (
     <div className="mt-4">
@@ -57,15 +46,13 @@ export const PomodoroHistory = ({ sessions, onDeleteSession, onEditSession }: Po
               ) : (
                 <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
               )}
-              <span className="flex-1">
-                {formatTimestampWithOffset(session.startTime)} -{' '}
-                {formatTimestampWithOffset(session.endTime)}
-                <span className="text-xs text-gray-500 ml-2">
-                  UTC{session.startTime.utcOffset >= 0 ? '+' : '-'}
-                  {Math.abs(Math.floor(session.startTime.utcOffset / 60))}
-                </span>
-              </span>
-              <span className="text-gray-500">
+              <div className="flex-1">
+                <div>{formatSessionTime(session.startTime.timestamp)}</div>
+                <div className="text-gray-500">hasta</div>
+                <div>{formatSessionTime(session.endTime.timestamp)}</div>
+              </div>
+              
+              <span className="text-gray-500 whitespace-nowrap">
                 {Math.floor(session.duration / 60)}min
               </span>
               

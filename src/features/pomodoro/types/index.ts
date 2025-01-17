@@ -1,6 +1,7 @@
 export interface TimestampWithOffset {
   timestamp: number;
   utcOffset: number;  // en minutos
+  formatted: string;  // fecha formateada en español con UTC
 }
 
 export interface PomodoroSession {
@@ -9,23 +10,23 @@ export interface PomodoroSession {
   duration: number;
   completed: boolean;
 }
-  
-  export interface PomodoroData {
-    userId: string;
+
+export interface PomodoroData {
+  userId: string;
+  date: string;
+  count: number;
+  sessions: PomodoroSession[];
+  updatedAt: any;
+}
+
+export interface PomodoroStats {
+  totalSessions: number;
+  completedSessions: number;
+  totalTime: number;
+  averageSessionTime: number;
+  completionRate: number;
+  bestDay: {
     date: string;
-    count: number;
-    sessions: PomodoroSession[];
-    updatedAt: any;
-  }
-  
-  export interface PomodoroStats {
-    totalSessions: number;
-    completedSessions: number;
-    totalTime: number;
-    averageSessionTime: number;
-    completionRate: number;
-    bestDay: {
-      date: string;
-      sessions: number;
-    };
-  }
+    sessions: number;
+  };
+}

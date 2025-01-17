@@ -1,10 +1,9 @@
-// src/features/pomodoro/hooks/usePomodoroData.ts
 import { useState, useEffect } from 'react';
 import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import type { PomodoroData, PomodoroSession } from '../types';
-import { createUTCTimestamp } from '@/utils/dates';
+import { createFormattedTimestamp } from '@/utils/dates';
 
 export const usePomodoroData = (selectedDate?: Date) => {
   const [data, setData] = useState<PomodoroData | null>(null);
@@ -57,17 +56,31 @@ export const usePomodoroData = (selectedDate?: Date) => {
       const baseDate = selectedDate || new Date();
       const now = new Date();
       
-      // Crear timestamps con offset UTC
-      const endTime = createUTCTimestamp(baseDate, now.getHours(), now.getMinutes());
-      const startTime = createUTCTimestamp(
-        new Date(endTime.timestamp - 30 * 60 * 1000),
-        new Date(endTime.timestamp - 30 * 60 * 1000).getHours(),
-        new Date(endTime.timestamp - 30 * 60 * 1000).getMinutes()
+      // Crear timestamps con el nuevo formato
+      const endTime = createFormattedTimestamp(
+        baseDate,
+        now.getHours(),
+        now.getMinutes()
+      );
+
+      const startDate = new Date(now.getTime() - 30 * 60 * 1000);
+      const startTime = createFormattedTimestamp(
+        baseDate,
+        startDate.getHours(),
+        startDate.getMinutes()
       );
   
       const newSession: PomodoroSession = {
-        startTime,
-        endTime,
+        startTime: {
+          timestamp: startTime.timestamp,
+          utcOffset: startTime.utcOffset,
+          formatted: startTime.formatted
+        },
+        endTime: {
+          timestamp: endTime.timestamp,
+          utcOffset: endTime.utcOffset,
+          formatted: endTime.formatted
+        },
         duration: 30 * 60,
         completed: true
       };
@@ -101,17 +114,31 @@ export const usePomodoroData = (selectedDate?: Date) => {
       const baseDate = selectedDate || new Date();
       const now = new Date();
       
-      // Crear timestamps con offset UTC
-      const endTime = createUTCTimestamp(baseDate, now.getHours(), now.getMinutes());
-      const startTime = createUTCTimestamp(
-        new Date(endTime.timestamp - duration * 1000), 
-        new Date(endTime.timestamp - duration * 1000).getHours(),
-        new Date(endTime.timestamp - duration * 1000).getMinutes()
+      // Crear timestamps con el nuevo formato
+      const endTime = createFormattedTimestamp(
+        baseDate,
+        now.getHours(),
+        now.getMinutes()
+      );
+      
+      const startDate = new Date(now.getTime() - duration * 1000);
+      const startTime = createFormattedTimestamp(
+        baseDate,
+        startDate.getHours(),
+        startDate.getMinutes()
       );
 
       const newSession: PomodoroSession = {
-        startTime,
-        endTime,
+        startTime: {
+          timestamp: startTime.timestamp,
+          utcOffset: startTime.utcOffset,
+          formatted: startTime.formatted
+        },
+        endTime: {
+          timestamp: endTime.timestamp,
+          utcOffset: endTime.utcOffset,
+          formatted: endTime.formatted
+        },
         duration,
         completed
       };
@@ -131,7 +158,7 @@ export const usePomodoroData = (selectedDate?: Date) => {
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
     }
-};
+  };
 
   const updateCount = async (newCount: number) => {
     if (!user || !data) return;
@@ -164,7 +191,7 @@ export const usePomodoroData = (selectedDate?: Date) => {
 
     try {
       const updatedSessions = data.sessions.filter(
-        session => session.startTime !== sessionToDelete.startTime
+        session => session.startTime.timestamp !== sessionToDelete.startTime.timestamp
       );
 
       const updatedCount = data.count - (sessionToDelete.completed ? 1 : 0);
@@ -196,32 +223,52 @@ export const usePomodoroData = (selectedDate?: Date) => {
     setError(null);
   
     try {
-      // Si hay fechas actualizadas, convertirlas al nuevo formato
-      const processedUpdate: Partial<PomodoroSession> = {
-        ...updatedSession
-      };
-  
+      const baseDate = new Date(oldSession.startTime.timestamp);
+      
+      // Crear nuevos timestamps con el formato actualizado
+      let newStartTime = oldSession.startTime;
+      let newEndTime = oldSession.endTime;
+      
       if (updatedSession.startTime) {
         const startDate = new Date(updatedSession.startTime.timestamp);
-        processedUpdate.startTime = createUTCTimestamp(
-          startDate,
+        const formattedStart = createFormattedTimestamp(
+          baseDate,
           startDate.getHours(),
           startDate.getMinutes()
         );
+        newStartTime = {
+          timestamp: formattedStart.timestamp,
+          utcOffset: formattedStart.utcOffset,
+          formatted: formattedStart.formatted
+        };
       }
-  
+      
       if (updatedSession.endTime) {
         const endDate = new Date(updatedSession.endTime.timestamp);
-        processedUpdate.endTime = createUTCTimestamp(
-          endDate,
+        const formattedEnd = createFormattedTimestamp(
+          baseDate,
           endDate.getHours(),
           endDate.getMinutes()
         );
+        newEndTime = {
+          timestamp: formattedEnd.timestamp,
+          utcOffset: formattedEnd.utcOffset,
+          formatted: formattedEnd.formatted
+        };
       }
+      
+      // Calcular nueva duración
+      const duration = (newEndTime.timestamp - newStartTime.timestamp) / 1000;
   
       const updatedSessions = data.sessions.map(session =>
         session.startTime.timestamp === oldSession.startTime.timestamp
-          ? { ...session, ...processedUpdate }
+          ? {
+              ...session,
+              startTime: newStartTime,
+              endTime: newEndTime,
+              duration,
+              completed: updatedSession.completed ?? session.completed
+            }
           : session
       );
   
