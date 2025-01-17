@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pomodoro } from '@/features/pomodoro/components';
-import Water from './Water';
+import { Water } from '@/features/water/components';
 import Habit from './Habit';
 import Mood from './Mood';
 import Diary from './Diary';
@@ -33,7 +33,7 @@ const DailyTrackerApp = () => {
               <Water selectedDate={selectedDate} />
             </div>
             <Habit selectedDate={selectedDate} />
-            <Task selectedDate={selectedDate} />
+            <Task/>
           </div>
 
           <div className="col-span-12 lg:col-span-4 space-y-6">

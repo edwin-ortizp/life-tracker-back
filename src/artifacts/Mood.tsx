@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { db } from '../firebase';
 import { useAuth } from '../hooks/useAuth';
+import { getLocalDateString } from '@/utils/dates';
 import { 
   collection, 
   addDoc, 
@@ -35,7 +36,7 @@ const Mood = ({ selectedDate }: MoodProps) => {
   useEffect(() => {
     if (!user) return;
 
-    const dateString = selectedDate.toISOString().split('T')[0];
+    const dateString = getLocalDateString(selectedDate);
     
     console.log('Mood - Suscribiéndose a colección moods para:', dateString);
 
@@ -71,7 +72,7 @@ const Mood = ({ selectedDate }: MoodProps) => {
     setStatus('saving');
     setError(null);
 
-    const dateString = selectedDate.toISOString().split('T')[0];
+    const dateString = getLocalDateString(selectedDate);
 
     try {
       console.log('Mood - Guardando:', {
@@ -112,7 +113,7 @@ const Mood = ({ selectedDate }: MoodProps) => {
     );
   }
 
-  const isCurrentDate = selectedDate.toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
+  const isCurrentDate = getLocalDateString(selectedDate) === getLocalDateString(new Date());
 
   return (
     <Card className="w-full">

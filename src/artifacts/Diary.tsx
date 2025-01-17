@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Book, Save } from 'lucide-react';
 import { db } from '../firebase';
 import { useAuth } from '../hooks/useAuth';
+import { getLocalDateString } from '@/utils/dates';
 import { 
   doc, 
   setDoc, 
@@ -20,7 +21,7 @@ const Diary = ({ selectedDate }) => {
   useEffect(() => {
     if (!user) return;
 
-    const dateString = selectedDate.toISOString().split('T')[0];
+    const dateString = getLocalDateString(selectedDate);
     const docRef = doc(db, 'diary', `${user.uid}_${dateString}`);
 
     const unsubscribe = onSnapshot(docRef, 
@@ -48,7 +49,7 @@ const Diary = ({ selectedDate }) => {
     setStatus('saving');
     setError(null);
 
-    const dateString = selectedDate.toISOString().split('T')[0];
+    const dateString = getLocalDateString(selectedDate);
     const docRef = doc(db, 'diary', `${user.uid}_${dateString}`);
 
     try {
@@ -118,7 +119,7 @@ const Diary = ({ selectedDate }) => {
             setStatus('idle');
         }}
         placeholder="¿Cómo ha sido tu día?"
-        className="w-full h-64 p-4 border rounded resize-none focus:ring-2 focus:ring-blue-500" // Aumentar altura y mejorar estilo
+        className="w-full h-64 p-4 border rounded resize-none focus:ring-2 focus:ring-blue-500"
         />
         <Button 
           onClick={saveEntry} 
