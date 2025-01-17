@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Pomodoro } from '@/features/pomodoro/components';
 import { Water } from '@/features/water/components';
-import Habit from './Habit';
-import Mood from './Mood';
-import Diary from './Diary';
-import Task from './Task';
+import { Habit } from '@/features/habit/components';
+import { Mood } from '@/features/mood/components';
+import { Diary } from '@/features/diary/components';
+import { Task } from '@/features/task/components';
 import Auth from '../components/Auth';
 import DateSelector from '../components/DateSelector';
 

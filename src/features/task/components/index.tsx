@@ -1,74 +1,62 @@
-// src/features/water/components/index.tsx
-import React, { useState } from 'react';
+// src/features/task/components/index.tsx
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
-import { WaterProgress } from './WaterProgress';
-import { DrinkSelector } from './DrinkSelector';
-import { DrinkHistory } from './DrinkHistory';
-import { useWaterData } from '../hooks/useWaterData';
-import type { WaterProps } from '../types';
+import { TaskInput } from './TaskInput';
+import { TaskList } from './TaskList';
+import { useTaskData } from '../hooks/useTaskData';
+import type { TaskProps } from '../types';
 
-export const Water: React.FC<WaterProps> = ({ selectedDate }) => {
-  const [selectedDrink, setSelectedDrink] = useState<string | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
+// Exports
+export * from './TaskInput';
+export * from './TaskList';
+
+// Main component
+export const Task: React.FC<TaskProps> = () => {
   const { user } = useAuth();
-  const goal = 2000;
-
   const {
-    intake,
-    drinks,
+    tasks,
     status,
     error,
-    addDrink,
-    deleteDrink
-  } = useWaterData(selectedDate);
+    addTask,
+    toggleTask,
+    deleteTask
+  } = useTaskData();
 
   if (!user) {
     return (
       <Card className="w-full">
         <CardContent className="p-4 text-center">
-          <p>Inicia sesión para registrar tu hidratación</p>
+          <p>Inicia sesión para gestionar tus tareas</p>
         </CardContent>
       </Card>
     );
   }
 
-  const isCurrentDate = selectedDate.toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
-
   return (
     <Card className="w-full">
-      <CardContent className="p-4">
-        <WaterProgress intake={intake} goal={goal} />
+      <CardContent className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-medium text-lg">Tareas Pendientes</h3>
+          {status === 'saving' && (
+            <span className="text-xs text-blue-500">Guardando...</span>
+          )}
+        </div>
 
-        {isCurrentDate && (
-          <DrinkSelector
-            selectedDrink={selectedDrink}
-            onDrinkSelect={setSelectedDrink}
-            onAmountSelect={(type, amount) => {
-              addDrink(type, amount);
-              setSelectedDrink(null);
-            }}
-            disabled={status === 'saving'}
-          />
-        )}
+        <TaskInput
+          onAdd={addTask}
+          disabled={status === 'saving'}
+        />
 
-        <DrinkHistory
-          drinks={drinks}
-          showHistory={showHistory}
-          onToggleHistory={() => setShowHistory(!showHistory)}
-          onDeleteDrink={deleteDrink}
-          isCurrentDate={isCurrentDate}
+        <TaskList
+          tasks={tasks}
+          onToggle={toggleTask}
+          onDelete={deleteTask}
         />
 
         {error && (
-          <p className="mt-2 text-sm text-red-500">
+          <p className="mt-4 text-sm text-red-500">
             {error}
-          </p>
-        )}
-
-        {status === 'saving' && (
-          <p className="mt-2 text-sm text-blue-500">
-            Guardando...
           </p>
         )}
       </CardContent>
@@ -76,10 +64,4 @@ export const Water: React.FC<WaterProps> = ({ selectedDate }) => {
   );
 };
 
-// Re-export components for easier imports
-export * from './WaterProgress';
-export * from './DrinkSelector';
-export * from './DrinkHistory';
-
-// Default export for the main component
-export default Water;
+export default Task;

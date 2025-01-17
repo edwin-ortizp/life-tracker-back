@@ -44,7 +44,7 @@ const Navigation = () => {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Timer, label: 'Pomodoro', path: '/pomodoro' },
     { icon: Droplet, label: 'Hidratación', path: '/hydration' },
-    { icon: CheckSquare, label: 'Hábitos', path: '/habits' },
+    { icon: CheckSquare, label: 'Hábitos', path: '/habit' },
     { icon: Smile, label: 'Estado de ánimo', path: '/mood' },
     { icon: BookOpen, label: 'Diario', path: '/diary' },
     { icon: BarChart2, label: 'Estadísticas', path: '/stats' },
