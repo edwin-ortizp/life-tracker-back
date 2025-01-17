@@ -1,8 +1,13 @@
-import React from 'react';
+//import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
 
-const DateSelector = ({ selectedDate, onChange }) => {
+interface DateSelectorProps {
+  selectedDate: Date;
+  onChange: (date: Date) => void;
+}
+
+const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onChange }) => {
   const goToPreviousDay = () => {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() - 1);
@@ -19,7 +24,7 @@ const DateSelector = ({ selectedDate, onChange }) => {
     onChange(new Date());
   };
 
-  const formatDate = (date) => {
+  const formatDate = (date: Date) => {
     return date.toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
@@ -33,7 +38,7 @@ const DateSelector = ({ selectedDate, onChange }) => {
     return timezone;
   };
 
-  const isToday = (date) => {
+  const isToday = (date: Date) => {
     const today = new Date();
     return date.toISOString().split('T')[0] === today.toISOString().split('T')[0];
   };

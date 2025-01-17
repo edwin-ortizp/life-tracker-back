@@ -33,7 +33,7 @@ const DailyTrackerApp = () => {
               <Water selectedDate={selectedDate} />
             </div>
             <Habit selectedDate={selectedDate} />
-            <Task/>
+            <Task selectedDate={selectedDate}/>
           </div>
 
           <div className="col-span-12 lg:col-span-4 space-y-6">

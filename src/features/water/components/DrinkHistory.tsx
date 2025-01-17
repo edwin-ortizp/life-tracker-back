@@ -39,7 +39,7 @@ export const DrinkHistory: React.FC<DrinkHistoryProps> = ({
         <div className="mt-4 space-y-2">
           {drinks.map((drink, index) => {
             const drinkInfo = DRINKS[drink.type];
-            const Icon = Icons[drinkInfo.icon as keyof typeof Icons];
+            const Icon = Icons[drinkInfo.icon as keyof typeof Icons] as React.ElementType;
             return (
               <div 
                 key={drink.timestamp}

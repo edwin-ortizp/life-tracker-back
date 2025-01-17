@@ -8,7 +8,6 @@ import {
   onSnapshot,
   serverTimestamp 
 } from 'firebase/firestore';
-import type { Habit } from '../types';
 
 interface CompletedHabits {
   [key: string]: boolean;
