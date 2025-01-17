@@ -4,6 +4,7 @@ import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import type { PomodoroData, PomodoroSession } from '../types';
+import { createUTCTimestamp } from '@/utils/dates';
 
 export const usePomodoroData = (selectedDate?: Date) => {
   const [data, setData] = useState<PomodoroData | null>(null);
@@ -48,34 +49,38 @@ export const usePomodoroData = (selectedDate?: Date) => {
 
   const addManualSession = async () => {
     if (!user || !data) return;
-
+  
     setStatus('saving');
     setError(null);
-
+  
     try {
-      // Para sesiones manuales, usamos la fecha seleccionada como base
       const baseDate = selectedDate || new Date();
-      const now = new Date(baseDate);
-      now.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
+      const now = new Date();
       
-      const startTime = new Date(now.getTime() - 30 * 60 * 1000);
-      
+      // Crear timestamps con offset UTC
+      const endTime = createUTCTimestamp(baseDate, now.getHours(), now.getMinutes());
+      const startTime = createUTCTimestamp(
+        new Date(endTime.timestamp - 30 * 60 * 1000),
+        new Date(endTime.timestamp - 30 * 60 * 1000).getHours(),
+        new Date(endTime.timestamp - 30 * 60 * 1000).getMinutes()
+      );
+  
       const newSession: PomodoroSession = {
-        startTime: startTime.toISOString(),
-        endTime: now.toISOString(),
+        startTime,
+        endTime,
         duration: 30 * 60,
         completed: true
       };
-
+  
       const updatedData: PomodoroData = {
         ...data,
         count: data.count + 1,
         sessions: [...data.sessions, newSession].sort((a, b) => 
-          new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+          b.startTime.timestamp - a.startTime.timestamp
         ),
         updatedAt: serverTimestamp()
       };
-
+  
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
       await setDoc(docRef, updatedData);
       setStatus('saved');
@@ -94,14 +99,19 @@ export const usePomodoroData = (selectedDate?: Date) => {
     
     try {
       const baseDate = selectedDate || new Date();
-      const now = new Date(baseDate);
-      now.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
+      const now = new Date();
       
-      const startTime = new Date(now.getTime() - duration * 1000);
-      
+      // Crear timestamps con offset UTC
+      const endTime = createUTCTimestamp(baseDate, now.getHours(), now.getMinutes());
+      const startTime = createUTCTimestamp(
+        new Date(endTime.timestamp - duration * 1000), 
+        new Date(endTime.timestamp - duration * 1000).getHours(),
+        new Date(endTime.timestamp - duration * 1000).getMinutes()
+      );
+
       const newSession: PomodoroSession = {
-        startTime: startTime.toISOString(),
-        endTime: now.toISOString(),
+        startTime,
+        endTime,
         duration,
         completed
       };
@@ -121,7 +131,7 @@ export const usePomodoroData = (selectedDate?: Date) => {
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
     }
-  };
+};
 
   const updateCount = async (newCount: number) => {
     if (!user || !data) return;
@@ -181,28 +191,51 @@ export const usePomodoroData = (selectedDate?: Date) => {
     updatedSession: Partial<PomodoroSession>
   ) => {
     if (!user || !data) return;
-
+  
     setStatus('saving');
     setError(null);
-
+  
     try {
+      // Si hay fechas actualizadas, convertirlas al nuevo formato
+      const processedUpdate: Partial<PomodoroSession> = {
+        ...updatedSession
+      };
+  
+      if (updatedSession.startTime) {
+        const startDate = new Date(updatedSession.startTime.timestamp);
+        processedUpdate.startTime = createUTCTimestamp(
+          startDate,
+          startDate.getHours(),
+          startDate.getMinutes()
+        );
+      }
+  
+      if (updatedSession.endTime) {
+        const endDate = new Date(updatedSession.endTime.timestamp);
+        processedUpdate.endTime = createUTCTimestamp(
+          endDate,
+          endDate.getHours(),
+          endDate.getMinutes()
+        );
+      }
+  
       const updatedSessions = data.sessions.map(session =>
-        session.startTime === oldSession.startTime
-          ? { ...session, ...updatedSession }
+        session.startTime.timestamp === oldSession.startTime.timestamp
+          ? { ...session, ...processedUpdate }
           : session
       );
-
+  
       const countDiff = 
         (oldSession.completed ? -1 : 0) + 
         (updatedSession.completed ? 1 : 0);
-
+  
       const updatedData = {
         ...data,
         sessions: updatedSessions,
         count: Math.max(0, data.count + countDiff),
         updatedAt: serverTimestamp()
       };
-
+  
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
       await setDoc(docRef, updatedData);
       setStatus('saved');

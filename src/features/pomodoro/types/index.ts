@@ -1,9 +1,14 @@
+export interface TimestampWithOffset {
+  timestamp: number;
+  utcOffset: number;  // en minutos
+}
+
 export interface PomodoroSession {
-    startTime: string;
-    endTime: string;
-    duration: number;
-    completed: boolean;
-  }
+  startTime: TimestampWithOffset;
+  endTime: TimestampWithOffset;
+  duration: number;
+  completed: boolean;
+}
   
   export interface PomodoroData {
     userId: string;

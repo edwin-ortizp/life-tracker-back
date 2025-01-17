@@ -10,11 +10,21 @@ interface PomodoroHistoryProps {
   onEditSession?: (session: PomodoroSession) => void;
 }
 
-export const PomodoroHistory = ({ 
-  sessions, 
-  onDeleteSession, 
-  onEditSession 
-}: PomodoroHistoryProps) => {
+interface TimestampWithOffset {
+  timestamp: number;
+  utcOffset: number;
+}
+
+const formatTimestampWithOffset = (timestampWithOffset: TimestampWithOffset) => {
+  const date = new Date(timestampWithOffset.timestamp);
+  return new Intl.DateTimeFormat('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+};
+
+export const PomodoroHistory = ({ sessions, onDeleteSession, onEditSession }: PomodoroHistoryProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   if (sessions.length === 0) {
@@ -27,7 +37,6 @@ export const PomodoroHistory = ({
 
   return (
     <div className="mt-4">
-      {/* Header del acordeón */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
@@ -36,12 +45,11 @@ export const PomodoroHistory = ({
         <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
       </button>
 
-      {/* Contenido del acordeón */}
       {isOpen && (
         <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
           {sessions.map((session) => (
             <div 
-              key={session.startTime}
+              key={session.startTime.timestamp}
               className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg text-sm"
             >
               {session.completed ? (
@@ -50,14 +58,17 @@ export const PomodoroHistory = ({
                 <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
               )}
               <span className="flex-1">
-                {format(new Date(session.startTime), 'HH:mm', { locale: es })} -{' '}
-                {format(new Date(session.endTime), 'HH:mm', { locale: es })}
+                {formatTimestampWithOffset(session.startTime)} -{' '}
+                {formatTimestampWithOffset(session.endTime)}
+                <span className="text-xs text-gray-500 ml-2">
+                  UTC{session.startTime.utcOffset >= 0 ? '+' : '-'}
+                  {Math.abs(Math.floor(session.startTime.utcOffset / 60))}
+                </span>
               </span>
               <span className="text-gray-500">
                 {Math.floor(session.duration / 60)}min
               </span>
               
-              {/* Botones siempre visibles */}
               <div className="flex gap-2 ml-2">
                 {onEditSession && (
                   <button
