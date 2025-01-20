@@ -9,6 +9,7 @@ export interface PomodoroSession {
   endTime: TimestampWithOffset;
   duration: number;
   completed: boolean;
+  description?: string; // descripción de la tarea
 }
 
 export interface PomodoroData {

@@ -1,4 +1,3 @@
-// src/features/mood/components/MoodSelector.tsx
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { MOODS } from '../types';
@@ -12,15 +11,19 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({ onSelect, disabled }
   return (
     <div className="grid grid-cols-3 gap-2 mb-4">
       {MOODS.map((mood) => (
-        <Button
-          key={mood.emoji}
-          variant="outline"
-          onClick={() => onSelect(mood)}
-          className="h-12 text-lg"
-          disabled={disabled}
-        >
-          {mood.emoji}
-        </Button>
+        <div key={mood.emoji} className="relative">
+          <Button
+            variant="outline"
+            onClick={() => onSelect(mood)}
+            className="h-12 text-lg w-full relative hover:bg-gray-100"
+            disabled={disabled}
+          >
+            <span>{mood.emoji}</span>
+          </Button>
+          <div className="absolute w-full text-center text-xs text-gray-500 mt-1">
+            {mood.text}
+          </div>
+        </div>
       ))}
     </div>
   );

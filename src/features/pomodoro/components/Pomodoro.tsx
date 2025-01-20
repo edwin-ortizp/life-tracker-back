@@ -26,7 +26,6 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
     status,
     error,
     saveSession,
-    updateCount,
     deleteSession,
     editSession,
     addManualSession
@@ -62,7 +61,6 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
   return (
     <Card className="w-full">
       <CardContent className="p-6">
-        
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5" />
@@ -72,7 +70,6 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
           <PomodoroCounter
             count={count}
             onIncrement={handleIncrement}
-            onDecrement={() => updateCount(Math.max(0, count - 1))}
             disabled={status === 'saving'}
             status={status}
           />

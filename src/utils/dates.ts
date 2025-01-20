@@ -1,12 +1,3 @@
-// src/utils/dates.ts
-
-// Obtiene la fecha local en formato YYYY-MM-DD
-export const getLocalDateString = (date: Date) => {
-  return new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
-    .toISOString()
-    .split('T')[0];
-};
-
 export const formatDateToSpanishWithUTC = (date: Date): string => {
   const months = [
     'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
@@ -33,7 +24,6 @@ export const formatDateToSpanishWithUTC = (date: Date): string => {
   return `${day} de ${month} de ${year}, ${hours}:${minutes}:${seconds} ${ampm} UTC${sign}${offsetHours}`;
 };
 
-// Función auxiliar para crear timestamps con el nuevo formato
 export const createFormattedTimestamp = (baseDate: Date, hours: number, minutes: number) => {
   const date = new Date(baseDate);
   date.setHours(hours, minutes, 0, 0);
@@ -43,4 +33,11 @@ export const createFormattedTimestamp = (baseDate: Date, hours: number, minutes:
     utcOffset: -date.getTimezoneOffset(),
     formatted: formatDateToSpanishWithUTC(date)
   };
+};
+
+// Obtiene la fecha local en formato YYYY-MM-DD
+export const getLocalDateString = (date: Date) => {
+  return new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+    .toISOString()
+    .split('T')[0];
 };

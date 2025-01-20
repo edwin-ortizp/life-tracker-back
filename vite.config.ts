@@ -5,6 +5,9 @@ import Pages from 'vite-plugin-pages';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  server: {
+    host: true  // Esto permite el acceso desde la red local
+  },
   plugins: [
     react(),
     Pages({

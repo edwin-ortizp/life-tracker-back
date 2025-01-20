@@ -1,11 +1,10 @@
 // src/features/pomodoro/components/PomodoroCounter.tsx
 import { Button } from '@/components/ui/button';
-import { Plus, Minus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface PomodoroCounterProps {
   count: number;
   onIncrement: () => void;
-  onDecrement: () => void;
   disabled?: boolean;
   status: 'idle' | 'saving' | 'saved' | 'error';
 }
@@ -13,25 +12,14 @@ interface PomodoroCounterProps {
 export const PomodoroCounter = ({
   count,
   onIncrement,
-  onDecrement,
   disabled,
   status
 }: PomodoroCounterProps) => {
   return (
     <div className="flex items-center gap-2">
-      <Button 
-        variant="outline" 
-        size="icon" 
-        onClick={onDecrement}
-        disabled={disabled || count === 0}
-        className="h-8 w-8"
-      >
-        <Minus className="w-4 h-4" />
-      </Button>
-
       <div className="flex flex-col items-center min-w-[3rem]">
         <span className="font-medium text-lg">{count}</span>
-        <span className="text-xs text-gray-500">ciclos</span>
+        <span className="text-xs text-gray-500">completados</span>
       </div>
 
       <Button 

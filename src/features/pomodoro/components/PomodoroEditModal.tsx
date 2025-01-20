@@ -15,6 +15,7 @@ export const PomodoroEditModal = ({
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [completed, setCompleted] = useState(false);
+  const [description, setDescription] = useState("");
 
   // Actualizar el estado cuando cambia la sesión seleccionada
   useEffect(() => {
@@ -22,7 +23,6 @@ export const PomodoroEditModal = ({
       const start = new Date(session.startTime.timestamp);
       const end = new Date(session.endTime.timestamp);
       
-      // Convertir a hora local y formato HH:mm
       setStartTime(
         `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`
       );
@@ -30,16 +30,15 @@ export const PomodoroEditModal = ({
         `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`
       );
       setCompleted(session.completed);
+      setDescription(session.description || "");
     }
   }, [session]);
 
   if (!session) return null;
 
   const handleSave = () => {
-    // Obtener la fecha base de la sesión original
     const baseDate = new Date(session.startTime.timestamp);
     
-    // Crear fechas nuevas con las horas actualizadas
     const [startHours, startMinutes] = startTime.split(':').map(Number);
     const [endHours, endMinutes] = endTime.split(':').map(Number);
     
@@ -49,12 +48,10 @@ export const PomodoroEditModal = ({
     const newEndTime = new Date(baseDate);
     newEndTime.setHours(endHours, endMinutes, 0, 0);
     
-    // Si la hora de fin es menor que la de inicio, asumimos que es del día siguiente
     if (newEndTime < newStartTime) {
       newEndTime.setDate(newEndTime.getDate() + 1);
     }
 
-    // Crear objeto actualizado con los nuevos timestamps
     const updatedSession: Partial<PomodoroSession> = {
       startTime: {
         timestamp: newStartTime.getTime(),
@@ -83,7 +80,8 @@ export const PomodoroEditModal = ({
         }) + ` UTC${-newEndTime.getTimezoneOffset() >= 0 ? '+' : '-'}${Math.abs(Math.floor(-newEndTime.getTimezoneOffset() / 60))}`
       },
       duration: (newEndTime.getTime() - newStartTime.getTime()) / 1000,
-      completed
+      completed,
+      description: description.trim() || undefined // Solo guardamos si hay descripción
     };
 
     onSave(session, updatedSession);
@@ -134,6 +132,20 @@ export const PomodoroEditModal = ({
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                Descripción (opcional)
+              </label>
+              <input
+                id="description"
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="¿Qué hiciste en esta sesión?"
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
             <div className="flex items-center space-x-2">

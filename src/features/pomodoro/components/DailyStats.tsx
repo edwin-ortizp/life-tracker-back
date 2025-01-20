@@ -12,10 +12,10 @@ const formatTimeCompact = (minutes: number): string => {
 
 interface DailyStatsProps {
   sessions: PomodoroSession[];
-  dailyGoal?: number; // en minutos, por defecto 4 horas = 240 minutos
+  dailyGoal?: number; // en minutos, por defecto 5 horas = 300 minutos
 }
 
-export const DailyStats = ({ sessions, dailyGoal = 240 }: DailyStatsProps) => {
+export const DailyStats = ({ sessions, dailyGoal = 300 }: DailyStatsProps) => {
   // Calcular tiempo total trabajado
   const totalTimeInSeconds = sessions.reduce((acc, session) => acc + session.duration, 0);
   const totalTimeInMinutes = Math.floor(totalTimeInSeconds / 60);

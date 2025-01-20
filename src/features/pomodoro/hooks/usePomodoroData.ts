@@ -5,13 +5,16 @@ import { useAuth } from '@/hooks/useAuth';
 import type { PomodoroData, PomodoroSession } from '../types';
 import { createFormattedTimestamp } from '@/utils/dates';
 
+interface SaveSessionOptions {
+  description?: string;
+}
+
 export const usePomodoroData = (selectedDate?: Date) => {
   const [data, setData] = useState<PomodoroData | null>(null);
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  // Obtener la fecha en formato YYYY-MM-DD
   const getFormattedDate = (date: Date) => date.toISOString().split('T')[0];
   const date = selectedDate ? getFormattedDate(selectedDate) : getFormattedDate(new Date());
 
@@ -23,7 +26,12 @@ export const usePomodoroData = (selectedDate?: Date) => {
     const unsubscribe = onSnapshot(docRef, 
       (doc) => {
         if (doc.exists()) {
-          setData(doc.data() as PomodoroData);
+          const pomodoroData = doc.data() as PomodoroData;
+          const completedCount = pomodoroData.sessions.filter(s => s.completed).length;
+          setData({
+            ...pomodoroData,
+            count: completedCount
+          });
           setStatus('saved');
         } else {
           setData({
@@ -46,7 +54,7 @@ export const usePomodoroData = (selectedDate?: Date) => {
     return () => unsubscribe();
   }, [user, date]);
 
-  const addManualSession = async () => {
+  const addManualSession = async (options: SaveSessionOptions = {}) => {
     if (!user || !data) return;
   
     setStatus('saving');
@@ -56,7 +64,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
       const baseDate = selectedDate || new Date();
       const now = new Date();
       
-      // Crear timestamps con el nuevo formato
       const endTime = createFormattedTimestamp(
         baseDate,
         now.getHours(),
@@ -82,15 +89,18 @@ export const usePomodoroData = (selectedDate?: Date) => {
           formatted: endTime.formatted
         },
         duration: 30 * 60,
-        completed: true
+        completed: true,
+        description: options.description
       };
+
+      const updatedSessions = [...data.sessions, newSession].sort((a, b) => 
+        b.startTime.timestamp - a.startTime.timestamp
+      );
   
       const updatedData: PomodoroData = {
         ...data,
-        count: data.count + 1,
-        sessions: [...data.sessions, newSession].sort((a, b) => 
-          b.startTime.timestamp - a.startTime.timestamp
-        ),
+        count: updatedSessions.filter(s => s.completed).length,
+        sessions: updatedSessions,
         updatedAt: serverTimestamp()
       };
   
@@ -104,7 +114,7 @@ export const usePomodoroData = (selectedDate?: Date) => {
     }
   };
 
-  const saveSession = async (duration: number, completed: boolean) => {
+  const saveSession = async (duration: number, completed: boolean, options: SaveSessionOptions = {}) => {
     if (!user || !data) return;
 
     setStatus('saving');
@@ -114,7 +124,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
       const baseDate = selectedDate || new Date();
       const now = new Date();
       
-      // Crear timestamps con el nuevo formato
       const endTime = createFormattedTimestamp(
         baseDate,
         now.getHours(),
@@ -140,13 +149,17 @@ export const usePomodoroData = (selectedDate?: Date) => {
           formatted: endTime.formatted
         },
         duration,
-        completed
+        completed,
+        description: options.description
       };
+
+      const updatedSessions = [...data.sessions, newSession];
+      const completedCount = updatedSessions.filter(s => s.completed).length;
 
       const updatedData: PomodoroData = {
         ...data,
-        count: completed ? data.count + 1 : data.count,
-        sessions: [...data.sessions, newSession],
+        count: completedCount,
+        sessions: updatedSessions,
         updatedAt: serverTimestamp()
       };
 
@@ -155,29 +168,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
       setStatus('saved');
     } catch (error) {
       console.error('Pomodoro - Error al guardar:', error);
-      setError(error instanceof Error ? error.message : 'Error al guardar');
-      setStatus('error');
-    }
-  };
-
-  const updateCount = async (newCount: number) => {
-    if (!user || !data) return;
-
-    setStatus('saving');
-    setError(null);
-
-    try {
-      const updatedData = {
-        ...data,
-        count: newCount,
-        updatedAt: serverTimestamp()
-      };
-
-      const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
-      await setDoc(docRef, updatedData);
-      setStatus('saved');
-    } catch (error) {
-      console.error('Pomodoro - Error al actualizar contador:', error);
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
     }
@@ -194,12 +184,10 @@ export const usePomodoroData = (selectedDate?: Date) => {
         session => session.startTime.timestamp !== sessionToDelete.startTime.timestamp
       );
 
-      const updatedCount = data.count - (sessionToDelete.completed ? 1 : 0);
-
       const updatedData = {
         ...data,
+        count: updatedSessions.filter(s => s.completed).length,
         sessions: updatedSessions,
-        count: Math.max(0, updatedCount),
         updatedAt: serverTimestamp()
       };
 
@@ -225,7 +213,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
     try {
       const baseDate = new Date(oldSession.startTime.timestamp);
       
-      // Crear nuevos timestamps con el formato actualizado
       let newStartTime = oldSession.startTime;
       let newEndTime = oldSession.endTime;
       
@@ -257,7 +244,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
         };
       }
       
-      // Calcular nueva duración
       const duration = (newEndTime.timestamp - newStartTime.timestamp) / 1000;
   
       const updatedSessions = data.sessions.map(session =>
@@ -267,19 +253,16 @@ export const usePomodoroData = (selectedDate?: Date) => {
               startTime: newStartTime,
               endTime: newEndTime,
               duration,
-              completed: updatedSession.completed ?? session.completed
+              completed: updatedSession.completed ?? session.completed,
+              description: updatedSession.description
             }
           : session
       );
   
-      const countDiff = 
-        (oldSession.completed ? -1 : 0) + 
-        (updatedSession.completed ? 1 : 0);
-  
       const updatedData = {
         ...data,
+        count: updatedSessions.filter(s => s.completed).length,
         sessions: updatedSessions,
-        count: Math.max(0, data.count + countDiff),
         updatedAt: serverTimestamp()
       };
   
@@ -299,7 +282,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
     status,
     error,
     saveSession,
-    updateCount,
     deleteSession,
     editSession,
     addManualSession
