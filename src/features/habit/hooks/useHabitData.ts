@@ -74,7 +74,6 @@ export const useHabitData = () => {
         if (month === yearMonth) continue; // Skip current month as it's already subscribed
         
         try {
-          const docRef = doc(habitsCollectionRef, `${user.uid}_${month}`);
           const docSnap = await getDocs(query(habitsCollectionRef, 
             where('userId', '==', user.uid),
             where('yearMonth', '==', month)
