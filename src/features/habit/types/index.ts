@@ -51,7 +51,8 @@ export const HABIT_COLORS: Record<number, string> = {
     15: 'bg-rose-500',
     16: 'bg-violet-500',
     17: 'bg-sky-500',
-    18: 'bg-emerald-500'
+    18: 'bg-emerald-500',
+    19: 'bg-indigo-500'
 } as const;
   
   // src/features/habit/utils/dateUtils.ts
