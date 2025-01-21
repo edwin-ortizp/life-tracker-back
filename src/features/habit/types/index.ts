@@ -13,6 +13,7 @@ export interface Habit {
   
 export const HABITS: Habit[] = [
     { id: 1, name: 'Tomar Agua', icon: '💧', timeOfDay: 'morning', goal: '5 min' },
+    { id: 19, name: 'Trotar 1km', icon: '🏃‍♀️‍➡️', timeOfDay: 'morning', goal: '10 min' },
     { id: 2, name: 'Jugar tenis', icon: '🎾', timeOfDay: 'morning', goal: '40 min' },
     { id: 3, name: 'Ducha fria', icon: '🚿', timeOfDay: 'morning', goal: '10 min' },
     { id: 4, name: 'Desayuno', icon: '🍳', timeOfDay: 'morning', goal: '30 min' },
@@ -26,7 +27,7 @@ export const HABITS: Habit[] = [
     { id: 12, name: 'Cena', icon: '🍽️', timeOfDay: 'night', goal: '30 min' },
     { id: 13, name: 'Lavarme los dientes', icon: '🪥', timeOfDay: 'night', goal: '2 min' },
     { id: 14, name: 'Seda Dental', icon: '🦷', timeOfDay: 'night', goal: '2 min' },
-    { id: 15, name: 'Llevar el diario', icon: '📓', timeOfDay: 'night', goal: '10 min' },
+    { id: 15, name: 'Llevar el diario', icon: '📓', timeOfDay: 'anytime', goal: '10 min' },
     { id: 16, name: 'Botar algo que no sirva', icon: '🗑️', timeOfDay: 'night', goal: '10 min' },
     { id: 17, name: 'Organizar la cocina', icon: '🍴', timeOfDay: 'night', goal: '15 min' },
     { id: 18, name: 'Lectura', icon: '📚', timeOfDay: 'night', goal: '5 min' }
