@@ -1,3 +1,4 @@
+// src/features/pomodoro/types/index.ts
 export interface TimestampWithOffset {
   timestamp: number;
   utcOffset: number;  // en minutos
@@ -9,25 +10,25 @@ export interface PomodoroSession {
   endTime: TimestampWithOffset;
   duration: number;
   completed: boolean;
-  description?: string; // descripción de la tarea
+  description?: string;
 }
 
 export interface PomodoroData {
   userId: string;
-  date: string;
+  date: string; // YYYY-MM-DD en hora local
   count: number;
   sessions: PomodoroSession[];
-  updatedAt: any;
+  updatedAt: any; // Firebase Timestamp
 }
 
 export interface PomodoroStats {
   totalSessions: number;
   completedSessions: number;
-  totalTime: number;
-  averageSessionTime: number;
-  completionRate: number;
-  bestDay: {
-    date: string;
+  totalTime: number; // en segundos
+  averageSessionTime: number; // en segundos
+  completionRate: number; // porcentaje
+  bestDay?: {
+    date: string; // formato dd/MM/yyyy
     sessions: number;
   };
 }

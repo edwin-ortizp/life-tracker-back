@@ -1,10 +1,10 @@
-// usePomodoroData.ts
+// src/features/pomodoro/hooks/usePomodoroData.ts
 import { useState, useEffect } from 'react';
 import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import type { PomodoroData, PomodoroSession } from '../types';
-import { createFormattedTimestamp } from '@/utils/dates';
+import { createFormattedTimestamp, getLocalDateString } from '@/utils/dates';
 
 interface SaveSessionOptions {
   description?: string;
@@ -16,8 +16,8 @@ export const usePomodoroData = (selectedDate?: Date) => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  const getFormattedDate = (date: Date) => date.toISOString().split('T')[0];
-  const date = selectedDate ? getFormattedDate(selectedDate) : getFormattedDate(new Date());
+  // Usamos la nueva función getLocalDateString para obtener la fecha correcta
+  const date = selectedDate ? getLocalDateString(selectedDate) : getLocalDateString(new Date());
 
   useEffect(() => {
     if (!user) return;
@@ -78,7 +78,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
         startDate.getMinutes()
       );
   
-      // Creamos el objeto base de la sesión
       const newSession: PomodoroSession = {
         startTime: {
           timestamp: startTime.timestamp,
@@ -94,7 +93,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
         completed: true
       };
 
-      // Solo agregamos description si existe y no está vacía
       if (options.description?.trim()) {
         newSession.description = options.description.trim();
       }
@@ -143,7 +141,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
         startDate.getMinutes()
       );
 
-      // Creamos el objeto base de la sesión
       const newSession: PomodoroSession = {
         startTime: {
           timestamp: startTime.timestamp,
@@ -159,7 +156,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
         completed
       };
 
-      // Solo agregamos description si existe y no está vacía
       if (options.description?.trim()) {
         newSession.description = options.description.trim();
       }
