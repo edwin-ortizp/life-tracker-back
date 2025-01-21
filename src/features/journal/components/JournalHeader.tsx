@@ -1,12 +1,12 @@
-// src/features/diary/components/DiaryHeader.tsx
+// src/features/journal/components/JournalHeader.tsx
 import React from 'react';
 import { Book } from 'lucide-react';
 
-interface DiaryHeaderProps {
+interface JournalHeaderProps {
   status: string;
 }
 
-export const DiaryHeader: React.FC<DiaryHeaderProps> = ({ status }) => {
+export const JournalHeader: React.FC<JournalHeaderProps> = ({ status }) => {
   return (
     <div className="flex items-center justify-between gap-2 mb-4">
       <div className="flex items-center gap-2">

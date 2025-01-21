@@ -1,8 +1,8 @@
-// src/pages/DiaryPage.tsx
+// src/pages/JournalPage.tsx
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Diary } from '@/features/diary/components';
+import { Journal } from '@/features/journal/components';
 import DateSelector from '@/components/DateSelector';
 import {
   BarChart,
@@ -18,7 +18,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 
-const DiaryPage = () => {
+const JournalPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [entryStats, setEntryStats] = useState<any[]>([]);
   const { user } = useAuth();
@@ -33,7 +33,7 @@ const DiaryPage = () => {
     if (!user) return;
 
     const q = query(
-      collection(db, 'diary'),
+      collection(db, 'journal'),
       where('userId', '==', user.uid),
       orderBy('date', 'desc'),
       limit(30)
@@ -71,7 +71,7 @@ const DiaryPage = () => {
         </TabsList>
 
         <TabsContent value="entry" className="space-y-4">
-          <Diary selectedDate={selectedDate} />
+          <Journal selectedDate={selectedDate} />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
@@ -134,4 +134,4 @@ const DiaryPage = () => {
   );
 };
 
-export default DiaryPage;
+export default JournalPage;

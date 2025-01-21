@@ -1,11 +1,11 @@
-// src/features/diary/hooks/useDiaryData.ts
+// src/features/journal/hooks/useJournalData.ts
 import { useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { getLocalDateString } from '@/utils/dates';
 
-export const useDiaryData = (selectedDate: Date) => {
+export const useJournalData = (selectedDate: Date) => {
   const [entry, setEntry] = useState('');
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState<string | null>(null);
@@ -15,7 +15,7 @@ export const useDiaryData = (selectedDate: Date) => {
     if (!user) return;
 
     const dateString = getLocalDateString(selectedDate);
-    const docRef = doc(db, 'diary', `${user.uid}_${dateString}`);
+    const docRef = doc(db, 'journal', `${user.uid}_${dateString}`);
 
     const unsubscribe = onSnapshot(docRef, 
       (doc) => {
@@ -43,7 +43,7 @@ export const useDiaryData = (selectedDate: Date) => {
     setError(null);
 
     const dateString = getLocalDateString(selectedDate);
-    const docRef = doc(db, 'diary', `${user.uid}_${dateString}`);
+    const docRef = doc(db, 'journal', `${user.uid}_${dateString}`);
 
     try {
       await setDoc(docRef, {

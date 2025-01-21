@@ -37,7 +37,7 @@ const Navigation = () => {
     { icon: Droplet, label: 'Hidratación', path: '/hydration' },
     { icon: CheckSquare, label: 'Hábitos', path: '/habit' },
     { icon: Smile, label: 'Estado de ánimo', path: '/mood' },
-    { icon: BookOpen, label: 'Diario', path: '/diary' },
+    { icon: BookOpen, label: 'Diario', path: '/journal' },
     { icon: Timer, label: 'Pomodoro', path: '/pomodoro' },
     { icon: UtensilsCrossed, label: 'Comidas', path: '/meal' },
     { icon: BarChart2, label: 'Estadísticas', path: '/stats' },

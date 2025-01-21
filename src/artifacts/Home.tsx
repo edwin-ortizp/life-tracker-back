@@ -3,7 +3,7 @@ import { Pomodoro } from '@/features/pomodoro/components';
 import { Water } from '@/features/water/components';
 import { Habit } from '@/features/habit/components';
 import { Mood } from '@/features/mood/components';
-import { Diary } from '@/features/diary/components';
+import { Journal } from '@/features/journal/components';
 import { Task } from '@/features/task/components';
 import Auth from '../components/Auth';
 import DateSelector from '../components/DateSelector';
@@ -38,7 +38,7 @@ const DailyTrackerApp = () => {
           <div className="col-span-12 lg:col-span-4 space-y-6">
             <Mood selectedDate={selectedDate} />
             <div className="h-96">
-              <Diary selectedDate={selectedDate} />
+              <Journal selectedDate={selectedDate} />
             </div>
           </div>
         </div>

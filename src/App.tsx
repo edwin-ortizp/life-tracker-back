@@ -3,7 +3,7 @@ import AppLayout from './layouts/AppLayout';
 import HydrationPage from './pages/HydrationPage';
 import PomodoroPage from './pages/PomodoroPage';
 import MoodPage from './pages/MoodPage';
-import DiaryPage from './pages/DiaryPage';
+import JournalPage from './pages/JournalPage';
 import TaskPage from './pages/TaskPage';
 import HabitPage from './pages/HabitPage';
 import MealPage from './pages/MealPage';
@@ -16,7 +16,7 @@ function App() {
         <Route index element={<Home />} />
         <Route path="habit" element={<HabitPage />} />
         <Route path="task" element={<TaskPage />} />
-        <Route path="diary" element={<DiaryPage />} />
+        <Route path="journal" element={<JournalPage />} />
         <Route path="mood" element={<MoodPage />} />
         <Route path="hydration" element={<HydrationPage />} />
         <Route path="pomodoro" element={<PomodoroPage />} />

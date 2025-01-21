@@ -1,20 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
-import { DiaryHeader } from './DiaryHeader';
-import { DiaryInput } from './DiaryInput';
-import { useDiaryData } from '../hooks/useDiaryData';
-import type { DiaryProps } from '../types';
+import { JournalHeader } from './JournalHeader';
+import { JournalInput } from './JournalInput';
+import { PasswordProtection } from './PasswordProtection';
+import { useJournalData } from '../hooks/useJournalData';
+import type { JournalProps } from '../types';
 
-export const Diary: React.FC<DiaryProps> = ({ selectedDate }) => {
+export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
   const { user } = useAuth();
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const {
     entry,
     setEntry,
     status,
     error,
-    saveEntry
-  } = useDiaryData(selectedDate);
+    saveEntry,
+    lastUpdated
+  } = useJournalData(selectedDate);
 
   if (!user) {
     return (
@@ -26,17 +29,22 @@ export const Diary: React.FC<DiaryProps> = ({ selectedDate }) => {
     );
   }
 
+  if (!isUnlocked) {
+    return <PasswordProtection onUnlock={() => setIsUnlocked(true)} />;
+  }
+
   return (
     <Card className="w-full">
       <CardContent className="p-4">
-        <DiaryHeader status={status} />
-        <DiaryInput
+        <JournalHeader status={status} />
+        <JournalInput
           value={entry}
           onChange={(value) => {
             setEntry(value);
           }}
           onSave={() => saveEntry(entry)}
           status={status}
+          lastUpdated={lastUpdated}
         />
         {error && (
           <p className="mt-2 text-sm text-red-500">
@@ -48,4 +56,4 @@ export const Diary: React.FC<DiaryProps> = ({ selectedDate }) => {
   );
 };
 
-export default Diary;
+export default Journal;
