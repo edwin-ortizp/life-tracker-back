@@ -2,15 +2,26 @@ import { useState } from 'react';
 import { Pomodoro } from '@/features/pomodoro/components';
 import { PomodoroStats } from '@/features/pomodoro/components';
 import { PomodoroHistory } from '@/features/pomodoro/components/PomodoroHistory';
-import { DailyProgress } from '@/features/pomodoro/components/DailyProgress';
+import { PomodoroEditModal } from '@/features/pomodoro/components/PomodoroEditModal';
 import { usePomodoroData } from '@/features/pomodoro/hooks';
 import DateSelector from '@/components/DateSelector';
 import { useAuth } from '@/hooks/useAuth';
+import type { PomodoroSession } from '@/features/pomodoro/types';
 
 export default function PomodoroPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedSession, setSelectedSession] = useState<PomodoroSession | null>(null);
   const { user } = useAuth();
   const { sessions, deleteSession, editSession } = usePomodoroData(selectedDate);
+
+  const handleEditSession = (session: PomodoroSession) => {
+    setSelectedSession(session);
+  };
+
+  const handleEditSave = async (oldSession: PomodoroSession, updatedSession: Partial<PomodoroSession>) => {
+    await editSession(oldSession, updatedSession);
+    setSelectedSession(null);
+  };
 
   if (!user) {
     return (
@@ -34,7 +45,6 @@ export default function PomodoroPage() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="space-y-6">
-          <DailyProgress sessions={sessions} />
           <Pomodoro selectedDate={selectedDate} />
         </div>
         
@@ -47,7 +57,7 @@ export default function PomodoroPage() {
               <PomodoroHistory 
                 sessions={sessions}
                 onDeleteSession={deleteSession}
-                onEditSession={editSession}
+                onEditSession={handleEditSession}
               />
             </div>
           </div>
@@ -56,6 +66,14 @@ export default function PomodoroPage() {
           <PomodoroStats dateRange="month" />
         </div>
       </div>
+
+      {selectedSession && (
+        <PomodoroEditModal
+          session={selectedSession}
+          onClose={() => setSelectedSession(null)}
+          onSave={handleEditSave}
+        />
+      )}
     </div>
   );
 }

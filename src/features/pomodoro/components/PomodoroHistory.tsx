@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { CheckCircle, XCircle, ChevronDown, Edit, Trash2 } from 'lucide-react';
-import { PomodoroEditModal } from './PomodoroEditModal';
 import type { PomodoroSession } from '../types';
 
 const formatTimeOnly = (timestamp: number): string => {
@@ -15,7 +14,7 @@ const formatTimeOnly = (timestamp: number): string => {
 interface PomodoroHistoryProps {
   sessions: PomodoroSession[];
   onDeleteSession?: (session: PomodoroSession) => void;
-  onEditSession?: (oldSession: PomodoroSession, updatedSession: Partial<PomodoroSession>) => void;
+  onEditSession?: (session: PomodoroSession) => void;
 }
 
 export const PomodoroHistory = ({ 
@@ -24,18 +23,10 @@ export const PomodoroHistory = ({
   onEditSession 
 }: PomodoroHistoryProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<PomodoroSession | null>(null);
 
   const sortedSessions = [...sessions].sort((a, b) => 
     b.startTime.timestamp - a.startTime.timestamp
   );
-
-  const handleEditSave = (oldSession: PomodoroSession, updatedSession: Partial<PomodoroSession>) => {
-    if (onEditSession) {
-      onEditSession(oldSession, updatedSession);
-    }
-    setSelectedSession(null);
-  };
 
   return (
     <div>
@@ -43,11 +34,9 @@ export const PomodoroHistory = ({
         onClick={() => setIsOpen(!isOpen)}
         className="w-full h-11 flex items-center justify-center gap-2 border rounded-lg bg-white"
       >
-        {isOpen ? (
-          <ChevronDown className="w-4 h-4 transition-transform transform rotate-180" />
-        ) : (
-          <ChevronDown className="w-4 h-4 transition-transform" />
-        )}
+        <ChevronDown 
+          className={`w-4 h-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`}
+        />
         <span className="text-sm font-semibold">Historial de hoy</span>
       </button>
 
@@ -86,22 +75,18 @@ export const PomodoroHistory = ({
                   <div className="flex gap-1 ml-2">
                     {onEditSession && (
                       <button
+                        type="button"
                         className="p-1 hover:bg-gray-200 rounded-full transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedSession(session);
-                        }}
+                        onClick={() => onEditSession(session)}
                       >
                         <Edit className="w-4 h-4 text-gray-500" />
                       </button>
                     )}
                     {onDeleteSession && (
                       <button
+                        type="button"
                         className="p-1 hover:bg-gray-200 rounded-full transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteSession(session);
-                        }}
+                        onClick={() => onDeleteSession(session)}
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </button>
@@ -119,12 +104,6 @@ export const PomodoroHistory = ({
           )}
         </div>
       )}
-
-      <PomodoroEditModal
-        session={selectedSession}
-        onClose={() => setSelectedSession(null)}
-        onSave={handleEditSave}
-      />
     </div>
   );
 };

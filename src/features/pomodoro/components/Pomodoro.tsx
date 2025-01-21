@@ -21,8 +21,8 @@ const formatTimeExtended = (minutes: number): string => {
 
 export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
   const { user } = useAuth();
-  const [selectedSession, setSelectedSession] = useState<PomodoroSession | null>(null);
   const dailyGoal = 300; // 5 horas en minutos
+  const [selectedSession, setSelectedSession] = useState<PomodoroSession | null>(null);
   
   const { 
     count,
@@ -49,6 +49,15 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
   const handleIncrement = async () => {
     if (status === 'saving') return;
     await addManualSession();
+  };
+
+  const handleEditSession = (session: PomodoroSession) => {
+    setSelectedSession(session);
+  };
+
+  const handleEditSave = async (oldSession: PomodoroSession, updatedSession: Partial<PomodoroSession>) => {
+    await editSession(oldSession, updatedSession);
+    setSelectedSession(null);
   };
 
   // Calcular tiempo efectivo del día
@@ -132,15 +141,17 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
 
         <PomodoroHistory 
           sessions={sessions}
-          onEditSession={setSelectedSession}
+          onEditSession={handleEditSession}
           onDeleteSession={deleteSession}
         />
 
-        <PomodoroEditModal
-          session={selectedSession}
-          onClose={() => setSelectedSession(null)}
-          onSave={editSession}
-        />
+        {selectedSession && (
+          <PomodoroEditModal
+            session={selectedSession}
+            onClose={() => setSelectedSession(null)}
+            onSave={handleEditSave}
+          />
+        )}
 
         {error && (
           <p className="mt-2 text-sm text-red-500">
