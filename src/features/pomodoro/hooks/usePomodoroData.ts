@@ -1,3 +1,4 @@
+// usePomodoroData.ts
 import { useState, useEffect } from 'react';
 import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
@@ -77,6 +78,7 @@ export const usePomodoroData = (selectedDate?: Date) => {
         startDate.getMinutes()
       );
   
+      // Creamos el objeto base de la sesión
       const newSession: PomodoroSession = {
         startTime: {
           timestamp: startTime.timestamp,
@@ -89,9 +91,13 @@ export const usePomodoroData = (selectedDate?: Date) => {
           formatted: endTime.formatted
         },
         duration: 30 * 60,
-        completed: true,
-        description: options.description
+        completed: true
       };
+
+      // Solo agregamos description si existe y no está vacía
+      if (options.description?.trim()) {
+        newSession.description = options.description.trim();
+      }
 
       const updatedSessions = [...data.sessions, newSession].sort((a, b) => 
         b.startTime.timestamp - a.startTime.timestamp
@@ -137,6 +143,7 @@ export const usePomodoroData = (selectedDate?: Date) => {
         startDate.getMinutes()
       );
 
+      // Creamos el objeto base de la sesión
       const newSession: PomodoroSession = {
         startTime: {
           timestamp: startTime.timestamp,
@@ -149,9 +156,13 @@ export const usePomodoroData = (selectedDate?: Date) => {
           formatted: endTime.formatted
         },
         duration,
-        completed,
-        description: options.description
+        completed
       };
+
+      // Solo agregamos description si existe y no está vacía
+      if (options.description?.trim()) {
+        newSession.description = options.description.trim();
+      }
 
       const updatedSessions = [...data.sessions, newSession];
       const completedCount = updatedSessions.filter(s => s.completed).length;
@@ -254,7 +265,9 @@ export const usePomodoroData = (selectedDate?: Date) => {
               endTime: newEndTime,
               duration,
               completed: updatedSession.completed ?? session.completed,
-              description: updatedSession.description
+              ...(updatedSession.description?.trim() 
+                ? { description: updatedSession.description.trim() } 
+                : {})
             }
           : session
       );

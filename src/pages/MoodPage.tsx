@@ -5,56 +5,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Mood } from '@/features/mood/components';
 import DateSelector from '@/components/DateSelector';
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
 } from 'recharts';
-import { useAuth } from '@/hooks/useAuth';
-import { db } from '@/firebase';
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
-import { MOODS } from '@/features/mood/types';
-
 const COLORS = ['#FF8042', '#00C49F', '#FFBB28', '#FF8042', '#0088FE', '#FF0000'];
 
 const MoodPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [moodStats, setMoodStats] = useState<any[]>([]);
-  const [moodDistribution, setMoodDistribution] = useState<any[]>([]);
-  const { user } = useAuth();
-
-  const fetchStats = async () => {
-    if (!user) return;
-
-    // Obtener distribución de estados de ánimo
-    const q = query(
-      collection(db, 'moods'),
-      where('userId', '==', user.uid),
-      orderBy('date', 'desc'),
-      limit(30)
-    );
-
-    const querySnapshot = await getDocs(q);
-    const moods: { [key: string]: number } = {};
-    
-    querySnapshot.docs.forEach(doc => {
-      const mood = doc.data().text;
-      moods[mood] = (moods[mood] || 0) + 1;
-    });
-
-    setMoodDistribution(
-      Object.entries(moods).map(([name, value]) => ({
-        name,
-        value
-      }))
-    );
-  };
+  const [moodDistribution] = useState<any[]>([]);
 
   return (
     <div className="space-y-6">
@@ -120,7 +81,7 @@ const MoodPage = () => {
                           );
                         }}
                       >
-                        {moodDistribution.map((entry, index) => (
+                        {moodDistribution.map((index) => (
                           <Cell 
                             key={`cell-${index}`} 
                             fill={COLORS[index % COLORS.length]} 

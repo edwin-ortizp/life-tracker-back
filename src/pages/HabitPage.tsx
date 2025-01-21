@@ -14,41 +14,13 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts';
-import { useAuth } from '@/hooks/useAuth';
-import { db } from '@/firebase';
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { HABITS } from '@/features/habit/types';
 
 const HabitPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [habitStats, setHabitStats] = useState<any[]>([]);
-  const { user } = useAuth();
+  const [habitStats] = useState<any[]>([]);
 
-  const fetchStats = async () => {
-    if (!user) return;
-
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(endDate.getDate() - 30);
-
-    const q = query(
-      collection(db, 'habits'),
-      where('userId', '==', user.uid),
-      orderBy('date', 'desc'),
-      limit(30)
-    );
-
-    const querySnapshot = await getDocs(q);
-    const data = querySnapshot.docs.map(doc => ({
-      date: doc.data().date,
-      ...HABITS.reduce((acc, habit) => ({
-        ...acc,
-        [habit.name]: doc.data().habits?.[`${habit.id}_${doc.data().date}`] ? 1 : 0
-      }), {})
-    }));
-
-    setHabitStats(data);
-  };
+  
 
   return (
     <div className="space-y-6">

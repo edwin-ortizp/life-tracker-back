@@ -5,8 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Task } from '@/features/task/components';
 import DateSelector from '@/components/DateSelector';
 import {
-  BarChart,
-  Bar,
   LineChart,
   Line,
   XAxis,
@@ -166,7 +164,7 @@ const TaskPage = () => {
                           );
                         }}
                       >
-                        {completionStats.map((entry, index) => (
+                        {completionStats.map((index) => (
                           <Cell 
                             key={`cell-${index}`} 
                             fill={COLORS[index % COLORS.length]} 

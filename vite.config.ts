@@ -5,6 +5,7 @@ import Pages from 'vite-plugin-pages';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/life-tracker/',
   server: {
     host: true  // Esto permite el acceso desde la red local
   },

@@ -10,7 +10,6 @@ import {
   where, 
   onSnapshot,
   serverTimestamp,
-  type DocumentData
 } from 'firebase/firestore';
 import type { Mood } from '../types';
 

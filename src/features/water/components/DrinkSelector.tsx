@@ -20,7 +20,7 @@ export const DrinkSelector: React.FC<DrinkSelectorProps> = ({
   return (
     <div className="grid grid-cols-3 gap-2 mb-4">
       {Object.entries(DRINKS).map(([key, drink]) => {
-        const Icon = Icons[drink.icon as keyof typeof Icons];
+        const Icon = Icons[drink.icon as keyof typeof Icons] as React.ElementType;
         return (
           <div key={key} className="relative">
             <Button
