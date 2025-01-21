@@ -13,12 +13,11 @@ const DailyTrackerApp = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto">
         <header className="mb-6 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Daily Tracker</h1>
           </div>
-          <Auth />
         </header>
 
         <DateSelector 
@@ -44,7 +43,9 @@ const DailyTrackerApp = () => {
           </div>
         </div>
       </div>
+      <div className='mt-6'><Auth /></div>
     </div>
+    
   );
 };
 
