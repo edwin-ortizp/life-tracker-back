@@ -43,19 +43,6 @@ const DailyTrackerApp = () => {
             </div>
           </div>
         </div>
-
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t md:hidden">
-          <div className="grid grid-cols-5 gap-1 p-2">
-            {['⏱️', '💧', '✓', '😊', '📔'].map((icon, index) => (
-              <button
-                key={index}
-                className="p-2 text-center hover:bg-gray-100 rounded"
-              >
-                {icon}
-              </button>
-            ))}
-          </div>
-        </nav>
       </div>
     </div>
   );

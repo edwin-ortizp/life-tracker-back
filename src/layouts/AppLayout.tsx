@@ -14,9 +14,12 @@ const AppLayout = () => {
         <main className="flex-1 p-6 mb-16 md:mb-0">
           <Outlet />
         </main>
+        
+        {/* Mobile Navigation */}
+        <div className="md:hidden">
+          <Navigation />
+        </div>
       </div>
-
-      {/* Mobile navigation is handled inside Navigation component */}
     </div>
   );
 };
