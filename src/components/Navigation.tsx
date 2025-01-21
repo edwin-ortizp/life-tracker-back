@@ -11,6 +11,7 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
+  UtensilsCrossed,
   LogOut
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -38,6 +39,7 @@ const Navigation = () => {
     { icon: CheckSquare, label: 'Hábitos', path: '/habit' },
     { icon: Smile, label: 'Estado de ánimo', path: '/mood' },
     { icon: BookOpen, label: 'Diario', path: '/diary' },
+    { icon: UtensilsCrossed, label: 'Comidas', path: '/meal' },
     { icon: BarChart2, label: 'Estadísticas', path: '/stats' },
     { icon: Settings, label: 'Configuración', path: '/settings' },
     { icon: LogOut, label: 'Cerrar sesión', path: '/logout', onClick: handleLogout }

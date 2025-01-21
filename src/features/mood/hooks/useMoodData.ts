@@ -4,17 +4,16 @@ import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { getLocalDateString } from '@/utils/dates';
 import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
+  doc,
+  setDoc,
   onSnapshot,
-  serverTimestamp,
+  getDoc,
+  collection,
 } from 'firebase/firestore';
-import type { Mood } from '../types';
+import type { MoodEntry, DailyMood } from '../types';
 
 export const useMoodData = (selectedDate: Date) => {
-  const [moodHistory, setMoodHistory] = useState<Mood[]>([]);
+  const [dailyMood, setDailyMood] = useState<DailyMood | null>(null);
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -23,23 +22,15 @@ export const useMoodData = (selectedDate: Date) => {
     if (!user) return;
 
     const dateString = getLocalDateString(selectedDate);
+    const moodRef = doc(collection(db, 'moods'), `${user.uid}_${dateString}`);
     
-    console.log('Mood - Suscribiéndose a colección moods para:', dateString);
-
-    const q = query(
-      collection(db, 'moods'),
-      where('userId', '==', user.uid),
-      where('date', '==', dateString)
-    );
-
-    const unsubscribe = onSnapshot(q, 
+    const unsubscribe = onSnapshot(moodRef, 
       (snapshot) => {
-        console.log('Mood - Documentos actualizados:', snapshot.docs.map(doc => doc.data()));
-        const moodEntries = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Mood[];
-        setMoodHistory(moodEntries);
+        if (snapshot.exists()) {
+          setDailyMood(snapshot.data() as DailyMood);
+        } else {
+          setDailyMood(null);
+        }
         setStatus('saved');
       },
       (error) => {
@@ -59,28 +50,37 @@ export const useMoodData = (selectedDate: Date) => {
     setError(null);
 
     const dateString = getLocalDateString(selectedDate);
+    const docId = `${user.uid}_${dateString}`;
+    const moodRef = doc(collection(db, 'moods'), docId);
 
     try {
-      console.log('Mood - Guardando:', {
-        userId: user.uid,
+      const newMoodEntry: MoodEntry = {
         emoji: mood.emoji,
         text: mood.text,
-        date: dateString,
-      });
-
-      await addDoc(collection(db, 'moods'), {
-        userId: user.uid,
-        emoji: mood.emoji,
-        text: mood.text,
-        date: dateString,
-        timestamp: serverTimestamp(),
+        timestamp: Date.now(),
         time: new Date().toLocaleTimeString('es-ES', { 
           hour: '2-digit', 
           minute: '2-digit' 
         })
-      });
+      };
 
-      console.log('Mood - Guardado exitosamente');
+      const docSnap = await getDoc(moodRef);
+      
+      if (docSnap.exists()) {
+        const existingData = docSnap.data() as DailyMood;
+        await setDoc(moodRef, {
+          ...existingData,
+          moods: [...existingData.moods, newMoodEntry]
+        });
+      } else {
+        await setDoc(moodRef, {
+          id: docId,
+          userId: user.uid,
+          date: dateString,
+          moods: [newMoodEntry]
+        });
+      }
+
       setStatus('saved');
     } catch (error) {
       console.error('Mood - Error al guardar:', error);
@@ -89,10 +89,69 @@ export const useMoodData = (selectedDate: Date) => {
     }
   };
 
+  const updateMood = async (originalTimestamp: number, updatedMood: MoodEntry) => {
+    if (!user || !dailyMood) return;
+
+    setStatus('saving');
+    setError(null);
+
+    const moodRef = doc(collection(db, 'moods'), dailyMood.id);
+
+    try {
+      const updatedMoods = dailyMood.moods.map(mood => 
+        mood.timestamp === originalTimestamp ? updatedMood : mood
+      );
+
+      await setDoc(moodRef, {
+        ...dailyMood,
+        moods: updatedMoods
+      });
+
+      setStatus('saved');
+    } catch (error) {
+      console.error('Mood - Error al actualizar:', error);
+      setError(error instanceof Error ? error.message : 'Error al actualizar');
+      setStatus('error');
+    }
+  };
+
+  const deleteMood = async (timestamp: number) => {
+    if (!user || !dailyMood) return;
+
+    setStatus('saving');
+    setError(null);
+
+    const moodRef = doc(collection(db, 'moods'), dailyMood.id);
+
+    try {
+      const updatedMoods = dailyMood.moods.filter(mood => 
+        mood.timestamp !== timestamp
+      );
+
+      if (updatedMoods.length === 0) {
+        // Si no quedan estados de ánimo, eliminar el documento
+        await setDoc(moodRef, {});
+      } else {
+        await setDoc(moodRef, {
+          ...dailyMood,
+          moods: updatedMoods
+        });
+      }
+
+      setStatus('saved');
+    } catch (error) {
+      console.error('Mood - Error al eliminar:', error);
+      setError(error instanceof Error ? error.message : 'Error al eliminar');
+      setStatus('error');
+    }
+  };
+
   return {
-    moodHistory,
+    moodHistory: dailyMood?.moods || [],
     status,
     error,
-    addMood
+    addMood,
+    updateMood,
+    deleteMood
   };
 };

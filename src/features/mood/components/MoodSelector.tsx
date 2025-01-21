@@ -19,10 +19,11 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({ onSelect, disabled }
             disabled={disabled}
           >
             <span>{mood.emoji}</span>
+            <span className="w-full text-center text-xs text-gray-500 mt-1">
+          {mood.text}
+          </span>
           </Button>
-          <div className="absolute w-full text-center text-xs text-gray-500 mt-1">
-            {mood.text}
-          </div>
+          
         </div>
       ))}
     </div>

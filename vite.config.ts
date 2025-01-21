@@ -5,6 +5,13 @@ import Pages from 'vite-plugin-pages';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        chunkFileNames: 'chunks/[name]-[hash].js'
+      }
+    }
+  },
   base: '/life-tracker/',  // Cambiado para GitHub Pages
   server: {
     host: true

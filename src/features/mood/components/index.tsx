@@ -14,7 +14,9 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
     moodHistory,
     status,
     error,
-    addMood
+    addMood,
+    updateMood,
+    deleteMood
   } = useMoodData(selectedDate);
 
   if (!user) {
@@ -49,7 +51,11 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
           />
         )}
 
-        <MoodHistory moods={moodHistory} />
+        <MoodHistory 
+          moods={moodHistory}
+          onUpdateMood={updateMood}
+          onDeleteMood={deleteMood}
+        />
 
         {error && (
           <p className="mt-2 text-sm text-red-500">

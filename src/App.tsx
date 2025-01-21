@@ -6,6 +6,7 @@ import MoodPage from './pages/MoodPage';
 import DiaryPage from './pages/DiaryPage';
 import TaskPage from './pages/TaskPage';
 import HabitPage from './pages/HabitPage';
+import MealPage from './pages/MealPage';
 import Home from './artifacts/Home';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="mood" element={<MoodPage />} />
         <Route path="hydration" element={<HydrationPage />} />
         <Route path="pomodoro" element={<PomodoroPage />} />
+        <Route path="meal" element={<MealPage />} />
       </Route>
     </Routes>
   );
