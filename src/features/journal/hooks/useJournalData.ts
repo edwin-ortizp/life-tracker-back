@@ -4,11 +4,13 @@ import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { getLocalDateString } from '@/utils/dates';
+import { formatDateToSpanishWithUTC } from '@/utils/dates';
 
 export const useJournalData = (selectedDate: Date) => {
   const [entry, setEntry] = useState('');
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | undefined>(undefined);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -22,9 +24,15 @@ export const useJournalData = (selectedDate: Date) => {
         if (doc.exists()) {
           setEntry(doc.data().text || '');
           setStatus('saved');
+          // Actualizar lastUpdated si existe
+          if (doc.data().lastUpdated) {
+            const timestamp = doc.data().lastUpdated.toDate();
+            setLastUpdated(formatDateToSpanishWithUTC(timestamp));
+          }
         } else {
           setEntry('');
           setStatus('idle');
+          setLastUpdated(undefined);
         }
       },
       (error) => {
@@ -71,6 +79,7 @@ export const useJournalData = (selectedDate: Date) => {
     setEntry,
     status,
     error,
-    saveEntry
+    saveEntry,
+    lastUpdated
   };
 };
