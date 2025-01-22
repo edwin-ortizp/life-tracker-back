@@ -40,7 +40,7 @@ const Navigation = () => {
     { icon: BookOpen, label: 'Diario', path: '/journal' },
     { icon: Timer, label: 'Pomodoro', path: '/pomodoro' },
     { icon: UtensilsCrossed, label: 'Comidas', path: '/meal' },
-    { icon: BarChart2, label: 'Estadísticas', path: '/stats' },
+    { icon: BarChart2, label: 'Tareas', path: '/task' },
     { icon: Settings, label: 'Configuración', path: '/settings' },
     { icon: LogOut, label: 'Cerrar sesión', path: '/logout', onClick: handleLogout }
   ];
