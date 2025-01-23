@@ -34,7 +34,7 @@ const Navigation = () => {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: Droplet, label: 'Hidratación', path: '/hydration' },
+    { icon: Droplet, label: 'Hidratación', path: '/water' },
     { icon: CheckSquare, label: 'Hábitos', path: '/habit' },
     { icon: Smile, label: 'Estado de ánimo', path: '/mood' },
     { icon: BookOpen, label: 'Diario', path: '/journal' },
