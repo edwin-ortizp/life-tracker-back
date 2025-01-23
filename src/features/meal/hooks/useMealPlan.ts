@@ -53,7 +53,6 @@ export const useMealPlan = () => {
           }));
           setStatus('saved');
         } else {
-          // Si no existe el documento, inicializamos con un plan vacío
           setMonthlyMealPlans(prev => ({
             ...prev,
             [yearMonth]: {}
@@ -93,7 +92,6 @@ export const useMealPlan = () => {
               }));
             });
           } else {
-            // Inicializar mes vacío si no existe
             setMonthlyMealPlans(prev => ({
               ...prev,
               [month]: {}
@@ -120,7 +118,6 @@ export const useMealPlan = () => {
     const mealId = `${date}_${type}`;
     
     try {
-      // Actualizar estado local primero para UI responsiva
       const currentMonthMeals = monthlyMealPlans[yearMonth] || {};
       const newMealPlan = {
         ...currentMonthMeals,
@@ -138,7 +135,6 @@ export const useMealPlan = () => {
         [yearMonth]: newMealPlan
       }));
       
-      // Actualizar Firestore
       const docRef = doc(db, 'meals', `${user.uid}_${yearMonth}`);
       await setDoc(docRef, {
         userId: user.uid,
@@ -166,17 +162,23 @@ export const useMealPlan = () => {
     const yearMonth = `${year}-${month}`;
     
     try {
-      // Actualizar estado local primero
-      const currentMonthMeals = { ...monthlyMealPlans[yearMonth] };
+      // Crear una copia profunda del estado actual
+      const currentMonthMeals = JSON.parse(JSON.stringify(monthlyMealPlans[yearMonth] || {}));
+      
       if (currentMonthMeals[date]) {
-        const { [type]: _, ...rest } = currentMonthMeals[date];
-        if (Object.keys(rest).length === 0) {
+        // Eliminar la comida específica
+        const updatedDayMeals = { ...currentMonthMeals[date] };
+        delete updatedDayMeals[type];
+        
+        // Si no quedan comidas para ese día, eliminar el día completo
+        if (Object.keys(updatedDayMeals).length === 0) {
           delete currentMonthMeals[date];
         } else {
-          currentMonthMeals[date] = rest;
+          currentMonthMeals[date] = updatedDayMeals;
         }
       }
 
+      // Actualizar estado local
       setMonthlyMealPlans(prev => ({
         ...prev,
         [yearMonth]: currentMonthMeals
@@ -189,7 +191,7 @@ export const useMealPlan = () => {
         yearMonth,
         meals: currentMonthMeals,
         updatedAt: serverTimestamp()
-      }, { merge: true });
+      });
 
       setStatus('saved');
     } catch (error) {
@@ -207,7 +209,6 @@ export const useMealPlan = () => {
     setError(null);
 
     try {
-      // Agrupar las comidas por mes
       const mealsByMonth = Object.entries(newMealPlan).reduce((acc, [date, meals]) => {
         const [year, month] = date.split('-');
         const yearMonth = `${year}-${month}`;
@@ -229,13 +230,11 @@ export const useMealPlan = () => {
         return acc;
       }, {} as Record<string, MealPlan>);
 
-      // Actualizar estado local primero
       setMonthlyMealPlans(prev => ({
         ...prev,
         ...mealsByMonth
       }));
 
-      // Usar batch para actualizar todos los meses de una vez
       const batch = writeBatch(db);
       
       Object.entries(mealsByMonth).forEach(([yearMonth, meals]) => {
@@ -258,79 +257,39 @@ export const useMealPlan = () => {
     }
   };
 
-  const clearMealPlan = async (date: string) => {
-    if (!user) return;
-
-    setStatus('saving');
-    setError(null);
-
-    const [year, month] = date.split('-');
-    const yearMonth = `${year}-${month}`;
-
-    try {
-      // Actualizar estado local primero
-      const currentMonthMeals = { ...monthlyMealPlans[yearMonth] };
-      delete currentMonthMeals[date];
-
-      setMonthlyMealPlans(prev => ({
-        ...prev,
-        [yearMonth]: currentMonthMeals
-      }));
-
-      // Actualizar Firestore
-      const docRef = doc(db, 'meals', `${user.uid}_${yearMonth}`);
-      await setDoc(docRef, {
-        userId: user.uid,
-        yearMonth,
-        meals: currentMonthMeals,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-
-      setStatus('saved');
-    } catch (error) {
-      console.error('Error clearing day:', error);
-      setError(error instanceof Error ? error.message : 'Error al limpiar el día');
-      setStatus('error');
-      throw error;
-    }
-  };
-
   return {
     mealPlan,
     status,
     error,
     addMeal,
     removeMeal,
-    importMealPlan,
-    clearMealPlan
+    importMealPlan
   };
 };
 
 // Función auxiliar para obtener los meses visibles
 const getVisibleMonths = (): string[] => {
-    const currentDate = new Date();
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth() + 1;
-    const dayOfMonth = currentDate.getDate();
-    const daysInMonth = new Date(year, month, 0).getDate();
-    
-    // Formatear el mes actual con dos dígitos
-    const currentMonthStr = String(month).padStart(2, '0');
-    const visibleMonths = [`${year}-${currentMonthStr}`];
+  const currentDate = new Date();
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth() + 1;
+  const dayOfMonth = currentDate.getDate();
+  const daysInMonth = new Date(year, month, 0).getDate();
   
-    // Solo añadir el próximo mes si estamos en los últimos 7 días del mes actual
-    if (daysInMonth - dayOfMonth < 7) {
-      let nextMonth = month + 1;
-      let nextMonthYear = year;
-      
-      if (nextMonth > 12) {
-        nextMonth = 1;
-        nextMonthYear = year + 1;
-      }
-      
-      const nextMonthStr = String(nextMonth).padStart(2, '0');
-      visibleMonths.push(`${nextMonthYear}-${nextMonthStr}`);
+  const currentMonthStr = String(month).padStart(2, '0');
+  const visibleMonths = [`${year}-${currentMonthStr}`];
+
+  if (daysInMonth - dayOfMonth < 7) {
+    let nextMonth = month + 1;
+    let nextMonthYear = year;
+    
+    if (nextMonth > 12) {
+      nextMonth = 1;
+      nextMonthYear = year + 1;
     }
     
-    return visibleMonths;
-  };
+    const nextMonthStr = String(nextMonth).padStart(2, '0');
+    visibleMonths.push(`${nextMonthYear}-${nextMonthStr}`);
+  }
+  
+  return visibleMonths;
+};

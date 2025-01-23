@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
-import WaterPage from './pages/WaterPage';
+import WaterPage from './pages/WaterPage'; 
 import PomodoroPage from './pages/PomodoroPage';
 import MoodPage from './pages/MoodPage';
 import JournalPage from './pages/JournalPage';

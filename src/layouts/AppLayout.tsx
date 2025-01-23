@@ -9,7 +9,7 @@ const AppLayout = () => {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col h-screen overflow-auto md:pl-16">
-        <main className="flex-1 p-6 mb-16 md:mb-0">
+        <main className="flex-1 p-2 mb-16 md:mb-0">
           <Outlet />
         </main>
       </div>

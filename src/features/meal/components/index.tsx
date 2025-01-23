@@ -1,12 +1,13 @@
+// features/meal/components/MealPlanner.tsx
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { Calendar, AlertCircle } from 'lucide-react';
-import { WeeklyView } from './WeeklyView';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import WeeklyView from './WeeklyView';
 import { ImportMealPlan } from './ImportMealPlan';
 import { useMealPlan } from '../hooks/useMealPlan';
 import type { MealProps } from '../types';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   const { user } = useAuth();

@@ -9,15 +9,26 @@ Este documento describe el formato esperado para importar planes de comida seman
   "2025-01-20": {
     "breakfast": {
       "name": "Avena con frutas",
-      "notes": "Agregar miel"
+      "notes": "Agregar miel",
+      "recipe": "Ingredientes:\n- 1 taza de avena\n- Frutas variadas\n- Miel al gusto\n\nPreparación:\n1. Cocinar la avena..."
+    },
+    "morningSnack": {
+      "name": "Mix de frutos secos",
+      "notes": "30g porción"
     },
     "lunch": {
       "name": "Ensalada César",
-      "notes": "Con pollo a la plancha"
+      "notes": "Con pollo a la plancha",
+      "recipe": "Ingredientes:\n- Lechuga romana\n- Pollo..."
+    },
+    "afternoonSnack": {
+      "name": "Yogur con granola",
+      "notes": "Yogur natural"
     },
     "dinner": {
       "name": "Sopa de verduras",
-      "notes": "Versión ligera"
+      "notes": "Versión ligera",
+      "recipe": "Ingredientes:\n- Zanahoria\n- Apio..."
     }
   }
 }

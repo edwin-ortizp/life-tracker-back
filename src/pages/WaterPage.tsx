@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import DateSelector from '@/components/DateSelector';
 import Water from '@/features/water/components';
-import { Card } from '@/components/ui/card';
 
 const WaterPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
