@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { createFormattedTimestamp } from '@/utils/dates';
 import type { EditMoodModalProps } from '../types';
 
 export const EditMoodModal: React.FC<EditMoodModalProps> = ({
@@ -21,10 +22,8 @@ export const EditMoodModal: React.FC<EditMoodModalProps> = ({
   const [time, setTime] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Convertir el tiempo del formato "HH:mm" a valor para input type="time"
   useEffect(() => {
     if (moodEntry?.time) {
-      // Asumiendo que moodEntry.time viene en formato "HH:mm"
       setTime(moodEntry.time);
     }
   }, [moodEntry]);
@@ -37,12 +36,13 @@ export const EditMoodModal: React.FC<EditMoodModalProps> = ({
       // Crear una nueva fecha con la hora seleccionada
       const [hours, minutes] = time.split(':').map(Number);
       const date = new Date(moodEntry.timestamp);
-      date.setHours(hours, minutes, 0, 0);
+      
+      const formattedTimestamp = createFormattedTimestamp(date, hours, minutes);
 
       await onSave({
         ...moodEntry,
         time,
-        timestamp: date.getTime()
+        timestamp: formattedTimestamp.timestamp
       });
       onClose();
     } catch (error) {

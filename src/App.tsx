@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
-import HydrationPage from './pages/HydrationPage';
+import WaterPage from './pages/WaterPage';
 import PomodoroPage from './pages/PomodoroPage';
 import MoodPage from './pages/MoodPage';
 import JournalPage from './pages/JournalPage';
@@ -18,7 +18,7 @@ function App() {
         <Route path="task" element={<TaskPage />} />
         <Route path="journal" element={<JournalPage />} />
         <Route path="mood" element={<MoodPage />} />
-        <Route path="hydration" element={<HydrationPage />} />
+        <Route path="water" element={<WaterPage />} />
         <Route path="pomodoro" element={<PomodoroPage />} />
         <Route path="meal" element={<MealPage />} />
       </Route>

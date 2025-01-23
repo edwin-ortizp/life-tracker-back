@@ -6,6 +6,7 @@ import { WaterProgress } from './WaterProgress';
 import { DrinkSelector } from './DrinkSelector';
 import { DrinkHistory } from './DrinkHistory';
 import { useWaterData } from '../hooks/useWaterData';
+import { getLocalDateString } from '@/utils/dates';
 import type { WaterProps } from '../types';
 
 export const Water: React.FC<WaterProps> = ({ selectedDate }) => {
@@ -20,6 +21,7 @@ export const Water: React.FC<WaterProps> = ({ selectedDate }) => {
     status,
     error,
     addDrink,
+    editDrink,
     deleteDrink
   } = useWaterData(selectedDate);
 
@@ -33,7 +35,7 @@ export const Water: React.FC<WaterProps> = ({ selectedDate }) => {
     );
   }
 
-  const isCurrentDate = selectedDate.toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
+  const isCurrentDate = getLocalDateString(selectedDate) === getLocalDateString(new Date());
 
   return (
     <Card className="w-full">
@@ -57,6 +59,7 @@ export const Water: React.FC<WaterProps> = ({ selectedDate }) => {
           showHistory={showHistory}
           onToggleHistory={() => setShowHistory(!showHistory)}
           onDeleteDrink={deleteDrink}
+          onEditDrink={editDrink}
           isCurrentDate={isCurrentDate}
         />
 

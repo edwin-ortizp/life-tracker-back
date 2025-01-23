@@ -2,13 +2,14 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
-import { getLocalDateString } from '@/utils/dates';
+import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
 import { 
   doc,
   setDoc,
   onSnapshot,
   getDoc,
   collection,
+  deleteDoc
 } from 'firebase/firestore';
 import type { MoodEntry, DailyMood } from '../types';
 
@@ -27,7 +28,19 @@ export const useMoodData = (selectedDate: Date) => {
     const unsubscribe = onSnapshot(moodRef, 
       (snapshot) => {
         if (snapshot.exists()) {
-          setDailyMood(snapshot.data() as DailyMood);
+          const data = snapshot.data();
+          // Aseguramos que siempre exista un array de moods
+          if (data && Array.isArray(data.moods)) {
+            setDailyMood(data as DailyMood);
+          } else {
+            // Si no hay moods o no es un array, inicializamos con array vacío
+            setDailyMood({
+              id: `${user.uid}_${dateString}`,
+              userId: user.uid,
+              date: dateString,
+              moods: []
+            });
+          }
         } else {
           setDailyMood(null);
         }
@@ -54,11 +67,18 @@ export const useMoodData = (selectedDate: Date) => {
     const moodRef = doc(collection(db, 'moods'), docId);
 
     try {
+      const now = new Date();
+      const formattedTimestamp = createFormattedTimestamp(
+        selectedDate, 
+        now.getHours(), 
+        now.getMinutes()
+      );
+
       const newMoodEntry: MoodEntry = {
         emoji: mood.emoji,
         text: mood.text,
-        timestamp: Date.now(),
-        time: new Date().toLocaleTimeString('es-ES', { 
+        timestamp: formattedTimestamp.timestamp,
+        time: now.toLocaleTimeString('es-ES', { 
           hour: '2-digit', 
           minute: '2-digit' 
         })
@@ -67,12 +87,18 @@ export const useMoodData = (selectedDate: Date) => {
       const docSnap = await getDoc(moodRef);
       
       if (docSnap.exists()) {
-        const existingData = docSnap.data() as DailyMood;
+        const existingData = docSnap.data();
+        // Verificamos que exista el array de moods
+        const currentMoods = Array.isArray(existingData?.moods) ? existingData.moods : [];
+        
         await setDoc(moodRef, {
-          ...existingData,
-          moods: [...existingData.moods, newMoodEntry]
+          id: docId,
+          userId: user.uid,
+          date: dateString,
+          moods: [...currentMoods, newMoodEntry]
         });
       } else {
+        // Creamos nuevo documento con el primer mood
         await setDoc(moodRef, {
           id: docId,
           userId: user.uid,
@@ -130,7 +156,8 @@ export const useMoodData = (selectedDate: Date) => {
 
       if (updatedMoods.length === 0) {
         // Si no quedan estados de ánimo, eliminar el documento
-        await setDoc(moodRef, {});
+        await deleteDoc(moodRef);
+        setDailyMood(null);
       } else {
         await setDoc(moodRef, {
           ...dailyMood,
