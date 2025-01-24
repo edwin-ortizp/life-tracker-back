@@ -6,61 +6,89 @@ interface UsePomodoroTimerProps {
 }
 
 export const usePomodoroTimer = ({ onComplete, onCancel }: UsePomodoroTimerProps) => {
-  const [time, setTime] = useState(1800); // 30 minutos en segundos
+  const POMODORO_DURATION = 1800; // 30 minutos en segundos
+  const [time, setTime] = useState(POMODORO_DURATION);
   const [isActive, setIsActive] = useState(false);
-  const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
+  const [startTimestamp, setStartTimestamp] = useState<number | null>(null);
+  const [pausedTime, setPausedTime] = useState<number | null>(null);
   
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isActive && time > 0) {
-      interval = setInterval(() => setTime(t => t - 1), 1000);
-    } else if (time === 0) {
-      setIsActive(false);
-      if (sessionStartTime) {
-        onComplete(1800); // Pomodoro completado
+    let animationFrameId: number;
+    
+    const updateTimer = () => {
+      if (!isActive || !startTimestamp) return;
+      
+      const now = Date.now();
+      const elapsed = now - startTimestamp;
+      const adjustedTime = pausedTime 
+        ? POMODORO_DURATION - (elapsed / 1000 + (POMODORO_DURATION - pausedTime))
+        : POMODORO_DURATION - (elapsed / 1000);
+      
+      if (adjustedTime <= 0) {
+        setTime(0);
+        setIsActive(false);
+        setStartTimestamp(null);
+        setPausedTime(null);
+        onComplete(POMODORO_DURATION);
+      } else {
+        setTime(Math.max(0, adjustedTime));
+        animationFrameId = requestAnimationFrame(updateTimer);
       }
-      setTime(1800);
-      setSessionStartTime(null);
+    };
+    
+    if (isActive) {
+      animationFrameId = requestAnimationFrame(updateTimer);
     }
-    return () => clearInterval(interval);
-  }, [isActive, time, onComplete, sessionStartTime]);
+    
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [isActive, startTimestamp, pausedTime, onComplete]);
   
   const startTimer = useCallback(() => {
     setIsActive(true);
-    setSessionStartTime(new Date().toISOString());
-  }, []);
+    setStartTimestamp(Date.now());
+    if (pausedTime) {
+      // Si estaba pausado, ajustamos el timestamp inicial para continuar desde donde quedó
+      const adjustedStartTime = Date.now() - ((POMODORO_DURATION - pausedTime) * 1000);
+      setStartTimestamp(adjustedStartTime);
+    }
+  }, [pausedTime]);
   
   const pauseTimer = useCallback(() => {
     setIsActive(false);
-    if (sessionStartTime) {
-      const duration = 1800 - time; // Duración hasta la pausa
+    setPausedTime(time);
+    if (startTimestamp) {
+      const duration = POMODORO_DURATION - time;
       onCancel(duration);
-      setSessionStartTime(null);
     }
-  }, [time, onCancel, sessionStartTime]);
+  }, [time, onCancel, startTimestamp]);
   
   const resetTimer = useCallback(() => {
     setIsActive(false);
-    setTime(1800);
-    if (sessionStartTime) {
-      const duration = 1800 - time; // Duración hasta el reset
+    setTime(POMODORO_DURATION);
+    setStartTimestamp(null);
+    setPausedTime(null);
+    if (startTimestamp) {
+      const duration = POMODORO_DURATION - time;
       onCancel(duration);
-      setSessionStartTime(null);
     }
-  }, [time, onCancel, sessionStartTime]);
+  }, [time, onCancel, startTimestamp]);
   
-  const formatTime = (seconds: number) => {
+  const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
     return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
   return {
     time,
     isActive,
-    sessionStartTime,
+    sessionStartTime: startTimestamp ? new Date(startTimestamp).toISOString() : null,
     formattedTime: formatTime(time),
-    progress: ((1800 - time) / 1800) * 100,
+    progress: ((POMODORO_DURATION - time) / POMODORO_DURATION) * 100,
     startTimer,
     pauseTimer,
     resetTimer

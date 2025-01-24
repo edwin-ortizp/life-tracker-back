@@ -6,7 +6,8 @@ import { getLocalDateString } from '@/utils/dates';
 import { ExerciseLog } from '../types';
 import { 
   doc, 
-  setDoc, 
+  setDoc,
+  deleteDoc,
   collection,
   query,
   where,
@@ -108,10 +109,7 @@ export const useExerciseData = (selectedDate: Date) => {
 
     try {
       const exerciseRef = doc(db, 'exercises', id);
-      await setDoc(exerciseRef, {
-        deleted: true,
-        deletedAt: serverTimestamp()
-      }, { merge: true });
+      await deleteDoc(exerciseRef);
 
       setExerciseLogs(prev => prev.filter(log => log.id !== id));
       setStatus('idle');

@@ -12,40 +12,40 @@ const DailyTrackerApp = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="mx-auto">
-        <header className="mb-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">Daily Tracker</h1>
+    <div className="w-full">
+      <DateSelector 
+        selectedDate={selectedDate} 
+        onChange={setSelectedDate} 
+      />
+
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-8 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Pomodoro selectedDate={selectedDate} />
+            <Water selectedDate={selectedDate} />
           </div>
-        </header>
-
-        <DateSelector 
-          selectedDate={selectedDate} 
-          onChange={setSelectedDate} 
-        />
-
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-12 lg:col-span-8 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Pomodoro selectedDate={selectedDate} />
-              <Water selectedDate={selectedDate} />
-            </div>
+        </div>
+        
+        <div className="col-span-12 lg:col-span-4 space-y-6">
+          <Mood selectedDate={selectedDate} />
+        </div>
+        
+        <div className="col-span-12 space-y-8">
+          <Journal selectedDate={selectedDate} />
+        </div>
+        
+        <div className="col-span-12 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Habit selectedDate={selectedDate} />
-            <Task selectedDate={selectedDate}/>
-          </div>
-
-          <div className="col-span-12 lg:col-span-4 space-y-6">
-            <Mood selectedDate={selectedDate} />
-            <div className="h-96">
-              <Journal selectedDate={selectedDate} />
-            </div>
+            <Task selectedDate={selectedDate} />
           </div>
         </div>
       </div>
-      <div className='mt-6'><Auth /></div>
+      
+      <div className="mt-6">
+        <Auth />
+      </div>
     </div>
-    
   );
 };
 

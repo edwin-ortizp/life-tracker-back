@@ -8,9 +8,11 @@ const AppLayout = () => {
       <Navigation />
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col h-screen overflow-auto md:pl-16">
-        <main className="flex-1 p-2 mb-16 md:mb-0">
-          <Outlet />
+      <div className="flex-1 md:pl-16">
+        <main className="h-screen overflow-y-auto">
+          <div className="">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
