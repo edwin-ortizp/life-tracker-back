@@ -1,6 +1,6 @@
 // src/features/pomodoro/hooks/usePomodoroStats.ts
 import { useState, useEffect } from 'react';
-import { doc, getDocs, getDoc, DocumentData } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import type { PomodoroStats, PomodoroSession, PomodoroData } from '../types';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';

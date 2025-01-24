@@ -63,7 +63,7 @@ export const TaskInput: React.FC<TaskInputProps> = ({ onAdd, disabled }) => {
             <SelectValue placeholder="Categoría" />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(TASK_CATEGORIES).map(([key, value]) => (
+            {Object.entries(TASK_CATEGORIES).map(([value]) => (
               <SelectItem key={value} value={value}>
                 {CATEGORY_LABELS[value as TaskCategory]}
               </SelectItem>

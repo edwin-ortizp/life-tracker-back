@@ -1,6 +1,6 @@
 // src/features/exercise/components/ExerciseGroup.tsx
 import React from 'react';
-import { ChevronDown, Dumbbell, Activity, Running, Yoga } from 'lucide-react';
+import { ChevronDown, Dumbbell, Activity} from 'lucide-react';
 import { Exercise } from '../types';
 
 interface ExerciseGroupProps {
@@ -11,7 +11,7 @@ interface ExerciseGroupProps {
 
 const CATEGORY_CONFIG = {
   cardio: {
-    icon: Running,
+    icon: Activity,
     title: 'Cardio',
     description: 'Ejercicios cardiovasculares'
   },
@@ -21,7 +21,7 @@ const CATEGORY_CONFIG = {
     description: 'Ejercicios de fuerza y resistencia'
   },
   flexibility: {
-    icon: Yoga,
+    icon: Activity,
     title: 'Flexibilidad',
     description: 'Ejercicios de estiramiento y movilidad'
   },

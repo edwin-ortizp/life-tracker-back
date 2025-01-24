@@ -55,4 +55,5 @@ export interface TaskFormData {
     pattern: 'daily' | 'weekly' | 'monthly' | 'custom';
     customDays?: number;
   };
+  nextDate?: Date;
 }

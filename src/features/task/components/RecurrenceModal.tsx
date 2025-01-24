@@ -171,7 +171,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                   <SelectValue placeholder="Selecciona una categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(TASK_CATEGORIES).map(([key, value]) => (
+                  {Object.entries(TASK_CATEGORIES).map(([value]) => (
                     <SelectItem key={value} value={value}>
                       {CATEGORY_LABELS[value as TaskCategory]}
                     </SelectItem>

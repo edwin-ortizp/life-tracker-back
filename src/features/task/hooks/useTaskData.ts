@@ -14,8 +14,7 @@ import {
   serverTimestamp,
   Timestamp 
 } from 'firebase/firestore';
-import { getLocalDateString } from '@/utils/dates';
-import type { Task, TaskFormData, TaskCategory, TASK_CATEGORIES } from '../types';
+import type { Task, TaskFormData } from '../types';
 
 export const useTaskData = () => {
   const [tasks, setTasks] = useState<Task[]>([]);

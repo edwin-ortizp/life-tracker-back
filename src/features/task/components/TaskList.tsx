@@ -269,7 +269,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas las categorías</SelectItem>
-            {Object.entries(TASK_CATEGORIES).map(([key, value]) => (
+            {Object.entries(TASK_CATEGORIES).map(([value]) => (
               <SelectItem key={value} value={value}>
                 {CATEGORY_LABELS[value as TaskCategory]}
               </SelectItem>

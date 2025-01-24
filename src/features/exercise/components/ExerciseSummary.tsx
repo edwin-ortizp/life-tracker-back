@@ -49,9 +49,9 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({ exerciseLogs }) => {
       };
 
       const goal = categoryGoals[exercise.category];
-      if (goal.duration) {
+      if ('duration' in goal) {
         cat.progress = Math.min(100, (cat.totalDuration / goal.duration) * 100);
-      } else if (goal.sessions) {
+      } else if ('sessions' in goal) {
         cat.progress = Math.min(100, (cat.totalSessions / goal.sessions) * 100);
       }
 

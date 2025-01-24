@@ -81,7 +81,6 @@ export const Exercise: React.FC<ExerciseProps> = ({ selectedDate }) => {
           <TabsContent value="stats" className="m-0">
             <ExerciseStats
               exerciseLogs={exerciseLogs}
-              timeRange="month"
             />
           </TabsContent>
         </Tabs>

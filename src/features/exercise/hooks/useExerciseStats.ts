@@ -9,9 +9,7 @@ import {
   query,
   where,
   getDocs,
-  orderBy,
-  startAt,
-  endAt
+  orderBy
 } from 'firebase/firestore';
 
 export const useExerciseStats = (timeRange: 'week' | 'month' | 'year') => {
