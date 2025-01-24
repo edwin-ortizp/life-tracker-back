@@ -11,13 +11,15 @@ import {
   doc,
   deleteDoc,
   updateDoc,
-  serverTimestamp 
+  serverTimestamp,
+  Timestamp 
 } from 'firebase/firestore';
-import type { Task, TaskFormData } from '../types';
+import { getLocalDateString } from '@/utils/dates';
+import type { Task, TaskFormData, TaskCategory, TASK_CATEGORIES } from '../types';
 
 export const useTaskData = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [showRecurrenceModal, setShowRecurrenceModal] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
@@ -27,6 +29,7 @@ export const useTaskData = () => {
   useEffect(() => {
     if (!user) return;
 
+    setStatus('loading');
     const q = query(
       collection(db, 'tasks'),
       where('userId', '==', user.uid)
@@ -45,13 +48,14 @@ export const useTaskData = () => {
               createdAt: data.createdAt,
               dueDate: data.dueDate?.toDate(),
               isRecurrent: data.isRecurrent || false,
+              category: data.category || 'other',
               recurrence: data.recurrence ? {
                 frequency: data.recurrence.frequency,
                 pattern: data.recurrence.pattern,
                 customDays: data.recurrence.customDays,
                 nextDate: data.recurrence.nextDate?.toDate()
               } : undefined
-            };
+            } as Task;
           })
           .filter(task => !task.completed)
           .sort((a, b) => {
@@ -83,25 +87,22 @@ export const useTaskData = () => {
     setError(null);
 
     try {
-      // Creamos el objeto base
       const taskData: any = {
         userId: user.uid,
         title: formData.title.trim(),
         completed: false,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        category: formData.category || 'other'
       };
 
-      // Solo agregamos description si tiene valor
       if (formData.description?.trim()) {
         taskData.description = formData.description.trim();
       }
 
-      // Solo agregamos dueDate si existe
       if (formData.dueDate) {
-        taskData.dueDate = formData.dueDate;
+        taskData.dueDate = Timestamp.fromDate(formData.dueDate);
       }
 
-      // Solo agregamos recurrence si la tarea es recurrente y tiene configuración
       if (formData.isRecurrent && formData.recurrence) {
         taskData.isRecurrent = true;
         taskData.recurrence = {
@@ -109,7 +110,6 @@ export const useTaskData = () => {
           pattern: formData.recurrence.pattern
         };
         
-        // Solo agregamos customDays si el patrón es custom
         if (formData.recurrence.pattern === 'custom' && formData.recurrence.customDays) {
           taskData.recurrence.customDays = formData.recurrence.customDays;
         }
@@ -118,6 +118,7 @@ export const useTaskData = () => {
       await addDoc(collection(db, 'tasks'), taskData);
       setStatus('saved');
     } catch (error) {
+      console.error('Error al guardar:', error);
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
     }
@@ -130,18 +131,25 @@ export const useTaskData = () => {
     try {
       const taskRef = doc(db, 'tasks', taskId);
       
-      // Creamos un objeto con las actualizaciones, excluyendo campos undefined
-      const updateData: any = { updatedAt: serverTimestamp() };
+      const updateData: any = { 
+        updatedAt: serverTimestamp() 
+      };
       
       if (updates.title?.trim()) updateData.title = updates.title.trim();
       if (typeof updates.description === 'string') {
         updateData.description = updates.description.trim() || null;
       }
       if (updates.dueDate !== undefined) {
-        updateData.dueDate = updates.dueDate || null;
+        updateData.dueDate = updates.dueDate ? Timestamp.fromDate(updates.dueDate) : null;
+      }
+      if (updates.category) {
+        updateData.category = updates.category;
       }
       if (updates.isRecurrent !== undefined) {
         updateData.isRecurrent = updates.isRecurrent;
+        if (!updates.isRecurrent) {
+          updateData.recurrence = null;
+        }
       }
       if (updates.recurrence) {
         updateData.recurrence = {
@@ -156,6 +164,7 @@ export const useTaskData = () => {
       await updateDoc(taskRef, updateData);
       setStatus('saved');
     } catch (error) {
+      console.error('Error al actualizar:', error);
       setError(error instanceof Error ? error.message : 'Error al actualizar');
       setStatus('error');
     }
@@ -176,6 +185,7 @@ export const useTaskData = () => {
           completed: !completed,
           updatedAt: serverTimestamp()
         });
+        setStatus('saved');
         return;
       }
 
@@ -183,48 +193,56 @@ export const useTaskData = () => {
       setModalMode('complete');
       setShowRecurrenceModal(true);
     } catch (error) {
+      console.error('Error al actualizar estado:', error);
       setError(error instanceof Error ? error.message : 'Error al actualizar');
       setStatus('error');
     }
   };
 
-  const completeRecurrentTask = async (data: { nextDate: Date, description?: string }) => {
+  const completeRecurrentTask = async (data: TaskFormData) => {
     if (!currentTask || !user) return;
 
     setStatus('saving');
     try {
       const taskRef = doc(db, 'tasks', currentTask.id);
       
-      // Actualizamos la tarea actual
+      // Marcamos la tarea actual como completada
       await updateDoc(taskRef, {
         completed: true,
         updatedAt: serverTimestamp()
       });
 
-      // Creamos el objeto para la nueva tarea
-      const newTaskData: any = {
+      // Creamos la siguiente ocurrencia
+      const nextTaskData: any = {
         userId: user.uid,
         title: currentTask.title,
         completed: false,
         createdAt: serverTimestamp(),
-        dueDate: data.nextDate,
+        dueDate: data.dueDate ? Timestamp.fromDate(data.dueDate) : null,
         isRecurrent: true,
-        recurrence: currentTask.recurrence
+        category: currentTask.category,
+        // Solo incluimos los campos necesarios de recurrence
+        recurrence: {
+          pattern: currentTask.recurrence?.pattern || 'daily',
+          frequency: currentTask.recurrence?.frequency || 1,
+          ...(currentTask.recurrence?.pattern === 'custom' && {
+            customDays: currentTask.recurrence.customDays
+          })
+        }
       };
 
-      // Solo incluimos description si tiene valor
-      if (data.description?.trim()) {
-        newTaskData.description = data.description.trim();
-      } else if (currentTask.description) {
-        newTaskData.description = currentTask.description;
+      // Agregamos descripción solo si existe
+      if (data.description?.trim() || currentTask.description) {
+        nextTaskData.description = (data.description?.trim() || currentTask.description);
       }
 
-      await addDoc(collection(db, 'tasks'), newTaskData);
+      await addDoc(collection(db, 'tasks'), nextTaskData);
 
       setStatus('saved');
       setCurrentTask(null);
       setShowRecurrenceModal(false);
     } catch (error) {
+      console.error('Error al procesar tarea recurrente:', error);
       setError(error instanceof Error ? error.message : 'Error al actualizar tarea recurrente');
       setStatus('error');
     }
@@ -239,6 +257,7 @@ export const useTaskData = () => {
       await deleteDoc(doc(db, 'tasks', taskId));
       setStatus('saved');
     } catch (error) {
+      console.error('Error al eliminar:', error);
       setError(error instanceof Error ? error.message : 'Error al eliminar');
       setStatus('error');
     }

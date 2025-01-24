@@ -1,9 +1,38 @@
 // src/features/task/components/TaskList.tsx
-import React from 'react';
-import { CheckCircle2, Circle, X, Repeat, AlignLeft, Calendar, Edit } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle2, Circle, X, Repeat, AlignLeft, Calendar, Edit, Tag } from 'lucide-react';
 import { format, isBefore, startOfDay, addDays, addWeeks, addMonths, endOfDay, endOfWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
-import type { Task } from '../types';
+import { Task, TaskCategory, TASK_CATEGORIES } from '../types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const CATEGORY_LABELS: Record<TaskCategory, string> = {
+  personal: 'Personal',
+  work: 'Trabajo',
+  home: 'Casa',
+  health: 'Salud',
+  shopping: 'Compras',
+  study: 'Estudio',
+  social: 'Social',
+  other: 'Otro'
+};
+
+const CATEGORY_COLORS: Record<TaskCategory, { bg: string, text: string }> = {
+  personal: { bg: 'bg-purple-100', text: 'text-purple-700' },
+  work: { bg: 'bg-blue-100', text: 'text-blue-700' },
+  home: { bg: 'bg-green-100', text: 'text-green-700' },
+  health: { bg: 'bg-red-100', text: 'text-red-700' },
+  shopping: { bg: 'bg-yellow-100', text: 'text-yellow-700' },
+  study: { bg: 'bg-indigo-100', text: 'text-indigo-700' },
+  social: { bg: 'bg-pink-100', text: 'text-pink-700' },
+  other: { bg: 'bg-gray-100', text: 'text-gray-700' }
+};
 
 interface TaskListProps {
   tasks: Task[];
@@ -27,6 +56,7 @@ const TaskItem: React.FC<{
   onEdit: (task: Task) => void;
 }> = ({ task, onToggle, onDelete, onEdit }) => {
   const overdue = task.dueDate && isBefore(startOfDay(task.dueDate), startOfDay(new Date()));
+  const categoryStyle = CATEGORY_COLORS[task.category];
 
   const formatDate = (date: Date) => {
     return format(date, "EEEE, d 'de' MMMM", { locale: es });
@@ -90,6 +120,13 @@ const TaskItem: React.FC<{
           )}
 
           <div className="flex flex-wrap gap-3 mt-2 items-center">
+            {/* Categoría */}
+            <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded ${categoryStyle.bg} ${categoryStyle.text}`}>
+              <Tag className="w-3 h-3" />
+              {CATEGORY_LABELS[task.category]}
+            </span>
+
+            {/* Fecha */}
             {task.dueDate && (
               <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded
                 ${overdue ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>
@@ -99,6 +136,7 @@ const TaskItem: React.FC<{
               </span>
             )}
             
+            {/* Recurrencia */}
             {task.isRecurrent && task.recurrence && (
               <span className="flex items-center gap-1 text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">
                 <Repeat className="w-3 h-3" />
@@ -133,6 +171,13 @@ export const TaskList: React.FC<TaskListProps> = ({
   onDelete,
   onEdit
 }) => {
+  const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
+
+  // Filtrar tareas por categoría
+  const filteredTasks = selectedCategory === 'all' 
+    ? tasks 
+    : tasks.filter(task => task.category === selectedCategory);
+
   // Helper para agrupar tareas por período
   const groupTasks = (tasks: Task[]): GroupedTasks => {
     const now = new Date();
@@ -208,21 +253,48 @@ export const TaskList: React.FC<TaskListProps> = ({
     );
   };
 
-  const groupedTasks = groupTasks(tasks);
+  const groupedTasks = groupTasks(filteredTasks);
 
   return (
-    <div className="mt-8">
-      <TaskGroup title="Tareas Vencidas" tasks={groupedTasks.overdue} />
-      <TaskGroup title="Para Hoy" tasks={groupedTasks.today} />
-      <TaskGroup title="Esta Semana" tasks={groupedTasks.thisWeek} />
-      <TaskGroup title="Próximamente" tasks={groupedTasks.future} />
-      <TaskGroup title="Sin Fecha" tasks={groupedTasks.noDate} />
+    <div className="space-y-6">
+      {/* Filtro de categorías */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-500 font-medium">Filtrar por:</span>
+        <Select
+          value={selectedCategory}
+          onValueChange={(value) => setSelectedCategory(value as TaskCategory | 'all')}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Todas las categorías" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas las categorías</SelectItem>
+            {Object.entries(TASK_CATEGORIES).map(([key, value]) => (
+              <SelectItem key={value} value={value}>
+                {CATEGORY_LABELS[value as TaskCategory]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      {tasks.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No hay tareas pendientes
-        </div>
-      )}
+      {/* Lista de tareas */}
+      <div>
+        <TaskGroup title="Tareas Vencidas" tasks={groupedTasks.overdue} />
+        <TaskGroup title="Para Hoy" tasks={groupedTasks.today} />
+        <TaskGroup title="Esta Semana" tasks={groupedTasks.thisWeek} />
+        <TaskGroup title="Próximamente" tasks={groupedTasks.future} />
+        <TaskGroup title="Sin Fecha" tasks={groupedTasks.noDate} />
+
+        {filteredTasks.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            {selectedCategory === 'all' 
+              ? 'No hay tareas pendientes'
+              : `No hay tareas pendientes en la categoría ${CATEGORY_LABELS[selectedCategory]}`
+            }
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -1,4 +1,18 @@
 // src/features/task/types/index.ts
+
+export const TASK_CATEGORIES = {
+  PERSONAL: 'personal',
+  WORK: 'work',
+  HOME: 'home',
+  HEALTH: 'health',
+  SHOPPING: 'shopping',
+  STUDY: 'study',
+  SOCIAL: 'social',
+  OTHER: 'other'
+} as const;
+
+export type TaskCategory = typeof TASK_CATEGORIES[keyof typeof TASK_CATEGORIES];
+
 export interface Task {
   id: string;
   title: string;
@@ -9,6 +23,7 @@ export interface Task {
   };
   dueDate?: Date;
   isRecurrent?: boolean;
+  category: TaskCategory;
   recurrence?: {
     frequency: number;
     pattern: 'daily' | 'weekly' | 'monthly' | 'custom';
@@ -24,17 +39,7 @@ export interface TaskProps {
 export interface RecurrenceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (data: {
-    title: string;
-    description?: string;
-    dueDate?: Date;
-    isRecurrent?: boolean;
-    recurrence?: {
-      frequency: number;
-      pattern: 'daily' | 'weekly' | 'monthly' | 'custom';
-      customDays?: number;
-    };
-  }) => void;
+  onConfirm: (data: TaskFormData) => void;
   task: Task;
   mode: 'complete' | 'edit';
 }
@@ -44,6 +49,7 @@ export interface TaskFormData {
   description?: string;
   dueDate?: Date;
   isRecurrent?: boolean;
+  category: TaskCategory;
   recurrence?: {
     frequency: number;
     pattern: 'daily' | 'weekly' | 'monthly' | 'custom';

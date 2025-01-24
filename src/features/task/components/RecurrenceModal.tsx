@@ -1,6 +1,6 @@
 // src/features/task/components/RecurrenceModal.tsx
 import React, { useState, useEffect } from 'react';
-import { Calendar, AlignLeft, Type } from 'lucide-react';
+import { Calendar, AlignLeft, Type, Tag } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,10 +12,28 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { format, addDays, addWeeks, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { RecurrenceModalProps } from '../types';
+import { TASK_CATEGORIES, TaskCategory, RecurrenceModalProps } from '../types';
+
+const CATEGORY_LABELS: Record<TaskCategory, string> = {
+  personal: 'Personal',
+  work: 'Trabajo',
+  home: 'Casa',
+  health: 'Salud',
+  shopping: 'Compras',
+  study: 'Estudio',
+  social: 'Social',
+  other: 'Otro'
+};
 
 export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
   isOpen,
@@ -28,7 +46,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
   const calculateNextDate = () => {
     if (!task.recurrence) return new Date();
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalizar a medianoche
+    today.setHours(0, 0, 0, 0);
     
     switch (task.recurrence.pattern) {
       case 'daily':
@@ -49,6 +67,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
     description: task.description || '',
     dueDate: mode === 'complete' ? calculateNextDate() : (task.dueDate || new Date()),
     isRecurrent: task.isRecurrent || false,
+    category: task.category || 'other',
     recurrence: task.recurrence
   });
 
@@ -58,6 +77,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
       description: task.description || '',
       dueDate: mode === 'complete' ? calculateNextDate() : (task.dueDate || new Date()),
       isRecurrent: task.isRecurrent || false,
+      category: task.category || 'other',
       recurrence: task.recurrence
     });
   }, [task, mode]);
@@ -89,6 +109,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
       description: formData.description,
       dueDate: formData.dueDate,
       isRecurrent: formData.isRecurrent,
+      category: formData.category,
       recurrence: formData.isRecurrent ? formData.recurrence : undefined
     });
     onClose();
@@ -129,6 +150,34 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                 })}
                 placeholder="Título de la tarea..."
               />
+            </div>
+          )}
+
+          {/* Categoría */}
+          {mode === 'edit' && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Tag className="w-4 h-4" />
+                Categoría
+              </label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => setFormData({
+                  ...formData,
+                  category: value as TaskCategory
+                })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona una categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(TASK_CATEGORIES).map(([key, value]) => (
+                    <SelectItem key={value} value={value}>
+                      {CATEGORY_LABELS[value as TaskCategory]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 
