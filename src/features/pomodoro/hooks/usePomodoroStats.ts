@@ -1,10 +1,10 @@
 // src/features/pomodoro/hooks/usePomodoroStats.ts
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, Query, DocumentData } from 'firebase/firestore';
+import { doc, getDocs, getDoc, DocumentData } from 'firebase/firestore';
 import type { PomodoroStats, PomodoroSession, PomodoroData } from '../types';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
-import { format } from 'date-fns';
+import { format, eachDayOfInterval, startOfDay, endOfDay, subDays, subMonths } from 'date-fns';
 import { getLocalDateString } from '@/utils/dates';
 
 export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
@@ -24,42 +24,35 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
         setLoading(true);
         setError(null);
 
-        // Calcular fechas de inicio y fin usando la zona horaria local
-        const endDate = new Date();
-        const startDate = new Date();
-        
-        if (dateRange === 'week') {
-          startDate.setDate(endDate.getDate() - 7);
-        } else {
-          startDate.setMonth(endDate.getMonth() - 1);
-        }
-
-        // Usar getLocalDateString para obtener las fechas en formato YYYY-MM-DD
-        const endDateStr = getLocalDateString(endDate);
-        const startDateStr = getLocalDateString(startDate);
-
-        let q: Query<DocumentData>;
-        const pomodoroRef = collection(db, 'pomodoro');
-
-        // Construir la consulta
-        q = query(pomodoroRef, 
-          where('userId', '==', user.uid),
-          where('date', '>=', startDateStr),
-          where('date', '<=', endDateStr)
+        // Calcular rango de fechas
+        const endDate = endOfDay(new Date());
+        const startDate = startOfDay(
+          dateRange === 'week' ? subDays(endDate, 7) : subMonths(endDate, 1)
         );
 
-        const querySnapshot = await getDocs(q);
-        let allSessions: PomodoroSession[] = [];
-        let sessionsByDay: Record<string, number> = {};
+        // Obtener array de todas las fechas en el rango
+        const dateArray = eachDayOfInterval({ start: startDate, end: endDate });
+        
+        // Obtener documentos para cada fecha
+        const allSessions: PomodoroSession[] = [];
+        const sessionsByDay: Record<string, number> = {};
 
-        querySnapshot.forEach((doc) => {
-          const data = doc.data() as PomodoroData;
-          allSessions = [...allSessions, ...data.sessions];
-          
-          // Contar sesiones completadas por día
-          const completedSessions = data.sessions.filter(s => s.completed).length;
-          sessionsByDay[data.date] = completedSessions;
-        });
+        for (const date of dateArray) {
+          const dateStr = getLocalDateString(date);
+          const docRef = doc(db, 'pomodoro', `${user.uid}_${dateStr}`);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const data = docSnap.data() as PomodoroData;
+            allSessions.push(...data.sessions);
+            
+            // Contar sesiones completadas por día
+            const completedSessions = data.sessions.filter(s => s.completed).length;
+            if (completedSessions > 0) {
+              sessionsByDay[dateStr] = completedSessions;
+            }
+          }
+        }
 
         // Si no hay sesiones, establecer estadísticas iniciales
         if (allSessions.length === 0) {
@@ -100,10 +93,10 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
         };
 
         setStats(stats);
-        setLoading(false);
       } catch (err) {
         console.error('Error fetching pomodoro stats:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar las estadísticas');
+      } finally {
         setLoading(false);
       }
     };
