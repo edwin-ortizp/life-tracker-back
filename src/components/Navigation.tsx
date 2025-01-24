@@ -12,7 +12,8 @@ import {
   ChevronDown,
   ChevronRight,
   UtensilsCrossed,
-  LogOut
+  LogOut,
+  Dumbbell
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -33,16 +34,17 @@ const Navigation = () => {
   };
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+    { icon: LayoutDashboard, label: 'Inicio', path: '/' },
     { icon: Droplet, label: 'Hidratación', path: '/water' },
     { icon: CheckSquare, label: 'Hábitos', path: '/habit' },
-    { icon: Smile, label: 'Estado de ánimo', path: '/mood' },
+    { icon: Smile, label: 'Estado', path: '/mood' },
     { icon: BookOpen, label: 'Diario', path: '/journal' },
     { icon: Timer, label: 'Pomodoro', path: '/pomodoro' },
+    { icon: Dumbbell, label: 'Exercise', path: '/exercise' },
     { icon: UtensilsCrossed, label: 'Comidas', path: '/meal' },
     { icon: BarChart2, label: 'Tareas', path: '/task' },
-    { icon: Settings, label: 'Configuración', path: '/settings' },
-    { icon: LogOut, label: 'Cerrar sesión', path: '/logout', onClick: handleLogout }
+    { icon: Settings, label: 'Config', path: '/settings' },
+    { icon: LogOut, label: 'Salir', path: '/logout', onClick: handleLogout }
   ];
 
   const visibleMenuItems = menuItems.slice(0, 4);

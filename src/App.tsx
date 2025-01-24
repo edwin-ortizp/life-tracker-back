@@ -8,6 +8,8 @@ import TaskPage from './pages/TaskPage';
 import HabitPage from './pages/HabitPage';
 import MealPage from './pages/MealPage';
 import Home from './artifacts/Home';
+import ExercisePage from './pages/ExercisePage';
+
 
 function App() {
   return (
@@ -20,6 +22,7 @@ function App() {
         <Route path="mood" element={<MoodPage />} />
         <Route path="water" element={<WaterPage />} />
         <Route path="pomodoro" element={<PomodoroPage />} />
+        <Route path="exercise" element={<ExercisePage />} />
         <Route path="meal" element={<MealPage />} />
       </Route>
     </Routes>
