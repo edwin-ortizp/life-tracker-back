@@ -18,76 +18,106 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { ExerciseLog, EXERCISES, EXERCISE_CATEGORIES } from '../types';
+import { ExerciseLog, EXERCISES, EXERCISE_CATEGORIES, ExerciseSummary } from '../types';
 import { Footprints, Timer, Flame, Activity } from 'lucide-react';
+import { getLocalDateString } from '@/utils/dates';
 
 interface ExerciseStatsProps {
   exerciseLogs: ExerciseLog[];
+  summary?: ExerciseSummary;
+}
+
+interface ChartDataPoint {
+  date: string;
+  calories: number;
+  steps: number;
+  duration: number;
+  distance: number;
 }
 
 export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
-  exerciseLogs
+  exerciseLogs,
+  summary: providedSummary
 }) => {
-  const calculateTotalStats = () => {
-    return exerciseLogs.reduce((acc, log) => {
-      acc.calories += log.calories || 0;
-      acc.duration += log.duration || 0;
-      acc.steps += log.steps || 0;
-      if (log.distance) {
-        acc.distance += log.distance;
-      }
-      return acc;
-    }, {
-      calories: 0,
-      duration: 0,
-      steps: 0,
-      distance: 0
-    });
-  };
+  // Si no se proporciona un resumen, lo calculamos de los logs
+  const calculatedSummary = React.useMemo(() => {
+    if (providedSummary) return providedSummary;
+    
+    return {
+      totalCalories: exerciseLogs.reduce((sum, log) => sum + (log.calories || 0), 0),
+      totalSteps: exerciseLogs.reduce((sum, log) => sum + (log.steps || 0), 0),
+      totalDuration: exerciseLogs.reduce((sum, log) => sum + (log.duration || 0), 0),
+      totalDistance: exerciseLogs.reduce((sum, log) => sum + (log.distance || 0), 0),
+      categoryStats: exerciseLogs.reduce((stats, log) => {
+        const exercise = EXERCISES.find(e => e.id === log.exerciseId);
+        if (!exercise) return stats;
 
-  const totalStats = calculateTotalStats();
+        if (!stats[exercise.category]) {
+          stats[exercise.category] = { count: 0, duration: 0, calories: 0 };
+        }
+
+        stats[exercise.category].count += 1;
+        stats[exercise.category].duration += log.duration || 0;
+        stats[exercise.category].calories += log.calories || 0;
+
+        return stats;
+      }, {} as ExerciseSummary['categoryStats'])
+    };
+  }, [exerciseLogs, providedSummary]);
 
   const formatDateAxis = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('es-ES', { 
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('es-ES', { 
       month: 'short', 
       day: 'numeric' 
     });
   };
 
-  const formatTooltipDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  const formatTooltipDate = (value: string | number, name: string) => {
+    if (typeof value === 'string') {
+      const date = new Date(value);
+      return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+    return [value.toLocaleString(), name];
   };
 
-  const getChartData = () => {
-    // Ordenar los logs por fecha
-    const sortedLogs = [...exerciseLogs].sort((a, b) => 
-      new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
+  // Agrupar los datos para el gráfico por fecha
+  const chartData = React.useMemo(() => {
+    // Obtenemos la fecha actual y creamos un rango de 7 días hacia atrás
+    const today = new Date();
+    const data: ChartDataPoint[] = [];
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = getLocalDateString(date);
+      
+      data.push({
+        date: dateStr,
+        calories: 0,
+        steps: 0,
+        duration: 0,
+        distance: 0
+      });
+    }
 
-    // Agrupar por fecha
-    return sortedLogs.reduce((acc, log) => {
-      if (!acc[log.date]) {
-        acc[log.date] = {
-          date: log.date,
-          calories: 0,
-          steps: 0,
-          duration: 0,
-          distance: 0
-        };
+    // Ahora agregamos los datos de los ejercicios
+    exerciseLogs.forEach(log => {
+      const dataPoint = data.find(d => d.date === getLocalDateString(new Date()));
+      if (dataPoint) {
+        dataPoint.calories += log.calories || 0;
+        dataPoint.steps += log.steps || 0;
+        dataPoint.duration += log.duration || 0;
+        dataPoint.distance += (log.distance || 0) / 1000; // Convertir a km
       }
-      acc[log.date].calories += log.calories || 0;
-      acc[log.date].steps += log.steps || 0;
-      acc[log.date].duration += log.duration || 0;
-      acc[log.date].distance += (log.distance || 0) / 1000; // Convertir a km
-      return acc;
-    }, {} as Record<string, any>);
-  };
+    });
 
-  const chartData = Object.values(getChartData());
+    return data;
+  }, [exerciseLogs]);
 
   return (
     <div className="space-y-6">
@@ -99,7 +129,7 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-500">Calorías</p>
-              <h4 className="text-2xl font-bold">{totalStats.calories}</h4>
+              <h4 className="text-2xl font-bold">{calculatedSummary.totalCalories}</h4>
             </div>
           </CardContent>
         </Card>
@@ -111,7 +141,7 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-500">Pasos</p>
-              <h4 className="text-2xl font-bold">{totalStats.steps.toLocaleString()}</h4>
+              <h4 className="text-2xl font-bold">{calculatedSummary.totalSteps.toLocaleString()}</h4>
             </div>
           </CardContent>
         </Card>
@@ -123,7 +153,7 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-500">Tiempo</p>
-              <h4 className="text-2xl font-bold">{totalStats.duration} min</h4>
+              <h4 className="text-2xl font-bold">{calculatedSummary.totalDuration} min</h4>
             </div>
           </CardContent>
         </Card>
@@ -135,7 +165,7 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-500">Distancia</p>
-              <h4 className="text-2xl font-bold">{(totalStats.distance / 1000).toFixed(1)} km</h4>
+              <h4 className="text-2xl font-bold">{(calculatedSummary.totalDistance / 1000).toFixed(1)} km</h4>
             </div>
           </CardContent>
         </Card>
@@ -147,11 +177,11 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="calories">
-            <TabsList className="grid grid-cols-4">
-              <TabsTrigger value="calories">Calorías</TabsTrigger>
-              <TabsTrigger value="steps">Pasos</TabsTrigger>
-              <TabsTrigger value="duration">Tiempo</TabsTrigger>
-              <TabsTrigger value="distance">Distancia</TabsTrigger>
+            <TabsList className="grid grid-cols-4 h-12">
+              <TabsTrigger value="calories" className="text-base">Calorías</TabsTrigger>
+              <TabsTrigger value="steps" className="text-base">Pasos</TabsTrigger>
+              <TabsTrigger value="duration" className="text-base">Tiempo</TabsTrigger>
+              <TabsTrigger value="distance" className="text-base">Distancia</TabsTrigger>
             </TabsList>
             
             <TabsContent value="calories" className="h-[300px] pt-4">
@@ -160,9 +190,9 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" tickFormatter={formatDateAxis} />
                   <YAxis />
-                  <Tooltip
-                    labelFormatter={formatTooltipDate}
-                    formatter={(value: number) => [`${value} kcal`, 'Calorías']}
+                  <Tooltip 
+                    formatter={formatTooltipDate}
+                    labelFormatter={formatDateAxis}
                   />
                   <Legend />
                   <Line
@@ -182,9 +212,9 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" tickFormatter={formatDateAxis} />
                   <YAxis />
-                  <Tooltip
-                    labelFormatter={formatTooltipDate}
-                    formatter={(value: number) => [`${value.toLocaleString()} pasos`, 'Pasos']}
+                  <Tooltip 
+                    formatter={formatTooltipDate}
+                    labelFormatter={formatDateAxis}
                   />
                   <Legend />
                   <Line
@@ -204,9 +234,9 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" tickFormatter={formatDateAxis} />
                   <YAxis />
-                  <Tooltip
-                    labelFormatter={formatTooltipDate}
-                    formatter={(value: number) => [`${value} min`, 'Tiempo']}
+                  <Tooltip 
+                    formatter={formatTooltipDate}
+                    labelFormatter={formatDateAxis}
                   />
                   <Legend />
                   <Line
@@ -226,9 +256,9 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" tickFormatter={formatDateAxis} />
                   <YAxis />
-                  <Tooltip
-                    labelFormatter={formatTooltipDate}
-                    formatter={(value: number) => [`${value.toFixed(2)} km`, 'Distancia']}
+                  <Tooltip 
+                    formatter={formatTooltipDate}
+                    labelFormatter={formatDateAxis}
                   />
                   <Legend />
                   <Line
@@ -253,15 +283,16 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={Object.entries(EXERCISE_CATEGORIES).map(([category, info]) => {
-                const categoryLogs = exerciseLogs.filter(log => {
-                  const exercise = EXERCISES.find(e => e.id === log.exerciseId);
-                  return exercise?.category === category;
-                });
+                const categoryStats = calculatedSummary.categoryStats[category as keyof typeof calculatedSummary.categoryStats] || {
+                  count: 0,
+                  duration: 0,
+                  calories: 0
+                };
 
                 return {
                   category: info.name,
-                  calories: categoryLogs.reduce((sum, log) => sum + (log.calories || 0), 0),
-                  minutos: categoryLogs.reduce((sum, log) => sum + (log.duration || 0), 0)
+                  minutos: categoryStats.duration,
+                  calorias: categoryStats.calories
                 };
               })}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -270,7 +301,7 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
                 <YAxis yAxisId="right" orientation="right" stroke="#22c55e" />
                 <Tooltip />
                 <Legend />
-                <Bar yAxisId="left" dataKey="calories" fill="#f97316" name="Calorías" />
+                <Bar yAxisId="left" dataKey="calorias" fill="#f97316" name="Calorías" />
                 <Bar yAxisId="right" dataKey="minutos" fill="#22c55e" name="Minutos" />
               </BarChart>
             </ResponsiveContainer>

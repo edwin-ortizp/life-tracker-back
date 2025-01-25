@@ -8,17 +8,15 @@ export interface Exercise {
     targetMuscles: string[];
     defaultSets?: number;
     defaultReps?: number;
-    defaultDuration?: number; // en minutos
-    defaultDistance?: number; // en metros
-    caloriesPerHour?: number; // calorías quemadas por hora
-    description?: string; // descripción del ejercicio
-    stepsPerKm?: number; // pasos promedio por kilómetro
+    defaultDuration?: number;
+    defaultDistance?: number;
+    caloriesPerHour?: number;
+    description?: string;
+    stepsPerKm?: number;
 }
 
 export interface ExerciseLog {
-    id: string;
     exerciseId: number;
-    date: string;
     sets?: number;
     reps?: number;
     duration?: number;
@@ -27,6 +25,30 @@ export interface ExerciseLog {
     calories?: number;
     steps?: number;
     notes?: string;
+}
+
+// Nueva interfaz para el documento en Firebase
+export interface ExerciseDocument {
+    userId: string;
+    date: string;
+    exercises: ExerciseLog[];
+    summary: ExerciseSummary;
+    createdAt: any; // Firebase Timestamp
+    updatedAt: any; // Firebase Timestamp
+}
+
+export interface ExerciseSummary {
+    totalCalories: number;
+    totalSteps: number;
+    totalDuration: number;
+    totalDistance: number;
+    categoryStats: {
+        [key in 'cardio' | 'strength' | 'flexibility']: {
+            count: number;
+            duration: number;
+            calories: number;
+        }
+    };
 }
 
 export interface ExerciseProps {

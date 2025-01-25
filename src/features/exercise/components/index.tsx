@@ -20,6 +20,7 @@ export const Exercise: React.FC<ExerciseProps> = ({ selectedDate }) => {
   const { user } = useAuth();
   const {
     exerciseLogs,
+    summary,
     status,
     error,
     logExercise,
@@ -28,7 +29,7 @@ export const Exercise: React.FC<ExerciseProps> = ({ selectedDate }) => {
   } = useExerciseData(selectedDate);
 
   const [showAddExercise, setShowAddExercise] = useState(false);
-  const [editingExercise, setEditingExercise] = useState<string | null>(null);
+  const [editingExerciseIndex, setEditingExerciseIndex] = useState<number | null>(null);
 
   if (!user) {
     return (
@@ -39,13 +40,6 @@ export const Exercise: React.FC<ExerciseProps> = ({ selectedDate }) => {
       </Card>
     );
   }
-
-  const handleEdit = (logId: string) => {
-    const exerciseLog = exerciseLogs.find(log => log.id === logId);
-    if (exerciseLog) {
-      setEditingExercise(logId);
-    }
-  };
 
   return (
     <Card className="w-full">
@@ -72,7 +66,7 @@ export const Exercise: React.FC<ExerciseProps> = ({ selectedDate }) => {
           <TabsContent value="list" className="m-0">
             <ExerciseList
               exerciseLogs={exerciseLogs}
-              onUpdate={handleEdit}
+              onUpdate={setEditingExerciseIndex}
               onDelete={deleteExerciseLog}
               isLoading={status === 'loading'}
             />
@@ -81,6 +75,7 @@ export const Exercise: React.FC<ExerciseProps> = ({ selectedDate }) => {
           <TabsContent value="stats" className="m-0">
             <ExerciseStats
               exerciseLogs={exerciseLogs}
+              summary={summary}
             />
           </TabsContent>
         </Tabs>
@@ -98,15 +93,15 @@ export const Exercise: React.FC<ExerciseProps> = ({ selectedDate }) => {
           selectedDate={selectedDate}
         />
 
-        {editingExercise && (
+        {editingExerciseIndex !== null && (
           <ExerciseFormModal
             isOpen={true}
-            onClose={() => setEditingExercise(null)}
+            onClose={() => setEditingExerciseIndex(null)}
             onSubmit={(data) => {
-              updateExerciseLog(editingExercise, data);
-              setEditingExercise(null);
+              updateExerciseLog(editingExerciseIndex, data);
+              setEditingExerciseIndex(null);
             }}
-            initialData={exerciseLogs.find(log => log.id === editingExercise)}
+            initialData={exerciseLogs[editingExerciseIndex]}
             selectedDate={selectedDate}
           />
         )}

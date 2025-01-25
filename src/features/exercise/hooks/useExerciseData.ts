@@ -3,47 +3,68 @@ import { useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { getLocalDateString } from '@/utils/dates';
-import { ExerciseLog } from '../types';
+import { ExerciseDocument, ExerciseLog, EXERCISES } from '../types';
 import { 
   doc, 
   setDoc,
+  getDoc,
   deleteDoc,
-  collection,
-  query,
-  where,
-  getDocs,
   serverTimestamp
 } from 'firebase/firestore';
 
 export const useExerciseData = (selectedDate: Date) => {
-  const [exerciseLogs, setExerciseLogs] = useState<ExerciseLog[]>([]);
+  const [exerciseDoc, setExerciseDoc] = useState<ExerciseDocument | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
+  // Función para calcular el resumen de ejercicios
+  const calculateSummary = (exercises: ExerciseLog[]) => {
+    return exercises.reduce((summary, log) => {
+      const exercise = EXERCISES.find(e => e.id === log.exerciseId);
+      if (!exercise) return summary;
+
+      // Actualizar totales
+      summary.totalCalories += log.calories || 0;
+      summary.totalSteps += log.steps || 0;
+      summary.totalDuration += log.duration || 0;
+      summary.totalDistance += log.distance || 0;
+
+      // Actualizar estadísticas por categoría
+      const catStats = summary.categoryStats[exercise.category];
+      catStats.count += 1;
+      catStats.duration += log.duration || 0;
+      catStats.calories += log.calories || 0;
+
+      return summary;
+    }, {
+      totalCalories: 0,
+      totalSteps: 0,
+      totalDuration: 0,
+      totalDistance: 0,
+      categoryStats: {
+        cardio: { count: 0, duration: 0, calories: 0 },
+        strength: { count: 0, duration: 0, calories: 0 },
+        flexibility: { count: 0, duration: 0, calories: 0 }
+      }
+    });
+  };
+
   useEffect(() => {
     if (!user) return;
 
-    const fetchExerciseLogs = async () => {
+    const fetchExercises = async () => {
       setStatus('loading');
       const date = getLocalDateString(selectedDate);
+      const docRef = doc(db, 'exercises', `${user.uid}_${date}`);
       
       try {
-        const exercisesRef = collection(db, 'exercises');
-        const q = query(
-          exercisesRef,
-          where('userId', '==', user.uid),
-          where('date', '==', date)
-        );
-
-        const querySnapshot = await getDocs(q);
-        const logs: ExerciseLog[] = [];
-        
-        querySnapshot.forEach((doc) => {
-          logs.push({ id: doc.id, ...doc.data() } as ExerciseLog);
-        });
-
-        setExerciseLogs(logs);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setExerciseDoc(docSnap.data() as ExerciseDocument);
+        } else {
+          setExerciseDoc(null);
+        }
         setStatus('idle');
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Error al cargar ejercicios');
@@ -51,24 +72,34 @@ export const useExerciseData = (selectedDate: Date) => {
       }
     };
 
-    fetchExerciseLogs();
+    fetchExercises();
   }, [user, selectedDate]);
 
-  const logExercise = async (exerciseLog: Omit<ExerciseLog, 'id'>) => {
+  const logExercise = async (newExercise: ExerciseLog) => {
     if (!user) return;
 
     setStatus('saving');
     setError(null);
 
-    try {
-      const exerciseRef = doc(collection(db, 'exercises'));
-      await setDoc(exerciseRef, {
-        ...exerciseLog,
-        userId: user.uid,
-        createdAt: serverTimestamp(),
-      });
+    const date = getLocalDateString(selectedDate);
+    const docRef = doc(db, 'exercises', `${user.uid}_${date}`);
 
-      setExerciseLogs(prev => [...prev, { ...exerciseLog, id: exerciseRef.id }]);
+    try {
+      const newExercises = exerciseDoc?.exercises || [];
+      newExercises.push(newExercise);
+
+      const summary = calculateSummary(newExercises);
+      const newDoc: ExerciseDocument = {
+        userId: user.uid,
+        date,
+        exercises: newExercises,
+        summary,
+        createdAt: exerciseDoc?.createdAt || serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      await setDoc(docRef, newDoc);
+      setExerciseDoc(newDoc);
       setStatus('idle');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al guardar ejercicio');
@@ -76,24 +107,29 @@ export const useExerciseData = (selectedDate: Date) => {
     }
   };
 
-  const updateExerciseLog = async (id: string, updates: Partial<ExerciseLog>) => {
-    if (!user) return;
+  const updateExerciseLog = async (index: number, updates: Partial<ExerciseLog>) => {
+    if (!user || !exerciseDoc) return;
 
     setStatus('saving');
     setError(null);
 
     try {
-      const exerciseRef = doc(db, 'exercises', id);
-      await setDoc(exerciseRef, {
-        ...updates,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      const date = getLocalDateString(selectedDate);
+      const docRef = doc(db, 'exercises', `${user.uid}_${date}`);
 
-      setExerciseLogs(prev => 
-        prev.map(log => 
-          log.id === id ? { ...log, ...updates } : log
-        )
-      );
+      const updatedExercises = [...exerciseDoc.exercises];
+      updatedExercises[index] = { ...updatedExercises[index], ...updates };
+
+      const summary = calculateSummary(updatedExercises);
+      const updatedDoc: ExerciseDocument = {
+        ...exerciseDoc,
+        exercises: updatedExercises,
+        summary,
+        updatedAt: serverTimestamp()
+      };
+
+      await setDoc(docRef, updatedDoc);
+      setExerciseDoc(updatedDoc);
       setStatus('idle');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al actualizar ejercicio');
@@ -101,17 +137,35 @@ export const useExerciseData = (selectedDate: Date) => {
     }
   };
 
-  const deleteExerciseLog = async (id: string) => {
-    if (!user) return;
+  const deleteExerciseLog = async (index: number) => {
+    if (!user || !exerciseDoc) return;
 
     setStatus('saving');
     setError(null);
 
     try {
-      const exerciseRef = doc(db, 'exercises', id);
-      await deleteDoc(exerciseRef);
+      const date = getLocalDateString(selectedDate);
+      const docRef = doc(db, 'exercises', `${user.uid}_${date}`);
 
-      setExerciseLogs(prev => prev.filter(log => log.id !== id));
+      const updatedExercises = exerciseDoc.exercises.filter((_, i) => i !== index);
+      
+      if (updatedExercises.length === 0) {
+        // Si no quedan ejercicios, eliminar el documento completo
+        await deleteDoc(docRef);
+        setExerciseDoc(null);
+      } else {
+        const summary = calculateSummary(updatedExercises);
+        const updatedDoc: ExerciseDocument = {
+          ...exerciseDoc,
+          exercises: updatedExercises,
+          summary,
+          updatedAt: serverTimestamp()
+        };
+
+        await setDoc(docRef, updatedDoc);
+        setExerciseDoc(updatedDoc);
+      }
+      
       setStatus('idle');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al eliminar ejercicio');
@@ -120,7 +174,8 @@ export const useExerciseData = (selectedDate: Date) => {
   };
 
   return {
-    exerciseLogs,
+    exerciseLogs: exerciseDoc?.exercises || [],
+    summary: exerciseDoc?.summary,
     status,
     error,
     logExercise,

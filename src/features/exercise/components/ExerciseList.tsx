@@ -4,12 +4,11 @@ import { Trash2, Pencil, Flame, Footprints } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ExerciseLog, EXERCISES, EXERCISE_COLORS } from '../types';
 import { Progress } from '@/components/ui/progress';
-import { formatDateToSpanishWithUTC } from '@/utils/dates';
 
 interface ExerciseListProps {
   exerciseLogs: ExerciseLog[];
-  onUpdate: (id: string) => void;
-  onDelete: (id: string) => void;
+  onUpdate: (index: number) => void;
+  onDelete: (index: number) => void;
   isLoading?: boolean;
 }
 
@@ -125,13 +124,13 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
     <div className="space-y-4">
       {getDailyStatsCard()}
       
-      {exerciseLogs.map(log => {
+      {exerciseLogs.map((log, index) => {
         const exercise = EXERCISES.find(e => e.id === log.exerciseId);
         if (!exercise) return null;
 
         return (
           <div
-            key={log.id}
+            key={index}
             className="p-4 rounded-lg border border-gray-200 bg-white shadow-sm"
           >
             <div className="flex items-start justify-between mb-2">
@@ -146,14 +145,14 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => onUpdate(log.id)}
+                  onClick={() => onUpdate(index)}
                 >
                   <Pencil className="w-4 h-4" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => onDelete(log.id)}
+                  onClick={() => onDelete(index)}
                 >
                   <Trash2 className="w-4 h-4 text-red-500" />
                 </Button>
@@ -173,9 +172,6 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                     </span>
                   )}
                 </div>
-                <span className="text-gray-500">
-                  {formatDateToSpanishWithUTC(new Date(log.date))}
-                </span>
               </div>
 
               <Progress value={calculateProgress(log)} className="h-2" />

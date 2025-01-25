@@ -20,11 +20,11 @@ import { MenuItem } from './types';
 export const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Inicio', path: '/' },
   { icon: Droplet, label: 'Hidratación', path: '/water' },
+  { icon: Dumbbell, label: 'Ejercicio', path: '/exercise' },
   { icon: CheckSquare, label: 'Hábitos', path: '/habit' },
   { icon: Smile, label: 'Estado', path: '/mood' },
   { icon: BookOpen, label: 'Diario', path: '/journal' },
   { icon: Timer, label: 'Pomodoro', path: '/pomodoro' },
-  { icon: Dumbbell, label: 'Ejercicio', path: '/exercise' },
   { icon: UtensilsCrossed, label: 'Comidas', path: '/meal' },
   { icon: BarChart2, label: 'Tareas', path: '/task' },
   { icon: Settings, label: 'Config', path: '/settings' },

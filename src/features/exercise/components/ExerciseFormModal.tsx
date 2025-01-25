@@ -1,3 +1,4 @@
+// src/features/exercise/components/ExerciseFormModal.tsx
 import React, { useEffect } from 'react';
 import { X, ArrowLeft } from 'lucide-react';
 import {
@@ -23,7 +24,7 @@ import {
 interface ExerciseFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (exerciseLog: Omit<ExerciseLog, 'id'>) => void;
+  onSubmit: (exerciseLog: ExerciseLog) => void;
   initialData?: ExerciseLog;
   selectedDate: Date;
 }
@@ -96,9 +97,8 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
     e.preventDefault();
     if (!selectedExercise) return;
 
-    const exerciseLog: Omit<ExerciseLog, 'id'> = {
+    const exerciseLog: ExerciseLog = {
       exerciseId: selectedExercise.id,
-      date: getLocalDateString(selectedDate),
       calories: calculatedCalories,
       ...(formData.sets && { sets: parseInt(formData.sets) }),
       ...(formData.reps && { reps: parseInt(formData.reps) }),
@@ -113,67 +113,54 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
     onClose();
   };
 
-  // Agrupar ejercicios por categoría
-  const exercisesByCategory = EXERCISES.reduce((acc, exercise) => {
-    if (!acc[exercise.category]) {
-      acc[exercise.category] = [];
-    }
-    acc[exercise.category].push(exercise);
-    return acc;
-  }, {} as Record<string, typeof EXERCISES>);
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="sm:max-w-[500px] sm:h-auto overflow-y-auto">
+        <DialogHeader className="sticky top-0 bg-white z-10 pb-4 mb-4 border-b">
+          <DialogTitle className="flex items-center gap-2 text-xl">
             {selectedExercise && !initialData && (
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => setSelectedExercise(null)}
-                className="h-6 w-6"
+                className="h-8 w-8"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-5 w-5" />
               </Button>
             )}
             {initialData ? 'Editar ejercicio' : 'Agregar ejercicio'}
           </DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 top-4"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 pt-2">
           {!selectedExercise ? (
             <Tabs defaultValue="cardio" className="w-full">
-              <TabsList className="w-full grid grid-cols-3">
+              <TabsList className="w-full h-12 grid grid-cols-3 mb-4">
                 {Object.entries(EXERCISE_CATEGORIES).map(([key, category]) => (
-                  <TabsTrigger key={key} value={key} className="flex items-center gap-2">
-                    <span>{category.icon}</span>
+                  <TabsTrigger 
+                    key={key} 
+                    value={key} 
+                    className="flex items-center gap-2 text-base p-3"
+                  >
+                    <span className="text-xl">{category.icon}</span>
                     <span>{category.name}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>
-              {Object.entries(exercisesByCategory).map(([category, exercises]) => (
+              {Object.entries(EXERCISE_CATEGORIES).map(([category, info]) => (
                 <TabsContent key={category} value={category} className="mt-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    {exercises.map((exercise) => (
+                  <div className="grid grid-cols-2 gap-3">
+                    {EXERCISES.filter(e => e.category === category).map((exercise) => (
                       <Button
                         key={exercise.id}
                         type="button"
                         variant="outline"
-                        className="flex flex-col items-center p-4 h-auto gap-2"
+                        className="flex flex-col items-center p-6 h-auto gap-3 hover:bg-gray-50"
                         onClick={() => handleSelectExercise(exercise)}
                       >
-                        <span className="text-2xl">{exercise.icon}</span>
-                        <span className="text-sm font-normal">{exercise.name}</span>
+                        <span className="text-3xl">{exercise.icon}</span>
+                        <span className="text-sm font-normal text-center">{exercise.name}</span>
                       </Button>
                     ))}
                   </div>
@@ -181,11 +168,11 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
               ))}
             </Tabs>
           ) : (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-2xl">{selectedExercise.icon}</span>
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-3xl">{selectedExercise.icon}</span>
                 <div>
-                  <h4 className="font-medium">{selectedExercise.name}</h4>
+                  <h4 className="font-medium text-lg">{selectedExercise.name}</h4>
                   <p className="text-sm text-gray-500">{selectedExercise.description}</p>
                 </div>
               </div>
@@ -276,8 +263,8 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
               )}
 
               {calculatedCalories > 0 && (
-                <div className="py-2 px-3 bg-gray-50 rounded-md text-sm">
-                  Calorías estimadas: {calculatedCalories} kcal
+                <div className="p-4 bg-gray-50 rounded-md">
+                  <p className="text-sm font-medium">Calorías estimadas: {calculatedCalories} kcal</p>
                 </div>
               )}
 
@@ -290,18 +277,16 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
                   placeholder="Añade notas sobre el ejercicio..."
                 />
               </div>
-            </div>
-          )}
 
-          {selectedExercise && (
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button type="submit">
-                {initialData ? 'Actualizar' : 'Guardar'}
-              </Button>
-            </DialogFooter>
+              <DialogFooter className="gap-3 sm:gap-0">
+                <Button type="button" variant="outline" className="flex-1 sm:flex-none" onClick={onClose}>
+                  Cancelar
+                </Button>
+                <Button type="submit" className="flex-1 sm:flex-none">
+                  {initialData ? 'Actualizar' : 'Guardar'}
+                </Button>
+              </DialogFooter>
+            </div>
           )}
         </form>
       </DialogContent>

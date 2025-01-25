@@ -13,8 +13,8 @@ export interface Habit {
   
 export const HABITS: Habit[] = [
     { id: 1, name: 'Tomar Agua', icon: '💧', timeOfDay: 'morning', goal: '5 min' },
-    { id: 19, name: 'Trotar 1km', icon: '🏃‍♀️‍➡️', timeOfDay: 'morning', goal: '10 min' },
-    { id: 2, name: 'Jugar tenis', icon: '🎾', timeOfDay: 'morning', goal: '40 min' },
+    /* { id: 19, name: 'Trotar 1km', icon: '🏃‍♀️‍➡️', timeOfDay: 'morning', goal: '10 min' }, */
+    { id: 2, name: 'Ejercicio', icon: '🎾', timeOfDay: 'morning', goal: '40 min' },
     { id: 3, name: 'Ducha fria', icon: '🚿', timeOfDay: 'morning', goal: '10 min' },
     { id: 4, name: 'Desayuno', icon: '🍳', timeOfDay: 'morning', goal: '30 min' },
     { id: 5, name: 'Lavarme los dientes', icon: '🪥', timeOfDay: 'morning', goal: '2 min' },
