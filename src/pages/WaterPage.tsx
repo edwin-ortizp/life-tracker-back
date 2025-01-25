@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import DateSelector from '@/components/DateSelector';
 import Water from '@/features/water/components';
+import PageLayout from '@/components/PageLayout';
 
 const WaterPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <PageLayout>
       <DateSelector
         selectedDate={selectedDate}
         onChange={setSelectedDate}
       />
       
       <Water selectedDate={selectedDate} />
-    </div>
+    </PageLayout>
   );
 };
 

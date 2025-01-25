@@ -13,6 +13,28 @@ export const TASK_CATEGORIES = {
 
 export type TaskCategory = typeof TASK_CATEGORIES[keyof typeof TASK_CATEGORIES];
 
+export const CATEGORY_LABELS: Record<TaskCategory, string> = {
+  personal: 'Personal',
+  work: 'Trabajo',
+  home: 'Casa',
+  health: 'Salud',
+  shopping: 'Compras',
+  study: 'Estudio',
+  social: 'Social',
+  other: 'Otro'
+};
+
+export const CATEGORY_COLORS: Record<TaskCategory, { bg: string, text: string }> = {
+  personal: { bg: 'bg-purple-100', text: 'text-purple-700' },
+  work: { bg: 'bg-blue-100', text: 'text-blue-700' },
+  home: { bg: 'bg-green-100', text: 'text-green-700' },
+  health: { bg: 'bg-red-100', text: 'text-red-700' },
+  shopping: { bg: 'bg-yellow-100', text: 'text-yellow-700' },
+  study: { bg: 'bg-indigo-100', text: 'text-indigo-700' },
+  social: { bg: 'bg-pink-100', text: 'text-pink-700' },
+  other: { bg: 'bg-gray-100', text: 'text-gray-700' }
+};
+
 export interface Task {
   id: string;
   title: string;
