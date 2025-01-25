@@ -59,7 +59,6 @@ export const Exercise: React.FC<ExerciseProps> = ({ selectedDate }) => {
               className="gap-2"
             >
               <Plus className="w-4 h-4" />
-              Agregar ejercicio
             </Button>
           </div>
 
