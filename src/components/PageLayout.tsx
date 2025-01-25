@@ -3,7 +3,7 @@ interface PageLayoutProps {
     className?: string;
   }
   
-  const PageLayout = ({ children, className = '' }: PageLayoutProps) => {
+  const PageLayout = ({ children }: PageLayoutProps) => {
     return (
       <div className={"mx-auto px-4 pt-16 pb-20 md:py-6 md:pl-20 ${className}"}>
         {children}
