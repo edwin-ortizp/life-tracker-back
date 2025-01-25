@@ -2,7 +2,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
 import { MealPlan, MEAL_TYPES } from '../types';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ImportMealPlanProps {
   onImport: (mealPlan: MealPlan) => Promise<void>;
@@ -66,6 +65,7 @@ export const ImportMealPlan: React.FC<ImportMealPlanProps> = ({
     <div className="relative">
       <input
         type="file"
+        title="Importar Plan"
         accept="application/json"
         onChange={handleFileChange}
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -80,11 +80,6 @@ export const ImportMealPlan: React.FC<ImportMealPlanProps> = ({
         <Upload className="h-4 w-4 mr-2" />
         Importar Plan
       </Button>
-      <Alert className="mt-2">
-        <AlertDescription>
-          El archivo debe ser un JSON con el formato especificado en la documentación
-        </AlertDescription>
-      </Alert>
     </div>
   );
 };

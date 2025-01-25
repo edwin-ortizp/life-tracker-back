@@ -1,6 +1,6 @@
 //import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 
 interface DateSelectorProps {
   selectedDate: Date;
@@ -31,11 +31,6 @@ const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onChange }) =
       month: 'long',
       day: 'numeric'
     });
-  };
-
-  const getTimezone = () => {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return timezone;
   };
 
   const isToday = (date: Date) => {
@@ -76,11 +71,6 @@ const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onChange }) =
             </Button>
           )}
         </div>
-      </div>
-      
-      <div className="flex items-center justify-end gap-2 text-sm text-gray-500">
-        <Clock className="w-4 h-4" />
-        <span>Zona horaria: {getTimezone()}</span>
       </div>
     </div>
   );

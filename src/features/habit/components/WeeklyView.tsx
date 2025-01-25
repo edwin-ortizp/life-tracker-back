@@ -20,7 +20,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
 
   const renderHabitGroup = (habits: Array<{ id: number; icon: React.ReactNode; name: string; goal: string }>) => (
     <div className="overflow-x-auto">
-      <div className="min-w-[640px]">
+      <div className="">
         <div className="grid grid-cols-[minmax(120px,1fr)_repeat(7,minmax(40px,1fr))] gap-2">
           <div></div>
           {weekDays.map(day => (
@@ -65,7 +65,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
   );
 
   return (
-    <div className="w-full">
+    <div>
       <HabitGroup completedHabits={completedHabits}>
         {renderHabitGroup}
       </HabitGroup>

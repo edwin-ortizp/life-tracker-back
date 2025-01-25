@@ -7,6 +7,7 @@ import { WeeklyView } from './WeeklyView';
 import { YearlyView } from './YearlyView';
 import { useHabitData } from '../hooks/useHabitData';
 import type { HabitProps } from '../types';
+import PageLayout from '@/components/PageLayout';
 
 // Exports
 export * from './HabitViewToggle';
@@ -35,36 +36,38 @@ export const Habit: React.FC<HabitProps> = () => {
   }
 
   return (
-    <Card className="w-full">
-      <CardContent className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="font-medium text-lg">Hábitos</h3>
-          <HabitViewToggle
-            view={view}
-            onViewChange={setView}
-          />
-        </div>
+    <PageLayout>
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-medium text-lg">Hábitos</h3>
+            <HabitViewToggle
+              view={view}
+              onViewChange={setView}
+            />
+          </div>
 
-        {view === 'weekly' ? (
-          <WeeklyView
-            completedHabits={completedHabits}
-            onToggle={toggleHabit}
-            disabled={status === 'saving'}
-          />
-        ) : (
-          <YearlyView
-            completedHabits={completedHabits}
-            onToggle={toggleHabit}
-          />
-        )}
+          {view === 'weekly' ? (
+            <WeeklyView
+              completedHabits={completedHabits}
+              onToggle={toggleHabit}
+              disabled={status === 'saving'}
+            />
+          ) : (
+            <YearlyView
+              completedHabits={completedHabits}
+              onToggle={toggleHabit}
+            />
+          )}
 
-        {error && (
-          <p className="mt-4 text-sm text-red-500">
-            {error}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+          {error && (
+            <p className="mt-4 text-sm text-red-500">
+              {error}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </PageLayout>
   );
 };
 

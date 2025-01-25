@@ -126,7 +126,7 @@ export const HabitGroup: React.FC<HabitGroupProps> = ({ children, completedHabit
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div className="space-y-4">
       {Object.entries(groupedHabits).map(([timeOfDay, habits]) => {
         const config = TIMEOFDAY_CONFIG[timeOfDay as keyof typeof TIMEOFDAY_CONFIG];
         const Icon = config.icon;
@@ -137,57 +137,83 @@ export const HabitGroup: React.FC<HabitGroupProps> = ({ children, completedHabit
         
         return (
           <div key={timeOfDay} className="rounded-lg border border-gray-200">
+            {/* Header del grupo de hábitos */}
             <button
               onClick={() => toggleSection(timeOfDay)}
-              className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
+              className="w-full p-4 text-left hover:bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
             >
-              <div className="flex items-center gap-2">
-                <Icon className="w-4 h-4" />
-                <span className="font-medium">{config.title}</span>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-500">
-                    Hoy: {progress.daily.completed}/{progress.daily.total}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    Semana: {progress.weekly.completed}/{progress.weekly.total}
-                  </span>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                {/* Título y botón - siempre en la primera línea */}
+                <div className="flex items-center justify-between md:justify-start md:flex-1">
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="font-medium">{config.title}</span>
+                  </div>
+                  <ChevronDown 
+                    className={`w-4 h-4 transition-transform md:hidden ${
+                      isOpen ? 'transform rotate-180' : ''
+                    }`}
+                  />
+                </div>
+
+                {/* Métricas - segunda línea en móvil, misma línea en desktop */}
+                <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <div className="flex flex-wrap items-center gap-2 text-gray-500">
+                    <span className="inline-flex items-center gap-1">
+                      Hoy: {progress.daily.completed}/{progress.daily.total}
+                    </span>
+                    <span className="hidden md:inline text-gray-300">•</span>
+                    <span className="inline-flex items-center gap-1">
+                      Semana: {progress.weekly.completed}/{progress.weekly.total}
+                    </span>
+                  </div>
+                  
                   {streak > 0 && (
-                    <div className="flex items-center gap-1 text-amber-500">
-                      <Flame className="w-4 h-4" />
-                      <span className="text-sm">{streak}</span>
-                    </div>
+                    <>
+                      <span className="hidden md:inline text-gray-300">•</span>
+                      <div className="flex items-center gap-1 text-amber-500">
+                        <Flame className="w-4 h-4 shrink-0" />
+                        <span>{streak} días</span>
+                      </div>
+                    </>
                   )}
+                  
+                  <ChevronDown 
+                    className={`hidden md:block w-4 h-4 transition-transform shrink-0 ${
+                      isOpen ? 'transform rotate-180' : ''
+                    }`}
+                  />
                 </div>
               </div>
-              <ChevronDown 
-                className={`w-4 h-4 transition-transform ${
-                  isOpen ? 'transform rotate-180' : ''
-                }`}
-              />
             </button>
             
+            {/* Contenido del grupo de hábitos */}
             <div
               className={`transition-all duration-200 ease-in-out overflow-hidden ${
-                isOpen ? 'px-6 py-4 max-h-[2000px]' : 'max-h-0 py-0'
+                isOpen ? 'px-4 md:px-6 py-4 max-h-[2000px]' : 'max-h-0 py-0'
               }`}
             >
               {isOpen && (
                 <div className="space-y-6">
-                  {children(habits)}
+                  {/* Lista de hábitos */}
+                  <div className="space-y-2">
+                    {children(habits)}
+                  </div>
                   
-                  <div className="pt-2 space-y-3 border-t border-gray-100">
+                  {/* Barra de progreso y mensajes */}
+                  <div className="pt-4 space-y-3 border-t border-gray-100">
                     <Progress 
                       value={(progress.daily.completed / progress.daily.total) * 100} 
                       className="h-2"
                     />
                     
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <span className="text-sm text-gray-600">
                         {getMotivationalMessage(completionRate)}
                       </span>
                       {progress.daily.completed === progress.daily.total && (
-                        <div className="flex items-center gap-1 text-green-500">
-                          <Trophy className="w-4 h-4" />
+                        <div className="flex items-center gap-1 text-green-500 text-sm">
+                          <Trophy className="w-4 h-4 shrink-0" />
                           <span>¡Completado!</span>
                         </div>
                       )}

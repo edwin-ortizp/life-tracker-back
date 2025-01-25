@@ -1,0 +1,14 @@
+interface PageLayoutProps {
+    children: React.ReactNode;
+    className?: string;
+  }
+  
+  const PageLayout = ({ children, className = '' }: PageLayoutProps) => {
+    return (
+      <div className={"mx-auto px-4 pt-16 pb-20 md:py-6 md:pl-20 ${className}"}>
+        {children}
+      </div>
+    );
+  };
+  
+  export default PageLayout;

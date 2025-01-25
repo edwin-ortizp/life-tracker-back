@@ -18,7 +18,7 @@ export const YearlyView: React.FC<YearlyViewProps> = ({
 
   const renderHabitGroup = (habits: Array<{ id: number; icon: React.ReactNode; name: string; goal: string }>) => (
     <div className="overflow-x-auto">
-      <div className="min-w-[800px] space-y-6">
+      <div className="space-y-6">
         {habits.map((habit) => (
           <div key={habit.id} className="space-y-2">
             <div className="flex items-center gap-2 mb-2">
@@ -43,6 +43,7 @@ export const YearlyView: React.FC<YearlyViewProps> = ({
                           <button
                             key={date}
                             onClick={() => onToggle(habit.id, date)}
+                            title={`Toggle ${habit.name} for ${date}`}
                             className={`w-full aspect-square rounded-sm ${
                               isCompleted 
                                 ? `${HABIT_COLORS[habit.id]} opacity-75 hover:opacity-100` 

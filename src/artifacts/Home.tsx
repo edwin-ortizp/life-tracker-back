@@ -7,12 +7,13 @@ import { Journal } from '@/features/journal/components';
 import { Task } from '@/features/task/components';
 import Auth from '../components/Auth';
 import DateSelector from '../components/DateSelector';
+import PageLayout from '@/components/PageLayout';
 
 const DailyTrackerApp = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   return (
-    <div className="w-full">
+    <PageLayout>
       <DateSelector 
         selectedDate={selectedDate} 
         onChange={setSelectedDate} 
@@ -45,7 +46,7 @@ const DailyTrackerApp = () => {
       <div className="mt-6">
         <Auth />
       </div>
-    </div>
+    </PageLayout>
   );
 };
 
