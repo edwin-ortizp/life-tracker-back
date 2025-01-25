@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import Exercise from '@/features/exercise/components';
 import DateSelector from '@/components/DateSelector';
-import PageLayout from '@/components/PageLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -26,14 +25,14 @@ const ExercisePage: React.FC = () => {
   }
 
   return (
-    <PageLayout>
+    <div className="container max-w-7xl mx-auto py-6">
       <DateSelector
         selectedDate={selectedDate}
         onChange={setSelectedDate}
-        />
+      />
       
       <Exercise selectedDate={selectedDate} />
-    </PageLayout>
+    </div>
   );
 };
 
