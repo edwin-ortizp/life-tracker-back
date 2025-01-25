@@ -1,4 +1,5 @@
 // src/features/task/components/RecurrenceModal.tsx
+// src/features/task/components/RecurrenceModal.tsx
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -29,75 +30,103 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
     initialDate: task.dueDate
   });
 
-  const [formData, setFormData] = useState<TaskFormData>({
-    title: task.title || '',
-    description: task.description || '',
-    dueDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.dueDate || new Date()),
-    isRecurrent: task.isRecurrent || false,
-    category: task.category || 'other',
-    recurrence: task.recurrence
+  const [formData, setFormData] = useState<TaskFormData>(() => {
+    if (mode === 'create') {
+      return {
+        title: '',
+        description: '',
+        category: 'personal',
+        isRecurrent: false,
+      };
+    }
+    
+    return {
+      title: task.title || '',
+      description: task.description || '',
+      dueDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.dueDate || undefined),
+      isRecurrent: task.isRecurrent ?? false,
+      category: task.category || 'personal',
+      recurrence: task.recurrence
+    };
   });
 
   useEffect(() => {
-    setFormData({
-      title: task.title || '',
-      description: task.description || '',
-      dueDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.dueDate || new Date()),
-      isRecurrent: task.isRecurrent || false,
-      category: task.category || 'other',
-      recurrence: task.recurrence
-    });
-  }, [task, mode]);
+    if (isOpen) {
+      if (mode === 'create') {
+        setFormData({
+          title: '',
+          description: '',
+          category: 'personal',
+          isRecurrent: false,
+        });
+      } else {
+        setFormData({
+          title: task.title || '',
+          description: task.description || '',
+          dueDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.dueDate || undefined),
+          isRecurrent: task.isRecurrent || false,
+          category: task.category || 'personal',
+          recurrence: task.recurrence
+        });
+      }
+    }
+  }, [task, mode, isOpen]);
 
   const handleConfirm = () => {
-    onConfirm({
-      title: formData.title.trim(),
-      description: formData.description,
-      dueDate: formData.dueDate,
-      isRecurrent: formData.isRecurrent,
-      category: formData.category,
-      recurrence: formData.isRecurrent ? formData.recurrence : undefined
-    });
-    onClose();
+    if (!formData.title.trim()) return;
+    onConfirm(formData);
+  };
+
+  const getModalTitle = () => {
+    switch (mode) {
+      case 'create':
+        return 'Nueva Tarea';
+      case 'edit':
+        return 'Editar Tarea';
+      case 'complete':
+        return 'Completar Tarea';
+      default:
+        return '';
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {mode === 'complete' ? 'Completar tarea' : 'Editar tarea'}
-          </DialogTitle>
+          <DialogTitle>{getModalTitle()}</DialogTitle>
           {mode === 'complete' && (
             <DialogDescription>{task.title}</DialogDescription>
           )}
         </DialogHeader>
         
         <div className="grid gap-6 py-4">
-          {/* Título - solo en modo edición */}
-          {mode === 'edit' && (
+          {mode !== 'complete' && (
             <TaskTitleInput
               value={formData.title}
               onChange={(title) => setFormData({ ...formData, title })}
             />
           )}
 
-          {/* Categoría - solo en modo edición */}
-          {mode === 'edit' && (
+          {mode !== 'complete' && (
             <TaskCategorySelect
               value={formData.category}
               onChange={(category) => setFormData({ ...formData, category })}
             />
           )}
 
-          {/* Descripción */}
           <TaskDescriptionInput
             value={formData.description || ''}
             onChange={(description) => setFormData({ ...formData, description })}
           />
 
-          {/* Fecha de vencimiento */}
           {mode === 'edit' ? (
+            <TaskDateInput
+              value={formData.dueDate}
+              onChange={(dueDate) => setFormData({ ...formData, dueDate })}
+              showClearButton
+            />
+          ) : mode === 'create' ? (
             <TaskDateInput
               value={formData.dueDate}
               onChange={(dueDate) => setFormData({ ...formData, dueDate })}
@@ -113,8 +142,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
             )
           )}
 
-          {/* Recurrencia - solo en modo edición */}
-          {mode === 'edit' && (
+          {mode !== 'complete' && (
             <TaskRecurrenceConfig
               isRecurrent={formData.isRecurrent ?? false}
               onRecurrentChange={(isRecurrent) => setFormData({
@@ -128,8 +156,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
               config={formData.recurrence}
               onConfigChange={(recurrence) => setFormData({
                 ...formData,
-                recurrence,
-                dueDate: calculateNextDate(new Date(), recurrence)
+                recurrence
               })}
             />
           )}
@@ -139,8 +166,11 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button onClick={handleConfirm}>
-            {mode === 'complete' ? 'Completar' : 'Guardar cambios'}
+          <Button 
+            onClick={handleConfirm}
+            disabled={!formData.title.trim()}
+          >
+            {mode === 'complete' ? 'Completar' : mode === 'create' ? 'Crear' : 'Guardar cambios'}
           </Button>
         </DialogFooter>
       </DialogContent>

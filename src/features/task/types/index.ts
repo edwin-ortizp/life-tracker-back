@@ -63,7 +63,7 @@ export interface RecurrenceModalProps {
   onClose: () => void;
   onConfirm: (data: TaskFormData) => void;
   task: Task;
-  mode: 'complete' | 'edit';
+  mode: 'create' | 'complete' | 'edit';
 }
 
 export interface TaskFormData {

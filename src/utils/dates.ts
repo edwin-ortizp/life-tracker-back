@@ -1,12 +1,19 @@
+// src/utils/dates.ts
+import { 
+  format, 
+  addDays, 
+  addWeeks, 
+  addMonths, 
+  startOfDay,
+  endOfDay,
+  isWithinInterval
+} from 'date-fns';
+import { es } from 'date-fns/locale';
+
 // Obtiene la fecha local en formato YYYY-MM-DD considerando la zona horaria del usuario
 export const getLocalDateString = (date: Date = new Date()): string => {
-  // Creamos una nueva fecha basada en la timestamp
   const localDate = new Date(date.getTime());
-  
-  // Ajustamos a medianoche en la zona horaria local
   localDate.setHours(0, 0, 0, 0);
-  
-  // Retornamos en formato YYYY-MM-DD
   return localDate.toISOString().split('T')[0];
 };
 
@@ -14,11 +21,10 @@ export const getLocalDateString = (date: Date = new Date()): string => {
 export const areSameLocalDay = (timestamp1: number, timestamp2: number): boolean => {
   const date1 = new Date(timestamp1);
   const date2 = new Date(timestamp2);
-  
   return getLocalDateString(date1) === getLocalDateString(date2);
 };
 
-// La función formatDateToSpanishWithUTC permanece igual
+// Formato de fecha completo en español con UTC
 export const formatDateToSpanishWithUTC = (date: Date): string => {
   const months = [
     'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
@@ -43,6 +49,7 @@ export const formatDateToSpanishWithUTC = (date: Date): string => {
   return `${day} de ${month} de ${year}, ${hours}:${minutes}:${seconds} ${ampm} UTC${sign}${offsetHours}`;
 };
 
+// Crear timestamp formateado con offset
 export const createFormattedTimestamp = (baseDate: Date, hours: number, minutes: number) => {
   const date = new Date(baseDate);
   date.setHours(hours, minutes, 0, 0);
@@ -52,4 +59,61 @@ export const createFormattedTimestamp = (baseDate: Date, hours: number, minutes:
     utcOffset: -date.getTimezoneOffset(),
     formatted: formatDateToSpanishWithUTC(date)
   };
+};
+
+// Funciones para manejo de recurrencia
+export const calculateNextRecurrenceDate = (
+  baseDate: Date = new Date(),
+  pattern: 'daily' | 'weekly' | 'monthly' | 'custom' = 'daily',
+  customDays: number = 1
+): Date => {
+  const startDate = startOfDay(baseDate);
+  
+  switch (pattern) {
+    case 'daily':
+      return addDays(startDate, 1);
+    case 'weekly':
+      return addWeeks(startDate, 1);
+    case 'monthly':
+      return addMonths(startDate, 1);
+    case 'custom':
+      return addDays(startDate, customDays);
+    default:
+      return startDate;
+  }
+};
+
+// Obtener texto de recurrencia
+export const getRecurrenceText = (nextDate: Date, pattern: string, customDays?: number): string => {
+  const dateText = format(nextDate, "'próximo' EEEE", { locale: es });
+  
+  switch (pattern) {
+    case 'daily':
+      return `Diariamente (${dateText})`;
+    case 'weekly':
+      return `Semanalmente (${dateText})`;
+    case 'monthly':
+      return `Mensualmente (${format(nextDate, "'próximo' d 'de' MMMM", { locale: es })})`;
+    case 'custom':
+      return `Cada ${customDays} día${customDays !== 1 ? 's' : ''} (${dateText})`;
+    default:
+      return '';
+  }
+};
+
+// Formato de fecha para inputs
+export const formatDateForInput = (date: Date): string => {
+  const offset = date.getTimezoneOffset();
+  const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
+  return adjustedDate.toISOString().split('T')[0];
+};
+
+// Formatear fecha en español
+export const formatDateToSpanish = (date: Date): string => {
+  return format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
+};
+
+// Verificar si una fecha está dentro de un intervalo
+export const isDateInRange = (date: Date, start: Date, end: Date): boolean => {
+  return isWithinInterval(date, { start: startOfDay(start), end: endOfDay(end) });
 };

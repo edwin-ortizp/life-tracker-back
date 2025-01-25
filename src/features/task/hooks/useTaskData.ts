@@ -1,5 +1,5 @@
 // src/features/task/hooks/useTaskData.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { 
@@ -16,14 +16,34 @@ import {
 } from 'firebase/firestore';
 import type { Task, TaskFormData } from '../types';
 
+type ModalMode = 'create' | 'edit' | 'complete';
+
 export const useTaskData = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'saved' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [showRecurrenceModal, setShowRecurrenceModal] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
-  const [modalMode, setModalMode] = useState<'complete' | 'edit'>('complete');
+  const [modalMode, setModalMode] = useState<ModalMode>('create');
   const { user } = useAuth();
+
+  // Manejar el cierre del modal
+  const handleCloseModal = useCallback(() => {
+    setShowRecurrenceModal(false);
+    setCurrentTask(null);
+    setStatus('idle'); // Resetear el estado al cerrar el modal
+    setError(null);
+    setModalMode('create');
+  }, []);
+
+  // Reemplazar setShowRecurrenceModal con una función personalizada
+  const setShowRecurrenceModalWithReset = useCallback((show: boolean) => {
+    if (!show) {
+      handleCloseModal();
+    } else {
+      setShowRecurrenceModal(true);
+    }
+  }, [handleCloseModal]);
 
   useEffect(() => {
     if (!user) return;
@@ -67,7 +87,10 @@ export const useTaskData = () => {
           });
         
         setTasks(taskList);
-        setStatus('saved');
+        // Solo cambiar a 'saved' si no estamos en proceso de guardar
+        if (status !== 'saving') {
+          setStatus('idle');
+        }
       },
       (error) => {
         console.error('Error en snapshot:', error);
@@ -115,7 +138,7 @@ export const useTaskData = () => {
       }
 
       await addDoc(collection(db, 'tasks'), taskData);
-      setStatus('saved');
+      setStatus('idle');
     } catch (error) {
       console.error('Error al guardar:', error);
       setError(error instanceof Error ? error.message : 'Error al guardar');
@@ -161,7 +184,7 @@ export const useTaskData = () => {
       }
 
       await updateDoc(taskRef, updateData);
-      setStatus('saved');
+      handleCloseModal(); // Cerrar el modal después de guardar exitosamente
     } catch (error) {
       console.error('Error al actualizar:', error);
       setError(error instanceof Error ? error.message : 'Error al actualizar');
@@ -184,16 +207,32 @@ export const useTaskData = () => {
           completed: !completed,
           updatedAt: serverTimestamp()
         });
-        setStatus('saved');
+        setStatus('idle');
         return;
       }
 
       setCurrentTask(task);
       setModalMode('complete');
       setShowRecurrenceModal(true);
+      setStatus('idle');
     } catch (error) {
       console.error('Error al actualizar estado:', error);
       setError(error instanceof Error ? error.message : 'Error al actualizar');
+      setStatus('error');
+    }
+  };
+
+  const deleteTask = async (taskId: string) => {
+    if (!user) return;
+
+    setStatus('saving');
+    
+    try {
+      await deleteDoc(doc(db, 'tasks', taskId));
+      setStatus('idle');
+    } catch (error) {
+      console.error('Error al eliminar:', error);
+      setError(error instanceof Error ? error.message : 'Error al eliminar');
       setStatus('error');
     }
   };
@@ -220,7 +259,6 @@ export const useTaskData = () => {
         dueDate: data.dueDate ? Timestamp.fromDate(data.dueDate) : null,
         isRecurrent: true,
         category: currentTask.category,
-        // Solo incluimos los campos necesarios de recurrence
         recurrence: {
           pattern: currentTask.recurrence?.pattern || 'daily',
           frequency: currentTask.recurrence?.frequency || 1,
@@ -230,16 +268,13 @@ export const useTaskData = () => {
         }
       };
 
-      // Agregamos descripción solo si existe
       if (data.description?.trim() || currentTask.description) {
         nextTaskData.description = (data.description?.trim() || currentTask.description);
       }
 
       await addDoc(collection(db, 'tasks'), nextTaskData);
 
-      setStatus('saved');
-      setCurrentTask(null);
-      setShowRecurrenceModal(false);
+      handleCloseModal(); // Usar el nuevo manejador de cierre
     } catch (error) {
       console.error('Error al procesar tarea recurrente:', error);
       setError(error instanceof Error ? error.message : 'Error al actualizar tarea recurrente');
@@ -247,25 +282,17 @@ export const useTaskData = () => {
     }
   };
 
-  const deleteTask = async (taskId: string) => {
-    if (!user) return;
-
-    setStatus('saving');
-    
-    try {
-      await deleteDoc(doc(db, 'tasks', taskId));
-      setStatus('saved');
-    } catch (error) {
-      console.error('Error al eliminar:', error);
-      setError(error instanceof Error ? error.message : 'Error al eliminar');
-      setStatus('error');
-    }
-  };
+  const openCreateModal = useCallback(() => {
+    setModalMode('create');
+    setCurrentTask(null);
+    setShowRecurrenceModal(true);
+  }, []);
 
   const openEditModal = (task: Task) => {
     setCurrentTask(task);
     setModalMode('edit');
     setShowRecurrenceModal(true);
+    setStatus('idle'); // Asegurarnos de que el estado esté en idle al abrir el modal
   };
 
   return {
@@ -280,7 +307,8 @@ export const useTaskData = () => {
     toggleTask,
     deleteTask,
     completeRecurrentTask,
-    setShowRecurrenceModal,
-    openEditModal
+    setShowRecurrenceModal: handleCloseModal,
+    openEditModal,
+    openCreateModal
   };
 };

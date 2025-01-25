@@ -22,12 +22,12 @@ export const TaskRecurrenceConfig: React.FC<TaskRecurrenceConfigProps> = ({
     initialConfig: config
   });
 
-  // Manejador para cambio de patrón sin afectar la fecha
   const handlePatternChange = (pattern: RecurrenceConfig['pattern']) => {
     const newConfig = {
+      ...(config || {}),
       frequency: 1,
       pattern,
-      ...(pattern === 'custom' && { customDays: 1 })
+      ...(pattern === 'custom' && { customDays: config?.customDays || 1 })
     };
     onConfigChange(newConfig);
   };
@@ -41,12 +41,6 @@ export const TaskRecurrenceConfig: React.FC<TaskRecurrenceConfigProps> = ({
           onCheckedChange={(checked) => {
             const isChecked = checked as boolean;
             onRecurrentChange(isChecked);
-            if (isChecked && !config) {
-              onConfigChange({
-                pattern: 'daily',
-                frequency: 1
-              });
-            }
           }}
         />
         <label

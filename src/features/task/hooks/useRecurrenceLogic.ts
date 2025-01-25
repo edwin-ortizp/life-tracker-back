@@ -1,8 +1,10 @@
 // src/features/task/hooks/useRecurrenceLogic.ts
-import { useState, useEffect } from 'react';
-import { addDays, addWeeks, addMonths, format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import type { Task } from '../types';
+import { useState } from 'react';
+import {
+  calculateNextRecurrenceDate,
+  getRecurrenceText,
+  formatDateForInput
+} from '@/utils/dates';
 
 export interface RecurrenceConfig {
   pattern: 'daily' | 'weekly' | 'monthly' | 'custom';
@@ -22,42 +24,21 @@ export const useRecurrenceLogic = ({ initialDate, initialConfig }: UseRecurrence
   // Calcula la próxima fecha basada en el patrón de recurrencia
   const calculateNextDate = (baseDate: Date, recurrenceConfig?: RecurrenceConfig): Date => {
     if (!recurrenceConfig) return baseDate;
-    
-    const today = new Date(baseDate);
-    today.setHours(12, 0, 0, 0);
-    
-    switch (recurrenceConfig.pattern) {
-      case 'daily':
-        return addDays(today, 1);
-      case 'weekly':
-        return addWeeks(today, 1);
-      case 'monthly':
-        return addMonths(today, 1);
-      case 'custom':
-        return addDays(today, recurrenceConfig.customDays || 1);
-      default:
-        return today;
-    }
+    return calculateNextRecurrenceDate(
+      baseDate,
+      recurrenceConfig.pattern,
+      recurrenceConfig.customDays
+    );
   };
 
   // Genera el texto descriptivo de la recurrencia
-  const getRecurrenceText = (nextDate: Date, recurrenceConfig?: RecurrenceConfig): string => {
+  const getRecurrenceDescription = (nextDate: Date, recurrenceConfig?: RecurrenceConfig): string => {
     if (!recurrenceConfig) return '';
-    
-    const dateText = format(nextDate, "'próximo' EEEE", { locale: es });
-    
-    switch (recurrenceConfig.pattern) {
-      case 'daily':
-        return `Diariamente (${dateText})`;
-      case 'weekly':
-        return `Semanalmente (${dateText})`;
-      case 'monthly':
-        return `Mensualmente (${format(nextDate, "'próximo' d 'de' MMMM", { locale: es })})`;
-      case 'custom':
-        return `Cada ${recurrenceConfig.customDays} días (${dateText})`;
-      default:
-        return '';
-    }
+    return getRecurrenceText(
+      nextDate,
+      recurrenceConfig.pattern,
+      recurrenceConfig.customDays
+    );
   };
 
   // Actualiza la configuración y recalcula la fecha
@@ -72,20 +53,13 @@ export const useRecurrenceLogic = ({ initialDate, initialConfig }: UseRecurrence
     setDate(calculateNextDate(new Date(), newConfig));
   };
 
-  // Ajusta la fecha considerando la zona horaria
-  const formatDateForInput = (date: Date): string => {
-    const offset = date.getTimezoneOffset();
-    const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
-    return adjustedDate.toISOString().split('T')[0];
-  };
-
   return {
     date,
     setDate,
     config,
     setConfig,
     calculateNextDate,
-    getRecurrenceText,
+    getRecurrenceText: getRecurrenceDescription,
     updateRecurrenceConfig,
     formatDateForInput
   };

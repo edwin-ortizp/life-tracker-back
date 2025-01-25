@@ -1,7 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { Task, TaskCategory, TASK_CATEGORIES, CATEGORY_LABELS } from '../types';
 import { TaskGroup } from './TaskGroup';
-import { isBefore, startOfDay, endOfDay, endOfWeek } from 'date-fns';
+import { 
+  isBefore, 
+  isAfter, 
+  startOfDay, 
+  endOfDay, 
+  endOfWeek,
+  startOfWeek,
+  startOfMonth,
+  endOfMonth,
+  isWithinInterval
+} from 'date-fns';
 import {
   Select,
   SelectContent,
@@ -9,6 +19,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+type DateFilter = 'all' | 'today' | 'week' | 'month' | 'overdue' | 'noDate';
+
+const DATE_FILTER_LABELS: Record<DateFilter, string> = {
+  all: 'Todas las fechas',
+  today: 'Hoy',
+  week: 'Esta semana',
+  month: 'Este mes',
+  overdue: 'Vencidas',
+  noDate: 'Sin fecha'
+};
 
 interface TaskListProps {
   tasks: Task[];
@@ -24,38 +45,62 @@ export const TaskList: React.FC<TaskListProps> = ({
   onEdit
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
+  const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>('all');
 
-  // Filtrar tareas por categoría
-  const filteredTasks = selectedCategory === 'all' 
-    ? tasks 
-    : tasks.filter(task => task.category === selectedCategory);
+  // Filtrar tareas por categoría y fecha
+  const filteredTasks = useMemo(() => {
+    let filtered = selectedCategory === 'all' 
+      ? tasks 
+      : tasks.filter(task => task.category === selectedCategory);
 
-  // Agrupar tareas usando useMemo para optimizar rendimiento
+    const now = new Date();
+    const today = startOfDay(now);
+    const weekStart = startOfWeek(now);
+    const weekEnd = endOfWeek(now);
+    const monthStart = startOfMonth(now);
+    const monthEnd = endOfMonth(now);
+
+    switch (selectedDateFilter) {
+      case 'today':
+        return filtered.filter(task => 
+          task.dueDate && isWithinInterval(task.dueDate, { start: today, end: endOfDay(now) })
+        );
+      case 'week':
+        return filtered.filter(task => 
+          task.dueDate && isWithinInterval(task.dueDate, { start: weekStart, end: weekEnd })
+        );
+      case 'month':
+        return filtered.filter(task => 
+          task.dueDate && isWithinInterval(task.dueDate, { start: monthStart, end: monthEnd })
+        );
+      case 'overdue':
+        return filtered.filter(task => 
+          task.dueDate && isBefore(task.dueDate, today)
+        );
+      case 'noDate':
+        return filtered.filter(task => !task.dueDate);
+      default:
+        return filtered;
+    }
+  }, [tasks, selectedCategory, selectedDateFilter]);
+
+  // Agrupar tareas
   const groupedTasks = useMemo(() => {
     const now = new Date();
     const today = startOfDay(now);
     const endToday = endOfDay(now);
-    const endWeek = endOfDay(endOfWeek(now));
+    const endWeek = endOfWeek(now);
 
     return filteredTasks.reduce((groups, task) => {
-      // Primero verificamos si está vencida
       if (task.dueDate && isBefore(task.dueDate, today)) {
         groups.overdue.push(task);
-      }
-      // Si no tiene fecha, va al grupo noDate pero ordenado por creación
-      else if (!task.dueDate) {
+      } else if (!task.dueDate) {
         groups.noDate.push(task);
-      }
-      // Si es para hoy
-      else if (isBefore(task.dueDate, endToday)) {
+      } else if (isBefore(task.dueDate, endToday)) {
         groups.today.push(task);
-      }
-      // Si es para esta semana
-      else if (isBefore(task.dueDate, endWeek)) {
+      } else if (isBefore(task.dueDate, endWeek)) {
         groups.thisWeek.push(task);
-      }
-      // Si es para el futuro
-      else {
+      } else {
         groups.future.push(task);
       }
       return groups;
@@ -70,25 +115,50 @@ export const TaskList: React.FC<TaskListProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Filtro de categorías */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-500 font-medium">Filtrar por:</span>
-        <Select
-          value={selectedCategory}
-          onValueChange={(value) => setSelectedCategory(value as TaskCategory | 'all')}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Todas las categorías" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas las categorías</SelectItem>
-            {Object.entries(TASK_CATEGORIES).map(([value]) => (
-              <SelectItem key={value} value={value}>
-                {CATEGORY_LABELS[value as TaskCategory]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Filtros */}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500 font-medium">Categoría:</span>
+          <Select
+            value={selectedCategory}
+            onValueChange={(value) => setSelectedCategory(value as TaskCategory | 'all')}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue>
+                {selectedCategory === 'all' ? 'Todas las categorías' : CATEGORY_LABELS[selectedCategory as TaskCategory]}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las categorías</SelectItem>
+              {Object.entries(TASK_CATEGORIES).map(([key, value]) => (
+                <SelectItem key={key} value={value}>
+                  {CATEGORY_LABELS[value as TaskCategory]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500 font-medium">Fecha:</span>
+          <Select
+            value={selectedDateFilter}
+            onValueChange={(value) => setSelectedDateFilter(value as DateFilter)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue>
+                {DATE_FILTER_LABELS[selectedDateFilter]}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(DATE_FILTER_LABELS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Lista de tareas */}
@@ -131,9 +201,9 @@ export const TaskList: React.FC<TaskListProps> = ({
 
         {filteredTasks.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            {selectedCategory === 'all' 
+            {selectedCategory === 'all' && selectedDateFilter === 'all'
               ? 'No hay tareas pendientes'
-              : `No hay tareas pendientes en la categoría ${CATEGORY_LABELS[selectedCategory]}`
+              : `No hay tareas pendientes con los filtros seleccionados`
             }
           </div>
         )}

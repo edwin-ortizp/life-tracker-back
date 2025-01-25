@@ -17,14 +17,16 @@ export const TaskDateInput: React.FC<TaskDateInputProps> = ({
   showClearButton = false,
   label = "Fecha límite"
 }) => {
-  // Función para formatear la fecha para el input considerando zona horaria local
+  // Formatear la fecha para el input usando la utilidad getLocalDateString
   const formatDateForInput = (date: Date): string => {
     return getLocalDateString(date);
   };
 
   // Función para parsear la fecha del input considerando zona horaria local
   const parseDateFromInput = (dateString: string): Date => {
-    const date = new Date(dateString);
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date();
+    date.setFullYear(year, month - 1, day);
     // Establecer la hora en el mediodía para evitar problemas con zonas horarias
     date.setHours(12, 0, 0, 0);
     return date;
