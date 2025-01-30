@@ -6,15 +6,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import * as Icons from 'lucide-react';
 import { DRINKS, DRINK_CATEGORIES } from '../types';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 
 interface DrinkSelectorModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export const DrinkSelectorModal: React.FC<DrinkSelectorModalProps> = ({
   onSelect,
 }) => {
   const [selectedDrink, setSelectedDrink] = useState<keyof typeof DRINKS | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('water');
 
   // Agrupar bebidas por categoría
   const drinksByCategory = Object.entries(DRINKS).reduce((acc, [key, drink]) => {
@@ -57,62 +59,62 @@ export const DrinkSelectorModal: React.FC<DrinkSelectorModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Seleccionar bebida</DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue="water" className="w-full">
-          <ScrollArea className="w-full">
-            <TabsList className="w-full justify-start">
+        <div className="flex flex-col gap-4 flex-1">
+          <Select
+            value={selectedCategory}
+            onValueChange={setSelectedCategory}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecciona una categoría" />
+            </SelectTrigger>
+            <SelectContent>
               {Object.entries(DRINK_CATEGORIES).map(([key, name]) => (
-                <TabsTrigger 
-                  key={key} 
-                  value={key}
-                  className="min-w-fit"
-                >
+                <SelectItem key={key} value={key}>
                   {name}
-                </TabsTrigger>
+                </SelectItem>
               ))}
-            </TabsList>
-          </ScrollArea>
+            </SelectContent>
+          </Select>
 
-          {Object.entries(drinksByCategory).map(([category, drinks]) => (
-            <TabsContent key={category} value={category} className="mt-4">
-              <div className="grid grid-cols-2 gap-2">
-                {drinks.map(drink => {
-                  const Icon = Icons[drink.icon as keyof typeof Icons] as React.ElementType;
-                  return (
-                    <div key={drink.key} className="relative">
-                      <Button
-                        variant={selectedDrink === drink.key ? "default" : "outline"}
-                        className="w-full h-12 flex items-center justify-center gap-2"
-                        onClick={() => handleDrinkSelect(drink.key)}
-                      >
-                        <Icon className={`w-4 h-4 ${drink.color}`} />
-                        <span className="text-sm">{drink.name}</span>
-                      </Button>
-                      {selectedDrink === drink.key && (
-                        <div className="absolute top-full left-0 w-full z-10 bg-white shadow-lg rounded-md mt-1 p-1">
-                          {drink.amounts.map(amount => (
-                            <Button
-                              key={amount}
-                              variant="ghost"
-                              className="w-full text-sm justify-between"
-                              onClick={() => handleAmountSelect(amount)}
-                            >
-                              {amount}ml
-                            </Button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
+          <ScrollArea className="flex-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 min-h-[300px] p-1">
+              {drinksByCategory[selectedCategory]?.map(drink => {
+                const Icon = Icons[drink.icon as keyof typeof Icons] as React.ElementType;
+                return (
+                  <div key={drink.key} className="relative">
+                    <Button
+                      variant={selectedDrink === drink.key ? "default" : "outline"}
+                      className="w-full h-16 sm:h-12 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-1 sm:p-2"
+                      onClick={() => handleDrinkSelect(drink.key)}
+                    >
+                      <Icon className={`w-4 h-4 ${drink.color}`} />
+                      <span className="text-xs sm:text-sm text-center">{drink.name}</span>
+                    </Button>
+                    {selectedDrink === drink.key && (
+                      <div className="absolute top-full left-0 w-full z-10 bg-white shadow-lg rounded-md mt-1 p-1">
+                        {drink.amounts.map(amount => (
+                          <Button
+                            key={amount}
+                            variant="ghost"
+                            className="w-full text-sm justify-between"
+                            onClick={() => handleAmountSelect(amount)}
+                          >
+                            {amount}ml
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -1,4 +1,3 @@
-// src/features/water/components/DrinkSelector.tsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import * as Icons from 'lucide-react';
@@ -14,7 +13,23 @@ interface DrinkSelectorProps {
 }
 
 // Lista de bebidas que se mostrarán en el selector rápido
-const QUICK_ACCESS_DRINKS: Array<keyof typeof DRINKS> = ['water', 'coffee', 'juice','soup', 'soda','sportsdrink','sparklingWater','flavoredWater','milk','yogurt'];
+const QUICK_ACCESS_DRINKS: Array<keyof typeof DRINKS> = [
+  // Agua y variantes (las más comunes)
+  'water',
+  'sparklingWater',
+  'flavoredWater',
+  // Bebidas calientes y lácteos
+  'coffee',
+  'milk',
+  'yogurt',
+  // Bebidas nutritivas
+  'juice',
+  'sportsdrink',
+  // Otras bebidas comunes
+  'soda',
+  'soup',
+  'energyDrink'
+];
 
 export const DrinkSelector: React.FC<DrinkSelectorProps> = ({
   selectedDrink,
@@ -31,7 +46,7 @@ export const DrinkSelector: React.FC<DrinkSelectorProps> = ({
 
   return (
     <>
-      <div className="grid grid-cols-4 gap-2 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-4">
         {QUICK_ACCESS_DRINKS.map((key) => {
           const drink = DRINKS[key];
           const Icon = Icons[drink.icon as keyof typeof Icons] as React.ElementType;
@@ -39,12 +54,12 @@ export const DrinkSelector: React.FC<DrinkSelectorProps> = ({
             <div key={key} className="relative">
               <Button
                 variant="outline"
-                className="w-full h-12 flex items-center justify-center gap-2"
+                className="w-full h-16 sm:h-12 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-1 sm:p-2"
                 onClick={() => onDrinkSelect(selectedDrink === key ? null : key)}
                 disabled={disabled}
               >
                 <Icon className={`w-4 h-4 ${drink.color}`} />
-                <span className="text-sm">{drink.name}</span>
+                <span className="text-xs sm:text-sm">{drink.name}</span>
               </Button>
               {selectedDrink === key && (
                 <div className="absolute top-full left-0 w-full z-10 bg-white shadow-lg rounded-md mt-1 p-1">
@@ -67,12 +82,12 @@ export const DrinkSelector: React.FC<DrinkSelectorProps> = ({
         {/* Botón para abrir el modal con todas las bebidas */}
         <Button
           variant="outline"
-          className="w-full h-12 flex items-center justify-center gap-2"
+          className="w-full h-16 sm:h-12 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2"
           onClick={() => setShowModal(true)}
           disabled={disabled}
         >
           <Plus className="w-4 h-4" />
-          <span className="text-sm">Más</span>
+          <span className="text-xs sm:text-sm">Más bebidas</span>
         </Button>
       </div>
 
