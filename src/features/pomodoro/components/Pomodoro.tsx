@@ -1,13 +1,31 @@
-import { useState } from 'react';
+// src/features/pomodoro/components/Pomodoro.tsx
+import { useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Clock } from 'lucide-react';
+import { Clock, Bell, BellOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePomodoroTimer, usePomodoroData } from '../hooks';
+import { useNotifications } from '../hooks/useNotifications';
 import { PomodoroCounter } from './PomodoroCounter';
 import { PomodoroHistory } from './PomodoroHistory';
+import { PomodoroTimer } from './PomodoroTimer';
+import { PomodoroProgress } from './PomodoroProgress';
 import { PomodoroEditModal } from './PomodoroEditModal';
 import { DailyProgress } from './DailyProgress';
+import { Button } from '@/components/ui/button';
+import { formatTime } from '../utils/formatTime';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { PomodoroSession } from '../types';
+
+const POMODORO_DURATION = 30 * 60; // 30 minutos en segundos
 
 interface PomodoroProps {
   selectedDate?: Date;
@@ -16,8 +34,18 @@ interface PomodoroProps {
 export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
   const { user } = useAuth();
   const dailyGoal = 300; // 5 horas en minutos
+  const [showNotificationDialog, setShowNotificationDialog] = useState(false);
   const [selectedSession, setSelectedSession] = useState<PomodoroSession | null>(null);
   
+  const { 
+    supported: notificationsSupported,
+    permission: notificationPermission,
+    preferences: notificationPrefs,
+    requestPermission,
+    sendNotification,
+    updatePreferences
+  } = useNotifications();
+
   const { 
     count,
     sessions,
@@ -29,16 +57,59 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
     addManualSession
   } = usePomodoroData(selectedDate);
 
+  const handleComplete = useCallback(async (duration: number) => {
+    await saveSession(duration, true);
+    
+    if (notificationPrefs.enabled && notificationPermission === 'granted') {
+      sendNotification('¡Pomodoro completado! 🎉', {
+        body: 'Has completado exitosamente tu sesión de concentración',
+        requireInteraction: true
+      });
+    }
+  }, [saveSession, notificationPrefs, notificationPermission, sendNotification]);
+
+  const handleStop = useCallback(async (duration: number) => {
+    await saveSession(duration, false, {
+      description: 'Sesión interrumpida manualmente'
+    });
+  }, [saveSession]);
+
   const { 
+    time,
     isActive,
     formattedTime,
     startTimer,
-    pauseTimer,
-    resetTimer
+    stopTimer
   } = usePomodoroTimer({
-    onComplete: (duration) => saveSession(duration, true),
-    onCancel: (duration) => saveSession(duration, false)
+    onComplete: handleComplete,
+    onCancel: handleStop,
+    selectedDate
   });
+
+  // Calcular el progreso
+  const progress = ((POMODORO_DURATION - time) / POMODORO_DURATION) * 100;
+
+  const handleNotificationToggle = async () => {
+    if (!notificationsSupported) return;
+
+    if (notificationPrefs.enabled) {
+      updatePreferences({ enabled: false });
+    } else {
+      if (notificationPermission === 'default') {
+        setShowNotificationDialog(true);
+      } else if (notificationPermission === 'granted') {
+        updatePreferences({ enabled: true });
+      }
+    }
+  };
+
+  const handleNotificationPermission = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      updatePreferences({ enabled: true });
+    }
+    setShowNotificationDialog(false);
+  };
 
   const handleIncrement = async () => {
     if (status === 'saving') return;
@@ -76,9 +147,32 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
       <Card className="w-full">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5" />
-              <h2 className="text-lg font-medium">Pomodoro Timer</h2>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                <h2 className="text-lg font-medium">Pomodoro Timer</h2>
+              </div>
+
+              {notificationsSupported && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNotificationToggle}
+                  className="flex items-center gap-2"
+                >
+                  {notificationPrefs.enabled ? (
+                    <>
+                      <Bell className="w-4 h-4" />
+                      <span className="hidden sm:inline">Notificaciones activadas</span>
+                    </>
+                  ) : (
+                    <>
+                      <BellOff className="w-4 h-4" />
+                      <span className="hidden sm:inline">Notificaciones desactivadas</span>
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
             
             <PomodoroCounter
@@ -89,43 +183,36 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
             />
           </div>
 
-          {/* Timer */}
-          <div className="text-center mb-6">
-            <div className="text-6xl font-bold tracking-tight mb-4">
-              {formattedTime}
-            </div>
+          {/* Timer y Progreso */}
+          <div className="space-y-6">
+            <PomodoroTimer
+              time={formattedTime}
+              isActive={isActive}
+              onStart={startTimer}
+              onStop={stopTimer}
+              disabled={status === 'saving'}
+            />
 
-            <div className="flex gap-2 justify-center mb-3">
-              <button
-                onClick={isActive ? pauseTimer : startTimer}
-                disabled={status === 'saving'}
-                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-              >
-                {isActive ? 'Pausar' : 'Iniciar'}
-              </button>
-
-              <button
-                onClick={resetTimer}
-                disabled={status === 'saving'}
-                className="px-6 py-2 border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50"
-              >
-                Reset
-              </button>
-            </div>
-
-            <p className="text-sm text-gray-500">
-              {isActive ? 'Concentración en progreso...' : '¿Listo para empezar?'}
-            </p>
+            <PomodoroProgress
+              progress={progress}
+              currentTime={formattedTime}
+              totalTime={formatTime(POMODORO_DURATION)}
+              isActive={isActive}
+            />
           </div>
 
-          <PomodoroHistory 
-            sessions={sessions}
-            onEditSession={handleEditSession}
-            onDeleteSession={deleteSession}
-          />
+          {/* Historial */}
+          <div className="mt-6">
+            <PomodoroHistory 
+              sessions={sessions}
+              onEditSession={handleEditSession}
+              onDeleteSession={deleteSession}
+            />
+          </div>
         </CardContent>
       </Card>
 
+      {/* Modal de edición */}
       {selectedSession && (
         <PomodoroEditModal
           session={selectedSession}
@@ -133,6 +220,25 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
           onSave={handleEditSave}
         />
       )}
+
+      {/* Diálogo de permisos de notificación */}
+      <AlertDialog open={showNotificationDialog} onOpenChange={setShowNotificationDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Activar notificaciones</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Te gustaría recibir notificaciones cuando se complete un Pomodoro? 
+              Esto te ayudará a mantenerte informado incluso cuando el navegador esté en segundo plano.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, gracias</AlertDialogCancel>
+            <AlertDialogAction onClick={handleNotificationPermission}>
+              Activar notificaciones
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {error && (
         <p className="mt-2 text-sm text-red-500">

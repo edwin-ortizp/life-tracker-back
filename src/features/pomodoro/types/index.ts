@@ -32,3 +32,26 @@ export interface PomodoroStats {
     sessions: number;
   };
 }
+
+export interface ActivePomodoro {
+  startTime: TimestampWithOffset;
+  duration: number;
+  pausedAt?: TimestampWithOffset;
+  deviceId: string;  // Para manejar conflictos entre dispositivos
+}
+
+export interface PomodoroData {
+  userId: string;
+  date: string;
+  count: number;
+  sessions: PomodoroSession[];
+  activePomodoro?: ActivePomodoro;
+  updatedAt: any; // Firebase Timestamp
+}
+
+// Tipos para notificaciones
+export interface NotificationPreferences {
+  enabled: boolean;
+  sound: boolean;
+  vibration: boolean;
+}

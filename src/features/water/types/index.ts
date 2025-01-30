@@ -54,6 +54,30 @@ export const DRINKS = {
     amounts: [100, 200, 300],
     category: 'dairy'
   },
+  chocolate: { 
+    name: 'Chocolate', 
+    icon: 'Milk',
+    hydrationFactor: 0.8,
+    color: 'text-brown-500',
+    amounts: [100, 200, 300],
+    category: 'dairy'
+  },
+  colagranulada: { 
+    name: 'Cola Granulada', 
+    icon: 'Milk',
+    hydrationFactor: 0.9,
+    color: 'text-red-500',
+    amounts: [100, 200, 300],
+    category: 'dairy'
+  },
+  ensure: { 
+    name: 'Ensure / Pediasure', 
+    icon: 'Milk',
+    hydrationFactor: 0.9,
+    color: 'text-red-500',
+    amounts: [100, 200, 300],
+    category: 'dairy'
+  },
   yogurt: {
     name: 'Yogurt',
     icon: 'Milk',
@@ -113,9 +137,17 @@ export const DRINKS = {
   beer: {
     name: 'Cerveza',
     icon: 'Beer',
-    hydrationFactor: 0.2,
+    hydrationFactor: 0.8,
     color: 'text-yellow-600',
     amounts: [330, 500, 750],
+    category: 'alcohol'
+  },
+  aguardiente: {
+    name: 'Aguardiente',
+    icon: 'Beer',
+    hydrationFactor: 0.2,
+    color: 'text-yellow-600',
+    amounts: [50, 100, 200],
     category: 'alcohol'
   },
   wine: {
