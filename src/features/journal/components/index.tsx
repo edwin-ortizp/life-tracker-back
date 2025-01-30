@@ -19,6 +19,10 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
     lastUpdated
   } = useJournalData(selectedDate);
 
+  const handleLock = () => {
+    setIsUnlocked(false);
+  };
+
   if (!user) {
     return (
       <Card className="w-full">
@@ -30,13 +34,22 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
   }
 
   if (!isUnlocked) {
-    return <PasswordProtection onUnlock={() => setIsUnlocked(true)} />;
+    return (
+      <PasswordProtection 
+        onUnlock={() => setIsUnlocked(true)} 
+        lastUpdated={lastUpdated}
+      />
+    );
   }
 
   return (
     <Card className="w-full">
       <CardContent className="p-4">
-        <JournalHeader status={status} />
+        <JournalHeader 
+          status={status} 
+          onLock={handleLock}
+          isUnlocked={isUnlocked}
+        />
         <JournalInput
           value={entry}
           onChange={(value) => {
@@ -55,5 +68,3 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
     </Card>
   );
 };
-
-export default Journal;

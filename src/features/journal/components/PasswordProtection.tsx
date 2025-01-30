@@ -3,12 +3,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Lock } from 'lucide-react';
+import { LastUpdatedInfo } from './LastUpdatedInfo';
 
 interface PasswordProtectionProps {
   onUnlock: () => void;
+  lastUpdated?: string;
 }
 
-export const PasswordProtection: React.FC<PasswordProtectionProps> = ({ onUnlock }) => {
+export const PasswordProtection: React.FC<PasswordProtectionProps> = ({ 
+  onUnlock,
+  lastUpdated 
+}) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
 
@@ -48,6 +53,8 @@ export const PasswordProtection: React.FC<PasswordProtectionProps> = ({ onUnlock
           <Button type="submit" className="w-full">
             Desbloquear
           </Button>
+          
+          <LastUpdatedInfo lastUpdated={lastUpdated} className="justify-center" />
         </form>
       </CardContent>
     </Card>

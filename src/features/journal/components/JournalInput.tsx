@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Save, Clock } from 'lucide-react';
+import { Save } from 'lucide-react';
+import { LastUpdatedInfo } from './LastUpdatedInfo';
 
 interface JournalInputProps {
   value: string;
@@ -27,12 +28,7 @@ export const JournalInput: React.FC<JournalInputProps> = ({
       />
       
       <div className="flex items-center justify-between">
-        {lastUpdated && (
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Clock className="w-4 h-4" />
-            <span>Última actualización: {lastUpdated}</span>
-          </div>
-        )}
+        <LastUpdatedInfo lastUpdated={lastUpdated} />
         
         <Button 
           onClick={onSave} 
