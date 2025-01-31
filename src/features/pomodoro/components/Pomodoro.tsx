@@ -163,12 +163,12 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
                   {notificationPrefs.enabled ? (
                     <>
                       <Bell className="w-4 h-4" />
-                      <span className="hidden sm:inline">Notificaciones activadas</span>
+                      <span className="hidden sm:inline"></span>
                     </>
                   ) : (
                     <>
                       <BellOff className="w-4 h-4" />
-                      <span className="hidden sm:inline">Notificaciones desactivadas</span>
+                      <span className="hidden sm:inline"></span>
                     </>
                   )}
                 </Button>
