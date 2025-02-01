@@ -7,8 +7,6 @@ import {
   CheckSquare,
   Smile,
   BookOpen,
-  BarChart2,
-  Settings,
   ChevronRight,
   UtensilsCrossed,
   LogOut,
@@ -16,6 +14,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { MenuItem } from './types';
+import { ClipboardList } from 'lucide-react';
+import { ThumbsDown } from 'lucide-react';
 
 export const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Inicio', path: '/' },
@@ -26,8 +26,8 @@ export const menuItems: MenuItem[] = [
   { icon: BookOpen, label: 'Diario', path: '/journal' },
   { icon: Timer, label: 'Pomodoro', path: '/pomodoro' },
   { icon: UtensilsCrossed, label: 'Comidas', path: '/meal' },
-  { icon: BarChart2, label: 'Tareas', path: '/task' },
-  { icon: Settings, label: 'Negativo', path: '/negative' },
+  { icon: ClipboardList, label: 'Tareas', path: '/task' },
+  { icon: ThumbsDown, label: 'Hábitos Negativos', path: '/negative' },
   { icon: LogOut, label: 'Salir', path: '/logout' }
 ];
 

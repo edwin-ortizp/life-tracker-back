@@ -6,10 +6,9 @@ import {
   TooltipTrigger,
   TooltipProvider
 } from "@/components/ui/tooltip";
-import { Button } from '@/components/ui/button';
-import { X, AlertCircle } from 'lucide-react';
-import { NegativeHabit, NegativeHabitLog, CATEGORY_COLORS } from '../../types/index';
+import { NegativeHabit, NegativeHabitLog, CATEGORY_COLORS } from '../../types';
 import { getMonths } from '../../utils/dates';
+import { cn } from "@/lib/utils";
 
 interface YearlyHabitListProps {
   habits: NegativeHabit[];
@@ -29,10 +28,10 @@ export const YearlyHabitList: React.FC<YearlyHabitListProps> = ({
 
   return (
     <TooltipProvider>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {habits.map((habit) => (
           <div key={habit.id} className="space-y-2">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 sticky top-0 bg-white z-10 py-2">
               <span className="text-xl">{habit.icon}</span>
               <div>
                 <h4 className="font-medium">{habit.name}</h4>
@@ -40,54 +39,63 @@ export const YearlyHabitList: React.FC<YearlyHabitListProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-12 gap-1">
-              {months.map((month) => {
-                const monthStr = String(month.number).padStart(2, '0');
-                
-                return (
-                  <div key={month.name} className="space-y-1">
-                    <div className="text-xs text-gray-500 text-center mb-1">
-                      {month.name}
+            <div className="overflow-x-auto">
+              <div className="grid grid-cols-12 gap-4 min-w-[800px]">
+                {months.map((month) => {
+                  const monthStr = String(month.number).padStart(2, '0');
+                  
+                  return (
+                    <div key={month.name} className="space-y-1">
+                      <div className="text-xs text-gray-500 text-center mb-2">
+                        {month.name}
+                      </div>
+                      <div className="grid grid-cols-7 gap-1">
+                        {Array.from({ length: month.days }, (_, day) => {
+                          const dayStr = String(day + 1).padStart(2, '0');
+                          const date = `${currentYear}-${monthStr}-${dayStr}`;
+                          const key = `${habit.id}_${date}`;
+                          const isLogged = completedHabits[key];
+                          
+                          return (
+                            <Tooltip key={date}>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => isLogged 
+                                    ? onRemoveLog(habit.id, date)
+                                    : onLogHabit(habit.id, date)
+                                  }
+                                  className={cn(
+                                    "w-3 h-3 rounded-full transition-all",
+                                    "hover:ring-2 hover:ring-offset-2 hover:ring-red-500",
+                                    "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500",
+                                    isLogged
+                                      ? "bg-red-500"
+                                      : "bg-gray-100 hover:bg-gray-200"
+                                  )}
+                                  aria-label={isLogged ? 'Eliminar registro' : 'Registrar hábito'}
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-sm">
+                                  {new Date(date).toLocaleDateString('es-ES', {
+                                    weekday: 'long',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {isLogged ? 'Haz clic para eliminar' : 'Haz clic para registrar'}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="grid grid-cols-7 gap-px">
-                      {Array.from({ length: month.days }, (_, day) => {
-                        const dayStr = String(day + 1).padStart(2, '0');
-                        const date = `${currentYear}-${monthStr}-${dayStr}`;
-                        const key = `${habit.id}_${date}`;
-                        const isLogged = completedHabits[key];
-                        
-                        return (
-                          <Tooltip key={date}>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant={isLogged ? "destructive" : "outline"}
-                                size="icon"
-                                className={`w-6 h-6 p-0 ${
-                                  isLogged ? "bg-red-500 hover:bg-red-600" : ""
-                                }`}
-                                onClick={() => isLogged 
-                                  ? onRemoveLog(habit.id, date)
-                                  : onLogHabit(habit.id, date)
-                                }
-                              >
-                                {isLogged ? (
-                                  <X className="w-3 h-3 text-white" />
-                                ) : (
-                                  <AlertCircle className="w-3 h-3 text-gray-400" />
-                                )}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{date}</p>
-                              <p>{isLogged ? 'Eliminar registro' : 'Registrar hábito'}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         ))}

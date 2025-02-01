@@ -18,14 +18,14 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Registrar Hábito Negativo</DialogTitle>
           <p className="text-sm text-gray-500">
             {formatDateToSpanishWithUTC(selectedDate)}
           </p>
         </DialogHeader>
-        <div className="py-4">
+        <div className="flex-1 overflow-hidden py-4">
           <HabitGrid 
             onSelectHabit={onLogHabit}
           />

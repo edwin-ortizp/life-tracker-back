@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { NegativeHabit, NegativeHabitCategory, NEGATIVE_HABIT_CATEGORIES } from '../../types/index';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CategorySectionProps {
   category: NegativeHabitCategory;
@@ -26,19 +27,25 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-        {habits.map(habit => (
-          <Button
-            key={habit.id}
-            variant="outline"
-            className="h-auto py-3 flex flex-col items-center gap-2 hover:bg-gray-50"
-            onClick={() => onSelectHabit(habit.id)}
-          >
-            <span className="text-2xl">{habit.icon}</span>
-            <span className="text-sm text-center">{habit.name}</span>
-          </Button>
-        ))}
-      </div>
+      <ScrollArea className="h-[300px] pr-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {habits.map(habit => (
+            <Button
+              key={habit.id}
+              variant="outline"
+              className="h-auto py-3 px-2 flex flex-col items-center gap-2 hover:bg-gray-50 group"
+              onClick={() => onSelectHabit(habit.id)}
+            >
+              <span className="text-2xl group-hover:scale-110 transition-transform">
+                {habit.icon}
+              </span>
+              <span className="text-xs text-center line-clamp-2">
+                {habit.name}
+              </span>
+            </Button>
+          ))}
+        </div>
+      </ScrollArea>
     </div>
   );
 };

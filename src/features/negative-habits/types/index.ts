@@ -113,11 +113,7 @@ export interface NegativeHabitLog {
   
     // Productividad
     {id: 5,name: 'Procrastinar',icon: '⏰',category: 'productivity',},
-    {
-      id: 6,
-      name: 'Distracciones',
-      icon: '🎯',
-      category: 'productivity',
+    {id: 6,name: 'Distracciones',icon: '🎯',category: 'productivity',
     },
     {
       id: 7,
@@ -130,22 +126,10 @@ export interface NegativeHabitLog {
 
   
     // Social
-    {
-      id: 9,
-      name: 'Aislamiento',icon: '🚶',category: 'social',
-    },
-    {
-      id: 10,
-      name: 'Conflictos',
-      icon: '💢',
-      category: 'social',
-    },
-    {
-      id: 11,
-      name: 'No escuchar',
-      icon: '👂',
-      category: 'social',
-    },
+    {id: 9,name: 'Aislamiento',icon: '🚶',category: 'social',},
+    {id: 10,name: 'Conflictos',icon: '💢',category: 'social',},
+    {id: 11,name: 'No escuchar',icon: '👂', category: 'social',},
+    {id: 29, name: 'Dejar en visto', icon: '👀', category: 'social',},
     // Emocional
     {
       id: 15,
@@ -154,7 +138,7 @@ export interface NegativeHabitLog {
       category: 'emotional',
     },
     {id: 16,name: 'Negatividad / Pesimismo',icon: '🌧️',category: 'emotional',},
-    {id: 17,name: 'Ser grosero/estresarme',icon: '💭',category: 'emotional',},
+    {id: 17,name: 'Ser grosero/estresarme',icon: '🤬',category: 'emotional',},
     {id: 28, name: 'Celos compulsivos', icon: '💁🏻‍♂️', category: 'emotional',},
   
     // Finanzas
