@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Filter } from 'lucide-react';
 
 type DateFilter = 'all' | 'today' | 'week' | 'month' | 'overdue' | 'noDate';
 
@@ -46,6 +47,7 @@ export const TaskList: React.FC<TaskListProps> = ({
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
   const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   // Filtrar tareas por categoría y fecha
   const filteredTasks = useMemo(() => {
@@ -115,15 +117,33 @@ export const TaskList: React.FC<TaskListProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Botón de filtros móvil */}
+      <div className="md:hidden">
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="w-full flex items-center justify-between p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <Filter className="w-4 h-4" />
+            Filtros
+          </span>
+          <span className="text-sm text-gray-500">
+            {selectedCategory !== 'all' && CATEGORY_LABELS[selectedCategory as TaskCategory]}
+            {selectedCategory !== 'all' && selectedDateFilter !== 'all' && ' • '}
+            {selectedDateFilter !== 'all' && DATE_FILTER_LABELS[selectedDateFilter]}
+          </span>
+        </button>
+      </div>
+
       {/* Filtros */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 font-medium">Categoría:</span>
+      <div className={`space-y-4 md:space-y-0 md:flex md:items-center md:gap-4 ${showFilters ? 'block' : 'hidden md:flex'}`}>
+        <div className="flex-1 space-y-2 md:space-y-0">
+          <span className="text-sm text-gray-500 font-medium block md:inline md:mr-2">Categoría:</span>
           <Select
             value={selectedCategory}
             onValueChange={(value) => setSelectedCategory(value as TaskCategory | 'all')}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue>
                 {selectedCategory === 'all' ? 'Todas las categorías' : CATEGORY_LABELS[selectedCategory as TaskCategory]}
               </SelectValue>
@@ -139,13 +159,13 @@ export const TaskList: React.FC<TaskListProps> = ({
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 font-medium">Fecha:</span>
+        <div className="flex-1 space-y-2 md:space-y-0">
+          <span className="text-sm text-gray-500 font-medium block md:inline md:mr-2">Fecha:</span>
           <Select
             value={selectedDateFilter}
             onValueChange={(value) => setSelectedDateFilter(value as DateFilter)}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue>
                 {DATE_FILTER_LABELS[selectedDateFilter]}
               </SelectValue>
@@ -203,7 +223,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           <div className="text-center py-8 text-gray-500">
             {selectedCategory === 'all' && selectedDateFilter === 'all'
               ? 'No hay tareas pendientes'
-              : `No hay tareas pendientes con los filtros seleccionados`
+              : 'No hay tareas pendientes con los filtros seleccionados'
             }
           </div>
         )}
