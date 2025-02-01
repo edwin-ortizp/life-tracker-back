@@ -9,6 +9,7 @@ import HabitPage from './pages/HabitPage';
 import MealPage from './pages/MealPage';
 import Home from './artifacts/Home';
 import ExercisePage from './pages/ExercisePage';
+import NegativeHabitsPage from './pages/NegativeHabitsPage';
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Route path="water" element={<WaterPage />} />
         <Route path="pomodoro" element={<PomodoroPage />} />
         <Route path="exercise" element={<ExercisePage />} />
+        <Route path="negative" element={<NegativeHabitsPage />} />
         <Route path="meal" element={<MealPage />} />
       </Route>
     </Routes>

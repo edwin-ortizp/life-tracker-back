@@ -27,7 +27,7 @@ export const menuItems: MenuItem[] = [
   { icon: Timer, label: 'Pomodoro', path: '/pomodoro' },
   { icon: UtensilsCrossed, label: 'Comidas', path: '/meal' },
   { icon: BarChart2, label: 'Tareas', path: '/task' },
-  { icon: Settings, label: 'Config', path: '/settings' },
+  { icon: Settings, label: 'Negativo', path: '/negative' },
   { icon: LogOut, label: 'Salir', path: '/logout' }
 ];
 
