@@ -77,7 +77,7 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({ exerciseLogs }) => {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
-                <span className={`p-2 rounded-lg ${EXERCISE_COLORS[category].replace('bg-', 'bg-opacity-20')}`}>
+                <span className={`p-2 rounded-lg ${EXERCISE_COLORS[category]}/20`}>
                   {getCategoryIcon(category)}
                 </span>
                 {category.charAt(0).toUpperCase() + category.slice(1)}

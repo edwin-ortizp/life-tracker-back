@@ -5,6 +5,27 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Trash2 } from 'lucide-react';
 import { MEAL_TYPES } from '../../types';
 import { MealModalProps } from './types';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
 
 export const MealModal: React.FC<MealModalProps> = ({
   show,
@@ -23,11 +44,7 @@ export const MealModal: React.FC<MealModalProps> = ({
     await onSubmit();
   };
 
-  const handleDelete = async () => {
-    if (confirm('¿Estás seguro de que deseas eliminar esta comida?')) {
-      await onDelete();
-    }
-  };
+  // handleDelete is removed, logic moved to AlertDialog
 
   const dayInfo = weekDays.find(d => d.fullDate === selectedMealInfo.date);
   const isEditing = !!selectedMealInfo.meal;
@@ -46,78 +63,94 @@ export const MealModal: React.FC<MealModalProps> = ({
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tipo de Comida
-              </label>
-              <select
+            <div className="space-y-1">
+              <Label htmlFor="mealType">Tipo de Comida</Label>
+              <Select
                 value={formData.type}
-                onChange={(e) => onFormChange('type', e.target.value)}
-                className="w-full rounded-md border border-gray-300 p-2"
+                onValueChange={(value) => onFormChange('type', value)}
+                name="mealType" // Added name for form semantics
+                required
               >
-                {Object.entries(MEAL_TYPES)
-                  .sort(([,a], [,b]) => a.order - b.order)
-                  .map(([value, { title }]) => (
-                    <option key={value} value={value}>
-                      {title}
-                    </option>
-                ))}
-              </select>
+                <SelectTrigger id="mealType">
+                  <SelectValue placeholder="Selecciona un tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(MEAL_TYPES)
+                    .sort(([,a], [,b]) => a.order - b.order)
+                    .map(([value, { title }]) => (
+                      <SelectItem key={value} value={value}>
+                        {title}
+                      </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre de la Comida *
-              </label>
-              <input
+            <div className="space-y-1">
+              <Label htmlFor="mealName">Nombre de la Comida *</Label>
+              <Input
+                id="mealName"
                 type="text"
                 value={formData.name}
                 onChange={(e) => onFormChange('name', e.target.value)}
-                className="w-full rounded-md border border-gray-300 p-2"
                 placeholder="Ej: Ensalada César"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Notas Adicionales
-              </label>
-              <input
+            <div className="space-y-1">
+              <Label htmlFor="mealNotes">Notas Adicionales</Label>
+              <Input
+                id="mealNotes"
                 type="text"
                 value={formData.notes}
                 onChange={(e) => onFormChange('notes', e.target.value)}
-                className="w-full rounded-md border border-gray-300 p-2"
                 placeholder="Ej: Sin crutones"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Receta
-              </label>
-              <textarea
+            <div className="space-y-1">
+              <Label htmlFor="mealRecipe">Receta</Label>
+              <Textarea
+                id="mealRecipe"
                 value={formData.recipe}
                 onChange={(e) => onFormChange('recipe', e.target.value)}
-                className="w-full rounded-md border border-gray-300 p-2 h-24 resize-none"
                 placeholder="Ingredientes y preparación..."
+                className="h-24 resize-none"
               />
             </div>
           </div>
 
-          <DialogFooter className="flex justify-between sm:justify-between">
-            {isEditing && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleDelete}
-                className="mr-auto"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Eliminar
-              </Button>
-            )}
-            <div className="flex gap-2">
+          <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-2">
+            <div className="flex-grow sm:flex-grow-0">
+              {isEditing && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="w-full sm:w-auto" // Full width on mobile
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Eliminar
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta acción no se puede deshacer. Se eliminará permanentemente la comida.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={onDelete}>Eliminar</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
+            <div className="flex gap-2 justify-end"> {/* Ensure cancel/submit are on the right */}
               <Button
                 type="button"
                 variant="outline"

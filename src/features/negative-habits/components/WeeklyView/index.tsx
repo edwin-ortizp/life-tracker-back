@@ -114,7 +114,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
                     <Button
                       variant="ghost"
                       onClick={() => toggleCategory(category)}
-                      className="w-full flex items-center justify-between p-2 hover:bg-gray-100"
+                      className="w-full flex items-center justify-between p-2" // Removed hover:bg-gray-100
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-xl">{categoryInfo.icon}</span>
@@ -144,7 +144,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
         </div>
       </div>
 
-      <Alert variant="destructive" className="bg-red-50">
+      <Alert variant="destructive"> {/* Removed bg-red-50 */}
         <AlertDescription>
           {showAllHabits 
             ? 'Visualización completa de hábitos agrupados por categoría. Usa el buscador para encontrar hábitos específicos.'

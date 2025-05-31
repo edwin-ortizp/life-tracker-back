@@ -96,7 +96,7 @@ export const DrinkSelectorModal: React.FC<DrinkSelectorModalProps> = ({
                       <span className="text-xs sm:text-sm text-center">{drink.name}</span>
                     </Button>
                     {selectedDrink === drink.key && (
-                      <div className="absolute top-full left-0 w-full z-10 bg-white shadow-lg rounded-md mt-1 p-1">
+                      <div className="absolute top-full left-0 w-full z-10 bg-card shadow-lg rounded-md mt-1 p-1"> {/* Changed bg-white to bg-card */}
                         {drink.amounts.map(amount => (
                           <Button
                             key={amount}

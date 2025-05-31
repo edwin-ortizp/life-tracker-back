@@ -159,6 +159,7 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
                   size="sm"
                   onClick={handleNotificationToggle}
                   className="flex items-center gap-2"
+                  aria-label={notificationPrefs.enabled ? "Desactivar notificaciones" : "Activar notificaciones"}
                 >
                   {notificationPrefs.enabled ? (
                     <>

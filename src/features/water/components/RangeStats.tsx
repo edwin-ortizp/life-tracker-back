@@ -65,25 +65,25 @@ export const RangeStats: React.FC<RangeStatsProps> = ({ startDate, endDate }) =>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-lg bg-blue-50">
+            <div className="p-4 rounded-lg bg-muted"> {/* Changed bg-blue-50 */}
               <div className="text-2xl font-bold text-blue-600">
                 {Math.round(stats.summary.avgDailyIntake)}ml
               </div>
               <div className="text-sm text-gray-600">Promedio diario</div>
             </div>
-            <div className="p-4 rounded-lg bg-green-50">
+            <div className="p-4 rounded-lg bg-muted"> {/* Changed bg-green-50 */}
               <div className="text-2xl font-bold text-green-600">
                 {stats.summary.daysTracked}
               </div>
               <div className="text-sm text-gray-600">Días registrados</div>
             </div>
-            <div className="p-4 rounded-lg bg-purple-50">
+            <div className="p-4 rounded-lg bg-muted"> {/* Changed bg-purple-50 */}
               <div className="text-2xl font-bold text-purple-600">
                 {stats.summary.daysWithGoal}
               </div>
               <div className="text-sm text-gray-600">Días meta alcanzada</div>
             </div>
-            <div className="p-4 rounded-lg bg-orange-50">
+            <div className="p-4 rounded-lg bg-muted"> {/* Changed bg-orange-50 */}
               <div className="text-2xl font-bold text-orange-600">
                 {Math.round(stats.summary.totalIntake / 1000)}L
               </div>
@@ -173,7 +173,7 @@ export const RangeStats: React.FC<RangeStatsProps> = ({ startDate, endDate }) =>
               return (
                 <div 
                   key={drink.type}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-gray-50"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-muted" // Changed bg-gray-50
                 >
                   <Icon className={`w-8 h-8 ${drinkInfo.color}`} />
                   <div className="flex-1">

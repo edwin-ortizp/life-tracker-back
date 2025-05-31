@@ -1,6 +1,13 @@
 import { useState } from 'react';
-import { CheckCircle, XCircle, ChevronDown, Edit, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, Edit, Trash2 } from 'lucide-react'; // ChevronDown removed
 import type { PomodoroSession } from '../types';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
 
 const formatTimeOnly = (timestamp: number): string => {
   const date = new Date(timestamp);
@@ -29,19 +36,18 @@ export const PomodoroHistory = ({
   );
 
   return (
-    <div>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full h-11 flex items-center justify-center gap-2 border rounded-lg bg-white"
-      >
-        <ChevronDown 
-          className={`w-4 h-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`}
-        />
-        <span className="text-sm font-semibold">Historial de hoy</span>
-      </button>
-
-      {isOpen && (
-        <div className="mt-2 space-y-2">
+    <Accordion
+      type="single"
+      collapsible
+      onValueChange={(value) => setIsOpen(!!value)}
+      value={isOpen ? "history" : ""}
+    >
+      <AccordionItem value="history" className="border-none">
+        <AccordionTrigger className="w-full h-11 flex items-center justify-center gap-2 border rounded-lg bg-background hover:bg-accent data-[state=open]:rounded-b-none">
+          {/* ChevronDown is automatically handled by AccordionTrigger */}
+          <span className="text-sm font-semibold">Historial de hoy</span>
+        </AccordionTrigger>
+        <AccordionContent className="mt-2 space-y-2">
           {sortedSessions.length === 0 ? (
             <div className="text-center text-gray-500 text-sm py-2">
               No hay sesiones registradas hoy
@@ -50,7 +56,7 @@ export const PomodoroHistory = ({
             sortedSessions.map((session, index) => (
               <div 
                 key={session.startTime.timestamp}
-                className="flex flex-col p-2.5 bg-gray-50 rounded-lg text-sm"
+                className="flex flex-col p-2.5 bg-muted rounded-lg text-sm" // Changed bg-gray-50 to bg-muted
               >
                 <div className="flex items-center gap-2">
                   {session.completed ? (
@@ -74,22 +80,24 @@ export const PomodoroHistory = ({
                   
                   <div className="flex gap-1 ml-2">
                     {onEditSession && (
-                      <button
-                        type="button"
-                        className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-auto w-auto p-1"
                         onClick={() => onEditSession(session)}
                       >
-                        <Edit className="w-4 h-4 text-gray-500" />
-                      </button>
+                        <Edit className="w-4 h-4 text-muted-foreground" />
+                      </Button>
                     )}
                     {onDeleteSession && (
-                      <button
-                        type="button"
-                        className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-auto w-auto p-1"
                         onClick={() => onDeleteSession(session)}
                       >
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </button>
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -102,8 +110,8 @@ export const PomodoroHistory = ({
               </div>
             ))
           )}
-        </div>
-      )}
-    </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 };

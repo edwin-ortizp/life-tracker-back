@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import { LastUpdatedInfo } from './LastUpdatedInfo';
+import { Textarea } from '@/components/ui/textarea';
 
 interface JournalInputProps {
   value: string;
@@ -20,11 +21,11 @@ export const JournalInput: React.FC<JournalInputProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      <textarea
+      <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="¿Cómo ha sido tu día?"
-        className="w-full h-64 p-4 border rounded resize-none focus:ring-2 focus:ring-blue-500"
+        className="w-full h-64 resize-none" // Removed p-4 border rounded focus:ring-2 focus:ring-blue-500
       />
       
       <div className="flex items-center justify-between">

@@ -156,7 +156,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
                         key={exercise.id}
                         type="button"
                         variant="outline"
-                        className="flex flex-col items-center p-6 h-auto gap-3 hover:bg-gray-50"
+                        className="flex flex-col items-center p-6 h-auto gap-3"
                         onClick={() => handleSelectExercise(exercise)}
                       >
                         <span className="text-3xl">{exercise.icon}</span>
@@ -263,8 +263,8 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
               )}
 
               {calculatedCalories > 0 && (
-                <div className="p-4 bg-gray-50 rounded-md">
-                  <p className="text-sm font-medium">Calorías estimadas: {calculatedCalories} kcal</p>
+                <div className="p-4 bg-muted rounded-md">
+                  <p className="text-sm font-medium text-muted-foreground">Calorías estimadas: {calculatedCalories} kcal</p>
                 </div>
               )}
 

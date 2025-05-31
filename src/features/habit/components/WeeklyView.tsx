@@ -4,6 +4,7 @@ import { CheckCircle } from 'lucide-react';
 import { HABIT_COLORS } from '../types';
 import { getWeekDays } from '../utils/dateUtils';
 import { HabitGroup } from './HabitGroup';
+import { Button } from '@/components/ui/button';
 
 interface WeeklyViewProps {
   completedHabits: { [key: string]: boolean };
@@ -41,22 +42,24 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
                   <span className="text-xs text-gray-500">{habit.goal}</span>
                 </div>
               </div>
-              {weekDays.map((day) => (
-                <button
-                  key={`${habit.id}_${day.fullDate}`}
-                  className={`h-15 w-10 aspect-square rounded-lg flex items-center justify-center transition-colors mx-auto my-1
-                    ${completedHabits[`${habit.id}_${day.fullDate}`] 
-                      ? HABIT_COLORS[habit.id]
-                      : 'bg-gray-50 hover:bg-gray-100'
-                    }`}
-                  onClick={() => onToggle(habit.id, day.fullDate)}
-                  disabled={disabled}
-                >
-                  {completedHabits[`${habit.id}_${day.fullDate}`] && 
-                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  }
-                </button>
-              ))}
+              {weekDays.map((day) => {
+                const isCompleted = completedHabits[`${habit.id}_${day.fullDate}`];
+                return (
+                  <Button
+                    key={`${habit.id}_${day.fullDate}`}
+                    variant="ghost"
+                    className={`h-10 w-10 p-0 aspect-square rounded-lg flex items-center justify-center transition-colors mx-auto my-1
+                      ${isCompleted ? HABIT_COLORS[habit.id] : ''
+                      }`}
+                    onClick={() => onToggle(habit.id, day.fullDate)}
+                    disabled={disabled}
+                  >
+                    {isCompleted &&
+                      <CheckCircle className="w-5 h-5 text-white" />
+                    }
+                  </Button>
+                );
+              })}
             </React.Fragment>
           ))}
         </div>

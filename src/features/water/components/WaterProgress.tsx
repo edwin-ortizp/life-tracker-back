@@ -37,7 +37,7 @@ export const WaterProgress: React.FC<WaterProgressProps> = ({ intake, goal }) =>
 
       <Progress 
         value={Math.min((intake/goal)*100, 100)} 
-        className={`h-3 ${intake > goal ? 'bg-blue-200' : ''}`}
+        className="h-3" // Removed conditional background class
       />
       <p className="text-sm text-gray-600 mt-2 text-center">
         {getMotivationalMessage()}

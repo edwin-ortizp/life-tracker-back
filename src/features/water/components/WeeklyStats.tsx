@@ -126,7 +126,7 @@ export const WeeklyStats: React.FC<WeeklyStatsProps> = ({ selectedDate }) => {
               return (
                 <div 
                   key={drink.type}
-                  className="flex flex-col items-center p-4 rounded-lg bg-gray-50"
+                  className="flex flex-col items-center p-4 rounded-lg bg-muted" // Changed bg-gray-50
                 >
                   <Icon className={`w-6 h-6 ${drinkInfo.color} mb-2`} />
                   <span className="font-medium text-sm">{drinkInfo.name}</span>

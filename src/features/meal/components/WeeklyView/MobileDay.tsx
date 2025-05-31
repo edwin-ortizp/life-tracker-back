@@ -40,7 +40,7 @@ export const MobileDay: React.FC<MobileDayProps> = ({
                     )}
                     {meal.recipe && (
                       <div className="mt-1">
-                        <div className="w-2 h-2 bg-blue-400 rounded-full" />
+                        <div className="w-2 h-2 bg-sky-500 rounded-full" />
                       </div>
                     )}
                   </div>

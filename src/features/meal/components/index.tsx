@@ -1,5 +1,5 @@
 // features/meal/components/MealPlanner.tsx
-import React from 'react';
+import React, { useState } from 'react'; // Added useState
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { Calendar, AlertCircle } from 'lucide-react';
@@ -7,10 +7,25 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import WeeklyView from './WeeklyView';
 import { ImportMealPlan } from './ImportMealPlan';
 import { useMealPlan } from '../hooks/useMealPlan';
-import type { MealProps } from '../types';
+import type { MealProps, MealPlan } from '../types'; // Added MealPlan type
+import { useToast } from '@/components/ui/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [pendingMealPlan, setPendingMealPlan] = useState<MealPlan | null>(null);
+
   const {
     mealPlan,
     status,
@@ -20,13 +35,24 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
     importMealPlan
   } = useMealPlan();
 
-  const handleImport = async (newMealPlan: typeof mealPlan) => {
-    if (confirm('¿Deseas sobrescribir el plan existente? Esto reemplazará todas las comidas existentes en las fechas importadas.')) {
+  const handleImportTrigger = (newMealPlan: MealPlan) => {
+    setPendingMealPlan(newMealPlan);
+    setShowImportConfirm(true);
+  };
+
+  const executeImport = async () => {
+    if (pendingMealPlan) {
       try {
-        await importMealPlan(newMealPlan);
-      } catch (error) {
-        console.error('Error importing:', error);
+        await importMealPlan(pendingMealPlan);
+      } catch (err) { // Changed error to err to avoid conflict
+        console.error('Error importing during confirmation:', err);
+        toast({ title: "Error de Importación", description: "No se pudo importar el plan de comidas.", variant: "destructive" });
+      } finally {
+        setPendingMealPlan(null);
+        setShowImportConfirm(false);
       }
+    } else {
+      setShowImportConfirm(false); // Ensure dialog closes if pendingMealPlan is null
     }
   };
 
@@ -43,18 +69,18 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   const handleAddMeal = async (...args: Parameters<typeof addMeal>) => {
     try {
       await addMeal(...args);
-    } catch (error) {
-      console.error('Error adding meal:', error);
-      alert('Error al agregar la comida');
+    } catch (err) { // Changed error to err
+      console.error('Error adding meal:', err);
+      toast({ title: "Error al Agregar", description: "No se pudo agregar la comida.", variant: "destructive" });
     }
   };
 
   const handleRemoveMeal = async (...args: Parameters<typeof removeMeal>) => {
     try {
       await removeMeal(...args);
-    } catch (error) {
-      console.error('Error removing meal:', error);
-      alert('Error al eliminar la comida');
+    } catch (err) { // Changed error to err
+      console.error('Error removing meal:', err);
+      toast({ title: "Error al Eliminar", description: "No se pudo eliminar la comida.", variant: "destructive" });
     }
   };
 
@@ -70,13 +96,28 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
         </div>
         <div className="flex items-center space-x-2">
           <ImportMealPlan 
-            onImport={handleImport} 
+            onImport={handleImportTrigger}
             disabled={status === 'saving'} 
           />
         </div>
       </CardHeader>
       
       <CardContent className="p-0 h-[calc(100vh-80px)] overflow-auto">
+        <AlertDialog open={showImportConfirm} onOpenChange={setShowImportConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar Importación</AlertDialogTitle>
+              <AlertDialogDescription>
+                ¿Deseas sobrescribir el plan existente? Esto reemplazará todas las comidas existentes en las fechas importadas.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setPendingMealPlan(null)}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={executeImport}>Sobrescribir</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <WeeklyView
           mealPlan={mealPlan}
           onAddMeal={handleAddMeal}

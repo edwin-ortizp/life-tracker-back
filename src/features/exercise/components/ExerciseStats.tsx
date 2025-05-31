@@ -124,7 +124,7 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-orange-100 rounded-lg">
+            <div className="p-3 bg-muted rounded-lg">
               <Flame className="w-5 h-5 text-orange-600" />
             </div>
             <div>
@@ -136,7 +136,7 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
 
         <Card>
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-blue-100 rounded-lg">
+            <div className="p-3 bg-muted rounded-lg">
               <Footprints className="w-5 h-5 text-blue-600" />
             </div>
             <div>
@@ -148,7 +148,7 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
 
         <Card>
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-green-100 rounded-lg">
+            <div className="p-3 bg-muted rounded-lg">
               <Timer className="w-5 h-5 text-green-600" />
             </div>
             <div>
@@ -160,7 +160,7 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
 
         <Card>
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-purple-100 rounded-lg">
+            <div className="p-3 bg-muted rounded-lg">
               <Activity className="w-5 h-5 text-purple-600" />
             </div>
             <div>

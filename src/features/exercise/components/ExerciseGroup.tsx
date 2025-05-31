@@ -1,7 +1,13 @@
 // src/features/exercise/components/ExerciseGroup.tsx
 import React from 'react';
-import { ChevronDown, Dumbbell, Activity} from 'lucide-react';
+import { Dumbbell, Activity } from 'lucide-react'; // Removed ChevronDown
 import { Exercise } from '../types';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface ExerciseGroupProps {
   exercises: Exercise[];
@@ -37,42 +43,35 @@ export const ExerciseGroup: React.FC<ExerciseGroupProps> = ({
   children,
   category
 }) => {
-  const [isOpen, setIsOpen] = React.useState(true);
   const config = CATEGORY_CONFIG[category];
   const Icon = config.icon;
 
   return (
-    <div className="rounded-lg border border-gray-200">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
-      >
-        <div className="flex items-center gap-4">
-          <Icon className="w-5 h-5" />
-          <div>
-            <h3 className="font-medium">{config.title}</h3>
-            <p className="text-sm text-gray-500">{config.description}</p>
+    <Accordion type="single" collapsible defaultValue={category} className="rounded-lg border border-gray-200">
+      <AccordionItem value={category} className="border-b-0"> {/* Remove default bottom border from item if Accordion has border */}
+        <AccordionTrigger className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-muted rounded-t-lg focus:outline-none focus:ring-2 focus:ring-ring data-[state=closed]:rounded-b-lg">
+          {/* Added rounded-t-lg and conditional rounded-b-lg for when closed */}
+          {/* hover:bg-muted instead of hover:bg-gray-50 */}
+          {/* focus:ring-ring to use shadcn's ring color */}
+          <div className="flex items-center gap-4">
+            <Icon className="w-5 h-5" />
+            <div>
+              <h3 className="font-medium">{config.title}</h3>
+              <p className="text-sm text-gray-500">{config.description}</p>
+            </div>
+            <div className="ml-4">
+              <span className="text-sm text-gray-500">
+                {exercises.length} ejercicios
+              </span>
+            </div>
           </div>
-          <div className="ml-4">
-            <span className="text-sm text-gray-500">
-              {exercises.length} ejercicios
-            </span>
-          </div>
-        </div>
-        <ChevronDown 
-          className={`w-5 h-5 transition-transform ${
-            isOpen ? 'transform rotate-180' : ''
-          }`}
-        />
-      </button>
-      
-      <div
-        className={`transition-all duration-200 ease-in-out overflow-hidden ${
-          isOpen ? 'px-6 py-4' : 'max-h-0'
-        }`}
-      >
-        {isOpen && children}
-      </div>
-    </div>
+          {/* ChevronDown is automatically added by AccordionTrigger and handles its own rotation */}
+        </AccordionTrigger>
+        <AccordionContent className="px-6 py-4">
+          {/* Original padding was px-6 py-4 for the content when open */}
+          {children}
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 };

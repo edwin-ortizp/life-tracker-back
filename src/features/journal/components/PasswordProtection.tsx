@@ -43,7 +43,7 @@ export const PasswordProtection: React.FC<PasswordProtectionProps> = ({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Contraseña"
-            className={error ? 'border-red-500' : ''}
+            className={error ? 'border-destructive focus-visible:ring-destructive' : ''}
           />
           {error && (
             <p className="text-sm text-red-500 text-center">

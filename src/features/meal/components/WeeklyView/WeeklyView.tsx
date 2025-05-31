@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MEAL_TYPES } from '../../types';
+import { useToast } from '@/components/ui/use-toast';
 import { getWeekDays, getNextWeek, getPreviousWeek } from '../../utils/dateUtils';
 import { WeeklyViewProps, MealModalState, MealFormData } from './types';
 import WeekNavigation from './WeekNavigation';
@@ -16,6 +17,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
   disabled,
   selectedDate: initialDate = new Date()
 }) => {
+  const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(initialDate);
   const [showModal, setShowModal] = useState(false);
   const [selectedMealInfo, setSelectedMealInfo] = useState<MealModalState | null>(null);
@@ -74,9 +76,9 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
       });
       
       setShowModal(false);
-    } catch (error) {
-      console.error('Error al guardar:', error);
-      alert('Error al guardar la comida');
+    } catch (err) { // Renamed error to err
+      console.error('Error al guardar:', err);
+      toast({ title: "Error al Guardar", description: "No se pudo guardar la comida.", variant: "destructive" });
     }
   };
 
@@ -87,9 +89,9 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
       // Usar el tipo de la comida original, no el del formulario
       await onRemoveMeal(selectedMealInfo.date, selectedMealInfo.meal.type);
       setShowModal(false);
-    } catch (error) {
-      console.error('Error al eliminar:', error);
-      alert('Error al eliminar la comida');
+    } catch (err) { // Renamed error to err
+      console.error('Error al eliminar:', err);
+      toast({ title: "Error al Eliminar", description: "No se pudo eliminar la comida.", variant: "destructive" });
     }
   };
 

@@ -15,7 +15,7 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({ onSelect, disabled }
           <Button
             variant="outline"
             onClick={() => onSelect(mood)}
-            className="h-12 text-lg w-full relative hover:bg-gray-100"
+            className="h-12 text-lg w-full relative" // Removed hover:bg-gray-100
             disabled={disabled}
           >
             <span>{mood.emoji}</span>

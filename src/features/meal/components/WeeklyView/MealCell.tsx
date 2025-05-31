@@ -45,11 +45,11 @@ export const MealCell: React.FC<MealCellProps> = ({
       )}
       {meal.recipe && (
         <div className="absolute bottom-1 right-1">
-          <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+          <div className="w-2 h-2 bg-sky-500 rounded-full"></div>
         </div>
       )}
       <div className={`absolute inset-0 flex items-center justify-center 
-        bg-white/50 opacity-0 group-hover:opacity-100 rounded transition-opacity ${hoverColor}`}>
+        bg-background/75 opacity-0 group-hover:opacity-100 rounded transition-opacity ${hoverColor}`}>
         <Edit2 className="h-4 w-4 text-gray-700" />
       </div>
     </div>

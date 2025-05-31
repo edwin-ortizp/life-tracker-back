@@ -1,5 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   LayoutDashboard,
   Timer,
@@ -46,24 +53,47 @@ const DesktopNavigation = () => {
     }
   };
 
-  const DesktopMenuItem = ({ icon: Icon, label, path, onClick }: MenuItem) => (
-    <div className="relative group">
-      <button
-        className={`w-full rounded-lg transition-colors duration-200 flex items-center
-          ${location.pathname === path ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}
-          ${isExpanded ? 'px-4 py-3' : 'p-3'}`}
-        onClick={() => onClick ? onClick() : navigate(path)}
-      >
+  const DesktopMenuItem = ({ icon: Icon, label, path, onClick }: MenuItem) => {
+    const isActive = location.pathname === path;
+
+    const buttonContent = (
+      <>
         <Icon className={`${isExpanded ? 'w-8 h-8' : 'w-7 h-7'} transition-all duration-200`} />
         {isExpanded && <span className="ml-3">{label}</span>}
-      </button>
-      {!isExpanded && (
-        <div className="absolute left-full ml-2 hidden group-hover:block bg-gray-800 text-white px-2 py-1 rounded text-sm whitespace-nowrap z-50">
-          {label}
-        </div>
-      )}
-    </div>
-  );
+      </>
+    );
+
+    if (!isExpanded) {
+      return (
+        <TooltipProvider>
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <Button
+                variant={isActive ? "default" : "ghost"}
+                className={`w-full flex items-center justify-start ${isExpanded ? 'px-4 py-3' : 'p-3'}`}
+                onClick={() => onClick ? onClick() : navigate(path)}
+              >
+                {buttonContent}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>{label}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
+    return (
+      <Button
+        variant={isActive ? "default" : "ghost"}
+        className={`w-full flex items-center justify-start ${isExpanded ? 'px-4 py-3' : 'p-3'}`}
+        onClick={() => onClick ? onClick() : navigate(path)}
+      >
+        {buttonContent}
+      </Button>
+    );
+  };
 
   return (
     <aside className={`hidden md:flex flex-col h-screen fixed top-0 left-0 transition-all duration-300 bg-white border-r z-50
@@ -76,24 +106,25 @@ const DesktopNavigation = () => {
             <span className="text-white font-bold text-sm">DT</span>
           </div>
         )}
-        <button 
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon"
           title="Expand/Collapse Menu"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="p-1 hover:bg-gray-100 rounded-lg w-full flex items-center justify-center"
+          className="p-1 w-full flex items-center justify-center"
         >
           <ChevronRight className={`w-5 h-5 transform transition-transform duration-300 
             ${isExpanded ? 'rotate-180' : ''}`} />
-        </button>
+        </Button>
       </div>
       <nav className="flex-1 p-2 overflow-y-auto space-y-1">
         <div className="flex-1">
           {menuItems.slice(0, -1).map((item) => (
-            <DesktopMenuItem key={item.path} {...item} />
+            <DesktopMenuItem key={item.path} icon={item.icon} label={item.label} path={item.path} />
           ))}
         </div>
         <div className="border-t pt-2">
-          <DesktopMenuItem {...menuItems[menuItems.length - 1]} onClick={handleLogout} />
+          <DesktopMenuItem icon={menuItems[menuItems.length - 1].icon} label={menuItems[menuItems.length - 1].label} path={menuItems[menuItems.length - 1].path} onClick={handleLogout} />
         </div>
       </nav>
     </aside>

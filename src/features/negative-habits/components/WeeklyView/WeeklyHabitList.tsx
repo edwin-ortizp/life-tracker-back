@@ -66,9 +66,7 @@ export const WeeklyHabitList: React.FC<WeeklyHabitListProps> = ({
                       <Button
                         variant={isLogged ? "destructive" : "outline"}
                         size="icon"
-                        className={`w-10 h-10 p-0 ${
-                          isLogged ? "bg-red-500 hover:bg-red-600" : ""
-                        }`}
+                        className="w-10 h-10 p-0" // Removed conditional bg-red classes
                         onClick={() => isLogged 
                           ? onRemoveLog(habit.id, day.fullDate)
                           : onLogHabit(habit.id, day.fullDate)
@@ -78,7 +76,7 @@ export const WeeklyHabitList: React.FC<WeeklyHabitListProps> = ({
                         {isLogged ? (
                           <X className="w-4 h-4 text-white" />
                         ) : (
-                          <AlertCircle className="w-4 h-4 text-gray-400" />
+                          <AlertCircle className="w-4 h-4 text-muted-foreground" /> // Changed text-gray-400
                         )}
                       </Button>
                     </TooltipTrigger>

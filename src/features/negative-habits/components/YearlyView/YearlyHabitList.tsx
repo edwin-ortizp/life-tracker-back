@@ -8,7 +8,8 @@ import {
 } from "@/components/ui/tooltip";
 import { NegativeHabit, NegativeHabitLog, CATEGORY_COLORS } from '../../types';
 import { getMonths } from '../../utils/dates';
-import { cn } from "@/lib/utils";
+// import { cn } from "@/lib/utils"; // cn will be removed
+import { Button } from '@/components/ui/button';
 
 interface YearlyHabitListProps {
   habits: NegativeHabit[];
@@ -59,21 +60,18 @@ export const YearlyHabitList: React.FC<YearlyHabitListProps> = ({
                           return (
                             <Tooltip key={date}>
                               <TooltipTrigger asChild>
-                                <button
+                                <Button
+                                  variant={isLogged ? "destructive" : "ghost"}
+                                  size="icon"
+                                  className="w-3 h-3 p-0 rounded-full transition-all"
                                   onClick={() => isLogged 
                                     ? onRemoveLog(habit.id, date)
                                     : onLogHabit(habit.id, date)
                                   }
-                                  className={cn(
-                                    "w-3 h-3 rounded-full transition-all",
-                                    "hover:ring-2 hover:ring-offset-2 hover:ring-red-500",
-                                    "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500",
-                                    isLogged
-                                      ? "bg-red-500"
-                                      : "bg-gray-100 hover:bg-gray-200"
-                                  )}
                                   aria-label={isLogged ? 'Eliminar registro' : 'Registrar hábito'}
-                                />
+                                >
+                                  {/* Content of the button can be empty if color itself indicates state */}
+                                </Button>
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p className="text-sm">

@@ -1,9 +1,11 @@
 // src/features/task/components/TaskRecurrenceConfig.tsx
 import React from 'react';
+import React from 'react'; // Added React import explicitly
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useRecurrenceLogic } from '../hooks/useRecurrenceLogic';
 import type { RecurrenceConfig } from '../hooks/useRecurrenceLogic';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TaskRecurrenceConfigProps {
   isRecurrent: boolean;
@@ -53,17 +55,20 @@ export const TaskRecurrenceConfig: React.FC<TaskRecurrenceConfigProps> = ({
 
       {isRecurrent && config && (
         <div className="pl-6 space-y-4">
-          <select
-            title="Frecuencia"
-            className="w-full p-2 border rounded"
+          <Select
             value={config.pattern}
-            onChange={(e) => handlePatternChange(e.target.value as RecurrenceConfig['pattern'])}
+            onValueChange={(value) => handlePatternChange(value as RecurrenceConfig['pattern'])}
           >
-            <option value="daily">Diariamente</option>
-            <option value="weekly">Semanalmente</option>
-            <option value="monthly">Mensualmente</option>
-            <option value="custom">Personalizado</option>
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecciona frecuencia" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="daily">Diariamente</SelectItem>
+              <SelectItem value="weekly">Semanalmente</SelectItem>
+              <SelectItem value="monthly">Mensualmente</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
+            </SelectContent>
+          </Select>
 
           {config.pattern === 'custom' && (
             <div className="flex items-center gap-2">
