@@ -44,7 +44,7 @@ export const MoodHistory: React.FC<MoodHistoryProps> = ({
         {displayMoods.map((entry, index) => (
           <div 
             key={`${entry.timestamp}_${index}`}
-            className="flex items-center gap-2 p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-2 p-2 bg-muted rounded hover:bg-accent transition-colors"
           >
             <span className="text-xl">{entry.emoji}</span>
             <span>{entry.text}</span>

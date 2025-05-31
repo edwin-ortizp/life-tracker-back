@@ -3,6 +3,7 @@ import React from 'react';
 import { HABIT_COLORS } from '../types';
 import { getMonths } from '../utils/dateUtils';
 import { HabitGroup } from './HabitGroup';
+import { Button } from '@/components/ui/button';
 
 interface YearlyViewProps {
   completedHabits: { [key: string]: boolean };
@@ -40,15 +41,18 @@ export const YearlyView: React.FC<YearlyViewProps> = ({
                         const isCompleted = completedHabits[`${habit.id}_${date}`];
                         
                         return (
-                          <button
+                          <Button
                             key={date}
+                            variant="ghost"
                             onClick={() => onToggle(habit.id, date)}
-                            className={`w-full aspect-square rounded-sm ${
-                              isCompleted 
+                            className={`w-full aspect-square rounded-sm p-0 flex items-center justify-center
+                              ${isCompleted
                                 ? `${HABIT_COLORS[habit.id]} opacity-75 hover:opacity-100` 
-                                : 'bg-gray-100 hover:bg-gray-200'
-                            }`}
-                          />
+                                : '' // No specific bg for not completed, ghost handles hover
+                              }`}
+                          >
+                            {isCompleted && <div className="w-2 h-2 bg-white/75 rounded-full"></div>}
+                          </Button>
                         );
                       })}
                     </div>

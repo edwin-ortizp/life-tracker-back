@@ -33,7 +33,7 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
             <Button
               key={habit.id}
               variant="outline"
-              className="h-auto py-3 px-2 flex flex-col items-center gap-2 hover:bg-gray-50 group"
+              className="h-auto py-3 px-2 flex flex-col items-center gap-2 group" // Removed hover:bg-gray-50
               onClick={() => onSelectHabit(habit.id)}
             >
               <span className="text-2xl group-hover:scale-110 transition-transform">

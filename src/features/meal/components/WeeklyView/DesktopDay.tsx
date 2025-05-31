@@ -21,7 +21,7 @@ export const DesktopDay: React.FC<DesktopDayProps> = ({
   onOpenModal,
 }) => {
   return (
-    <div className={`px-2 ${!day.isCurrentMonth ? 'bg-gray-50' : ''}`}>
+    <div className={`px-2 ${!day.isCurrentMonth ? 'bg-muted' : ''}`}>
       <div className="text-center py-2 border-b">
         <div className="font-medium">{day.dayName}</div>
         <div className="text-xs text-gray-500">

@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
 import { MealPlan, MEAL_TYPES } from '../types';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ImportMealPlanProps {
   onImport: (mealPlan: MealPlan) => Promise<void>;
@@ -12,6 +13,8 @@ export const ImportMealPlan: React.FC<ImportMealPlanProps> = ({
   onImport,
   disabled
 }) => {
+  const { toast } = useToast();
+
   const validateMealPlan = (mealPlan: any): boolean => {
     if (!mealPlan || typeof mealPlan !== 'object') return false;
 
@@ -55,7 +58,11 @@ export const ImportMealPlan: React.FC<ImportMealPlanProps> = ({
         await onImport(mealPlan);
       } catch (error) {
         console.error('Error importing:', error);
-        alert('Error al importar el archivo: ' + (error instanceof Error ? error.message : 'Formato inválido'));
+        toast({
+          title: "Error de Importación",
+          description: (error instanceof Error ? error.message : 'Formato inválido'),
+          variant: "destructive"
+        });
       }
     };
     reader.readAsText(file);
