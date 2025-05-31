@@ -142,7 +142,7 @@ export const DailyProgress = ({ sessions, dailyGoal = 300 }: DailyProgressProps)
         <div className="space-y-4">
           <Progress 
             value={goalProgress} 
-            className={`h-3 ${styles.background}`}
+            className="h-3" // Removed ${styles.background}
           />
 
           <div className="grid grid-cols-2 gap-4">

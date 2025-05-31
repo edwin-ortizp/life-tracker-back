@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Filter } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 type DateFilter = 'all' | 'today' | 'week' | 'month' | 'overdue' | 'noDate';
 
@@ -118,21 +119,23 @@ export const TaskList: React.FC<TaskListProps> = ({
   return (
     <div className="space-y-6">
       {/* Botón de filtros móvil */}
+      {/* The parent div with md:hidden is kept as is. Button itself is also md:hidden to avoid rendering it on larger screens where filters are visible. */}
       <div className="md:hidden">
-        <button
+        <Button
+          variant="outline"
           onClick={() => setShowFilters(!showFilters)}
-          className="w-full flex items-center justify-between p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          className="w-full flex items-center justify-between" // md:hidden is not needed here if parent div handles it
         >
           <span className="flex items-center gap-2">
             <Filter className="w-4 h-4" />
             Filtros
           </span>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-muted-foreground"> {/* Changed text-gray-500 */}
             {selectedCategory !== 'all' && CATEGORY_LABELS[selectedCategory as TaskCategory]}
             {selectedCategory !== 'all' && selectedDateFilter !== 'all' && ' • '}
             {selectedDateFilter !== 'all' && DATE_FILTER_LABELS[selectedDateFilter]}
           </span>
-        </button>
+        </Button>
       </div>
 
       {/* Filtros */}

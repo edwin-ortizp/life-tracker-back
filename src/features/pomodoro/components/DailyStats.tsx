@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card';
 import type { PomodoroSession } from '../types';
+import { Progress } from '@/components/ui/progress';
 
 const formatTimeCompact = (minutes: number): string => {
   const hours = Math.floor(minutes / 60);
@@ -61,12 +62,8 @@ export const DailyStats = ({ sessions, dailyGoal = 300 }: DailyStatsProps) => {
         <p className="text-xl font-semibold leading-tight">
           {sessions.filter(s => s.completed).length}/{sessions.length}
         </p>
-        <div className="mt-1 h-1 w-full bg-gray-100 rounded">
-          <div 
-            className="h-1 bg-blue-500 rounded transition-all duration-300"
-            style={{ width: `${goalProgress}%` }}
-          />
-        </div>
+        <Progress value={goalProgress} className="h-1 mt-1" />
+        {/* Added mt-1 to Progress className as it was on the parent div */}
       </Card>
     </div>
   );

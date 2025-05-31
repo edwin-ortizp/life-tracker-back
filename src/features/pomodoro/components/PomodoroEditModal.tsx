@@ -1,5 +1,16 @@
-import { useState, Fragment, useEffect } from 'react';
+import { useState, useEffect } from 'react'; // Fragment removed
 import type { PomodoroSession } from '../types';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 
 interface PomodoroEditModalProps {
   session: PomodoroSession | null;
@@ -89,96 +100,70 @@ export const PomodoroEditModal = ({
   };
 
   return (
-    <Fragment>
-      {/* Overlay */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
-        onClick={onClose}
-      />
-      
-      {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 px-4">
-        <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-          {/* Header */}
-          <div className="px-6 py-4 border-b">
-            <h3 className="text-lg font-medium">Editar Sesión Pomodoro</h3>
-          </div>
+    <Dialog open={!!session} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Editar Sesión Pomodoro</DialogTitle>
+        </DialogHeader>
 
-          {/* Content */}
-          <div className="p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-                  Hora inicio
-                </label>
-                <input
-                  id="startTime"
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
-                  Hora fin
-                </label>
-                <input
-                  id="endTime"
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Descripción (opcional)
-              </label>
-              <input
-                id="description"
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="¿Qué hiciste en esta sesión?"
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div className="py-4 space-y-4"> {/* Added py-4 for padding similar to original p-6 */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1"> {/* Replaced space-y-2 with space-y-1 for tighter label-input */}
+              <Label htmlFor="startTime">Hora inicio</Label>
+              <Input
+                id="startTime"
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
               />
             </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="completed"
-                checked={completed}
-                onChange={(e) => setCompleted(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            <div className="space-y-1">
+              <Label htmlFor="endTime">Hora fin</Label>
+              <Input
+                id="endTime"
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
               />
-              <label htmlFor="completed" className="text-sm text-gray-700">
-                Sesión completada
-              </label>
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="px-6 py-4 border-t bg-gray-50 rounded-b-lg flex justify-end space-x-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border rounded-md hover:bg-gray-50"
+          <div className="space-y-1">
+            <Label htmlFor="description">Descripción (opcional)</Label>
+            <Input
+              id="description"
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="¿Qué hiciste en esta sesión?"
+            />
+          </div>
+
+          <div className="flex items-center space-x-2 pt-2"> {/* Added pt-2 for some spacing */}
+            <Checkbox
+              id="completed"
+              checked={completed}
+              onCheckedChange={(checkedState) => setCompleted(Boolean(checkedState))}
+            />
+            <Label
+              htmlFor="completed"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Cancelar
-            </button>
-            <button
-              onClick={handleSave}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-            >
-              Guardar cambios
-            </button>
+              Sesión completada
+            </Label>
           </div>
         </div>
-      </div>
-    </Fragment>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSave}>
+            Guardar cambios
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
