@@ -58,12 +58,12 @@ export const DrinkHistory: React.FC<DrinkHistoryProps> = ({
             return (
               <div 
                 key={drink.timestamp}
-                className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 group"
+                className="flex items-center gap-2 p-2 bg-muted rounded-lg hover:bg-accent group" // Changed styles
               >
                 <Icon className={`w-4 h-4 ${drinkInfo.color}`} />
-                <span className="font-medium">{drinkInfo.name}</span>
-                <span className="text-gray-500">{drink.amount}ml</span>
-                <span className="text-xs text-gray-400 ml-auto">{drink.time}</span>
+                <span className="font-medium truncate flex-shrink min-w-0">{drinkInfo.name}</span> {/* Added truncate classes */}
+                <span className="text-muted-foreground">{drink.amount}ml</span> {/* Changed text-gray-500 */}
+                <span className="text-xs text-muted-foreground ml-auto">{drink.time}</span> {/* Changed text-gray-400 */}
                 {isCurrentDate && (
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
@@ -72,7 +72,7 @@ export const DrinkHistory: React.FC<DrinkHistoryProps> = ({
                       className="h-6 w-6"
                       onClick={() => handleEdit(index, drink)}
                     >
-                      <Edit2 className="h-3 w-3" />
+                      <Edit2 className="h-4 w-4" /> {/* Changed size */}
                     </Button>
                     <Button
                       variant="ghost"
@@ -80,7 +80,7 @@ export const DrinkHistory: React.FC<DrinkHistoryProps> = ({
                       className="h-6 w-6"
                       onClick={() => onDeleteDrink(index)}
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="h-4 w-4" /> {/* Changed size */}
                     </Button>
                   </div>
                 )}
@@ -91,7 +91,7 @@ export const DrinkHistory: React.FC<DrinkHistoryProps> = ({
       )}
 
       {showHistory && drinks.length === 0 && (
-        <div className="mt-4 text-center text-gray-500 text-sm py-4">
+        <div className="mt-4 text-center text-muted-foreground text-sm py-4"> {/* Changed text-gray-500 */}
           No hay registros para este día
         </div>
       )}
