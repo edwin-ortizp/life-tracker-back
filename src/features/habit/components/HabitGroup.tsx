@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
-import { Sun, Coffee, Moon, ChevronDown, Flame, Trophy } from 'lucide-react';
+import { Sun, Coffee, Moon, Flame, Trophy } from 'lucide-react'; // ChevronDown removed
 import { HABITS, Habit } from '../types';
 import { getWeekDays } from '../utils/dateUtils';
 import { getLocalDateString } from '@/utils/dates';
 import { Progress } from '@/components/ui/progress';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface HabitGroupProps {
   children: (habits: Habit[]) => React.ReactNode;
@@ -117,29 +123,31 @@ export const HabitGroup: React.FC<HabitGroupProps> = ({ children, completedHabit
     };
   };
 
-  const toggleSection = (timeOfDay: string) => {
-    setOpenSections(prev => 
-      prev.includes(timeOfDay)
-        ? prev.filter(section => section !== timeOfDay)
-        : [...prev, timeOfDay]
-    );
-  };
+  // toggleSection removed as Accordion handles it via onValueChange
 
   return (
-    <div className="w-full space-y-4">
+    <Accordion
+      type="multiple"
+      value={openSections}
+      onValueChange={setOpenSections}
+      className="w-full space-y-4"
+    >
       {Object.entries(groupedHabits).map(([timeOfDay, habits]) => {
         const config = TIMEOFDAY_CONFIG[timeOfDay as keyof typeof TIMEOFDAY_CONFIG];
         const Icon = config.icon;
-        const isOpen = openSections.includes(timeOfDay);
+        // isOpen variable removed
         const progress = getProgress(habits);
         const streak = calculateStreak(habits, completedHabits);
         const completionRate = progress.daily.completed / progress.daily.total;
         
         return (
-          <div key={timeOfDay} className="rounded-lg border border-gray-200">
-            <button
-              onClick={() => toggleSection(timeOfDay)}
-              className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
+          <AccordionItem
+            value={timeOfDay}
+            key={timeOfDay}
+            className="rounded-lg border border-gray-200 overflow-hidden"
+          >
+            <AccordionTrigger
+              className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring data-[state=closed]:rounded-b-lg data-[state=open]:border-b"
             >
               <div className="flex items-center gap-2">
                 <Icon className="w-4 h-4" />
@@ -159,46 +167,36 @@ export const HabitGroup: React.FC<HabitGroupProps> = ({ children, completedHabit
                   )}
                 </div>
               </div>
-              <ChevronDown 
-                className={`w-4 h-4 transition-transform ${
-                  isOpen ? 'transform rotate-180' : ''
-                }`}
-              />
-            </button>
-            
-            <div
-              className={`transition-all duration-200 ease-in-out overflow-hidden ${
-                isOpen ? 'px-6 py-4 max-h-[2000px]' : 'max-h-0 py-0'
-              }`}
-            >
-              {isOpen && (
-                <div className="space-y-6">
-                  {children(habits)}
+              {/* ChevronDown icon is automatically handled by AccordionTrigger */}
+            </AccordionTrigger>
+            <AccordionContent className="px-6 py-4">
+              {/* Removed conditional rendering based on isOpen */}
+              <div className="space-y-6">
+                {children(habits)}
+
+                <div className="pt-2 space-y-3 border-t border-gray-100">
+                  <Progress
+                    value={(progress.daily.completed / progress.daily.total) * 100}
+                    className="h-2"
+                  />
                   
-                  <div className="pt-2 space-y-3 border-t border-gray-100">
-                    <Progress 
-                      value={(progress.daily.completed / progress.daily.total) * 100} 
-                      className="h-2"
-                    />
-                    
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">
-                        {getMotivationalMessage(completionRate)}
-                      </span>
-                      {progress.daily.completed === progress.daily.total && (
-                        <div className="flex items-center gap-1 text-green-500">
-                          <Trophy className="w-4 h-4" />
-                          <span>¡Completado!</span>
-                        </div>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">
+                      {getMotivationalMessage(completionRate)}
+                    </span>
+                    {progress.daily.completed === progress.daily.total && (
+                      <div className="flex items-center gap-1 text-green-500">
+                        <Trophy className="w-4 h-4" />
+                        <span>¡Completado!</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
         );
       })}
-    </div>
+    </Accordion>
   );
 };
