@@ -27,6 +27,11 @@ const ExercisePage: React.FC = () => {
 
   return (
     <PageLayout>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Registro de Ejercicio</h1>
+        <p className="text-gray-500">Registra y monitorea tus actividades físicas diarias</p>
+      </div>
+
       <DateSelector
         selectedDate={selectedDate}
         onChange={setSelectedDate}

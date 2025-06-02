@@ -71,10 +71,22 @@ const TaskPage = () => {
       { name: 'Pendientes', value: totalPending }
     ]);
   };
+
+  if (!user) {
+    return (
+      <PageLayout>
+        <div className="text-center py-8">
+          <h2 className="text-xl font-semibold">Inicia sesión para ver tus tareas</h2>
+        </div>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout>
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Tareas</h1>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Gestor de Tareas</h1>
+        <p className="text-gray-500">Organiza y gestiona tus tareas pendientes y completadas</p>
       </div>
 
       <DateSelector 

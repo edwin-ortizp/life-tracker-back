@@ -38,7 +38,7 @@ const JournalPage = () => {
     if (user) {
       fetchStats();
     }
-  }, [user]);
+  }, [user, selectedDate]);
 
   const fetchStats = async () => {
     if (!user) return;
@@ -98,10 +98,22 @@ const JournalPage = () => {
       )
     });
   };
+
+  if (!user) {
+    return (
+      <PageLayout>
+        <div className="text-center py-8">
+          <h2 className="text-xl font-semibold">Inicia sesión para acceder a tu diario</h2>
+        </div>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout>
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Diario</h1>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Diario Personal</h1>
+        <p className="text-gray-500">Escribe y reflexiona sobre tus experiencias diarias</p>
       </div>
 
       <DateSelector 

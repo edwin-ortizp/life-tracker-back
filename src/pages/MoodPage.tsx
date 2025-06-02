@@ -17,11 +17,11 @@ const COLORS = ['#FF8042', '#00C49F', '#FFBB28', '#FF8042', '#0088FE', '#FF0000'
 const MoodPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [moodDistribution] = useState<any[]>([]);
-
   return (
     <PageLayout>
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Estado de Ánimo</h1>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Estado de Ánimo</h1>
+        <p className="text-gray-500">Registra y analiza tu estado emocional para mejorar tu bienestar</p>
       </div>
 
       <DateSelector 

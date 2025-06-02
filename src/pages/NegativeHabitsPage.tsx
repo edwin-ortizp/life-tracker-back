@@ -46,18 +46,12 @@ const NegativeHabitsPage = () => {
 
   return (
     <PageLayout>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-bold">Hábitos Negativos</h1>
-        <Button 
-          onClick={() => setIsModalOpen(true)}
-          className="gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Registrar hábito
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Hábitos Negativos</h1>
+        <p className="text-gray-500">Identifica y reduce comportamientos que quieres cambiar</p>
       </div>
 
-      <DateSelector
+      <DateSelector 
         selectedDate={selectedDate}
         onChange={setSelectedDate}
       />

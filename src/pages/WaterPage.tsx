@@ -39,6 +39,11 @@ const WaterPage: React.FC = () => {
 
   return (
     <PageLayout>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Control de Hidratación</h1>
+        <p className="text-gray-500">Registra y monitorea tu consumo diario de agua</p>
+      </div>
+
       <Tabs defaultValue="daily" className="w-full">
         <TabsList className="mb-6">
           <TabsTrigger value="daily">Registro Diario</TabsTrigger>

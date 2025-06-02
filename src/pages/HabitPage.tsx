@@ -13,59 +13,64 @@ const HabitPage = () => {
 
   return (
     <PageLayout>
-          <DateSelector 
-            selectedDate={selectedDate}
-            onChange={setSelectedDate}
-          />
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Seguimiento de Hábitos</h1>
+        <p className="text-gray-500">Registra y analiza tus hábitos diarios para mejorar tu estilo de vida</p>
+      </div>
+
+      <DateSelector 
+        selectedDate={selectedDate}
+        onChange={setSelectedDate}
+      />
         
-          <Tabs defaultValue="tracker">
-            <TabsList>
-              <TabsTrigger value="tracker">Registro Diario</TabsTrigger>
-              <TabsTrigger value="analytics">Análisis</TabsTrigger>
-            </TabsList>
+      <Tabs defaultValue="tracker">
+        <TabsList>
+          <TabsTrigger value="tracker">Registro Diario</TabsTrigger>
+          <TabsTrigger value="analytics">Análisis</TabsTrigger>
+        </TabsList>
 
-            <TabsContent value="tracker" >
-              <div className="grid grid-cols-1">
-                <Habit selectedDate={selectedDate} />
-              </div>
-            </TabsContent>
+        <TabsContent value="tracker" >
+          <div className="grid grid-cols-1">
+            <Habit selectedDate={selectedDate} />
+          </div>
+        </TabsContent>
 
-            <TabsContent value="analytics" className="flex-1 overflow-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardContent className="p-4">
-                    <h3 className="font-medium mb-4">Tendencias de Hábitos</h3>
-                    <div className="h-64 md:h-80">
-                      <ResponsiveContainer>
-                        <LineChart data={habitStats}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          {HABITS.map(habit => (
-                            <Line
-                              key={habit.id}
-                              type="monotone"
-                              dataKey={habit.name}
-                              name={`${habit.icon} ${habit.name}`}
-                              stroke={`var(--${habit.name.toLowerCase()}-color)`}
-                            />
-                          ))}
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
+        <TabsContent value="analytics" className="flex-1 overflow-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-medium mb-4">Tendencias de Hábitos</h3>
+                <div className="h-64 md:h-80">
+                  <ResponsiveContainer>
+                    <LineChart data={habitStats}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      {HABITS.map(habit => (
+                        <Line
+                          key={habit.id}
+                          type="monotone"
+                          dataKey={habit.name}
+                          name={`${habit.icon} ${habit.name}`}
+                          stroke={`var(--${habit.name.toLowerCase()}-color)`}
+                        />
+                      ))}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
 
-                <Card>
-                  <CardContent className="p-4">
-                    <h3 className="font-medium mb-4">Resumen del Mes</h3>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          </Tabs>
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-medium mb-4">Resumen del Mes</h3>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </PageLayout>
   );
 };
