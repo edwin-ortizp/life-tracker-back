@@ -35,7 +35,7 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
     importMealPlan
   } = useMealPlan();
 
-  const handleImportTrigger = (newMealPlan: MealPlan) => {
+  const handleImportTrigger = async (newMealPlan: MealPlan): Promise<void> => {
     setPendingMealPlan(newMealPlan);
     setShowImportConfirm(true);
   };

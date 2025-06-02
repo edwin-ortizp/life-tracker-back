@@ -16,7 +16,7 @@ import { TaskDateInput } from './TaskDateInput';
 import { TaskCategorySelect } from './TaskCategorySelect';
 import { TaskRecurrenceConfig } from './TaskRecurrenceConfig';
 import { useRecurrenceLogic } from '../hooks/useRecurrenceLogic';
-import type { TaskCategory, RecurrenceModalProps, TaskFormData } from '../types';
+import type { RecurrenceModalProps, TaskFormData } from '../types';
 
 export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
   isOpen,

@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
   TooltipProvider
 } from "@/components/ui/tooltip";
-import { NegativeHabit, NegativeHabitLog, CATEGORY_COLORS } from '../../types';
+import { NegativeHabit, NegativeHabitLog } from '../../types';
 import { getMonths } from '../../utils/dates';
 // import { cn } from "@/lib/utils"; // cn will be removed
 import { Button } from '@/components/ui/button';
