@@ -164,24 +164,23 @@ export const RangeStats: React.FC<RangeStatsProps> = ({ startDate, endDate }) =>
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Top Bebidas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
+        </CardHeader>        <CardContent>
+          <div className="grid grid-cols-1 gap-3"> {/* Changed to single column for better text display */}
             {stats.drinkStats.slice(0, 6).map(drink => {
               const drinkInfo = DRINKS[drink.type];
               const Icon = Icons[drinkInfo.icon as keyof typeof Icons] as React.ElementType;
               return (
                 <div 
                   key={drink.type}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-muted" // Changed bg-gray-50
+                  className="flex items-center gap-3 p-3 rounded-lg bg-muted hover:bg-accent transition-colors" // Added hover and transition
                 >
-                  <Icon className={`w-8 h-8 ${drinkInfo.color}`} />
-                  <div className="flex-1">
-                    <div className="font-medium">{drinkInfo.name}</div>
-                    <div className="text-sm text-gray-500">
+                  <Icon className={`w-8 h-8 ${drinkInfo.color} flex-shrink-0`} />
+                  <div className="flex-1 min-w-0"> {/* Added min-w-0 for proper text handling */}
+                    <div className="font-medium text-base">{drinkInfo.name}</div> {/* Increased text size */}
+                    <div className="text-sm text-muted-foreground"> {/* Changed color */}
                       {Math.round(drink.totalAmount)}ml
                     </div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-muted-foreground"> {/* Changed color */}
                       {drink.count} veces ({Math.round(drink.percentage)}%)
                     </div>
                   </div>

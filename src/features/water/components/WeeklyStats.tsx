@@ -118,22 +118,21 @@ export const WeeklyStats: React.FC<WeeklyStatsProps> = ({ selectedDate }) => {
         <CardHeader>
           <CardTitle>Bebidas Más Consumidas</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {stats.commonDrinks.slice(0, 8).map(drink => {
+        <CardContent>          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4"> {/* Reduced columns */}
+            {stats.commonDrinks.slice(0, 6).map(drink => { {/* Reduced items to prevent overcrowding */}
               const drinkInfo = DRINKS[drink.type];
               const Icon = Icons[drinkInfo.icon as keyof typeof Icons] as React.ElementType;
               return (
                 <div 
                   key={drink.type}
-                  className="flex flex-col items-center p-4 rounded-lg bg-muted" // Changed bg-gray-50
+                  className="flex flex-col items-center p-4 rounded-lg bg-muted text-center" // Added text-center
                 >
-                  <Icon className={`w-6 h-6 ${drinkInfo.color} mb-2`} />
-                  <span className="font-medium text-sm">{drinkInfo.name}</span>
-                  <span className="text-sm text-gray-500 mt-1">
+                  <Icon className={`w-6 h-6 ${drinkInfo.color} mb-2 flex-shrink-0`} />
+                  <span className="font-medium text-sm leading-tight">{drinkInfo.name}</span> {/* Better text handling */}
+                  <span className="text-sm text-muted-foreground mt-1"> {/* Changed color */}
                     {drink.totalAmount}ml
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-muted-foreground"> {/* Changed color */}
                     {drink.count} veces
                   </span>
                 </div>

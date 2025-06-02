@@ -101,10 +101,9 @@ export const DRINKS = {
     color: 'text-yellow-500',
     amounts: [100, 250, 500],
     category: 'caffeine'
-  },
-  juice: {
+  },  juice: {
     name: 'Jugo',
-    icon: 'Glasses',
+    icon: 'Cherry',
     hydrationFactor: 0.85,
     color: 'text-orange-500',
     amounts: [100, 200, 300],
@@ -117,18 +116,16 @@ export const DRINKS = {
     color: 'text-green-500',
     amounts: [250, 500, 750],
     category: 'hydration'
-  },
-  soup: {
+  },  soup: {
     name: 'Sopa',
     icon: 'Soup',
     hydrationFactor: 0.6,
     color: 'text-orange-500',
     amounts: [200, 400, 600],
     category: 'other'
-  },
-  soda: {
+  },  soda: {
     name: 'Gaseosa',
-    icon: 'Beer',
+    icon: 'CircleDot',
     hydrationFactor: 0.6,
     color: 'text-purple-500',
     amounts: [200, 350, 500],
@@ -141,8 +138,7 @@ export const DRINKS = {
     color: 'text-yellow-600',
     amounts: [330, 500, 750],
     category: 'alcohol'
-  },
-  aguardiente: {
+  },  aguardiente: {
     name: 'Aguardiente',
     icon: 'Beer',
     hydrationFactor: 0.2,
@@ -157,5 +153,34 @@ export const DRINKS = {
     color: 'text-red-600',
     amounts: [150, 250, 750],
     category: 'alcohol'
+  },  aromatica: {
+    name: 'Aromática',
+    icon: 'Coffee',
+    hydrationFactor: 0.95,
+    color: 'text-green-600',
+    amounts: [100, 200, 300],
+    category: 'other'
+  },iceCream: {
+    name: 'Helado',
+    icon: 'Cookie',
+    hydrationFactor: 0.4,
+    color: 'text-cyan-400',
+    amounts: [50, 100, 150],
+    category: 'other'
+  },  granizado: {
+    name: 'Granizado',
+    icon: 'Cookie',
+    hydrationFactor: 0.8,
+    color: 'text-blue-300',
+    amounts: [150, 250, 350],
+    category: 'hydration'
+  },
+  tea: {
+    name: 'Té',
+    icon: 'Coffee',
+    hydrationFactor: 0.9,
+    color: 'text-green-500',
+    amounts: [100, 200, 300],
+    category: 'caffeine'
   }
 } as const;

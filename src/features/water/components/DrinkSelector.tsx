@@ -20,14 +20,14 @@ const QUICK_ACCESS_DRINKS: Array<keyof typeof DRINKS> = [
   'flavoredWater',
   // Bebidas calientes y lácteos
   'coffee',
+  'tea',
+  'aromatica',
   'milk',
-  'yogurt',
   // Bebidas nutritivas
   'juice',
   'sportsdrink',
   // Otras bebidas comunes
   'soda',
-  'soup',
   'energyDrink'
 ];
 
@@ -46,20 +46,19 @@ export const DrinkSelector: React.FC<DrinkSelectorProps> = ({
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4"> {/* Reduced columns and increased gap */}
         {QUICK_ACCESS_DRINKS.map((key) => {
           const drink = DRINKS[key];
           const Icon = Icons[drink.icon as keyof typeof Icons] as React.ElementType;
-          return (
-            <div key={key} className="relative">
+          return (            <div key={key} className="relative">
               <Button
                 variant="outline"
-                className="w-full h-16 sm:h-12 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-1 sm:p-2"
+                className="w-full h-18 sm:h-14 flex flex-col items-center justify-center gap-1 p-2 text-center" // Improved layout
                 onClick={() => onDrinkSelect(selectedDrink === key ? null : key)}
                 disabled={disabled}
               >
-                <Icon className={`w-4 h-4 ${drink.color}`} />
-                <span className="text-xs sm:text-sm">{drink.name}</span>
+                <Icon className={`w-5 h-5 ${drink.color} flex-shrink-0`} />
+                <span className="text-xs leading-tight break-words">{drink.name}</span> {/* Better text handling */}
               </Button>
               {selectedDrink === key && (
                 <div className="absolute top-full left-0 w-full z-10 bg-card shadow-lg rounded-md mt-1 p-1"> {/* Changed bg-white to bg-card */}
@@ -77,17 +76,15 @@ export const DrinkSelector: React.FC<DrinkSelectorProps> = ({
               )}
             </div>
           );
-        })}
-
-        {/* Botón para abrir el modal con todas las bebidas */}
+        })}        {/* Botón para abrir el modal con todas las bebidas */}
         <Button
           variant="outline"
-          className="w-full h-16 sm:h-12 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2"
+          className="w-full h-18 sm:h-14 flex flex-col items-center justify-center gap-1 p-2"
           onClick={() => setShowModal(true)}
           disabled={disabled}
         >
-          <Plus className="w-4 h-4" />
-          <span className="text-xs sm:text-sm">Más bebidas</span>
+          <Plus className="w-5 h-5" />
+          <span className="text-xs leading-tight">Más bebidas</span>
         </Button>
       </div>
 

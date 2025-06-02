@@ -79,21 +79,19 @@ export const DrinkSelectorModal: React.FC<DrinkSelectorModalProps> = ({
                 </SelectItem>
               ))}
             </SelectContent>
-          </Select>
-
-          <ScrollArea className="flex-1">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 min-h-[300px] p-1">
+          </Select>          <ScrollArea className="flex-1">
+            <div className="grid grid-cols-2 gap-3 min-h-[300px] p-1"> {/* Reduced to 2 columns and increased gap */}
               {drinksByCategory[selectedCategory]?.map(drink => {
                 const Icon = Icons[drink.icon as keyof typeof Icons] as React.ElementType;
                 return (
                   <div key={drink.key} className="relative">
                     <Button
                       variant={selectedDrink === drink.key ? "default" : "outline"}
-                      className="w-full h-16 sm:h-12 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-1 sm:p-2"
+                      className="w-full h-18 flex flex-col items-center justify-center gap-2 p-3 text-center" // Improved layout
                       onClick={() => handleDrinkSelect(drink.key)}
                     >
-                      <Icon className={`w-4 h-4 ${drink.color}`} />
-                      <span className="text-xs sm:text-sm text-center">{drink.name}</span>
+                      <Icon className={`w-5 h-5 ${drink.color} flex-shrink-0`} />
+                      <span className="text-xs leading-tight break-words">{drink.name}</span> {/* Better text handling */}
                     </Button>
                     {selectedDrink === drink.key && (
                       <div className="absolute top-full left-0 w-full z-10 bg-card shadow-lg rounded-md mt-1 p-1"> {/* Changed bg-white to bg-card */}

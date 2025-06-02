@@ -55,32 +55,35 @@ export const DrinkHistory: React.FC<DrinkHistoryProps> = ({
           {drinks.map((drink, index) => {
             const drinkInfo = DRINKS[drink.type];
             const Icon = Icons[drinkInfo.icon as keyof typeof Icons] as React.ElementType;
-            return (
-              <div 
+            return (              <div 
                 key={drink.timestamp}
-                className="flex items-center gap-2 p-2 bg-muted rounded-lg hover:bg-accent group" // Changed styles
+                className="flex items-center gap-3 p-3 bg-muted rounded-lg hover:bg-accent group transition-colors" // Increased padding and gap
               >
-                <Icon className={`w-4 h-4 ${drinkInfo.color}`} />
-                <span className="font-medium truncate flex-shrink min-w-0">{drinkInfo.name}</span> {/* Added truncate classes */}
-                <span className="text-muted-foreground">{drink.amount}ml</span> {/* Changed text-gray-500 */}
-                <span className="text-xs text-muted-foreground ml-auto">{drink.time}</span> {/* Changed text-gray-400 */}
+                <Icon className={`w-5 h-5 ${drinkInfo.color} flex-shrink-0`} />
+                <div className="flex-1 min-w-0"> {/* Container for text content */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium text-sm">{drinkInfo.name}</span> {/* Removed truncate */}
+                    <span className="text-muted-foreground text-sm font-medium">{drink.amount}ml</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{drink.time}</span>
+                </div>
                 {isCurrentDate && (
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6"
+                      className="h-7 w-7"
                       onClick={() => handleEdit(index, drink)}
                     >
-                      <Edit2 className="h-4 w-4" /> {/* Changed size */}
+                      <Edit2 className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6"
+                      className="h-7 w-7"
                       onClick={() => onDeleteDrink(index)}
                     >
-                      <Trash2 className="h-4 w-4" /> {/* Changed size */}
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 )}

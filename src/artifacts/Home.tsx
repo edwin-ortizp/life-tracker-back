@@ -30,29 +30,27 @@ const DailyTrackerApp = () => {
         onChange={setSelectedDate} 
       />
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Sección principal */}
+      <div className="grid grid-cols-12 gap-6">        {/* Sección principal */}
         <div className="col-span-12 lg:col-span-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ModernCard variant="elevated" className="overflow-hidden bg-card">
+            <ModernCard variant="elevated" className="bg-card">
               <Pomodoro selectedDate={selectedDate} />
             </ModernCard>
-            <ModernCard variant="elevated" className="overflow-hidden bg-card">
+            <ModernCard variant="elevated" className="bg-card">
               <Water selectedDate={selectedDate} />
             </ModernCard>
           </div>
         </div>
-        
-        {/* Sidebar */}
+          {/* Sidebar */}
         <div className="col-span-12 lg:col-span-4 space-y-6">
-          <ModernCard variant="glass" className="overflow-hidden">
+          <ModernCard variant="glass">
             <Mood selectedDate={selectedDate} />
           </ModernCard>
         </div>
         
         {/* Journal section */}
         <div className="col-span-12 space-y-8">
-          <ModernCard variant="elevated" className="overflow-hidden bg-card">
+          <ModernCard variant="elevated" className="bg-card">
             <Journal selectedDate={selectedDate} />
           </ModernCard>
         </div>
@@ -60,10 +58,10 @@ const DailyTrackerApp = () => {
         {/* Bottom section */}
         <div className="col-span-12 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ModernCard variant="elevated" className="overflow-hidden bg-card">
+            <ModernCard variant="elevated" className="bg-card">
               <Habit selectedDate={selectedDate} />
             </ModernCard>
-            <ModernCard variant="elevated" className="overflow-hidden bg-card">
+            <ModernCard variant="elevated" className="bg-card">
               <Task selectedDate={selectedDate} />
             </ModernCard>
           </div>
