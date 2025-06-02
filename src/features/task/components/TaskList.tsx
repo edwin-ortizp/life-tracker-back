@@ -3,7 +3,6 @@ import { Task, TaskCategory, TASK_CATEGORIES, CATEGORY_LABELS } from '../types';
 import { TaskGroup } from './TaskGroup';
 import { 
   isBefore, 
-  isAfter, 
   startOfDay, 
   endOfDay, 
   endOfWeek,

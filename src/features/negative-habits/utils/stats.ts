@@ -14,7 +14,7 @@ export const getMonthStats = (habits: { [key: string]: NegativeHabitLog }): Mont
     byDate: {} as Record<string, number>,
   };
 
-  Object.entries(habits).forEach(([key, log]) => {
+  Object.entries(habits).forEach(([key]) => {
     const [habitId, date] = key.split('_');
     const numericHabitId = parseInt(habitId);
 

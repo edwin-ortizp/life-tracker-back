@@ -122,7 +122,6 @@ export const useWaterStatsRange = (startDate: Date, endDate: Date) => {
         // Promedios mensuales si el rango es mayor a un mes
         let monthlyAverages;
         if (endDate.getTime() - startDate.getTime() > 30 * 24 * 60 * 60 * 1000) {
-          const byMonth = groupBy(dailyData, day => day.date);
           monthlyAverages = Object.entries(groupBy(dailyData, day => day.date.substring(0, 7)))
             .map(([month, days]) => ({
               // Usamos el primer día del mes para tener una fecha válida

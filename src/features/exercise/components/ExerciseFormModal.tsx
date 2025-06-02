@@ -1,6 +1,6 @@
 // src/features/exercise/components/ExerciseFormModal.tsx
 import React, { useEffect } from 'react';
-import { X, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ExerciseLog, EXERCISES, EXERCISE_CATEGORIES } from '../types';
-import { getLocalDateString } from '@/utils/dates';
 import {
   Tabs,
   TabsContent,
@@ -33,8 +32,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  initialData,
-  selectedDate
+  initialData
 }) => {
   const [selectedExercise, setSelectedExercise] = React.useState(
     initialData ? EXERCISES.find(e => e.id === initialData.exerciseId) : null
@@ -148,7 +146,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
                   </TabsTrigger>
                 ))}
               </TabsList>
-              {Object.entries(EXERCISE_CATEGORIES).map(([category, info]) => (
+              {Object.entries(EXERCISE_CATEGORIES).map(([category]) => (
                 <TabsContent key={category} value={category} className="mt-4">
                   <div className="grid grid-cols-2 gap-3">
                     {EXERCISES.filter(e => e.category === category).map((exercise) => (

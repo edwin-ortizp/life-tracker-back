@@ -1,6 +1,5 @@
 // src/features/water/components/StatsPeriodSelector.tsx
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
