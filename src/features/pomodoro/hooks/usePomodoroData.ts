@@ -57,10 +57,10 @@ export const usePomodoroData = (selectedDate?: Date) => {
 
   const addManualSession = async (options: SaveSessionOptions = {}) => {
     if (!user || !data) return;
-  
+
     setStatus('saving');
     setError(null);
-  
+
     try {
       const baseDate = selectedDate || new Date();
       const now = new Date();
@@ -100,16 +100,17 @@ export const usePomodoroData = (selectedDate?: Date) => {
       const updatedSessions = [...data.sessions, newSession].sort((a, b) => 
         b.startTime.timestamp - a.startTime.timestamp
       );
-  
-      const updatedData: PomodoroData = {
-        ...data,
+
+      const { activePomodoro, ...restOfData } = data;
+      const dataToWrite = {
+        ...restOfData,
         count: updatedSessions.filter(s => s.completed).length,
         sessions: updatedSessions,
         updatedAt: serverTimestamp()
       };
-  
+
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
-      await setDoc(docRef, updatedData);
+      await setDoc(docRef, dataToWrite);
       setStatus('saved');
     } catch (error) {
       console.error('Pomodoro - Error al agregar sesión manual:', error);
@@ -163,15 +164,16 @@ export const usePomodoroData = (selectedDate?: Date) => {
       const updatedSessions = [...data.sessions, newSession];
       const completedCount = updatedSessions.filter(s => s.completed).length;
 
-      const updatedData: PomodoroData = {
-        ...data,
+      const { activePomodoro, ...restOfData } = data;
+      const dataToWrite = {
+        ...restOfData,
         count: completedCount,
         sessions: updatedSessions,
         updatedAt: serverTimestamp()
       };
 
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
-      await setDoc(docRef, updatedData);
+      await setDoc(docRef, dataToWrite);
       setStatus('saved');
     } catch (error) {
       console.error('Pomodoro - Error al guardar:', error);
@@ -191,15 +193,16 @@ export const usePomodoroData = (selectedDate?: Date) => {
         session => session.startTime.timestamp !== sessionToDelete.startTime.timestamp
       );
 
-      const updatedData = {
-        ...data,
+      const { activePomodoro, ...restOfData } = data;
+      const dataToWrite = {
+        ...restOfData,
         count: updatedSessions.filter(s => s.completed).length,
         sessions: updatedSessions,
         updatedAt: serverTimestamp()
       };
 
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
-      await setDoc(docRef, updatedData);
+      await setDoc(docRef, dataToWrite);
       setStatus('saved');
     } catch (error) {
       console.error('Pomodoro - Error al eliminar sesión:', error);

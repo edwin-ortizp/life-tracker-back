@@ -34,10 +34,10 @@ const DailyTrackerApp = () => {
         {/* Sección principal */}
         <div className="col-span-12 lg:col-span-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ModernCard variant="elevated" className="overflow-hidden">
+            <ModernCard variant="elevated" className="overflow-hidden bg-card">
               <Pomodoro selectedDate={selectedDate} />
             </ModernCard>
-            <ModernCard variant="elevated" className="overflow-hidden">
+            <ModernCard variant="elevated" className="overflow-hidden bg-card">
               <Water selectedDate={selectedDate} />
             </ModernCard>
           </div>
@@ -52,7 +52,7 @@ const DailyTrackerApp = () => {
         
         {/* Journal section */}
         <div className="col-span-12 space-y-8">
-          <ModernCard variant="elevated" className="overflow-hidden">
+          <ModernCard variant="elevated" className="overflow-hidden bg-card">
             <Journal selectedDate={selectedDate} />
           </ModernCard>
         </div>
@@ -60,10 +60,10 @@ const DailyTrackerApp = () => {
         {/* Bottom section */}
         <div className="col-span-12 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ModernCard variant="elevated" className="overflow-hidden">
+            <ModernCard variant="elevated" className="overflow-hidden bg-card">
               <Habit selectedDate={selectedDate} />
             </ModernCard>
-            <ModernCard variant="elevated" className="overflow-hidden">
+            <ModernCard variant="elevated" className="overflow-hidden bg-card">
               <Task selectedDate={selectedDate} />
             </ModernCard>
           </div>

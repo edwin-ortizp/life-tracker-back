@@ -67,8 +67,11 @@ export const usePomodoroTimer = ({
       return;
     }
 
+    const startTimestampMs = activePomodoro.startTime.timestamp;
+
     const updateTimer = () => {
-      const remaining = calculateRemaining(activePomodoro.startTime.timestamp);
+      const elapsedSeconds = (Date.now() - startTimestampMs) / 1000;
+      const remaining = Math.max(0, POMODORO_DURATION - elapsedSeconds);
       
       if (remaining <= 0) {
         cleanupTimer();
@@ -86,7 +89,7 @@ export const usePomodoroTimer = ({
     animationFrameRef.current = requestAnimationFrame(updateTimer);
 
     return cleanupTimer;
-  }, [isActive, activePomodoro, isStopping, calculateRemaining, cleanupTimer, resetState, onComplete]);
+  }, [isActive, activePomodoro, isStopping, cleanupTimer, resetState, onComplete, calculateRemaining]);
 
   // Efecto para la sincronización con Firebase
   useEffect(() => {
@@ -140,17 +143,22 @@ export const usePomodoroTimer = ({
     if (!user || isActive) return;
 
     const now = new Date();
-    const timestamp = createFormattedTimestamp(
+    const timestampDetails = createFormattedTimestamp(
       selectedDate || now,
       now.getHours(),
       now.getMinutes()
     );
 
     const newPomodoro: ActivePomodoro = {
-      startTime: timestamp,
+      startTime: timestampDetails,
       duration: POMODORO_DURATION,
       deviceId: DEVICE_ID
     };
+
+    setActivePomodoro(newPomodoro);
+    setTime(POMODORO_DURATION);
+    setIsActive(true);
+    setIsStopping(false);
 
     try {
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
@@ -159,8 +167,6 @@ export const usePomodoroTimer = ({
         updatedAt: serverTimestamp()
       }, { merge: true });
       
-      setIsActive(true);
-      setIsStopping(false);
     } catch (error) {
       console.error('Error starting timer:', error);
       resetState();

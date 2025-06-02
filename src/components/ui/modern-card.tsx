@@ -9,7 +9,7 @@ const ModernCard = React.forwardRef<
 >(({ className, variant = "default", ...props }, ref) => {
   const variantClasses = {
     default: "bg-card text-card-foreground border shadow-sm",
-    glass: "glass-card text-card-foreground",
+    glass: "glass-card text-card-foreground", // Assuming glass-card provides its own background
     gradient: "gradient-bg-primary text-white border-0 shadow-lg",
     elevated: "bg-card text-card-foreground border-0 shadow-lg hover:shadow-xl transition-shadow duration-300"
   }
@@ -18,7 +18,7 @@ const ModernCard = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "rounded-xl transition-all duration-300 hover:scale-[1.02]",
+        "rounded-xl transition-all duration-300", // Removed hover:scale-[1.02]
         variantClasses[variant],
         className
       )}

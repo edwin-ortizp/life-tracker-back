@@ -47,16 +47,20 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
                 return (
                   <Button
                     key={`${habit.id}_${day.fullDate}`}
-                    variant="ghost"
+                    variant={isCompleted ? "default" : "outline"} // Changed from "ghost"
                     className={`h-10 w-10 p-0 aspect-square rounded-lg flex items-center justify-center transition-colors mx-auto my-1
-                      ${isCompleted ? HABIT_COLORS[habit.id] : ''
+                      ${isCompleted ? HABIT_COLORS[habit.id] : 'border-gray-300' // Ensure outline has a visible border
                       }`}
                     onClick={() => onToggle(habit.id, day.fullDate)}
                     disabled={disabled}
                   >
-                    {isCompleted &&
+                    {isCompleted ? (
                       <CheckCircle className="w-5 h-5 text-white" />
-                    }
+                    ) : (
+                      // Optionally, add a placeholder icon for non-completed state if desired
+                      // <Circle className="w-5 h-5 text-gray-400" /> 
+                      null
+                    )}
                   </Button>
                 );
               })}
