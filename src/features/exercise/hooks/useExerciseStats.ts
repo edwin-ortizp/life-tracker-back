@@ -55,7 +55,8 @@ export const useExerciseStats = (timeRange: 'week' | 'month' | 'year') => {
         const logs: ExerciseLog[] = [];
         
         querySnapshot.forEach((doc) => {
-          logs.push({ id: doc.id, ...doc.data() } as ExerciseLog);
+          const data = doc.data();
+          logs.push({ id: doc.id, ...data, exerciseId: data.exerciseId } as ExerciseLog);
         });
 
         setStatsLogs(logs);

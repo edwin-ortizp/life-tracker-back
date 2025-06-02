@@ -20,7 +20,6 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
-import { MOODS } from '@/features/mood/types';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c'];
 

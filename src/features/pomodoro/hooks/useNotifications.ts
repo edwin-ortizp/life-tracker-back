@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { NotificationPreferences } from '../types';
 
 export const useNotifications = () => {
-  const [permission, setPermission] = useState<NotificationState>('default');
+  const [permission, setPermission] = useState<NotificationPermission>('default');
   const [preferences, setPreferences] = useState<NotificationPreferences>({
     enabled: false,
     sound: true,
@@ -37,7 +37,7 @@ export const useNotifications = () => {
       const notification = new Notification(title, {
         icon: '/icon-192x192.png', // Asegúrate de tener este ícono
         silent: !preferences.sound,
-        vibrate: preferences.vibration ? [200, 100, 200] : undefined,
+        // 'vibrate' is not a valid property for NotificationOptions in browsers
         ...options
       });
 

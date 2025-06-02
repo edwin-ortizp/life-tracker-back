@@ -1,8 +1,6 @@
 // src/pages/NegativeHabitsPage.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNegativeHabitData } from '../features/negative-habits/hooks/useNegativeHabitData';
 import { NegativeHabitToggle } from '../features/negative-habits/components/NegativeHabitToggle';
@@ -22,7 +20,6 @@ const NegativeHabitsPage = () => {
     habits,
     status,
     error,
-    stats,
     logHabit,
     removeLog
   } = useNegativeHabitData();

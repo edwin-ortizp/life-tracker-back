@@ -9,12 +9,7 @@ import { NEGATIVE_HABITS, NEGATIVE_HABIT_CATEGORIES, NegativeHabit } from '../..
 import { getWeekDays } from '../../utils/dates';
 import { Search, ChevronDown, ChevronRight } from 'lucide-react';
 
-interface CategoryGroup {
-  category: string;
-  habits: NegativeHabit[];
-  expanded: boolean;
-}
-
+// Componente principal para la vista semanal de hábitos negativos
 export const WeeklyView: React.FC<WeeklyViewProps> = ({
   habits,
   onLogHabit,
@@ -107,7 +102,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
               {Object.entries(habitGroups).map(([category, categoryHabits]) => {
                 if (categoryHabits.length === 0) return null;
                 const isExpanded = expandedCategories.includes(category);
-                const categoryInfo = NEGATIVE_HABIT_CATEGORIES[category];
+                const categoryInfo = NEGATIVE_HABIT_CATEGORIES[category as keyof typeof NEGATIVE_HABIT_CATEGORIES];
 
                 return (
                   <div key={category} className="space-y-2">

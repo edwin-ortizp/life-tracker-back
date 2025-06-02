@@ -1,7 +1,5 @@
 // src/features/negative-habits/types/index.ts
 
-import { az } from "date-fns/locale";
-
 // Interfaces base
 export interface NegativeHabitLog {
     habitId: number;

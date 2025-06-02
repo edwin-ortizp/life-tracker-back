@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
   TooltipProvider
 } from "@/components/ui/tooltip";
-import { NegativeHabit, NegativeHabitLog, CATEGORY_COLORS } from '../../types';
+import { NegativeHabit, NegativeHabitLog } from '../../types';
 
 interface WeekDay {
   dayName: string;

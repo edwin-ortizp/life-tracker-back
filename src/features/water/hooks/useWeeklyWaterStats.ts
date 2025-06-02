@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
-import { collection, doc, getDocs, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { getLocalDateString } from '@/utils/dates';
 import { DRINKS } from '../types';
 import { sumBy, groupBy } from 'lodash';

@@ -43,8 +43,6 @@ export const useNegativeHabitData = () => {
 
   // Calcular estadísticas del mes actual
   const stats = useMemo(() => {
-    const currentYearMonth = getYearMonth(new Date());
-    const currentMonthHabits = monthlyHabitsMap[currentYearMonth] || {};
     
     return {
       ...getMonthStats(habits),

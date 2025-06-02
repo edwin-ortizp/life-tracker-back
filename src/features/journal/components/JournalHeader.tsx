@@ -1,5 +1,5 @@
 import React from 'react';
-import { Book, Lock, Unlock } from 'lucide-react';
+import { Book, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface JournalHeaderProps {
@@ -10,8 +10,7 @@ interface JournalHeaderProps {
 
 export const JournalHeader: React.FC<JournalHeaderProps> = ({ 
   status, 
-  onLock,
-  isUnlocked 
+  onLock
 }) => {
   return (
     <div className="flex items-center justify-between gap-2 mb-4">

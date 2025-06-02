@@ -38,26 +38,6 @@ export const Task: React.FC<TaskProps> = ({ }) => {
     );
   }
 
-  const getDefaultNextDate = () => {
-    if (!currentTask?.recurrence) return new Date();
-    
-    const nextDate = new Date();
-    switch (currentTask.recurrence.pattern) {
-      case 'daily':
-        nextDate.setDate(nextDate.getDate() + 1);
-        break;
-      case 'weekly':
-        nextDate.setDate(nextDate.getDate() + 7);
-        break;
-      case 'monthly':
-        nextDate.setMonth(nextDate.getMonth() + 1);
-        break;
-      case 'custom':
-        nextDate.setDate(nextDate.getDate() + (currentTask.recurrence.customDays || 1));
-        break;
-    }
-    return nextDate;
-  };
 
   return (
     <div className="space-y-8">

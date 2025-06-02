@@ -36,15 +36,8 @@ export const useTaskData = () => {
     setModalMode('create');
   }, []);
 
-  // Reemplazar setShowRecurrenceModal con una función personalizada
-  const setShowRecurrenceModalWithReset = useCallback((show: boolean) => {
-    if (!show) {
-      handleCloseModal();
-    } else {
-      setShowRecurrenceModal(true);
-    }
-  }, [handleCloseModal]);
-
+  // Cargar las tareas del usuario
+  // y sus actualizaciones en tiempo real
   useEffect(() => {
     if (!user) return;
 
