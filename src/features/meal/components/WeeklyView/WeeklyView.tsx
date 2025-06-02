@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MEAL_TYPES } from '../../types';
 import { useToast } from '@/components/ui/use-toast';
-import { getWeekDays, getNextWeek, getPreviousWeek } from '../../utils/dateUtils';
+import { getWeekDays } from '../../utils/dateUtils';
 import { WeeklyViewProps, MealModalState, MealFormData } from './types';
-import WeekNavigation from './WeekNavigation';
+import DateSelector from '@/components/DateSelector';
 import MobileDay from './MobileDay';
 import DesktopDay from './DesktopDay';
 import MealModal from './MealModal';
@@ -27,18 +27,10 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
     notes: '',
     recipe: ''
   });
-
   const weekDays = getWeekDays(currentDate);
 
-  const handleNavigateWeek = (direction: 'next' | 'prev') => {
-    const newDate = direction === 'next' 
-      ? getNextWeek(currentDate)
-      : getPreviousWeek(currentDate);
+  const handleDateChange = (newDate: Date) => {
     setCurrentDate(newDate);
-  };
-
-  const goToToday = () => {
-    setCurrentDate(new Date());
   };
 
   const openModal = (date: string, type: MealFormData['type'], meal?: MealModalState['meal']) => {
@@ -94,13 +86,11 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
       toast({ title: "Error al Eliminar", description: "No se pudo eliminar la comida.", variant: "destructive" });
     }
   };
-
   return (
     <div className="w-full h-full flex flex-col">
-      <WeekNavigation
-        currentDate={currentDate}
-        onNavigateWeek={handleNavigateWeek}
-        onGoToToday={goToToday}
+      <DateSelector
+        selectedDate={currentDate}
+        onChange={handleDateChange}
       />
 
       {/* Vista móvil */}

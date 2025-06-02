@@ -1,10 +1,11 @@
 import { MealPlanner } from '@/features/meal/components';
+import PageLayout from '@/components/PageLayout';
 
 const MealPage = () => {
   return (
-    <div className="mx-auto space-y-6">
+    <PageLayout>
       <MealPlanner />
-    </div>
+    </PageLayout>
   );
 };
 

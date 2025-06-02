@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mood } from '@/features/mood/components';
 import DateSelector from '@/components/DateSelector';
+import PageLayout from '@/components/PageLayout';
 import {
   Tooltip,
   ResponsiveContainer,
@@ -18,7 +19,7 @@ const MoodPage = () => {
   const [moodDistribution] = useState<any[]>([]);
 
   return (
-    <div className="space-y-6">
+    <PageLayout>
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Estado de Ánimo</h1>
       </div>
@@ -110,10 +111,9 @@ const MoodPage = () => {
               <h3 className="font-medium mb-4">Configuración de Estados de Ánimo</h3>
               {/* Aquí irían las configuraciones */}
             </CardContent>
-          </Card>
-        </TabsContent>
+          </Card>        </TabsContent>
       </Tabs>
-    </div>
+    </PageLayout>
   );
 };
 

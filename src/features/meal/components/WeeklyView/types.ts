@@ -46,14 +46,7 @@ export interface MealCellProps {
   date: string;
   type: Meal['type'];
   meal?: Meal;
-  disabled?: boolean;
-  onOpenModal: (date: string, type: Meal['type'], meal?: Meal) => void;
-}
-
-export interface WeekNavigationProps {
-  currentDate: Date;
-  onNavigateWeek: (direction: 'next' | 'prev') => void;
-  onGoToToday: () => void;
+  disabled?: boolean;  onOpenModal: (date: string, type: Meal['type'], meal?: Meal) => void;
 }
 
 export interface MealModalProps {

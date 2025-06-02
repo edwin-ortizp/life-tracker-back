@@ -51,17 +51,32 @@ const DesktopNavigation = () => {
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
-  };
-
-  const DesktopMenuItem = ({ icon: Icon, label, path, onClick }: MenuItem) => {
+  };  const DesktopMenuItem = ({ icon: Icon, label, path, onClick }: MenuItem) => {
     const isActive = location.pathname === path;
-
+    
     const buttonContent = (
       <>
-        <Icon className={`${isExpanded ? 'w-8 h-8' : 'w-7 h-7'} transition-all duration-200`} />
-        {isExpanded && <span className="ml-3">{label}</span>}
+        <Icon className={`w-5 h-5 flex-shrink-0 ${
+          isActive ? 'text-white' : 'text-gray-600'
+        }`} />
+        {isExpanded && (
+          <span className={`ml-3 font-medium truncate ${
+            isActive ? 'text-white' : 'text-gray-700'
+          }`}>
+            {label}
+          </span>
+        )}
       </>
     );
+
+    const baseClasses = `
+      w-full flex items-center justify-start rounded-xl transition-colors duration-150
+      ${isExpanded ? 'px-4 py-3' : 'p-3'} 
+      ${isActive 
+        ? 'gradient-bg-primary text-white shadow-lg' 
+        : 'hover:bg-white/20'
+      }
+    `;
 
     if (!isExpanded) {
       return (
@@ -69,14 +84,14 @@ const DesktopNavigation = () => {
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <Button
-                variant={isActive ? "default" : "ghost"}
-                className={`w-full flex items-center justify-start ${isExpanded ? 'px-4 py-3' : 'p-3'}`}
+                variant="ghost"
+                className={baseClasses}
                 onClick={() => onClick ? onClick() : navigate(path)}
               >
                 {buttonContent}
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right">
+            <TooltipContent side="right" className="bg-black text-white border-gray-700">
               <p>{label}</p>
             </TooltipContent>
           </Tooltip>
@@ -86,45 +101,53 @@ const DesktopNavigation = () => {
 
     return (
       <Button
-        variant={isActive ? "default" : "ghost"}
-        className={`w-full flex items-center justify-start ${isExpanded ? 'px-4 py-3' : 'p-3'}`}
+        variant="ghost"
+        className={baseClasses}
         onClick={() => onClick ? onClick() : navigate(path)}
       >
         {buttonContent}
       </Button>
     );
   };
-
   return (
-    <aside className={`hidden md:flex flex-col h-screen fixed top-0 left-0 transition-all duration-300 bg-white border-r z-50
+    <aside className={`hidden md:flex flex-col h-screen fixed top-0 left-0 transition-all duration-300 glass-card z-50 border-r-0
       ${isExpanded ? 'w-64' : 'w-16'}`}>
-      <div className="flex flex-col items-center space-y-2 p-3">
+      <div className="flex flex-col items-center space-y-3 p-4">
         {isExpanded ? (
-          <h1 className="text-xl font-bold">Daily Tracker</h1>
+          <div className="text-center">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Daily Tracker
+            </h1>
+            <p className="text-xs text-muted-foreground mt-1">Organiza tu vida</p>
+          </div>
         ) : (
-          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 gradient-bg-primary rounded-xl flex items-center justify-center shadow-lg">
             <span className="text-white font-bold text-sm">DT</span>
           </div>
-        )}
-        <Button
+        )}        <Button
           variant="ghost"
           size="icon"
           title="Expand/Collapse Menu"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="p-1 w-full flex items-center justify-center"
+          className="p-2 hover:bg-white/20 rounded-lg"
         >
-          <ChevronRight className={`w-5 h-5 transform transition-transform duration-300 
+          <ChevronRight className={`w-4 h-4 transform transition-transform duration-200 
             ${isExpanded ? 'rotate-180' : ''}`} />
         </Button>
       </div>
-      <nav className="flex-1 p-2 overflow-y-auto space-y-1">
-        <div className="flex-1">
+      <nav className="flex-1 p-3 overflow-y-auto space-y-2">
+        <div className="flex-1 space-y-1">
           {menuItems.slice(0, -1).map((item) => (
             <DesktopMenuItem key={item.path} icon={item.icon} label={item.label} path={item.path} />
           ))}
         </div>
-        <div className="border-t pt-2">
-          <DesktopMenuItem icon={menuItems[menuItems.length - 1].icon} label={menuItems[menuItems.length - 1].label} path={menuItems[menuItems.length - 1].path} onClick={handleLogout} />
+        <div className="border-t border-white/20 pt-3 mt-auto">
+          <DesktopMenuItem 
+            icon={menuItems[menuItems.length - 1].icon} 
+            label={menuItems[menuItems.length - 1].label} 
+            path={menuItems[menuItems.length - 1].path} 
+            onClick={handleLogout} 
+          />
         </div>
       </nav>
     </aside>

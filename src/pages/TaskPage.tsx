@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Task } from '@/features/task/components';
 import DateSelector from '@/components/DateSelector';
+import PageLayout from '@/components/PageLayout';
 import {
   LineChart,
   Line,
@@ -70,9 +71,8 @@ const TaskPage = () => {
       { name: 'Pendientes', value: totalPending }
     ]);
   };
-
   return (
-    <div className="space-y-6">
+    <PageLayout>
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Tareas</h1>
       </div>
@@ -185,11 +185,10 @@ const TaskPage = () => {
             <CardContent className="pt-6">
               <h3 className="font-medium mb-4">Configuración de Tareas</h3>
               {/* Aquí irían las configuraciones */}
-            </CardContent>
-          </Card>
+            </CardContent>          </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageLayout>
   );
 };
 

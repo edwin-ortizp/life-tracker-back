@@ -10,6 +10,7 @@ import { WeeklyView } from '../features/negative-habits/components/WeeklyView';
 import { YearlyView } from '../features/negative-habits/components/YearlyView';
 import { AddHabitModal } from '../features/negative-habits/components/AddHabitModal';
 import DateSelector from '@/components/DateSelector';
+import PageLayout from '@/components/PageLayout';
 import { getLocalDateString } from '@/utils/dates';
 
 const NegativeHabitsPage = () => {
@@ -33,16 +34,18 @@ const NegativeHabitsPage = () => {
 
   if (!user) {
     return (
-      <Card className="w-full">
-        <CardContent className="p-4 text-center">
-          <p>Inicia sesión para registrar tus hábitos negativos</p>
-        </CardContent>
-      </Card>
+      <PageLayout>
+        <Card className="w-full">
+          <CardContent className="p-4 text-center">
+            <p>Inicia sesión para registrar tus hábitos negativos</p>
+          </CardContent>
+        </Card>
+      </PageLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <PageLayout>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold">Hábitos Negativos</h1>
         <Button 
@@ -98,12 +101,11 @@ const NegativeHabitsPage = () => {
       </Card>
 
       <AddHabitModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isModalOpen}        onClose={() => setIsModalOpen(false)}
         onLogHabit={handleLogHabit}
         selectedDate={selectedDate}
       />
-    </div>
+    </PageLayout>
   );
 };
 

@@ -5,6 +5,7 @@ import { PomodoroHistory } from '@/features/pomodoro/components/PomodoroHistory'
 import { PomodoroEditModal } from '@/features/pomodoro/components/PomodoroEditModal';
 import { usePomodoroData } from '@/features/pomodoro/hooks';
 import DateSelector from '@/components/DateSelector';
+import PageLayout from '@/components/PageLayout';
 import { useAuth } from '@/hooks/useAuth';
 import type { PomodoroSession } from '@/features/pomodoro/types';
 
@@ -25,14 +26,16 @@ export default function PomodoroPage() {
 
   if (!user) {
     return (
-      <div className="text-center py-8">
-        <h2 className="text-xl font-semibold">Inicia sesión para ver tus estadísticas</h2>
-      </div>
+      <PageLayout>
+        <div className="text-center py-8">
+          <h2 className="text-xl font-semibold">Inicia sesión para ver tus estadísticas</h2>
+        </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <PageLayout>
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Pomodoro Timer</h1>
         <p className="text-gray-500">Gestiona tus sesiones de trabajo y productividad</p>
@@ -68,12 +71,11 @@ export default function PomodoroPage() {
       </div>
 
       {selectedSession && (
-        <PomodoroEditModal
-          session={selectedSession}
+        <PomodoroEditModal          session={selectedSession}
           onClose={() => setSelectedSession(null)}
           onSave={handleEditSave}
         />
       )}
-    </div>
+    </PageLayout>
   );
 }

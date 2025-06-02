@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { JournalWithMood } from '@/features/journal/components/JournalWithMood';
 import DateSelector from '@/components/DateSelector';
+import PageLayout from '@/components/PageLayout';
 import {
   BarChart,
   Bar,
@@ -97,9 +98,8 @@ const JournalPage = () => {
       )
     });
   };
-
   return (
-    <div className="space-y-6">
+    <PageLayout>
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Diario</h1>
       </div>
@@ -206,11 +206,10 @@ const JournalPage = () => {
             <CardContent className="pt-6">
               <h3 className="font-medium mb-4">Configuración del Diario</h3>
               {/* TODO: Agregar configuraciones */}
-            </CardContent>
-          </Card>
+            </CardContent>          </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageLayout>
   );
 };
 

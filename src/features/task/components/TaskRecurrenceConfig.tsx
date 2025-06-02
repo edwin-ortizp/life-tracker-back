@@ -1,6 +1,5 @@
 // src/features/task/components/TaskRecurrenceConfig.tsx
 import React from 'react';
-import React from 'react'; // Added React import explicitly
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useRecurrenceLogic } from '../hooks/useRecurrenceLogic';
