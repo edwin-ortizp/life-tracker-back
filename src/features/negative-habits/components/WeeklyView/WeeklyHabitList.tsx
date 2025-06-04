@@ -34,7 +34,7 @@ export const WeeklyHabitList: React.FC<WeeklyHabitListProps> = ({
 }) => {
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-[minmax(120px,1fr)_repeat(7,minmax(40px,1fr))] gap-2">
+      <div className="grid grid-cols-[minmax(100px,1fr)_repeat(7,minmax(32px,1fr))] gap-1">
         <div></div>
         {weekDays.map(day => (
           <div key={day.fullDate} className="text-center">
@@ -66,7 +66,7 @@ export const WeeklyHabitList: React.FC<WeeklyHabitListProps> = ({
                       <Button
                         variant={isLogged ? "destructive" : "outline"}
                         size="icon"
-                        className="w-10 h-10 p-0" // Removed conditional bg-red classes
+                        className="w-8 h-8 p-0" // Smaller button for mobile
                         onClick={() => isLogged 
                           ? onRemoveLog(habit.id, day.fullDate)
                           : onLogHabit(habit.id, day.fullDate)
