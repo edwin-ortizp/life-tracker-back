@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
+
 interface TaskKanbanProps {
   tasks: Task[];
   onToggle: (taskId: string, completed: boolean) => void;
