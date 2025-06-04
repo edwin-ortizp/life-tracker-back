@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-// lucide-react no longer exports `LayoutKanban`; use `Kanban` instead
 import { ListTodo, Kanban } from 'lucide-react';
 
 interface TaskViewToggleProps {
