@@ -110,7 +110,7 @@ export const YearlyView: React.FC<YearlyViewProps> = ({
       </div>
 
       <div className="overflow-x-auto">
-        <div className="min-w-[800px] pb-4">
+        <div className="sm:min-w-[800px] pb-4">
           {!showAllHabits ? (
             <YearlyHabitList
               habits={frequentHabits}
