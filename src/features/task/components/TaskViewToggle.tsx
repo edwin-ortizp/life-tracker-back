@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ListTodo, LayoutKanban } from 'lucide-react';
+import { ListTodo, Kanban } from 'lucide-react';
 
 interface TaskViewToggleProps {
   view: 'list' | 'kanban';
@@ -25,7 +25,7 @@ export const TaskViewToggle: React.FC<TaskViewToggleProps> = ({ view, onViewChan
         onClick={() => onViewChange('kanban')}
         className="gap-2"
       >
-        <LayoutKanban className="w-4 h-4" />
+        <Kanban className="w-4 h-4" />
         <span className="hidden sm:inline">Kanban</span>
       </Button>
     </div>
