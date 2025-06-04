@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && node post-build-windows.js",
+    "build": "tsc -b && vite build",
     "build:win": "vite build && node post-build-windows.js",
     "build:mac": "vite build && node post-build-mac.js",
+    "deploy:win": "npm run build && node post-build-windows.js",
+    "deploy:mac": "npm run build && node post-build-mac.js",
     "lint": "eslint . --report-unused-disable-directives",
     "preview": "vite preview"
   },
