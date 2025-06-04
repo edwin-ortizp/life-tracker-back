@@ -275,9 +275,16 @@ export const useTaskData = () => {
     }
   };
 
-  const openCreateModal = useCallback(() => {
+  const openCreateModal = useCallback((dueDate?: Date | null) => {
     setModalMode('create');
-    setCurrentTask(null);
+    setCurrentTask({
+      id: '',
+      title: '',
+      completed: false,
+      category: 'personal',
+      createdAt: { seconds: Date.now() / 1000 },
+      ...(dueDate ? { dueDate } : {})
+    });
     setShowRecurrenceModal(true);
   }, []);
 

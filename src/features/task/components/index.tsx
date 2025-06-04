@@ -1,16 +1,24 @@
 // src/features/task/components/index.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { TaskList } from './TaskList';
+import { TaskKanban } from './TaskKanban';
+import { TaskViewToggle } from './TaskViewToggle';
+
+// Exports
+export * from './TaskViewToggle';
+export * from './TaskKanban';
+export * from './TaskList';
 import { RecurrenceModal } from './RecurrenceModal';
 import { useTaskData } from '../hooks/useTaskData';
 import type { TaskProps } from '../types';
 
 export const Task: React.FC<TaskProps> = ({ }) => {
   const { user } = useAuth();
+  const [view, setView] = useState<'list' | 'kanban'>('list');
   const {
     tasks,
     status,
@@ -49,7 +57,8 @@ export const Task: React.FC<TaskProps> = ({ }) => {
               {status === 'saving' && (
                 <span className="text-xs text-blue-500">Guardando...</span>
               )}
-              <Button onClick={openCreateModal} size="sm">
+              <TaskViewToggle view={view} onViewChange={setView} />
+              <Button onClick={() => openCreateModal()} size="sm">
                 <Plus className="w-4 h-4 mr-2" />
                 Nueva Tarea
               </Button>
@@ -59,12 +68,23 @@ export const Task: React.FC<TaskProps> = ({ }) => {
         
         <CardContent>
           <div className="space-y-6">
-            <TaskList
-              tasks={tasks}
-              onToggle={toggleTask}
-              onDelete={deleteTask}
-              onEdit={openEditModal}
-            />
+            {view === 'list' ? (
+              <TaskList
+                tasks={tasks}
+                onToggle={toggleTask}
+                onDelete={deleteTask}
+                onEdit={openEditModal}
+              />
+            ) : (
+              <TaskKanban
+                tasks={tasks}
+                onToggle={toggleTask}
+                onDelete={deleteTask}
+                onEdit={openEditModal}
+                onMove={(id, due) => editTask(id, { dueDate: due ?? undefined })}
+                onAdd={(due) => openCreateModal(due ?? undefined)}
+              />
+            )}
 
             {error && (
               <p className="text-sm text-red-500">
