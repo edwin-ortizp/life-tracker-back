@@ -41,7 +41,7 @@ export const YearlyHabitList: React.FC<YearlyHabitListProps> = ({
             </div>
 
             <div className="overflow-x-auto">
-              <div className="grid grid-cols-12 gap-4 min-w-[800px]">
+              <div className="grid grid-cols-12 gap-4 sm:min-w-[800px]">
                 {months.map((month) => {
                   const monthStr = String(month.number).padStart(2, '0');
                   
