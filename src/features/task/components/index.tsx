@@ -58,7 +58,7 @@ export const Task: React.FC<TaskProps> = ({ }) => {
                 <span className="text-xs text-blue-500">Guardando...</span>
               )}
               <TaskViewToggle view={view} onViewChange={setView} />
-              <Button onClick={openCreateModal} size="sm">
+              <Button onClick={() => openCreateModal()} size="sm">
                 <Plus className="w-4 h-4 mr-2" />
                 Nueva Tarea
               </Button>
@@ -81,6 +81,8 @@ export const Task: React.FC<TaskProps> = ({ }) => {
                 onToggle={toggleTask}
                 onDelete={deleteTask}
                 onEdit={openEditModal}
+                onMove={(id, due) => editTask(id, { dueDate: due ?? undefined })}
+                onAdd={(due) => openCreateModal(due ?? undefined)}
               />
             )}
 
