@@ -85,7 +85,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
       </div>
 
       <div className="overflow-x-auto">
-        <div className="min-w-[640px]">
+        <div className="sm:min-w-[640px]">
           {!showAllHabits ? (
             // Vista de hábitos frecuentes
             <WeeklyHabitList
