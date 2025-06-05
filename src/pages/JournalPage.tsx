@@ -19,7 +19,7 @@ import {
 } from 'recharts';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c'];
 
@@ -46,7 +46,6 @@ const JournalPage = () => {
     const journalQuery = query(
       collection(db, 'journal'),
       where('userId', '==', user.uid),
-      orderBy('date', 'desc'),
       limit(30)
     );
 
@@ -54,7 +53,6 @@ const JournalPage = () => {
     const moodQuery = query(
       collection(db, 'moods'),
       where('userId', '==', user.uid),
-      orderBy('date', 'desc'),
       limit(30)
     );
 
@@ -63,14 +61,16 @@ const JournalPage = () => {
       getDocs(moodQuery)
     ]);
 
-    const entries = journalSnap.docs.map(doc => {
-      const data = doc.data();
-      return {
-        date: data.date,
-        words: data.text?.split(/\s+/).length || 0,
-        characters: data.text?.length || 0
-      };
-    });
+    const entries = journalSnap.docs
+      .map(doc => {
+        const data = doc.data();
+        return {
+          date: data.date,
+          words: data.text?.split(/\s+/).length || 0,
+          characters: data.text?.length || 0
+        };
+      })
+      .sort((a, b) => (a.date < b.date ? 1 : -1));
 
     // Procesar estadísticas de estado de ánimo
     const moodCounts: Record<string, number> = {};
