@@ -29,24 +29,25 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
     initialConfig: task.recurrence,
     initialDate: task.dueDate
   });
-
   const [formData, setFormData] = useState<TaskFormData>(() => {
     if (mode === 'create') {
       return {
         title: '',
         description: '',
-      category: 'personal',
-      isRecurrent: false,
-      priority: 'delete',
-      size: 'peque\u00f1a'
-    };
-  }
+        category: 'personal',
+        isRecurrent: false,
+        isPrivate: task.isPrivate || false,
+        priority: 'delete',
+        size: 'peque\u00f1a'
+      };
+    }
     
     return {
       title: task.title || '',
       description: task.description || '',
       dueDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.dueDate || undefined),
       isRecurrent: task.isRecurrent ?? false,
+      isPrivate: task.isPrivate ?? false,
       category: task.category || 'personal',
       recurrence: task.recurrence,
       priority: task.priority || 'delete',
@@ -64,24 +65,24 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      if (mode === 'create') {
-        setFormData({
+      if (mode === 'create') {        setFormData({
           title: '',
           description: '',
           category: 'personal',
           isRecurrent: false,
+          isPrivate: task.isPrivate || false,
           priority: 'delete',
           size: 'peque\u00f1a'
         });
         setUrgent(false);
         setImportant(false);
         setSizeState('peque\u00f1a');
-      } else {
-        setFormData({
+      } else {        setFormData({
           title: task.title || '',
           description: task.description || '',
           dueDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.dueDate || undefined),
           isRecurrent: task.isRecurrent || false,
+          isPrivate: task.isPrivate || false,
           category: task.category || 'personal',
           recurrence: task.recurrence,
           priority: task.priority || 'delete',
@@ -190,9 +191,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                   recurrence
                 })}
               />
-            )}
-
-            {mode !== 'complete' && (
+            )}            {mode !== 'complete' && (
               <div className="flex flex-wrap items-center gap-4">
                 <label className="flex items-center gap-2 text-sm">
                   <Checkbox checked={urgent} onCheckedChange={(v) => setUrgent(Boolean(v))} />
@@ -201,6 +200,13 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                 <label className="flex items-center gap-2 text-sm">
                   <Checkbox checked={important} onCheckedChange={(v) => setImportant(Boolean(v))} />
                   Importante
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox 
+                    checked={formData.isPrivate ?? false} 
+                    onCheckedChange={(v) => setFormData({ ...formData, isPrivate: Boolean(v) })} 
+                  />
+                  🔒 Privada (solo en Journal)
                 </label>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">Tamaño</span>

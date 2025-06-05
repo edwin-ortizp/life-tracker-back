@@ -26,6 +26,9 @@ export const useTaskData = () => {
   const [modalMode, setModalMode] = useState<ModalMode>('create');
   const { user } = useAuth();
 
+  // Función para obtener solo tareas públicas (no privadas)
+  const getPublicTasks = () => tasks.filter(task => !task.isPrivate);
+
   // Manejar el cierre del modal
   const handleCloseModal = useCallback(() => {
     setShowRecurrenceModal(false);
@@ -50,8 +53,7 @@ export const useTaskData = () => {
       (snapshot) => {
         const taskList = snapshot.docs
           .map(doc => {
-            const data = doc.data();
-            return {
+            const data = doc.data();            return {
               id: doc.id,
               title: data.title,
               description: data.description || '',
@@ -59,6 +61,7 @@ export const useTaskData = () => {
               createdAt: data.createdAt,
               dueDate: data.dueDate?.toDate(),
               isRecurrent: data.isRecurrent || false,
+              isPrivate: data.isPrivate || false,
               category: data.category || 'other',
               priority: data.priority || 'delete',
               size: data.size || 'peque\u00f1a',
@@ -102,8 +105,7 @@ export const useTaskData = () => {
     setStatus('saving');
     setError(null);
 
-    try {
-      const taskData: any = {
+    try {      const taskData: any = {
         userId: user.uid,
         title: formData.title.trim(),
         completed: false,
@@ -119,6 +121,10 @@ export const useTaskData = () => {
 
       if (formData.dueDate) {
         taskData.dueDate = Timestamp.fromDate(formData.dueDate);
+      }
+
+      if (formData.isPrivate) {
+        taskData.isPrivate = true;
       }
 
       if (formData.isRecurrent && formData.recurrence) {
@@ -165,9 +171,11 @@ export const useTaskData = () => {
       }
       if (updates.priority) {
         updateData.priority = updates.priority;
-      }
-      if (updates.size) {
+      }      if (updates.size) {
         updateData.size = updates.size;
+      }
+      if (updates.isPrivate !== undefined) {
+        updateData.isPrivate = updates.isPrivate;
       }
       if (updates.isRecurrent !== undefined) {
         updateData.isRecurrent = updates.isRecurrent;
@@ -285,8 +293,7 @@ export const useTaskData = () => {
       setStatus('error');
     }
   };
-
-  const openCreateModal = useCallback((dueDate?: Date | null) => {
+  const openCreateModal = useCallback((dueDate?: Date | null, isPrivate?: boolean) => {
     setModalMode('create');
     setCurrentTask({
       id: '',
@@ -296,7 +303,8 @@ export const useTaskData = () => {
       priority: 'delete',
       size: 'peque\u00f1a',
       createdAt: { seconds: Date.now() / 1000 },
-      ...(dueDate ? { dueDate } : {})
+      ...(dueDate ? { dueDate } : {}),
+      ...(isPrivate ? { isPrivate: true } : {})
     });
     setShowRecurrenceModal(true);
   }, []);
@@ -307,9 +315,9 @@ export const useTaskData = () => {
     setShowRecurrenceModal(true);
     setStatus('idle'); // Asegurarnos de que el estado esté en idle al abrir el modal
   };
-
   return {
-    tasks,
+    tasks: getPublicTasks(), // Solo devolver tareas públicas por defecto
+    allTasks: tasks, // Disponible para casos especiales como PrivateTaskSection
     status,
     error,
     showRecurrenceModal,
@@ -322,6 +330,7 @@ export const useTaskData = () => {
     completeRecurrentTask,
     setShowRecurrenceModal: handleCloseModal,
     openEditModal,
-    openCreateModal
+    openCreateModal,
+    getPublicTasks
   };
 };

@@ -76,8 +76,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
             )}
           </Button>
           
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
+          <div className="flex-1">            <div className="flex items-center gap-2">
+              {task.isPrivate && (
+                <span className="text-xs">🔒</span>
+              )}
               <span className={cn(
                 'break-all line-clamp-2',
                 variant === 'kanban' ? 'text-sm' : '',

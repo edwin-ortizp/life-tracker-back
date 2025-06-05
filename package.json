@@ -59,7 +59,7 @@
     "react-resizable-panels": "^2.0.20",
     "react-router-dom": "^6.28.1",
     "recharts": "^2.15.0",
-    "sonner": "^1.5.0",
+    "sonner": "^1.7.4",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.1",

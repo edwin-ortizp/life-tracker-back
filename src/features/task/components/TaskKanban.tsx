@@ -44,10 +44,8 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       decide: 1,
       delegate: 2,
       delete: 3,
-    };
-
-    const grouped = tasks
-      .filter(t => !t.isRecurrent)
+    };    const grouped = tasks
+      .filter(t => !t.isRecurrent && !t.isPrivate)
       .reduce((acc, task) => {
         if (task.dueDate && isBefore(task.dueDate, today)) {
           acc.overdue.push(task);

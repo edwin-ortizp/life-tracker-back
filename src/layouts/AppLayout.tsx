@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import Navigation from '../components/navigation/Navigation';
+import { Toaster } from '@/components/ui/sonner';
 
 const AppLayout = () => {
   return (
@@ -15,6 +16,7 @@ const AppLayout = () => {
           </div>
         </main>
       </div>
+      <Toaster />
     </div>
   );
 };

@@ -45,6 +45,7 @@ export interface Task {
   };
   dueDate?: Date;
   isRecurrent?: boolean;
+  isPrivate?: boolean;
   category: TaskCategory;
   recurrence?: {
     frequency: number;
@@ -73,6 +74,7 @@ export interface TaskFormData {
   description?: string;
   dueDate?: Date;
   isRecurrent?: boolean;
+  isPrivate?: boolean;
   category: TaskCategory;
   recurrence?: {
     frequency: number;

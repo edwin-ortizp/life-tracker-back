@@ -12,6 +12,7 @@ export * from './TaskKanban';
 export * from './TaskList';
 export * from './TaskDetailsModal';
 export * from './PriorityLegend';
+export * from './PrivateTaskSection';
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { useTaskData } from '../hooks/useTaskData';
