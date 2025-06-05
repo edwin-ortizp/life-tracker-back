@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { MoodSelector } from './MoodSelector';
 import { MoodHistory } from './MoodHistory';
+import { ImportMoodButton } from './ImportMoodButton';
 import { useMoodData } from '../hooks/useMoodData';
 import { getLocalDateString } from '@/utils/dates';
 import type { MoodProps } from '../types';
@@ -33,15 +34,17 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
 
   return (
     <Card className="w-full">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-center mb-2">
+      <CardContent className="p-4">        <div className="flex justify-between items-center mb-2">
           <h3 className="font-medium">Estado de ánimo</h3>
-          {status === 'saving' && (
-            <span className="text-xs text-blue-500">Guardando...</span>
-          )}
-          {status === 'error' && (
-            <span className="text-xs text-red-500">Error al guardar</span>
-          )}
+          <div className="flex items-center gap-2">
+            <ImportMoodButton />
+            {status === 'saving' && (
+              <span className="text-xs text-blue-500">Guardando...</span>
+            )}
+            {status === 'error' && (
+              <span className="text-xs text-red-500">Error al guardar</span>
+            )}
+          </div>
         </div>
         
         {isCurrentDate && (
@@ -69,5 +72,6 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
 
 export * from './MoodSelector';
 export * from './MoodHistory';
+export * from './ImportMoodButton';
 
 export default Mood;
