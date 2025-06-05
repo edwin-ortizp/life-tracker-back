@@ -8,6 +8,7 @@ interface TaskGroupProps {
   onToggle: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
+  onView?: (task: Task) => void;
 }
 
 export const TaskGroup: React.FC<TaskGroupProps> = ({ 
@@ -15,7 +16,8 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
   tasks, 
   onToggle,
   onDelete,
-  onEdit 
+  onEdit,
+  onView
 }) => {
   if (tasks.length === 0) return null;
 
@@ -36,12 +38,13 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
         {title}
       </h3>
       {sortedTasks.map(task => (
-        <TaskItem 
-          key={task.id} 
-          task={task} 
+        <TaskItem
+          key={task.id}
+          task={task}
           onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
+          onView={onView}
         />
       ))}
     </div>

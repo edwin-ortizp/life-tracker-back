@@ -7,15 +7,27 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface TaskItemProps {
   task: Task;
   onToggle: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
+  onView?: (task: Task) => void;
 }
 
-export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, onEdit }) => {
+export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, onEdit, onView }) => {
   const overdue = task.dueDate && isBefore(startOfDay(task.dueDate), startOfDay(new Date()));
   const categoryStyle = CATEGORY_COLORS[task.category];
 
@@ -28,14 +40,20 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
     ) : '';
 
   return (
-    <Card className={cn(task.completed ? 'bg-muted/50' : overdue ? 'border-destructive bg-destructive/5' : '')}>
+    <Card
+      onClick={() => onView && onView(task)}
+      className={cn(
+        'cursor-pointer',
+        task.completed ? 'bg-muted/50' : overdue ? 'border-destructive bg-destructive/5' : ''
+      )}
+    >
       <CardContent className="p-3 flex flex-col gap-2">
         <div className="flex items-start gap-2"> {/* Top section: toggle, title/desc, actions */}
           <Button
             variant="ghost"
             size="icon"
-            className="p-1 mt-0.5 rounded-full h-auto w-auto" // Adjusted size classes
-            onClick={() => onToggle(task.id, !task.completed)}
+            className="p-1 mt-0.5 rounded-full h-auto w-auto"
+            onClick={(e) => { e.stopPropagation(); onToggle(task.id, !task.completed); }}
           >
             {task.completed ? (
               <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -78,19 +96,37 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
               size="icon"
               className="p-1.5 rounded-full h-auto w-auto"
               title="Editar tarea"
-              onClick={() => onEdit(task)}
+              onClick={(e) => { e.stopPropagation(); onEdit(task); }}
             >
               <Edit className="w-4 h-4 text-muted-foreground" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="p-1.5 rounded-full h-auto w-auto"
-              title="Eliminar tarea"
-              onClick={() => onDelete(task.id)}
-            >
-              <X className="w-4 h-4 text-destructive" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="p-1.5 rounded-full h-auto w-auto"
+                  title="Eliminar tarea"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <X className="w-4 h-4 text-destructive" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción no se puede deshacer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onDelete(task.id)}>
+                    Eliminar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
