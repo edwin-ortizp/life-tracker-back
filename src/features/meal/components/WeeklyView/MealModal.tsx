@@ -63,30 +63,7 @@ export const MealModal: React.FC<MealModalProps> = ({
           </DialogHeader>
 
           <div className="space-y-4 py-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
-            <div className="space-y-1">
-              <Label htmlFor="mealType">Tipo de Comida</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => onFormChange('type', value)}
-                name="mealType" // Added name for form semantics
-                required
-              >
-                <SelectTrigger id="mealType">
-                  <SelectValue placeholder="Selecciona un tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(MEAL_TYPES)
-                    .sort(([,a], [,b]) => a.order - b.order)
-                    .map(([value, { title }]) => (
-                      <SelectItem key={value} value={value}>
-                        {title}
-                      </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
+            <div className="space-y-1 sm:col-span-2">
               <Label htmlFor="mealName">Nombre de la Comida *</Label>
               <Input
                 id="mealName"
@@ -98,7 +75,30 @@ export const MealModal: React.FC<MealModalProps> = ({
               />
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 sm:col-start-2 sm:row-start-1 sm:text-right">
+              <Label htmlFor="mealType">Tipo</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => onFormChange('type', value)}
+                name="mealType"
+                required
+              >
+                <SelectTrigger id="mealType" className="sm:w-40">
+                  <SelectValue placeholder="Selecciona un tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(MEAL_TYPES)
+                    .sort(([, a], [, b]) => a.order - b.order)
+                    .map(([value, { title }]) => (
+                      <SelectItem key={value} value={value}>
+                        {title}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1 sm:col-span-2">
               <Label htmlFor="mealNotes">Notas Adicionales</Label>
               <Input
                 id="mealNotes"

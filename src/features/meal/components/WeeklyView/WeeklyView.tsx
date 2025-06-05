@@ -1,6 +1,5 @@
 // features/meal/components/WeeklyView/WeeklyView.tsx
 import React, { useState } from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { MEAL_TYPES } from '../../types';
 import { MEAL_HOURS } from '../../utils/dateUtils';
 import { useToast } from '@/components/ui/use-toast';
@@ -95,9 +94,8 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
       />
 
       {/* Vista móvil */}
-      <div className="md:hidden flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="pb-16"> {/* Espacio para evitar que el contenido quede bajo la navegación móvil */}
+      <div className="md:hidden flex-1">
+        <div className="pb-16"> {/* Espacio para evitar que el contenido quede bajo la navegación móvil */}
             {weekDays.map(day => (
               <MobileDay
                 key={day.fullDate}
@@ -107,7 +105,6 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
               />
             ))}
           </div>
-        </ScrollArea>
       </div>
 
       {/* Vista desktop */}
