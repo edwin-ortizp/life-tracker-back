@@ -6,6 +6,7 @@ import { Calendar, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import WeeklyView from './WeeklyView';
 import { ImportMealPlan } from './ImportMealPlan';
+import { PasteMealPlan } from './PasteMealPlan';
 import { useMealPlan } from '../hooks/useMealPlan';
 import type { MealProps, MealPlan } from '../types'; // Added MealPlan type
 import { useToast } from '@/components/ui/use-toast';
@@ -95,9 +96,13 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <ImportMealPlan 
+          <ImportMealPlan
             onImport={handleImportTrigger}
-            disabled={status === 'saving'} 
+            disabled={status === 'saving'}
+          />
+          <PasteMealPlan
+            onImport={handleImportTrigger}
+            disabled={status === 'saving'}
           />
         </div>
       </CardHeader>
