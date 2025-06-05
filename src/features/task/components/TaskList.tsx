@@ -37,13 +37,15 @@ interface TaskListProps {
   onToggle: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
+  onView?: (task: Task) => void;
 }
 
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
   onToggle,
   onDelete,
-  onEdit
+  onEdit,
+  onView
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
   const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>('all');
@@ -185,40 +187,45 @@ export const TaskList: React.FC<TaskListProps> = ({
 
       {/* Lista de tareas */}
       <div>
-        <TaskGroup 
-          title="Tareas Vencidas" 
-          tasks={groupedTasks.overdue} 
+        <TaskGroup
+          title="Tareas Vencidas"
+          tasks={groupedTasks.overdue}
           onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
+          onView={onView}
         />
-        <TaskGroup 
-          title="Para Hoy" 
+        <TaskGroup
+          title="Para Hoy"
           tasks={groupedTasks.today}
           onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
+          onView={onView}
         />
-        <TaskGroup 
-          title="Esta Semana" 
+        <TaskGroup
+          title="Esta Semana"
           tasks={groupedTasks.thisWeek}
           onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
+          onView={onView}
         />
-        <TaskGroup 
-          title="Próximamente" 
+        <TaskGroup
+          title="Próximamente"
           tasks={groupedTasks.future}
           onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
+          onView={onView}
         />
-        <TaskGroup 
-          title="Sin Fecha" 
+        <TaskGroup
+          title="Sin Fecha"
           tasks={groupedTasks.noDate}
           onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
+          onView={onView}
         />
 
         {filteredTasks.length === 0 && (

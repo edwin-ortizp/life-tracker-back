@@ -18,6 +18,7 @@ interface TaskKanbanProps {
   onToggle: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
+  onView?: (task: Task) => void;
   onMove: (taskId: string, dueDate: Date | null) => void;
   onAdd: (dueDate?: Date | null) => void;
 }
@@ -27,6 +28,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
   onToggle,
   onDelete,
   onEdit,
+  onView,
   onMove,
   onAdd
 }) => {
@@ -124,6 +126,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
                 onToggle={onToggle}
                 onDelete={onDelete}
                 onEdit={onEdit}
+                onView={onView}
               />
             </div>
           ))}
