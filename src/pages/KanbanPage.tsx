@@ -1,11 +1,13 @@
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TaskKanban } from '@/features/task/components';
+import { TaskKanban, TaskDetailsModal } from '@/features/task/components';
 import { RecurrenceModal } from '@/features/task/components/RecurrenceModal';
 import { useTaskData } from '@/features/task/hooks/useTaskData';
+import type { Task } from '@/features/task/types';
 
 const KanbanPage = () => {
   const { user } = useAuth();
@@ -25,6 +27,9 @@ const KanbanPage = () => {
     openEditModal,
     openCreateModal
   } = useTaskData();
+
+  const [detailTask, setDetailTask] = useState<Task | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   if (!user) {
     return (
@@ -63,6 +68,7 @@ const KanbanPage = () => {
             onToggle={toggleTask}
             onDelete={deleteTask}
             onEdit={openEditModal}
+            onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
             onMove={(id, due) => editTask(id, { dueDate: due ?? undefined })}
             onAdd={(due) => openCreateModal(due ?? undefined)}
           />
@@ -93,6 +99,12 @@ const KanbanPage = () => {
           createdAt: { seconds: Date.now() / 1000 }
         }}
         mode={modalMode}
+      />
+      <TaskDetailsModal
+        task={detailTask}
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        onEdit={(t) => { setShowDetailModal(false); openEditModal(t); }}
       />
     </PageLayout>
   );

@@ -1,5 +1,5 @@
 // src/features/task/components/index.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -10,9 +10,11 @@ import { TaskList } from './TaskList';
 // Exports
 export * from './TaskKanban';
 export * from './TaskList';
+export * from './TaskDetailsModal';
 import { RecurrenceModal } from './RecurrenceModal';
+import { TaskDetailsModal } from './TaskDetailsModal';
 import { useTaskData } from '../hooks/useTaskData';
-import type { TaskProps } from '../types';
+import type { TaskProps, Task as TaskType } from '../types';
 
 export const Task: React.FC<TaskProps> = ({ }) => {
   const { user } = useAuth();
@@ -32,6 +34,9 @@ export const Task: React.FC<TaskProps> = ({ }) => {
     openEditModal,
     openCreateModal
   } = useTaskData();
+
+  const [detailTask, setDetailTask] = useState<TaskType | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   if (!user) {
     return (
@@ -69,6 +74,7 @@ export const Task: React.FC<TaskProps> = ({ }) => {
               onToggle={toggleTask}
               onDelete={deleteTask}
               onEdit={openEditModal}
+              onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
             />
 
             {error && (
@@ -100,6 +106,12 @@ export const Task: React.FC<TaskProps> = ({ }) => {
           createdAt: { seconds: Date.now() / 1000 }
         }}
         mode={modalMode}
+      />
+      <TaskDetailsModal
+        task={detailTask}
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        onEdit={(t) => { setShowDetailModal(false); openEditModal(t); }}
       />
     </div>
   );
