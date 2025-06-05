@@ -52,6 +52,8 @@ export interface Task {
     customDays?: number;
     nextDate?: Date;
   };
+  priority?: 'do' | 'decide' | 'delegate' | 'delete';
+  size?: 'pequeña' | 'mediana' | 'grande';
 }
 
 export interface TaskProps {
@@ -78,4 +80,6 @@ export interface TaskFormData {
     customDays?: number;
   };
   nextDate?: Date;
+  priority?: 'do' | 'decide' | 'delegate' | 'delete';
+  size?: 'peque\u00f1a' | 'mediana' | 'grande';
 }

@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TaskKanban, TaskDetailsModal } from '@/features/task/components';
+import { PriorityLegend } from '@/features/task/components/PriorityLegend';
 import { RecurrenceModal } from '@/features/task/components/RecurrenceModal';
 import { useTaskData } from '@/features/task/hooks/useTaskData';
 import type { Task } from '@/features/task/types';
@@ -47,7 +48,7 @@ const KanbanPage = () => {
         <h1 className="text-2xl font-bold tracking-tight">Tablero Kanban</h1>
         <p className="text-gray-500">Organiza tus tareas en un tablero estilo Trello</p>
       </div>
-      <Card>
+      <Card className="w-full overflow-x-auto">
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Tareas</CardTitle>
@@ -106,6 +107,7 @@ const KanbanPage = () => {
         onClose={() => setShowDetailModal(false)}
         onEdit={(t) => { setShowDetailModal(false); openEditModal(t); }}
       />
+      <PriorityLegend />
     </PageLayout>
   );
 };

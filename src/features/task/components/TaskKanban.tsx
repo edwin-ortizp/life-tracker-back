@@ -39,7 +39,14 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     const endToday = endOfDay(now);
     const endWeek = endOfWeek(now);
 
-    return tasks
+    const priorityOrder: Record<string, number> = {
+      do: 0,
+      decide: 1,
+      delegate: 2,
+      delete: 3,
+    };
+
+    const grouped = tasks
       .filter(t => !t.isRecurrent)
       .reduce((acc, task) => {
         if (task.dueDate && isBefore(task.dueDate, today)) {
@@ -61,6 +68,23 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
         future: [] as Task[],
         noDate: [] as Task[],
       });
+
+    Object.values(grouped).forEach(list => {
+      list.sort((a, b) => {
+        const pa = priorityOrder[a.priority || 'none'] ?? 4;
+        const pb = priorityOrder[b.priority || 'none'] ?? 4;
+        if (pa !== pb) return pa - pb;
+        if (a.dueDate && b.dueDate) {
+          return a.dueDate.getTime() - b.dueDate.getTime();
+        }
+        if (!a.dueDate && !b.dueDate) {
+          return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+        }
+        return a.dueDate ? -1 : 1;
+      });
+    });
+
+    return grouped;
   }, [tasks]);
 
   const columns = [
@@ -102,7 +126,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       {columns.map(col => (
         <div
           key={col.key}
-          className="w-72 flex-shrink-0 space-y-3"
+          className="min-w-[16rem] md:min-w-[18rem] flex-shrink-0 space-y-3"
           onDragOver={(e) => e.preventDefault()}
           onDrop={() => handleDrop(col.key)}
         >
@@ -127,6 +151,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
                 onDelete={onDelete}
                 onEdit={onEdit}
                 onView={onView}
+                variant="kanban"
               />
             </div>
           ))}
