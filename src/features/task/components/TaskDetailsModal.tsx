@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
+import { isBefore, startOfDay } from 'date-fns';
 import { formatDateToSpanish, getRecurrenceText } from '@/utils/dates';
 
 interface TaskDetailsModalProps {
@@ -36,6 +37,9 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
           task.recurrence.customDays
         )
       : '';
+  const overdue =
+    task.dueDate &&
+    isBefore(startOfDay(task.dueDate), startOfDay(new Date()));
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
@@ -45,15 +49,23 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             <DialogHeader className="text-left">
               <DialogTitle>{task.title}</DialogTitle>
               {task.description && (
-                <DialogDescription>{task.description}</DialogDescription>
+                <DialogDescription className="whitespace-pre-line">
+                  {task.description}
+                </DialogDescription>
               )}
             </DialogHeader>
           </div>
           <div className="md:col-span-4 space-y-4 text-sm">
             {task.dueDate && (
-              <p>
-                <span className="font-medium">Fecha límite:</span>{' '}
-                {formatDateToSpanish(task.dueDate)}
+              <p className="flex items-center gap-2">
+                <span className="font-medium">Fecha límite:</span>
+                <Badge
+                  variant={overdue ? 'destructive' : 'secondary'}
+                  className="text-xs font-normal px-2 py-0.5"
+                >
+                  {formatDateToSpanish(task.dueDate)}
+                  {overdue ? ' (vencida)' : ''}
+                </Badge>
               </p>
             )}
             <p className="flex items-center gap-2">

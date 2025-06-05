@@ -7,6 +7,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface TaskItemProps {
   task: Task;
@@ -89,15 +100,33 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
             >
               <Edit className="w-4 h-4 text-muted-foreground" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="p-1.5 rounded-full h-auto w-auto"
-              title="Eliminar tarea"
-              onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
-            >
-              <X className="w-4 h-4 text-destructive" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="p-1.5 rounded-full h-auto w-auto"
+                  title="Eliminar tarea"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <X className="w-4 h-4 text-destructive" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción no se puede deshacer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onDelete(task.id)}>
+                    Eliminar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
