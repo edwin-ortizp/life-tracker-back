@@ -69,4 +69,5 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
   );
 };
 export * from "./MarkdownJournal";
+export * from "./ExportWeekButton";
 export default Journal;
