@@ -1,7 +1,7 @@
 // features/meal/components/WeeklyView/WeeklyView.tsx
 import React, { useState } from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { MEAL_TYPES } from '../../types';
+import { MEAL_HOURS } from '../../utils/dateUtils';
 import { useToast } from '@/components/ui/use-toast';
 import { getWeekDays } from '../../utils/dateUtils';
 import { WeeklyViewProps, MealModalState, MealFormData } from './types';
@@ -94,9 +94,8 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
       />
 
       {/* Vista móvil */}
-      <div className="md:hidden flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="pb-16"> {/* Espacio para evitar que el contenido quede bajo la navegación móvil */}
+      <div className="md:hidden flex-1">
+        <div className="pb-16"> {/* Espacio para evitar que el contenido quede bajo la navegación móvil */}
             {weekDays.map(day => (
               <MobileDay
                 key={day.fullDate}
@@ -106,7 +105,6 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
               />
             ))}
           </div>
-        </ScrollArea>
       </div>
 
       {/* Vista desktop */}
@@ -118,9 +116,14 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
               .sort(([,a], [,b]) => a.order - b.order)
               .map(([type, config]) => (
                 <div key={type} className="h-32 flex items-center">
-                  <div className="flex items-center gap-2">
-                    <config.icon className="h-5 w-5 text-gray-600" />
-                    <span className="font-medium">{config.title}</span>
+                  <div className="flex flex-col items-start gap-1">
+                    <div className="flex items-center gap-2">
+                      <config.icon className="h-5 w-5 text-gray-600" />
+                      <span className="font-medium">{config.title}</span>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {MEAL_HOURS[type as keyof typeof MEAL_HOURS]}:00
+                    </span>
                   </div>
                 </div>
             ))}

@@ -51,7 +51,7 @@ export const MealModal: React.FC<MealModalProps> = ({
 
   return (
     <Dialog open={show} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[700px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
@@ -62,31 +62,8 @@ export const MealModal: React.FC<MealModalProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div className="space-y-1">
-              <Label htmlFor="mealType">Tipo de Comida</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => onFormChange('type', value)}
-                name="mealType" // Added name for form semantics
-                required
-              >
-                <SelectTrigger id="mealType">
-                  <SelectValue placeholder="Selecciona un tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(MEAL_TYPES)
-                    .sort(([,a], [,b]) => a.order - b.order)
-                    .map(([value, { title }]) => (
-                      <SelectItem key={value} value={value}>
-                        {title}
-                      </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
+          <div className="space-y-4 py-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
+            <div className="space-y-1 sm:col-span-2">
               <Label htmlFor="mealName">Nombre de la Comida *</Label>
               <Input
                 id="mealName"
@@ -98,7 +75,8 @@ export const MealModal: React.FC<MealModalProps> = ({
               />
             </div>
 
-            <div className="space-y-1">
+
+            <div className="space-y-1 sm:col-span-2">
               <Label htmlFor="mealNotes">Notas Adicionales</Label>
               <Input
                 id="mealNotes"
@@ -109,14 +87,14 @@ export const MealModal: React.FC<MealModalProps> = ({
               />
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 sm:col-span-2">
               <Label htmlFor="mealRecipe">Receta</Label>
               <Textarea
                 id="mealRecipe"
                 value={formData.recipe}
                 onChange={(e) => onFormChange('recipe', e.target.value)}
                 placeholder="Ingredientes y preparación..."
-                className="h-24 resize-none"
+                className="h-40 resize-none"
               />
             </div>
           </div>
@@ -129,7 +107,7 @@ export const MealModal: React.FC<MealModalProps> = ({
                     <Button
                       type="button"
                       variant="destructive"
-                      className="w-full sm:w-auto" // Full width on mobile
+                      className="w-full sm:w-auto"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Eliminar
@@ -150,7 +128,29 @@ export const MealModal: React.FC<MealModalProps> = ({
                 </AlertDialog>
               )}
             </div>
-            <div className="flex gap-2 justify-end"> {/* Ensure cancel/submit are on the right */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end justify-end">
+              <div>
+                <Label htmlFor="mealType" className="sr-only">Tipo</Label>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value) => onFormChange('type', value)}
+                  name="mealType"
+                  required
+                >
+                  <SelectTrigger id="mealType" className="sm:w-40 w-full">
+                    <SelectValue placeholder="Selecciona un tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(MEAL_TYPES)
+                      .sort(([, a], [, b]) => a.order - b.order)
+                      .map(([value, { title }]) => (
+                        <SelectItem key={value} value={value}>
+                          {title}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button
                 type="button"
                 variant="outline"
@@ -158,10 +158,7 @@ export const MealModal: React.FC<MealModalProps> = ({
               >
                 Cancelar
               </Button>
-              <Button
-                type="submit"
-                disabled={!formData.name}
-              >
+              <Button type="submit" disabled={!formData.name}>
                 {isEditing ? 'Actualizar' : 'Agregar'}
               </Button>
             </div>

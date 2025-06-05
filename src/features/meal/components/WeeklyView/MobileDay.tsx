@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Meal, MEAL_TYPES } from '../../types';
+import { MEAL_HOURS } from '../../utils/dateUtils';
 import { MobileDayProps } from './types';
 
 export const MobileDay: React.FC<MobileDayProps> = ({
@@ -29,8 +30,11 @@ export const MobileDay: React.FC<MobileDayProps> = ({
             return (
               <div key={type} className="flex items-center gap-3">
                 <config.icon className="w-5 h-5 text-gray-600 shrink-0" />
+                <span className="text-xs text-gray-500 w-10">
+                  {MEAL_HOURS[type as keyof typeof MEAL_HOURS]}:00
+                </span>
                 {meal ? (
-                  <div 
+                  <div
                     className={`flex-1 p-2 rounded transition-colors duration-200 ${color} ${hoverColor} cursor-pointer`}
                     onClick={() => onOpenModal(day.fullDate, type as Meal['type'], meal)}
                   >
