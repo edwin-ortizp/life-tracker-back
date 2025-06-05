@@ -126,7 +126,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       {columns.map(col => (
         <div
           key={col.key}
-          className="w-72 flex-shrink-0 space-y-3"
+          className="min-w-[16rem] md:min-w-[18rem] flex-shrink-0 space-y-3"
           onDragOver={(e) => e.preventDefault()}
           onDrop={() => handleDrop(col.key)}
         >

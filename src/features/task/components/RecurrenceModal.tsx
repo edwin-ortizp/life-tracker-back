@@ -1,5 +1,3 @@
-// src/features/task/components/RecurrenceModal.tsx
-// src/features/task/components/RecurrenceModal.tsx
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -131,7 +129,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
           )}
         </DialogHeader>
         
-        <div className="grid gap-6 py-4">
+        <div className="grid gap-4 py-4">
           {mode !== 'complete' && (
             <TaskTitleInput
               value={formData.title}
@@ -193,7 +191,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
           )}
 
           {mode !== 'complete' && (
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <label className="flex items-center gap-2 text-sm">
                 <Checkbox checked={urgent} onCheckedChange={(v) => setUrgent(Boolean(v))} />
                 Urgente
@@ -202,22 +200,19 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                 <Checkbox checked={important} onCheckedChange={(v) => setImportant(Boolean(v))} />
                 Importante
               </label>
-            </div>
-          )}
-
-          {mode !== 'complete' && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Tamaño</label>
-              <Select value={sizeState} onValueChange={(v) => setSizeState(v as 'pequeña' | 'mediana' | 'grande')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tamaño" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pequeña">pequeña</SelectItem>
-                  <SelectItem value="mediana">mediana</SelectItem>
-                  <SelectItem value="grande">grande</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Tamaño</span>
+                <Select value={sizeState} onValueChange={(v) => setSizeState(v as 'pequeña' | 'mediana' | 'grande')}>
+                  <SelectTrigger className="h-8 w-28">
+                    <SelectValue placeholder="Tamaño" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pequeña">pequeña</SelectItem>
+                    <SelectItem value="mediana">mediana</SelectItem>
+                    <SelectItem value="grande">grande</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
         </div>

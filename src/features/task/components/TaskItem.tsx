@@ -65,12 +65,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
           <TooltipContent>{pInfo.text}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <CardContent className="p-3 flex flex-col gap-2">
-        <div className="flex items-start gap-2"> {/* Top section: toggle, title/desc, actions */}
+      <CardContent className="p-2 flex flex-col gap-1">
+        <div className="flex items-start gap-2">
           <Button
             variant="ghost"
             size="icon"
-            className="p-1 mt-0.5 rounded-full h-auto w-auto"
+            className="h-6 w-6 p-1 mt-0.5 rounded-full"
             onClick={(e) => { e.stopPropagation(); onToggle(task.id, !task.completed); }}
           >
             {task.completed ? (
@@ -112,7 +112,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
             <Button
               variant="ghost"
               size="icon"
-              className="p-1.5 rounded-full h-auto w-auto"
+              className="h-6 w-6 p-1 rounded-full"
               title="Editar tarea"
               onClick={(e) => { e.stopPropagation(); onEdit(task); }}
             >
@@ -123,7 +123,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="p-1.5 rounded-full h-auto w-auto"
+                  className="h-6 w-6 p-1 rounded-full"
                   title="Eliminar tarea"
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -148,10 +148,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
           </div>
         </div>
 
-        {/* Tags section */}
-        <div className="flex flex-wrap gap-2 items-center pl-8"> {/* Added pl-8 to align with title text */}
+        <div className="flex flex-wrap gap-2 items-center pl-8">
           <span className={cn(
-            "flex items-center gap-1 text-xs px-2 py-0.5 rounded-md", // Adjusted py
+            "flex items-center gap-1 text-xs px-2 py-0.5 rounded-md",
             categoryStyle.bg,
             categoryStyle.text
           )}>
@@ -184,15 +183,3 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
     </Card>
   );
 };
-
-// Need to ensure TooltipProvider, Tooltip, TooltipTrigger, TooltipContent are imported
-// if AlignLeft icon is to have a tooltip for the description.
-// For now, I've removed the description display from title line if title itself exists,
-// and added a new paragraph for description if no title.
-// The prompt focused on Card/Button/Badge, so Tooltip is an addition.
-// If Tooltip is not desired, the AlignLeft icon can be removed or description shown differently.
-// The provided solution adds Tooltip for description when title is present.
-// And shows description directly if title is not present.
-// Also adjusted padding for badges (py-0.5) and button sizes (h-auto w-auto).
-// Added break-all to title and description for better wrapping.
-// Added pl-8 to tags section to align with title text (after toggle button).
