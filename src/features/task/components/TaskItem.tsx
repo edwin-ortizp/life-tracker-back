@@ -34,11 +34,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
   const categoryStyle = CATEGORY_COLORS[task.category];
 
   const priorityInfo: Record<string, { color: string; text: string; label: string }> = {
-    do: { color: 'bg-red-500', text: 'Hacer (urgente + importante)', label: 'do' },
-    decide: { color: 'bg-orange-500', text: 'Decidir (importante)', label: 'decide' },
-    delegate: { color: 'bg-blue-500', text: 'Delegar (urgente)', label: 'delegate' },
-    delete: { color: 'bg-gray-400', text: 'Eliminar (sin prioridad)', label: 'delete' },
-    none: { color: 'bg-gray-400', text: 'Eliminar (sin prioridad)', label: 'delete' }
+    do: { color: 'bg-red-500', text: 'Hacer (urgente + importante)', label: '🔥 do' },
+    decide: { color: 'bg-orange-500', text: 'Decidir (importante)', label: '🤔 decide' },
+    delegate: { color: 'bg-blue-500', text: 'Delegar (urgente)', label: '📤 delegate' },
+    delete: { color: 'bg-gray-400', text: 'Eliminar (sin prioridad)', label: '🗑️ delete' },
+    none: { color: 'bg-gray-400', text: 'Eliminar (sin prioridad)', label: '🗑️ delete' }
   };
   const pInfo = priorityInfo[task.priority || 'none'];
 
@@ -59,21 +59,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
         task.completed ? 'bg-muted/50' : overdue ? 'border-destructive bg-destructive/5' : ''
       )}
     >
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Badge
-              className={cn(
-                'absolute top-1 right-1 text-xs font-normal px-2 py-0.5 text-white',
-                pInfo.color
-              )}
-            >
-              {pInfo.label}
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent>{pInfo.text}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      {/* task content */}
       <CardContent className={cn(
         variant === 'kanban' ? 'p-2 flex flex-col gap-1' : 'p-3 flex flex-col gap-2'
       )}>
@@ -200,6 +186,23 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
             </Badge>
           )}
 
+        </div>
+        <div className="pt-2 flex justify-center">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  className={cn(
+                    'text-xs font-normal px-2 py-0.5 text-white',
+                    pInfo.color
+                  )}
+                >
+                  {pInfo.label}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>{pInfo.text}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </CardContent>
     </Card>
