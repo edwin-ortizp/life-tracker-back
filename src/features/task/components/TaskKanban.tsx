@@ -151,6 +151,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
                 onDelete={onDelete}
                 onEdit={onEdit}
                 onView={onView}
+                variant="kanban"
               />
             </div>
           ))}

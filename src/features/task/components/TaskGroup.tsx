@@ -55,6 +55,7 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}
+          variant="list"
         />
       ))}
     </div>

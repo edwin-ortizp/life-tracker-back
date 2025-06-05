@@ -26,9 +26,10 @@ interface TaskItemProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
+  variant?: 'list' | 'kanban';
 }
 
-export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, onEdit, onView }) => {
+export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, onEdit, onView, variant = 'list' }) => {
   const overdue = task.dueDate && isBefore(startOfDay(task.dueDate), startOfDay(new Date()));
   const categoryStyle = CATEGORY_COLORS[task.category];
 
@@ -53,11 +54,29 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
     <Card
       onClick={() => onView && onView(task)}
       className={cn(
-        'cursor-pointer relative text-sm max-w-[18rem]',
+        'cursor-pointer relative',
+        variant === 'kanban' ? 'text-sm max-w-[18rem]' : 'w-full',
         task.completed ? 'bg-muted/50' : overdue ? 'border-destructive bg-destructive/5' : ''
       )}
     >
-      <CardContent className="p-2 flex flex-col gap-1">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              className={cn(
+                'absolute top-1 right-1 text-xs font-normal px-2 py-0.5 text-white',
+                pInfo.color
+              )}
+            >
+              {pInfo.label}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>{pInfo.text}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <CardContent className={cn(
+        variant === 'kanban' ? 'p-2 flex flex-col gap-1' : 'p-3 flex flex-col gap-2'
+      )}>
         <div className="flex items-start gap-2">
           <Button
             variant="ghost"
@@ -74,7 +93,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
           
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className={cn("break-all line-clamp-2", task.completed ? 'line-through text-muted-foreground' : 'font-medium')}>
+              <span className={cn(
+                'break-all line-clamp-2',
+                variant === 'kanban' ? 'text-sm' : '',
+                task.completed ? 'line-through text-muted-foreground' : 'font-medium'
+              )}>
                 {task.title}
               </span>
               {task.description && (
@@ -83,12 +106,24 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
             </div>
 
             {task.description && task.title && (
-              <p className={cn("text-xs text-muted-foreground mt-1 line-clamp-2 break-all", task.completed && "line-through")}>
+              <p
+                className={cn(
+                  variant === 'kanban' ? 'text-xs' : 'text-sm',
+                  'text-muted-foreground mt-1 line-clamp-2 break-all',
+                  task.completed && 'line-through'
+                )}
+              >
                 {task.description}
               </p>
             )}
             {task.description && !task.title && (
-              <p className={cn("text-xs text-muted-foreground mt-1 line-clamp-2 break-all", task.completed && "line-through")}>
+              <p
+                className={cn(
+                  variant === 'kanban' ? 'text-xs' : 'text-sm',
+                  'text-muted-foreground mt-1 line-clamp-2 break-all',
+                  task.completed && 'line-through'
+                )}
+              >
                 {task.description}
               </p>
             )}
@@ -165,16 +200,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
             </Badge>
           )}
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge className={cn('text-xs font-normal px-2 py-0.5 text-white', pInfo.color)}>
-                  {pInfo.label}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>{pInfo.text}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </div>
       </CardContent>
     </Card>
