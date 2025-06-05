@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { JournalWithMood } from '@/features/journal/components/JournalWithMood';
@@ -18,84 +18,22 @@ import {
   Cell
 } from 'recharts';
 import { useAuth } from '@/hooks/useAuth';
-import { db } from '@/firebase';
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { startOfWeek, endOfWeek } from 'date-fns';
+import { StatsPeriodSelector } from '@/features/journal/components/StatsPeriodSelector';
+import { useJournalStatsRange } from '@/features/journal/hooks/useJournalStatsRange';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c'];
 
 const JournalPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [stats, setStats] = useState<any>({
-    entries: [],
-    moodStats: [],
-    totalEntries: 0,
-    averageWords: 0
-  });
+  const [startDate, setStartDate] = useState(startOfWeek(new Date()));
+  const [endDate, setEndDate] = useState(endOfWeek(new Date()));
   const { user } = useAuth();
+  const { stats, loading, error } = useJournalStatsRange(startDate, endDate);
 
-  useEffect(() => {
-    if (user) {
-      fetchStats();
-    }
-  }, [user, selectedDate]);
-
-  const fetchStats = async () => {
-    if (!user) return;
-
-    // Obtener entradas del diario
-    const journalQuery = query(
-      collection(db, 'journal'),
-      where('userId', '==', user.uid),
-      orderBy('date', 'desc'),
-      limit(30)
-    );
-
-    // Obtener estados de ánimo
-    const moodQuery = query(
-      collection(db, 'moods'),
-      where('userId', '==', user.uid),
-      orderBy('date', 'desc'),
-      limit(30)
-    );
-
-    const [journalSnap, moodSnap] = await Promise.all([
-      getDocs(journalQuery),
-      getDocs(moodQuery)
-    ]);
-
-    const entries = journalSnap.docs.map(doc => {
-      const data = doc.data();
-      return {
-        date: data.date,
-        words: data.text?.split(/\s+/).length || 0,
-        characters: data.text?.length || 0
-      };
-    });
-
-    // Procesar estadísticas de estado de ánimo
-    const moodCounts: Record<string, number> = {};
-    moodSnap.docs.forEach(doc => {
-      const data = doc.data();
-      if (Array.isArray(data.moods)) {
-        data.moods.forEach((mood: any) => {
-          moodCounts[mood.text] = (moodCounts[mood.text] || 0) + 1;
-        });
-      }
-    });
-
-    const moodStats = Object.entries(moodCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
-
-    setStats({
-      entries,
-      moodStats,
-      totalEntries: entries.length,
-      averageWords: Math.round(
-        entries.reduce((acc, curr) => acc + curr.words, 0) / entries.length || 0
-      )
-    });
+  const handlePeriodChange = (start: Date, end: Date) => {
+    setStartDate(start);
+    setEndDate(end);
   };
 
   if (!user) {
@@ -132,7 +70,13 @@ const JournalPage = () => {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
+          <StatsPeriodSelector onPeriodChange={handlePeriodChange} />
+          {loading || !stats ? (
+            <div className="p-4">Cargando estadísticas...</div>
+          ) : error ? (
+            <div className="p-4 text-red-500">Error al cargar estadísticas</div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-4">
             <Card>
               <CardContent className="pt-6">
                 <h3 className="font-medium mb-4">Actividad de Escritura</h3>
@@ -210,6 +154,7 @@ const JournalPage = () => {
               </CardContent>
             </Card>
           </div>
+          )}
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-4">
