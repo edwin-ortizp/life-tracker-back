@@ -39,36 +39,39 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{task.title}</DialogTitle>
-          {task.description && (
-            <DialogDescription>{task.description}</DialogDescription>
-          )}
-        </DialogHeader>
-
-        <div className="py-4 space-y-4">
-          {task.dueDate && (
-            <p className="text-sm">
-              <span className="font-medium">Fecha límite:</span>{' '}
-              {formatDateToSpanish(task.dueDate)}
+      <DialogContent className="sm:max-w-2xl">
+        <div className="grid gap-6 md:grid-cols-12">
+          <div className="md:col-span-8 space-y-4">
+            <DialogHeader className="text-left">
+              <DialogTitle>{task.title}</DialogTitle>
+              {task.description && (
+                <DialogDescription>{task.description}</DialogDescription>
+              )}
+            </DialogHeader>
+          </div>
+          <div className="md:col-span-4 space-y-4 text-sm">
+            {task.dueDate && (
+              <p>
+                <span className="font-medium">Fecha límite:</span>{' '}
+                {formatDateToSpanish(task.dueDate)}
+              </p>
+            )}
+            <p className="flex items-center gap-2">
+              <span className={
+                `${categoryStyle.bg} ${categoryStyle.text} px-2 py-0.5 rounded-md text-xs flex items-center`
+              }>
+                {CATEGORY_LABELS[task.category]}
+              </span>
             </p>
-          )}
-          <p className="text-sm flex items-center gap-2">
-            <span className={
-              `${categoryStyle.bg} ${categoryStyle.text} px-2 py-0.5 rounded-md text-xs flex items-center`
-            }>
-              {CATEGORY_LABELS[task.category]}
-            </span>
-          </p>
-          {task.isRecurrent && task.recurrence && (
-            <Badge variant="outline" className="text-xs font-normal px-2 py-0.5 text-accent-foreground border-accent">
-              {recurrenceDescription}
-            </Badge>
-          )}
+            {task.isRecurrent && task.recurrence && (
+              <Badge variant="outline" className="text-xs font-normal px-2 py-0.5 text-accent-foreground border-accent">
+                {recurrenceDescription}
+              </Badge>
+            )}
+          </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="mt-6">
           <Button variant="outline" onClick={onClose}>
             Cerrar
           </Button>
