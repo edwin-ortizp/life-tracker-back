@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +32,15 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
   const overdue = task.dueDate && isBefore(startOfDay(task.dueDate), startOfDay(new Date()));
   const categoryStyle = CATEGORY_COLORS[task.category];
 
+  const priorityInfo: Record<string, { color: string; text: string }> = {
+    do: { color: 'bg-red-500', text: 'Hacer (urgente + importante)' },
+    decide: { color: 'bg-orange-500', text: 'Decidir (importante)' },
+    delegate: { color: 'bg-blue-500', text: 'Delegar (urgente)' },
+    delete: { color: 'bg-gray-400', text: 'Eliminar (sin prioridad)' },
+    none: { color: 'bg-gray-400', text: 'Eliminar (sin prioridad)' }
+  };
+  const pInfo = priorityInfo[task.priority || 'none'];
+
   // Obtener el texto de recurrencia usando la utilidad centralizada
   const recurrenceDescription = task.isRecurrent && task.recurrence ? 
     getRecurrenceText(
@@ -43,10 +53,18 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
     <Card
       onClick={() => onView && onView(task)}
       className={cn(
-        'cursor-pointer',
+        'cursor-pointer relative',
         task.completed ? 'bg-muted/50' : overdue ? 'border-destructive bg-destructive/5' : ''
       )}
     >
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className={cn('absolute top-1 right-1 w-3 h-3 rounded-full', pInfo.color)} />
+          </TooltipTrigger>
+          <TooltipContent>{pInfo.text}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <CardContent className="p-3 flex flex-col gap-2">
         <div className="flex items-start gap-2"> {/* Top section: toggle, title/desc, actions */}
           <Button

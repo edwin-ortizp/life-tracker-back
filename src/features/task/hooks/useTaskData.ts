@@ -61,6 +61,8 @@ export const useTaskData = () => {
               dueDate: data.dueDate?.toDate(),
               isRecurrent: data.isRecurrent || false,
               category: data.category || 'other',
+              priority: data.priority || 'delete',
+              size: data.size || 'peque\u00f1a',
               recurrence: data.recurrence ? {
                 frequency: data.recurrence.frequency,
                 pattern: data.recurrence.pattern,
@@ -107,7 +109,9 @@ export const useTaskData = () => {
         title: formData.title.trim(),
         completed: false,
         createdAt: serverTimestamp(),
-        category: formData.category || 'other'
+        category: formData.category || 'other',
+        priority: formData.priority || 'delete',
+        size: formData.size || 'peque\u00f1a'
       };
 
       if (formData.description?.trim()) {
@@ -159,6 +163,12 @@ export const useTaskData = () => {
       }
       if (updates.category) {
         updateData.category = updates.category;
+      }
+      if (updates.priority) {
+        updateData.priority = updates.priority;
+      }
+      if (updates.size) {
+        updateData.size = updates.size;
       }
       if (updates.isRecurrent !== undefined) {
         updateData.isRecurrent = updates.isRecurrent;
@@ -252,6 +262,8 @@ export const useTaskData = () => {
         dueDate: data.dueDate ? Timestamp.fromDate(data.dueDate) : null,
         isRecurrent: true,
         category: currentTask.category,
+        priority: currentTask.priority || 'delete',
+        size: currentTask.size || 'peque\u00f1a',
         recurrence: {
           pattern: currentTask.recurrence?.pattern || 'daily',
           frequency: currentTask.recurrence?.frequency || 1,
@@ -282,6 +294,8 @@ export const useTaskData = () => {
       title: '',
       completed: false,
       category: 'personal',
+      priority: 'delete',
+      size: 'peque\u00f1a',
       createdAt: { seconds: Date.now() / 1000 },
       ...(dueDate ? { dueDate } : {})
     });

@@ -14,6 +14,8 @@ import { TaskTitleInput } from './TaskTitleInput';
 import { TaskDescriptionInput } from './TaskDescriptionInput';
 import { TaskDateInput } from './TaskDateInput';
 import { TaskCategorySelect } from './TaskCategorySelect';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { TaskRecurrenceConfig } from './TaskRecurrenceConfig';
 import { useRecurrenceLogic } from '../hooks/useRecurrenceLogic';
 import type { RecurrenceModalProps, TaskFormData } from '../types';
@@ -35,10 +37,12 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
       return {
         title: '',
         description: '',
-        category: 'personal',
-        isRecurrent: false,
-      };
-    }
+      category: 'personal',
+      isRecurrent: false,
+      priority: 'delete',
+      size: 'peque\u00f1a'
+    };
+  }
     
     return {
       title: task.title || '',
@@ -46,9 +50,19 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
       dueDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.dueDate || undefined),
       isRecurrent: task.isRecurrent ?? false,
       category: task.category || 'personal',
-      recurrence: task.recurrence
+      recurrence: task.recurrence,
+      priority: task.priority || 'delete',
+      size: task.size || 'peque\u00f1a'
     };
   });
+
+  const [urgent, setUrgent] = useState<boolean>(() => {
+    return task.priority === 'do' || task.priority === 'delegate';
+  });
+  const [important, setImportant] = useState<boolean>(() => {
+    return task.priority === 'do' || task.priority === 'decide';
+  });
+  const [sizeState, setSizeState] = useState<'peque\u00f1a' | 'mediana' | 'grande'>(task.size || 'peque\u00f1a');
 
   useEffect(() => {
     if (isOpen) {
@@ -58,7 +72,12 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
           description: '',
           category: 'personal',
           isRecurrent: false,
+          priority: 'delete',
+          size: 'peque\u00f1a'
         });
+        setUrgent(false);
+        setImportant(false);
+        setSizeState('peque\u00f1a');
       } else {
         setFormData({
           title: task.title || '',
@@ -66,15 +85,27 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
           dueDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.dueDate || undefined),
           isRecurrent: task.isRecurrent || false,
           category: task.category || 'personal',
-          recurrence: task.recurrence
+          recurrence: task.recurrence,
+          priority: task.priority || 'delete',
+          size: task.size || 'peque\u00f1a'
         });
+        setUrgent(task.priority === 'do' || task.priority === 'delegate');
+        setImportant(task.priority === 'do' || task.priority === 'decide');
+        setSizeState(task.size || 'peque\u00f1a');
       }
     }
   }, [task, mode, isOpen]);
 
   const handleConfirm = () => {
     if (!formData.title.trim()) return;
-    onConfirm(formData);
+    const priority = urgent && important
+      ? 'do'
+      : important
+      ? 'decide'
+      : urgent
+      ? 'delegate'
+      : 'delete';
+    onConfirm({ ...formData, priority, size: sizeState });
   };
 
   const getModalTitle = () => {
@@ -159,6 +190,35 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                 recurrence
               })}
             />
+          )}
+
+          {mode !== 'complete' && (
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox checked={urgent} onCheckedChange={(v) => setUrgent(Boolean(v))} />
+                Urgente
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox checked={important} onCheckedChange={(v) => setImportant(Boolean(v))} />
+                Importante
+              </label>
+            </div>
+          )}
+
+          {mode !== 'complete' && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tamaño</label>
+              <Select value={sizeState} onValueChange={(v) => setSizeState(v as 'pequeña' | 'mediana' | 'grande')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tamaño" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pequeña">pequeña</SelectItem>
+                  <SelectItem value="mediana">mediana</SelectItem>
+                  <SelectItem value="grande">grande</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           )}
         </div>
 
