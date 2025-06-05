@@ -32,12 +32,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
   const overdue = task.dueDate && isBefore(startOfDay(task.dueDate), startOfDay(new Date()));
   const categoryStyle = CATEGORY_COLORS[task.category];
 
-  const priorityInfo: Record<string, { color: string; text: string }> = {
-    do: { color: 'bg-red-500', text: 'Hacer (urgente + importante)' },
-    decide: { color: 'bg-orange-500', text: 'Decidir (importante)' },
-    delegate: { color: 'bg-blue-500', text: 'Delegar (urgente)' },
-    delete: { color: 'bg-gray-400', text: 'Eliminar (sin prioridad)' },
-    none: { color: 'bg-gray-400', text: 'Eliminar (sin prioridad)' }
+  const priorityInfo: Record<string, { color: string; text: string; label: string }> = {
+    do: { color: 'bg-red-500', text: 'Hacer (urgente + importante)', label: 'do' },
+    decide: { color: 'bg-orange-500', text: 'Decidir (importante)', label: 'decide' },
+    delegate: { color: 'bg-blue-500', text: 'Delegar (urgente)', label: 'delegate' },
+    delete: { color: 'bg-gray-400', text: 'Eliminar (sin prioridad)', label: 'delete' },
+    none: { color: 'bg-gray-400', text: 'Eliminar (sin prioridad)', label: 'delete' }
   };
   const pInfo = priorityInfo[task.priority || 'none'];
 
@@ -53,18 +53,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
     <Card
       onClick={() => onView && onView(task)}
       className={cn(
-        'cursor-pointer relative',
+        'cursor-pointer relative text-sm max-w-[18rem]',
         task.completed ? 'bg-muted/50' : overdue ? 'border-destructive bg-destructive/5' : ''
       )}
     >
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className={cn('absolute top-1 right-1 w-3 h-3 rounded-full', pInfo.color)} />
-          </TooltipTrigger>
-          <TooltipContent>{pInfo.text}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
       <CardContent className="p-2 flex flex-col gap-1">
         <div className="flex items-start gap-2">
           <Button
@@ -82,27 +74,21 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
           
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className={cn("break-all", task.completed ? 'line-through text-muted-foreground' : 'font-medium')}>
+              <span className={cn("break-all line-clamp-2", task.completed ? 'line-through text-muted-foreground' : 'font-medium')}>
                 {task.title}
               </span>
               {task.description && (
-                // TooltipProvider and related components removed for now to stick to original scope
                 <AlignLeft className="w-4 h-4 text-muted-foreground shrink-0" />
               )}
             </div>
-            
-            {/* Display full description if no title, or as a separate paragraph if title exists and it's desired.
-                For now, only showing description if title is missing, or via AlignLeft icon hint.
-                The original showed it as a line-clamped paragraph if present. Let's restore that for consistency
-                if title is present.
-            */}
+
             {task.description && task.title && (
-              <p className={cn("text-sm text-muted-foreground mt-1 line-clamp-2 break-all", task.completed && "line-through")}>
+              <p className={cn("text-xs text-muted-foreground mt-1 line-clamp-2 break-all", task.completed && "line-through")}>
                 {task.description}
               </p>
             )}
             {task.description && !task.title && (
-              <p className={cn("text-sm text-muted-foreground mt-1 line-clamp-2 break-all", task.completed && "line-through")}>
+              <p className={cn("text-xs text-muted-foreground mt-1 line-clamp-2 break-all", task.completed && "line-through")}>
                 {task.description}
               </p>
             )}
@@ -178,6 +164,17 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
               {recurrenceDescription}
             </Badge>
           )}
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className={cn('text-xs font-normal px-2 py-0.5 text-white', pInfo.color)}>
+                  {pInfo.label}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>{pInfo.text}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </CardContent>
     </Card>

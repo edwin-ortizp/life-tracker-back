@@ -121,100 +121,103 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{getModalTitle()}</DialogTitle>
           {mode === 'complete' && (
             <DialogDescription>{task.title}</DialogDescription>
           )}
         </DialogHeader>
-        
-        <div className="grid gap-4 py-4">
-          {mode !== 'complete' && (
-            <TaskTitleInput
-              value={formData.title}
-              onChange={(title) => setFormData({ ...formData, title })}
-            />
-          )}
+        <div className="grid gap-4 py-4 md:grid-cols-2">
+          <div className="space-y-4">
+            {mode !== 'complete' && (
+              <TaskTitleInput
+                value={formData.title}
+                onChange={(title) => setFormData({ ...formData, title })}
+              />
+            )}
 
-          {mode !== 'complete' && (
-            <TaskCategorySelect
-              value={formData.category}
-              onChange={(category) => setFormData({ ...formData, category })}
+            <TaskDescriptionInput
+              value={formData.description || ''}
+              onChange={(description) => setFormData({ ...formData, description })}
             />
-          )}
+          </div>
 
-          <TaskDescriptionInput
-            value={formData.description || ''}
-            onChange={(description) => setFormData({ ...formData, description })}
-          />
+          <div className="space-y-4">
+            {mode !== 'complete' && (
+              <TaskCategorySelect
+                value={formData.category}
+                onChange={(category) => setFormData({ ...formData, category })}
+              />
+            )}
 
-          {mode === 'edit' ? (
-            <TaskDateInput
-              value={formData.dueDate}
-              onChange={(dueDate) => setFormData({ ...formData, dueDate })}
-              showClearButton
-            />
-          ) : mode === 'create' ? (
-            <TaskDateInput
-              value={formData.dueDate}
-              onChange={(dueDate) => setFormData({ ...formData, dueDate })}
-              showClearButton
-            />
-          ) : (
-            task.isRecurrent && (
+            {mode === 'edit' ? (
               <TaskDateInput
                 value={formData.dueDate}
                 onChange={(dueDate) => setFormData({ ...formData, dueDate })}
-                label="Próxima fecha"
+                showClearButton
               />
-            )
-          )}
+            ) : mode === 'create' ? (
+              <TaskDateInput
+                value={formData.dueDate}
+                onChange={(dueDate) => setFormData({ ...formData, dueDate })}
+                showClearButton
+              />
+            ) : (
+              task.isRecurrent && (
+                <TaskDateInput
+                  value={formData.dueDate}
+                  onChange={(dueDate) => setFormData({ ...formData, dueDate })}
+                  label="Próxima fecha"
+                />
+              )
+            )}
 
-          {mode !== 'complete' && (
-            <TaskRecurrenceConfig
-              isRecurrent={formData.isRecurrent ?? false}
-              onRecurrentChange={(isRecurrent) => setFormData({
-                ...formData,
-                isRecurrent,
-                recurrence: isRecurrent ? {
-                  pattern: 'daily',
-                  frequency: 1
-                } : undefined
-              })}
-              config={formData.recurrence}
-              onConfigChange={(recurrence) => setFormData({
-                ...formData,
-                recurrence
-              })}
-            />
-          )}
+            {mode !== 'complete' && (
+              <TaskRecurrenceConfig
+                isRecurrent={formData.isRecurrent ?? false}
+                onRecurrentChange={(isRecurrent) => setFormData({
+                  ...formData,
+                  isRecurrent,
+                  recurrence: isRecurrent ? {
+                    pattern: 'daily',
+                    frequency: 1
+                  } : undefined
+                })}
+                config={formData.recurrence}
+                onConfigChange={(recurrence) => setFormData({
+                  ...formData,
+                  recurrence
+                })}
+              />
+            )}
 
-          {mode !== 'complete' && (
-            <div className="flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2 text-sm">
-                <Checkbox checked={urgent} onCheckedChange={(v) => setUrgent(Boolean(v))} />
-                Urgente
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <Checkbox checked={important} onCheckedChange={(v) => setImportant(Boolean(v))} />
-                Importante
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Tamaño</span>
-                <Select value={sizeState} onValueChange={(v) => setSizeState(v as 'pequeña' | 'mediana' | 'grande')}>
-                  <SelectTrigger className="h-8 w-28">
-                    <SelectValue placeholder="Tamaño" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pequeña">pequeña</SelectItem>
-                    <SelectItem value="mediana">mediana</SelectItem>
-                    <SelectItem value="grande">grande</SelectItem>
-                  </SelectContent>
-                </Select>
+            {mode !== 'complete' && (
+              <div className="flex flex-wrap items-center gap-4">
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox checked={urgent} onCheckedChange={(v) => setUrgent(Boolean(v))} />
+                  Urgente
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox checked={important} onCheckedChange={(v) => setImportant(Boolean(v))} />
+                  Importante
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Tamaño</span>
+                  <Select value={sizeState} onValueChange={(v) => setSizeState(v as 'pequeña' | 'mediana' | 'grande')}>
+                    <SelectTrigger className="h-8 w-28">
+                      <SelectValue placeholder="Tamaño" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pequeña">pequeña</SelectItem>
+                      <SelectItem value="mediana">mediana</SelectItem>
+                      <SelectItem value="grande">grande</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <DialogFooter>
