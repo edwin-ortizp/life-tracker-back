@@ -96,11 +96,11 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
   };
 
   return (
-    <div className="grid grid-flow-col auto-cols-[250px] sm:grid-cols-2 md:grid-flow-row md:grid-cols-5 gap-4 overflow-x-auto">
+    <div className="flex items-start gap-4 overflow-x-auto pb-4">
       {columns.map(col => (
         <div
           key={col.key}
-          className="space-y-3 min-w-[250px]"
+          className="w-72 flex-shrink-0 space-y-3"
           onDragOver={(e) => e.preventDefault()}
           onDrop={() => handleDrop(col.key)}
         >

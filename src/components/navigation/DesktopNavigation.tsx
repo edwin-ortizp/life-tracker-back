@@ -21,8 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { MenuItem } from './types';
-import { ClipboardList } from 'lucide-react';
-import { ThumbsDown } from 'lucide-react';
+import { ClipboardList, ThumbsDown, Kanban as KanbanIcon } from 'lucide-react';
 
 export const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Inicio', path: '/' },
@@ -34,6 +33,7 @@ export const menuItems: MenuItem[] = [
   { icon: Timer, label: 'Pomodoro', path: '/pomodoro' },
   { icon: UtensilsCrossed, label: 'Comidas', path: '/meal' },
   { icon: ClipboardList, label: 'Tareas', path: '/task' },
+  { icon: KanbanIcon, label: 'Kanban', path: '/kanban' },
   { icon: ThumbsDown, label: 'Hábitos Negativos', path: '/negative' },
   { icon: LogOut, label: 'Salir', path: '/logout' }
 ];

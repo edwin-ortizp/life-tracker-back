@@ -1,20 +1,13 @@
-// src/features/task/components/index.tsx
-import React from 'react';
+import { Plus } from 'lucide-react';
+import PageLayout from '@/components/PageLayout';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { TaskList } from './TaskList';
+import { TaskKanban } from '@/features/task/components';
+import { RecurrenceModal } from '@/features/task/components/RecurrenceModal';
+import { useTaskData } from '@/features/task/hooks/useTaskData';
 
-
-// Exports
-export * from './TaskKanban';
-export * from './TaskList';
-import { RecurrenceModal } from './RecurrenceModal';
-import { useTaskData } from '../hooks/useTaskData';
-import type { TaskProps } from '../types';
-
-export const Task: React.FC<TaskProps> = ({ }) => {
+const KanbanPage = () => {
   const { user } = useAuth();
   const {
     tasks,
@@ -35,21 +28,24 @@ export const Task: React.FC<TaskProps> = ({ }) => {
 
   if (!user) {
     return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <p>Inicia sesión para gestionar tus tareas</p>
-        </CardContent>
-      </Card>
+      <PageLayout>
+        <div className="text-center py-8">
+          <h2 className="text-xl font-semibold">Inicia sesión para gestionar tus tareas</h2>
+        </div>
+      </PageLayout>
     );
   }
 
-
   return (
-    <div className="space-y-8">
+    <PageLayout>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Tablero Kanban</h1>
+        <p className="text-gray-500">Organiza tus tareas en un tablero estilo Trello</p>
+      </div>
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Tareas Pendientes</CardTitle>
+            <CardTitle>Tareas</CardTitle>
             <div className="flex items-center gap-4">
               {status === 'saving' && (
                 <span className="text-xs text-blue-500">Guardando...</span>
@@ -61,25 +57,22 @@ export const Task: React.FC<TaskProps> = ({ }) => {
             </div>
           </div>
         </CardHeader>
-        
         <CardContent>
-          <div className="space-y-6">
-            <TaskList
-              tasks={tasks}
-              onToggle={toggleTask}
-              onDelete={deleteTask}
-              onEdit={openEditModal}
-            />
-
-            {error && (
-              <p className="text-sm text-red-500">
-                {error}
-              </p>
-            )}
-          </div>
+          <TaskKanban
+            tasks={tasks}
+            onToggle={toggleTask}
+            onDelete={deleteTask}
+            onEdit={openEditModal}
+            onMove={(id, due) => editTask(id, { dueDate: due ?? undefined })}
+            onAdd={(due) => openCreateModal(due ?? undefined)}
+          />
+          {error && (
+            <p className="text-sm text-red-500 mt-4">
+              {error}
+            </p>
+          )}
         </CardContent>
       </Card>
-
       <RecurrenceModal
         isOpen={showRecurrenceModal}
         onClose={() => setShowRecurrenceModal()}
@@ -101,8 +94,8 @@ export const Task: React.FC<TaskProps> = ({ }) => {
         }}
         mode={modalMode}
       />
-    </div>
+    </PageLayout>
   );
 };
 
-export default Task;
+export default KanbanPage;
