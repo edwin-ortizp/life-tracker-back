@@ -1,6 +1,6 @@
 // features/meal/components/MealPlanner.tsx
 import React, { useState } from 'react'; // Added useState
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { Calendar, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -84,18 +84,18 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
       toast({ title: "Error al Eliminar", description: "No se pudo eliminar la comida.", variant: "destructive" });
     }
   };
-
   return (
-    <Card className="w-full h-screen">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 sticky top-0 bg-white z-10 border-b">
-        <div className="flex items-center space-x-4">
-          <h2 className="text-xl font-bold">Plan de Comidas</h2>
+    <div className="w-full h-full flex flex-col">
+      {/* Header responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-white border-b sticky top-0 z-10 gap-3">
+        <div className="flex items-center space-x-3">
+          <h2 className="text-lg sm:text-xl font-bold">Plan de Comidas</h2>
           <div className="flex items-center space-x-2">
             <Calendar className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-500">Semanal</span>
+            <span className="text-xs sm:text-sm text-gray-500">Semanal</span>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 overflow-x-auto">
           <ImportMealPlan
             onImport={handleImportTrigger}
             disabled={status === 'saving'}
@@ -105,20 +105,25 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
             disabled={status === 'saving'}
           />
         </div>
-      </CardHeader>
+      </div>
       
-      <CardContent className="p-0 h-[calc(100vh-80px)] overflow-auto">
+      {/* Content area */}
+      <div className="flex-1 bg-gray-50 overflow-hidden">
         <AlertDialog open={showImportConfirm} onOpenChange={setShowImportConfirm}>
-          <AlertDialogContent>
+          <AlertDialogContent className="mx-4 max-w-sm sm:max-w-lg">
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar Importación</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="text-base sm:text-lg">Confirmar Importación</AlertDialogTitle>
+              <AlertDialogDescription className="text-sm">
                 ¿Deseas sobrescribir el plan existente? Esto reemplazará todas las comidas existentes en las fechas importadas.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setPendingMealPlan(null)}>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={executeImport}>Sobrescribir</AlertDialogAction>
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+              <AlertDialogCancel onClick={() => setPendingMealPlan(null)} className="w-full sm:w-auto">
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={executeImport} className="w-full sm:w-auto">
+                Sobrescribir
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -134,13 +139,13 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
         {error && (
           <Alert variant="destructive" className="m-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
+            <AlertDescription className="text-sm">
               {error}
             </AlertDescription>
           </Alert>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

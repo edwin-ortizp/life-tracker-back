@@ -85,60 +85,60 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
       console.error('Error al eliminar:', err);
       toast({ title: "Error al Eliminar", description: "No se pudo eliminar la comida.", variant: "destructive" });
     }
-  };
-  return (
+  };  return (
     <div className="w-full h-full flex flex-col">
-      <DateSelector
-        selectedDate={currentDate}
-        onChange={handleDateChange}
-      />
+      {/* Date Selector con mejor responsive */}
+      <div className="p-4 bg-white border-b">
+        <DateSelector
+          selectedDate={currentDate}
+          onChange={handleDateChange}
+        />
+      </div>
 
-      {/* Vista móvil */}
-      <div className="md:hidden flex-1">
-        <div className="pb-16"> {/* Espacio para evitar que el contenido quede bajo la navegación móvil */}
+      {/* Vista móvil - Mejorada */}
+      <div className="md:hidden flex-1 overflow-y-auto">
+        <div className="pb-20 px-2"> {/* Espacio para navegación móvil */}
+          {weekDays.map(day => (
+            <MobileDay
+              key={day.fullDate}
+              day={day}
+              mealPlan={mealPlan}
+              onOpenModal={openModal}
+            />
+          ))}
+        </div>
+      </div>      {/* Vista desktop - Mejorada para mejor aprovechamiento del espacio */}
+      <div className="hidden md:block flex-1 overflow-auto">
+        <div className="min-h-full p-4 lg:p-6 xl:p-8">
+          <div className="grid grid-cols-8 gap-2 lg:gap-4 xl:gap-6 min-w-[900px] lg:min-w-[1200px] xl:min-w-[1400px] h-full">
+            {/* Columna de títulos de comidas */}
+            <div className="bg-gray-50 rounded-lg p-3 lg:p-4 xl:p-6">
+              {Object.entries(MEAL_TYPES)
+                .sort(([,a], [,b]) => a.order - b.order)
+                .map(([type, config]) => (
+                  <div key={type} className="h-32 lg:h-36 xl:h-40 flex items-center justify-center border-b border-gray-200 last:border-b-0">
+                    <div className="flex flex-col items-center gap-2 text-center">
+                      <config.icon className="h-6 w-6 lg:h-7 lg:w-7 xl:h-8 xl:w-8 text-gray-600" />
+                      <span className="font-medium text-sm lg:text-base">{config.title}</span>
+                      <span className="text-xs lg:text-sm text-gray-500">
+                        {MEAL_HOURS[type as keyof typeof MEAL_HOURS]}:00
+                      </span>
+                    </div>
+                  </div>
+              ))}
+            </div>
+
+            {/* Columnas de días */}
             {weekDays.map(day => (
-              <MobileDay
+              <DesktopDay
                 key={day.fullDate}
                 day={day}
                 mealPlan={mealPlan}
+                disabled={disabled}
                 onOpenModal={openModal}
               />
             ))}
           </div>
-      </div>
-
-      {/* Vista desktop */}
-      <div className="hidden md:block flex-1 overflow-x-auto">
-        <div className="grid grid-cols-8 divide-x divide-gray-100 min-w-[1000px]">
-          {/* Columna de títulos de comidas */}
-          <div className="pr-2">
-            {Object.entries(MEAL_TYPES)
-              .sort(([,a], [,b]) => a.order - b.order)
-              .map(([type, config]) => (
-                <div key={type} className="h-32 flex items-center">
-                  <div className="flex flex-col items-start gap-1">
-                    <div className="flex items-center gap-2">
-                      <config.icon className="h-5 w-5 text-gray-600" />
-                      <span className="font-medium">{config.title}</span>
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      {MEAL_HOURS[type as keyof typeof MEAL_HOURS]}:00
-                    </span>
-                  </div>
-                </div>
-            ))}
-          </div>
-
-          {/* Columnas de días */}
-          {weekDays.map(day => (
-            <DesktopDay
-              key={day.fullDate}
-              day={day}
-              mealPlan={mealPlan}
-              disabled={disabled}
-              onOpenModal={openModal}
-            />
-          ))}
         </div>
       </div>
 

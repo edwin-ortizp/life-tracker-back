@@ -33,14 +33,12 @@ const HabitPage = () => {
           <div className="grid grid-cols-1">
             <Habit selectedDate={selectedDate} />
           </div>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="flex-1 overflow-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardContent className="p-4">
+        </TabsContent>        <TabsContent value="analytics" className="flex-1 overflow-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4 lg:gap-6 xl:gap-8 desktop-grid-responsive">
+            <Card className="desktop-card-enhanced">
+              <CardContent className="p-4 lg:p-6">
                 <h3 className="font-medium mb-4">Tendencias de Hábitos</h3>
-                <div className="h-64 md:h-80">
+                <div className="h-64 md:h-80 lg:h-96">
                   <ResponsiveContainer>
                     <LineChart data={habitStats}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -63,8 +61,8 @@ const HabitPage = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-4">
+            <Card className="desktop-card-enhanced">
+              <CardContent className="p-4 lg:p-6">
                 <h3 className="font-medium mb-4">Resumen del Mes</h3>
               </CardContent>
             </Card>

@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -42,7 +42,21 @@ const DesktopNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(() => {
+    // Recordar el estado de la navegación en desktop
+    const saved = localStorage.getItem('desktop-nav-expanded');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  // Persistir el estado de expansión
+  useEffect(() => {
+    localStorage.setItem('desktop-nav-expanded', JSON.stringify(isExpanded));
+    // Actualizar la variable CSS para el margin del contenido
+    document.documentElement.style.setProperty(
+      '--desktop-nav-width', 
+      isExpanded ? '256px' : '64px'
+    );
+  }, [isExpanded]);
 
   const handleLogout = async () => {
     try {
@@ -51,7 +65,7 @@ const DesktopNavigation = () => {
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
-  };  const DesktopMenuItem = ({ icon: Icon, label, path, onClick }: MenuItem) => {
+  };const DesktopMenuItem = ({ icon: Icon, label, path, onClick }: MenuItem) => {
     const isActive = location.pathname === path;
     
     const buttonContent = (

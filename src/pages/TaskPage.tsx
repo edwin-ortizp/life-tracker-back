@@ -103,14 +103,12 @@ const TaskPage = () => {
 
         <TabsContent value="list" className="space-y-4">
           <Task selectedDate={selectedDate} />
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <Card>
+        </TabsContent>        <TabsContent value="analytics" className="space-y-4">
+          <div className="grid md:grid-cols-2 xl:grid-cols-2 gap-4 lg:gap-6 xl:gap-8 desktop-grid-responsive">
+            <Card className="desktop-card-enhanced">
               <CardContent className="pt-6">
                 <h3 className="font-medium mb-4">Progreso de Tareas</h3>
-                <div className="h-64">
+                <div className="h-64 lg:h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={taskStats}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -136,10 +134,10 @@ const TaskPage = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="desktop-card-enhanced">
               <CardContent className="pt-6">
                 <h3 className="font-medium mb-4">Estado General</h3>
-                <div className="h-64">
+                <div className="h-64 lg:h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
