@@ -51,7 +51,7 @@ export const MealModal: React.FC<MealModalProps> = ({
 
   return (
     <Dialog open={show} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[700px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
@@ -62,7 +62,7 @@ export const MealModal: React.FC<MealModalProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
             <div className="space-y-1">
               <Label htmlFor="mealType">Tipo de Comida</Label>
               <Select
@@ -109,14 +109,14 @@ export const MealModal: React.FC<MealModalProps> = ({
               />
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 sm:col-span-2">
               <Label htmlFor="mealRecipe">Receta</Label>
               <Textarea
                 id="mealRecipe"
                 value={formData.recipe}
                 onChange={(e) => onFormChange('recipe', e.target.value)}
                 placeholder="Ingredientes y preparación..."
-                className="h-24 resize-none"
+                className="h-40 resize-none"
               />
             </div>
           </div>
