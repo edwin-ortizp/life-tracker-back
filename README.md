@@ -62,6 +62,8 @@ src/
    - Entradas diarias
    - Etiquetado y búsqueda
    - Análisis de estado de ánimo
+   - Lectura de archivos Markdown locales en `src/features/journal/markdown`
+   - Exportación semanal a Markdown mediante `ExportWeekButton`
 
 ### Patrones y Convenciones
 
