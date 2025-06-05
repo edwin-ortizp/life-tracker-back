@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2 } from 'lucide-react';
 import { Meal, MEAL_TYPES } from '../../types';
+import { isPastMeal } from '../../utils/dateUtils';
 
 interface MealCellProps {
   date: string;
@@ -20,12 +21,13 @@ export const MealCell: React.FC<MealCellProps> = ({
   onOpenModal,
 }) => {
   const { color, hoverColor } = MEAL_TYPES[type];
+  const past = isPastMeal(date, type);
 
   if (!meal) {
     return (
       <Button
         variant="outline"
-        className="w-full h-full border-dashed"
+        className={`w-full h-full border-dashed ${past ? 'opacity-50' : ''}`}
         onClick={() => onOpenModal(date, type)}
         disabled={disabled}
       >
@@ -35,8 +37,8 @@ export const MealCell: React.FC<MealCellProps> = ({
   }
 
   return (
-    <div 
-      className={`h-full p-2 rounded ${color} relative group cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md`}
+    <div
+      className={`h-full p-2 rounded ${color} relative group cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md ${past ? 'opacity-50 grayscale' : ''}`}
       onClick={() => onOpenModal(date, type, meal)}
     >
       <p className="text-sm font-medium line-clamp-2">{meal.name}</p>

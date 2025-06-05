@@ -1,4 +1,19 @@
 import { getLocalDateString } from '@/utils/dates';
+import type { Meal } from '../types';
+
+export const MEAL_HOURS: Record<Meal['type'], number> = {
+  breakfast: 8,
+  morningSnack: 11,
+  lunch: 14,
+  afternoonSnack: 17,
+  dinner: 20
+};
+
+export const isPastMeal = (dateStr: string, type: Meal['type']): boolean => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const mealDate = new Date(year, month - 1, day, MEAL_HOURS[type] || 0, 0, 0, 0);
+  return mealDate.getTime() < Date.now();
+};
 
 export const getWeekDays = (selectedDate: Date = new Date()) => {
   const currentDate = new Date(selectedDate);
