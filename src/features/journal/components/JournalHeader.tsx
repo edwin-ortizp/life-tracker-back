@@ -1,6 +1,7 @@
 import React from 'react';
 import { Book, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import ExportWeekButton from './ExportWeekButton';
 
 interface JournalHeaderProps {
   status: string;
@@ -40,8 +41,9 @@ export const JournalHeader: React.FC<JournalHeaderProps> = ({
           )}
         </div>
         
-        <Button 
-          variant="ghost" 
+        <ExportWeekButton />
+        <Button
+          variant="ghost"
           size="icon"
           onClick={onLock}
           title="Bloquear diario"
