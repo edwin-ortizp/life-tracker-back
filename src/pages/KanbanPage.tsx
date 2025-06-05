@@ -47,8 +47,7 @@ const KanbanPage = () => {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Tablero Kanban</h1>
         <p className="text-gray-500">Organiza tus tareas en un tablero estilo Trello</p>
-      </div>
-      <Card className="w-full overflow-x-auto">
+      </div>      <Card className="w-full">
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Tareas</CardTitle>
@@ -63,7 +62,7 @@ const KanbanPage = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <TaskKanban
             tasks={tasks}
             onToggle={toggleTask}

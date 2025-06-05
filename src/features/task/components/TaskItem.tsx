@@ -50,12 +50,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
       task.recurrence.customDays
     ) : '';
 
-  return (
-    <Card
+  return (    <Card
       onClick={() => onView && onView(task)}
       className={cn(
         'cursor-pointer relative',
-        variant === 'kanban' ? 'text-sm max-w-[18rem]' : 'w-full',
+        variant === 'kanban' ? 'text-sm w-full max-w-none lg:max-w-[18rem]' : 'w-full',
         task.completed ? 'bg-muted/50' : overdue ? 'border-destructive bg-destructive/5' : ''
       )}
     >
@@ -184,26 +183,26 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete, on
               <Repeat className="w-3 h-3 mr-1" />
               {recurrenceDescription}
             </Badge>
-          )}
-
-        </div>
-        <div className="pt-2 flex justify-center">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge
-                  className={cn(
-                    'text-xs font-normal px-2 py-0.5 text-white',
-                    pInfo.color
-                  )}
-                >
-                  {pInfo.label}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>{pInfo.text}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+          )}        </div>
+        {!task.isRecurrent && (
+          <div className="pt-2 flex justify-center">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    className={cn(
+                      'text-xs font-normal px-2 py-0.5 text-white',
+                      pInfo.color
+                    )}
+                  >
+                    {pInfo.label}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>{pInfo.text}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

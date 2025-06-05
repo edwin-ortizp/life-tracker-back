@@ -119,14 +119,12 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       onMove(dragging.id, getDateForColumn(col));
       setDragging(null);
     }
-  };
-
-  return (
-    <div className="flex items-start gap-4 overflow-x-auto pb-4">
+  };  return (
+    <div className="flex flex-col lg:flex-row items-start gap-4 overflow-x-auto pb-4">
       {columns.map(col => (
         <div
           key={col.key}
-          className="min-w-[16rem] md:min-w-[18rem] flex-shrink-0 space-y-3"
+          className="w-full lg:w-[16rem] xl:w-[18rem] lg:flex-shrink-0 space-y-3"
           onDragOver={(e) => e.preventDefault()}
           onDrop={() => handleDrop(col.key)}
         >
