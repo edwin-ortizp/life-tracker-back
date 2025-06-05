@@ -5,6 +5,7 @@ import PomodoroPage from './pages/PomodoroPage';
 import MoodPage from './pages/MoodPage';
 import JournalPage from './pages/JournalPage';
 import TaskPage from './pages/TaskPage';
+import KanbanPage from './pages/KanbanPage';
 import HabitPage from './pages/HabitPage';
 import MealPage from './pages/MealPage';
 import Home from './artifacts/Home';
@@ -19,6 +20,7 @@ function App() {
         <Route index element={<Home />} />
         <Route path="habit" element={<HabitPage />} />
         <Route path="task" element={<TaskPage />} />
+        <Route path="kanban" element={<KanbanPage />} />
         <Route path="journal" element={<JournalPage />} />
         <Route path="mood" element={<MoodPage />} />
         <Route path="water" element={<WaterPage />} />
