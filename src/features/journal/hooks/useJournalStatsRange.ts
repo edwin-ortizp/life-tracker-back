@@ -47,17 +47,24 @@ export const useJournalStatsRange = (startDate: Date, endDate: Date) => {
         const journalDocs = await Promise.all(journalPromises);
         const moodDocs = await Promise.all(moodPromises);
 
-        const entries = journalDocs.flatMap(docSnap => {
+        const entriesMap = new Map(
+          dates.map(date => [date, { date, words: 0, characters: 0 }])
+        );
+
+        journalDocs.forEach(docSnap => {
           if (docSnap.exists()) {
             const data = docSnap.data();
-            return [{
+            entriesMap.set(data.date, {
               date: data.date,
-              words: data.text?.split(/\s+/).length || 0,
+              words: data.text?.split(/\s+/).filter(Boolean).length || 0,
               characters: data.text?.length || 0
-            }];
+            });
           }
-          return [];
-        }).sort((a, b) => (a.date < b.date ? 1 : -1));
+        });
+
+        const entries = Array.from(entriesMap.values()).sort((a, b) =>
+          a.date < b.date ? 1 : -1
+        );
 
         const moodCounts: Record<string, number> = {};
         moodDocs.forEach(docSnap => {
@@ -76,9 +83,11 @@ export const useJournalStatsRange = (startDate: Date, endDate: Date) => {
           .sort((a, b) => b.value - a.value)
           .slice(0, 5);
 
-        const totalEntries = entries.length;
+        const totalEntries = entries.filter(e => e.words > 0).length;
         const averageWords = totalEntries > 0
-          ? Math.round(entries.reduce((acc, curr) => acc + curr.words, 0) / totalEntries)
+          ? Math.round(
+              entries.reduce((acc, curr) => acc + curr.words, 0) / totalEntries
+            )
           : 0;
 
         setStats({ entries, moodStats, totalEntries, averageWords });
