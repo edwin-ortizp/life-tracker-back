@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TaskKanban, TaskDetailsModal } from '@/features/task/components';
+import { PriorityLegend } from '@/features/task/components/PriorityLegend';
 import { RecurrenceModal } from '@/features/task/components/RecurrenceModal';
 import { useTaskData } from '@/features/task/hooks/useTaskData';
 import type { Task } from '@/features/task/types';
@@ -106,6 +107,7 @@ const KanbanPage = () => {
         onClose={() => setShowDetailModal(false)}
         onEdit={(t) => { setShowDetailModal(false); openEditModal(t); }}
       />
+      <PriorityLegend />
     </PageLayout>
   );
 };
