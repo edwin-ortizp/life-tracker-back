@@ -63,7 +63,6 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
   const handleCreatePrivateTask = () => {
     openCreateModal(selectedDate, true); // true indica que es privada
   };
-
   const handleImportTasks = () => {
     try {
       const tasksToImport = JSON.parse(importJson);
@@ -74,29 +73,51 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
       }
 
       let importedCount = 0;
+      let invalidDatesCount = 0;
+      
       tasksToImport.forEach((taskData: any) => {
         if (taskData.title) {
+          let dueDate = undefined;
+          
+          // Manejo mejorado de fechas
+          if (taskData.dueDate) {
+            const parsedDate = new Date(taskData.dueDate);
+            if (!isNaN(parsedDate.getTime())) {
+              dueDate = parsedDate;
+            } else {
+              invalidDatesCount++;
+              console.warn(`Fecha inválida para tarea "${taskData.title}": ${taskData.dueDate}`);
+            }
+          }
+          
           addTask({
             title: taskData.title,
             description: taskData.description || '',
-            dueDate: taskData.dueDate ? new Date(taskData.dueDate) : selectedDate,
+            dueDate: dueDate, // Usar la fecha parseada o undefined si no hay fecha válida
             category: taskData.category || 'personal',
             priority: taskData.priority || undefined,
             isPrivate: true, // Siempre privada
-            isRecurrent: false
+            isRecurrent: taskData.isRecurrent || false,
+            // Soporte para campos adicionales
+            size: taskData.size || undefined
           });
           importedCount++;
         }
       });
 
-      toast.success(`${importedCount} tareas privadas importadas correctamente`);
+      if (invalidDatesCount > 0) {
+        toast.warning(`${importedCount} tareas importadas. ${invalidDatesCount} fechas inválidas fueron omitidas.`);
+      } else {
+        toast.success(`${importedCount} tareas privadas importadas correctamente`);
+      }
+      
       setImportJson('');
       setShowImportDialog(false);
     } catch (error) {
       toast.error('Error al importar las tareas. Verifica el formato JSON.');
+      console.error('Error de importación:', error);
     }
   };
-
   const handleExportTasks = () => {
     const exportData = privateTasks.map(task => ({
       title: task.title,
@@ -104,12 +125,23 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
       dueDate: task.dueDate?.toISOString(),
       category: task.category,
       priority: task.priority,
-      completed: task.completed
+      size: task.size,
+      completed: task.completed,
+      isRecurrent: task.isRecurrent || false,
+      // Incluir información de recurrencia si existe
+      ...(task.recurrence && {
+        recurrence: {
+          frequency: task.recurrence.frequency,
+          pattern: task.recurrence.pattern,
+          customDays: task.recurrence.customDays,
+          nextDate: task.recurrence.nextDate?.toISOString()
+        }
+      })
     }));
 
     const jsonString = JSON.stringify(exportData, null, 2);
     navigator.clipboard.writeText(jsonString).then(() => {
-      toast.success('Tareas privadas copiadas al portapapeles');
+      toast.success('Tareas privadas copiadas al portapapeles con fechas incluidas');
     });
   };
 
@@ -139,24 +171,38 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">                  <Textarea
-                    placeholder={`Ejemplo - Las tareas se marcarán automáticamente como privadas:
+                    placeholder={`Ejemplo - Puedes incluir fechas en formato ISO (YYYY-MM-DD) o dejarlas sin fecha:
 [
   {
     "title": "Reflexión personal importante",
     "description": "Pensar sobre mis metas de vida",
+    "dueDate": "2024-12-31",
     "category": "personal",
-    "priority": "do"
+    "priority": "do",
+    "size": "mediana"
   },
   {
     "title": "Tarea sensible del trabajo", 
     "description": "Revisar tema confidencial",
+    "dueDate": "2024-06-15T14:30:00Z",
     "category": "work",
     "priority": "decide"
+  },
+  {
+    "title": "Tarea sin fecha específica",
+    "description": "Esta tarea no tiene fecha límite",
+    "category": "personal"
   }
-]`}
+]
+
+Formatos de fecha soportados:
+- "2024-12-31" (solo fecha)
+- "2024-06-15T14:30:00Z" (fecha y hora ISO)
+- "2024-06-15T14:30:00" (fecha y hora local)
+- Sin campo "dueDate" = sin fecha asignada`}
                     value={importJson}
                     onChange={(e) => setImportJson(e.target.value)}
-                    rows={10}
+                    rows={15}
                     className="font-mono text-sm"
                   />
                   <div className="flex gap-2 justify-end">

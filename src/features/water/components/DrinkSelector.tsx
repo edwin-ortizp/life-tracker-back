@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import * as Icons from 'lucide-react';
 import { DRINKS } from '../types';
 import { DrinkSelectorModal } from './DrinkSelectorModal';
-import { Plus, ChevronDown } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DrinkSelectorProps {
@@ -52,83 +52,103 @@ export const DrinkSelector: React.FC<DrinkSelectorProps> = ({
     } else {
       onDrinkSelect(drink);
     }
-  };
-
-  return (
-    <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+  };  return (
+    <div className="space-y-4 mb-6">
+      {/* Título de sección */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-gray-800">Agregar bebida</h3>
+        <p className="text-sm text-gray-500">Selecciona una bebida para registrar</p>
+      </div>      {/* Bebidas rápidas - Grid limpio y funcional */}
+      <div className="grid grid-cols-3 gap-3">
         {QUICK_ACCESS_DRINKS.map((key) => {
           const drink = DRINKS[key];
           const Icon = Icons[drink.icon as keyof typeof Icons] as React.ElementType;
           const isSelected = selectedDrink === key;
           
           return (
-            <div key={key} className="relative">
-              <Button
-                variant={isSelected ? "default" : "outline"}
-                className={cn(
-                  "w-full h-20 sm:h-16 flex flex-col items-center justify-center gap-2 p-3 text-center transition-all",
-                  isSelected && "ring-2 ring-blue-500 ring-offset-2"
-                )}
-                onClick={() => handleDrinkSelect(key)}
-                disabled={disabled}
-              >
-                <Icon className={cn(
-                  "w-6 h-6 flex-shrink-0",
-                  isSelected ? "text-white" : drink.color
-                )} />
-                <span className="text-xs leading-tight break-words font-medium">
-                  {drink.name}
-                </span>
-                {isSelected && (
-                  <ChevronDown className="w-3 h-3 text-white" />
-                )}
-              </Button>
-              
-              {/* Panel de cantidades siempre visible cuando está seleccionado */}
-              {isSelected && (
-                <div className="absolute top-full left-0 w-full z-20 bg-white shadow-lg rounded-md mt-2 p-2 border">
-                  <div className="text-xs text-gray-600 mb-2 font-medium text-center">
-                    Selecciona cantidad
-                  </div>
-                  <div className="grid grid-cols-1 gap-1">
-                    {drink.amounts.map(amount => (
-                      <Button
-                        key={amount}
-                        variant="ghost"
-                        className="w-full text-sm justify-center py-2 hover:bg-blue-50"
-                        onClick={() => {
-                          onAmountSelect(key as keyof typeof DRINKS, amount);
-                          onDrinkSelect(null); // Deseleccionar después de agregar
-                        }}
-                      >
-                        {amount}ml
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+            <Button
+              key={key}
+              variant={isSelected ? "default" : "outline"}
+              className={cn(
+                "h-16 w-full flex flex-col items-center justify-center gap-1 p-2",
+                "transition-all duration-200 hover:scale-105",
+                isSelected && "ring-2 ring-blue-500 ring-offset-1"
               )}
-            </div>
+              onClick={() => handleDrinkSelect(key)}
+              disabled={disabled}
+            >
+              <Icon className={cn(
+                "w-5 h-5 flex-shrink-0",
+                isSelected ? "text-white" : drink.color
+              )} />
+              <span className="text-xs font-medium leading-tight text-center">
+                {drink.name}
+              </span>
+            </Button>
           );
         })}
         
-        {/* Botón para abrir el modal con todas las bebidas */}
+        {/* Botón para más bebidas */}
         <Button
           variant="outline"
-          className="w-full h-20 sm:h-16 flex flex-col items-center justify-center gap-2 p-3 border-dashed"
+          className="h-16 w-full flex flex-col items-center justify-center gap-1 p-2 border-dashed border-2 hover:border-blue-300 hover:bg-blue-50"
           onClick={() => setShowModal(true)}
           disabled={disabled}
         >
-          <Plus className="w-6 h-6 text-gray-500" />
-          <span className="text-xs leading-tight text-gray-500 font-medium">Más bebidas</span>
+          <Plus className="w-5 h-5 text-gray-400" />
+          <span className="text-xs font-medium text-gray-500">Más</span>
         </Button>
       </div>
+
+      {/* Panel de cantidades - Diseño simple y limpio */}
+      {selectedDrink && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              {(() => {
+                const drink = DRINKS[selectedDrink as keyof typeof DRINKS];
+                const Icon = Icons[drink.icon as keyof typeof Icons] as React.ElementType;
+                return (
+                  <>
+                    <Icon className={cn("w-5 h-5", drink.color)} />
+                    <span className="font-medium text-gray-900">{drink.name}</span>
+                  </>
+                );
+              })()}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-gray-600 h-8 w-8 p-0"
+              onClick={() => onDrinkSelect(null)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2">
+            {DRINKS[selectedDrink as keyof typeof DRINKS].amounts.map(amount => (
+              <Button
+                key={amount}
+                variant="outline"
+                className="h-10 bg-white hover:bg-blue-50 hover:border-blue-300"
+                onClick={() => {
+                  onAmountSelect(selectedDrink as keyof typeof DRINKS, amount);
+                  onDrinkSelect(null);
+                }}
+              >
+                <span className="font-medium">{amount}ml</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <DrinkSelectorModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onSelect={handleModalSelect}
       />
-    </>
+    </div>
   );
 };

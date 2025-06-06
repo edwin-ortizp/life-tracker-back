@@ -58,7 +58,7 @@ export interface Task {
 }
 
 export interface TaskProps {
-  selectedDate: Date;
+  selectedDate?: Date;
   showFloatingButton?: boolean;
 }
 

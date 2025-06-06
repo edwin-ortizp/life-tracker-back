@@ -56,12 +56,11 @@ export const DrinkSelectorModal: React.FC<DrinkSelectorModalProps> = ({
       onClose();
     }
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Seleccionar bebida</DialogTitle>
+          <DialogTitle className="text-xl">Seleccionar bebida</DialogTitle>
         </DialogHeader>
         
         <div className="flex flex-col gap-4 flex-1">
@@ -69,7 +68,7 @@ export const DrinkSelectorModal: React.FC<DrinkSelectorModalProps> = ({
             value={selectedCategory}
             onValueChange={setSelectedCategory}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full md:w-64">
               <SelectValue placeholder="Selecciona una categoría" />
             </SelectTrigger>
             <SelectContent>
@@ -79,39 +78,78 @@ export const DrinkSelectorModal: React.FC<DrinkSelectorModalProps> = ({
                 </SelectItem>
               ))}
             </SelectContent>
-          </Select>          <ScrollArea className="flex-1">
-            <div className="grid grid-cols-2 gap-3 min-h-[300px] p-1"> {/* Reduced to 2 columns and increased gap */}
+          </Select>
+
+          <ScrollArea className="flex-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 p-1">
               {drinksByCategory[selectedCategory]?.map(drink => {
                 const Icon = Icons[drink.icon as keyof typeof Icons] as React.ElementType;
+                const isSelected = selectedDrink === drink.key;
                 return (
                   <div key={drink.key} className="relative">
                     <Button
-                      variant={selectedDrink === drink.key ? "default" : "outline"}
-                      className="w-full h-18 flex flex-col items-center justify-center gap-2 p-3 text-center" // Improved layout
+                      variant={isSelected ? "default" : "outline"}
+                      className="w-full h-20 flex flex-col items-center justify-center gap-2 p-3 text-center transition-all hover:scale-105 transform"
                       onClick={() => handleDrinkSelect(drink.key)}
                     >
-                      <Icon className={`w-5 h-5 ${drink.color} flex-shrink-0`} />
-                      <span className="text-xs leading-tight break-words">{drink.name}</span> {/* Better text handling */}
+                      <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : drink.color} flex-shrink-0`} />
+                      <span className="text-xs leading-tight break-words font-medium">
+                        {drink.name}
+                      </span>
                     </Button>
-                    {selectedDrink === drink.key && (
-                      <div className="absolute top-full left-0 w-full z-10 bg-card shadow-lg rounded-md mt-1 p-1"> {/* Changed bg-white to bg-card */}
-                        {drink.amounts.map(amount => (
-                          <Button
-                            key={amount}
-                            variant="ghost"
-                            className="w-full text-sm justify-between"
-                            onClick={() => handleAmountSelect(amount)}
-                          >
-                            {amount}ml
-                          </Button>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 );
               })}
             </div>
           </ScrollArea>
+
+          {/* Panel de cantidades mejorado */}
+          {selectedDrink && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex items-center gap-3 sm:flex-shrink-0">
+                  {(() => {
+                    const drink = DRINKS[selectedDrink];
+                    const Icon = Icons[drink.icon as keyof typeof Icons] as React.ElementType;
+                    return (
+                      <>
+                        <Icon className={`w-6 h-6 ${drink.color}`} />
+                        <div>
+                          <h3 className="font-medium text-gray-900">{drink.name}</h3>
+                          <p className="text-sm text-gray-600">Selecciona la cantidad</p>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+                
+                <div className="flex-1">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                    {DRINKS[selectedDrink].amounts.map(amount => (
+                      <Button
+                        key={amount}
+                        variant="outline"
+                        size="sm"
+                        className="bg-white hover:bg-blue-50 border-blue-200 text-blue-700 font-medium transition-all hover:scale-105 transform"
+                        onClick={() => handleAmountSelect(amount)}
+                      >
+                        {amount}ml
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-gray-700 sm:flex-shrink-0"
+                  onClick={() => setSelectedDrink(null)}
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
