@@ -18,7 +18,7 @@ import { TaskDetailsModal } from './TaskDetailsModal';
 import { useTaskData } from '../hooks/useTaskData';
 import type { TaskProps, Task as TaskType } from '../types';
 
-export const Task: React.FC<TaskProps> = ({ }) => {
+export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
   const { user } = useAuth();
   const {
     tasks,
@@ -50,14 +50,13 @@ export const Task: React.FC<TaskProps> = ({ }) => {
     );
   }
 
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Tareas Pendientes</CardTitle>
-            <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-4">
               {status === 'saving' && (
                 <span className="text-xs text-blue-500">Guardando...</span>
               )}
@@ -65,6 +64,12 @@ export const Task: React.FC<TaskProps> = ({ }) => {
                 <Plus className="w-4 h-4 mr-2" />
                 Nueva Tarea
               </Button>
+            </div>
+            {/* Solo mostrar estado en móvil */}
+            <div className="md:hidden">
+              {status === 'saving' && (
+                <span className="text-xs text-blue-500">Guardando...</span>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -86,7 +91,18 @@ export const Task: React.FC<TaskProps> = ({ }) => {
             )}
           </div>
         </CardContent>
-      </Card>
+      </Card>      {/* Botón flotante para móviles (estilo Material Design) - Solo en páginas dedicadas */}
+      {showFloatingButton && (
+        <div className="md:hidden fixed bottom-20 right-4 z-50">
+          <Button
+            onClick={() => openCreateModal()}
+            size="lg"
+            className="w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 bg-blue-600 hover:bg-blue-700 active:scale-95 border-0 flex items-center justify-center text-white"
+          >
+            <Plus className="w-6 h-6 text-white" />
+          </Button>
+        </div>
+      )}
 
       <RecurrenceModal
         isOpen={showRecurrenceModal}

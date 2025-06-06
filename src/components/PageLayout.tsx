@@ -1,17 +1,40 @@
 import { cn } from "@/lib/utils";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PageLayoutProps {
   children: React.ReactNode;
   className?: string;
   fullHeight?: boolean;
   noPadding?: boolean;
+  showFloatingButton?: boolean;
+  onFloatingButtonClick?: () => void;
+  floatingButtonLabel?: string;
 }
 
-const PageLayout = ({ children, className, fullHeight = false, noPadding = false }: PageLayoutProps) => {
+const PageLayout = ({ 
+  children, 
+  className, 
+  fullHeight = false, 
+  noPadding = false,
+  showFloatingButton = false,
+  onFloatingButtonClick,
+  floatingButtonLabel = "Agregar"
+}: PageLayoutProps) => {
   if (noPadding) {
     return (
       <div className={cn("h-full", className)}>
         {children}
+        {showFloatingButton && (
+          <Button
+            onClick={onFloatingButtonClick}
+            className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50 md:hidden"
+            size="icon"
+            title={floatingButtonLabel}
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        )}
       </div>
     );
   }
@@ -38,6 +61,17 @@ const PageLayout = ({ children, className, fullHeight = false, noPadding = false
       )}>
         {children}
       </div>
+      
+      {showFloatingButton && (
+        <Button
+          onClick={onFloatingButtonClick}
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50 md:hidden"
+          size="icon"
+          title={floatingButtonLabel}
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+      )}
     </div>
   );
 };

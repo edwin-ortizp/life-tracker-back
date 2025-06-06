@@ -5,7 +5,6 @@ import { MEAL_HOURS } from '../../utils/dateUtils';
 import { useToast } from '@/components/ui/use-toast';
 import { getWeekDays } from '../../utils/dateUtils';
 import { WeeklyViewProps, MealModalState, MealFormData } from './types';
-import DateSelector from '@/components/DateSelector';
 import MobileDay from './MobileDay';
 import DesktopDay from './DesktopDay';
 import MealModal from './MealModal';
@@ -16,9 +15,8 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
   onRemoveMeal,
   disabled,
   selectedDate: initialDate = new Date()
-}) => {
-  const { toast } = useToast();
-  const [currentDate, setCurrentDate] = useState(initialDate);
+}) => {  const { toast } = useToast();
+  const currentDate = initialDate;
   const [showModal, setShowModal] = useState(false);
   const [selectedMealInfo, setSelectedMealInfo] = useState<MealModalState | null>(null);
   const [formData, setFormData] = useState<MealFormData>({
@@ -26,12 +24,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
     name: '',
     notes: '',
     recipe: ''
-  });
-  const weekDays = getWeekDays(currentDate);
-
-  const handleDateChange = (newDate: Date) => {
-    setCurrentDate(newDate);
-  };
+  });  const weekDays = getWeekDays(currentDate);
 
   const openModal = (date: string, type: MealFormData['type'], meal?: MealModalState['meal']) => {
     setSelectedMealInfo({ date, type, meal });
@@ -87,14 +80,6 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
     }
   };  return (
     <div className="w-full h-full flex flex-col">
-      {/* Date Selector con mejor responsive */}
-      <div className="p-4 bg-white border-b">
-        <DateSelector
-          selectedDate={currentDate}
-          onChange={handleDateChange}
-        />
-      </div>
-
       {/* Vista móvil - Mejorada */}
       <div className="md:hidden flex-1 overflow-y-auto">
         <div className="pb-20 px-2"> {/* Espacio para navegación móvil */}

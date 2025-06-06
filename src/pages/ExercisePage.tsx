@@ -9,6 +9,11 @@ import PageLayout from '@/components/PageLayout';
 const ExercisePage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { user } = useAuth();
+  const exerciseRef = useRef<ExerciseRef>(null);
+
+  const handleFloatingButtonClick = () => {
+    exerciseRef.current?.openAddExercise();
+  };
 
   if (!user) {
     return (
@@ -26,7 +31,11 @@ const ExercisePage: React.FC = () => {
   }
 
   return (
-    <PageLayout>
+    <PageLayout 
+      showFloatingButton={true}
+      onFloatingButtonClick={handleFloatingButtonClick}
+      floatingButtonLabel="Agregar ejercicio"
+    >
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Registro de Ejercicio</h1>
         <p className="text-gray-500">Registra y monitorea tus actividades físicas diarias</p>

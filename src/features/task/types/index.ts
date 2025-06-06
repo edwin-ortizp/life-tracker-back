@@ -59,6 +59,7 @@ export interface Task {
 
 export interface TaskProps {
   selectedDate: Date;
+  showFloatingButton?: boolean;
 }
 
 export interface RecurrenceModalProps {

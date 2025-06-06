@@ -1,31 +1,23 @@
 // features/meal/components/MealPlanner.tsx
-import React, { useState } from 'react'; // Added useState
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
-import { Calendar, AlertCircle } from 'lucide-react';
+import { Calendar, AlertCircle, MoreVertical, Settings } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import WeeklyView from './WeeklyView';
 import { ImportMealPlan } from './ImportMealPlan';
 import { PasteMealPlan } from './PasteMealPlan';
 import { useMealPlan } from '../hooks/useMealPlan';
-import type { MealProps, MealPlan } from '../types'; // Added MealPlan type
+import type { MealProps } from '../types';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 
 export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [showImportConfirm, setShowImportConfirm] = useState(false);
-  const [pendingMealPlan, setPendingMealPlan] = useState<MealPlan | null>(null);
+  const [showImportDialog, setShowImportDialog] = useState(false);
 
   const {
     mealPlan,
@@ -35,27 +27,6 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
     removeMeal,
     importMealPlan
   } = useMealPlan();
-
-  const handleImportTrigger = async (newMealPlan: MealPlan): Promise<void> => {
-    setPendingMealPlan(newMealPlan);
-    setShowImportConfirm(true);
-  };
-
-  const executeImport = async () => {
-    if (pendingMealPlan) {
-      try {
-        await importMealPlan(pendingMealPlan);
-      } catch (err) { // Changed error to err to avoid conflict
-        console.error('Error importing during confirmation:', err);
-        toast({ title: "Error de Importación", description: "No se pudo importar el plan de comidas.", variant: "destructive" });
-      } finally {
-        setPendingMealPlan(null);
-        setShowImportConfirm(false);
-      }
-    } else {
-      setShowImportConfirm(false); // Ensure dialog closes if pendingMealPlan is null
-    }
-  };
 
   if (!user) {
     return (
@@ -70,24 +41,34 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   const handleAddMeal = async (...args: Parameters<typeof addMeal>) => {
     try {
       await addMeal(...args);
-    } catch (err) { // Changed error to err
+    } catch (err) {
       console.error('Error adding meal:', err);
       toast({ title: "Error al Agregar", description: "No se pudo agregar la comida.", variant: "destructive" });
     }
   };
-
   const handleRemoveMeal = async (...args: Parameters<typeof removeMeal>) => {
     try {
       await removeMeal(...args);
-    } catch (err) { // Changed error to err
+    } catch (err) {
       console.error('Error removing meal:', err);
       toast({ title: "Error al Eliminar", description: "No se pudo eliminar la comida.", variant: "destructive" });
     }
   };
+
+  const handleImportMealPlan = async (...args: Parameters<typeof importMealPlan>) => {
+    try {
+      await importMealPlan(...args);
+      toast({ title: "Importación Exitosa", description: "El plan de comidas se ha importado correctamente." });
+      setShowImportDialog(false);
+    } catch (err) {
+      console.error('Error importing meal plan:', err);
+      toast({ title: "Error al Importar", description: "No se pudo importar el plan de comidas.", variant: "destructive" });
+    }
+  };
+
   return (
-    <div className="w-full h-full flex flex-col">
-      {/* Header responsive */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-white border-b sticky top-0 z-10 gap-3">
+    <div className="w-full h-full flex flex-col">      {/* Header con menú de opciones */}
+      <div className="flex items-center justify-between p-4 bg-white border-b sticky top-0 z-10">
         <div className="flex items-center space-x-3">
           <h2 className="text-lg sm:text-xl font-bold">Plan de Comidas</h2>
           <div className="flex items-center space-x-2">
@@ -95,39 +76,26 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
             <span className="text-xs sm:text-sm text-gray-500">Semanal</span>
           </div>
         </div>
-        <div className="flex items-center space-x-2 overflow-x-auto">
-          <ImportMealPlan
-            onImport={handleImportTrigger}
-            disabled={status === 'saving'}
-          />
-          <PasteMealPlan
-            onImport={handleImportTrigger}
-            disabled={status === 'saving'}
-          />
-        </div>
+        
+        {/* Menú de opciones */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <MoreVertical className="h-4 w-4" />
+              <span className="sr-only">Opciones</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setShowImportDialog(true)}>
+              <Settings className="mr-2 h-4 w-4" />
+              Importar/Exportar
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       
       {/* Content area */}
       <div className="flex-1 bg-gray-50 overflow-hidden">
-        <AlertDialog open={showImportConfirm} onOpenChange={setShowImportConfirm}>
-          <AlertDialogContent className="mx-4 max-w-sm sm:max-w-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-base sm:text-lg">Confirmar Importación</AlertDialogTitle>
-              <AlertDialogDescription className="text-sm">
-                ¿Deseas sobrescribir el plan existente? Esto reemplazará todas las comidas existentes en las fechas importadas.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-              <AlertDialogCancel onClick={() => setPendingMealPlan(null)} className="w-full sm:w-auto">
-                Cancelar
-              </AlertDialogCancel>
-              <AlertDialogAction onClick={executeImport} className="w-full sm:w-auto">
-                Sobrescribir
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
         <WeeklyView
           mealPlan={mealPlan}
           onAddMeal={handleAddMeal}
@@ -142,9 +110,32 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
             <AlertDescription className="text-sm">
               {error}
             </AlertDescription>
-          </Alert>
-        )}
+          </Alert>        )}
       </div>
+
+      {/* Modal de importación */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Importar Plan de Comidas</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm text-gray-600">
+              Puedes importar un plan de comidas desde un archivo JSON o pegando el contenido directamente.
+            </div>
+            <div className="space-y-2">
+              <ImportMealPlan 
+                onImport={handleImportMealPlan}
+                disabled={status === 'saving'}
+              />
+              <PasteMealPlan 
+                onImport={handleImportMealPlan}
+                disabled={status === 'saving'}
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

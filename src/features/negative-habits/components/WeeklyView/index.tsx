@@ -20,7 +20,6 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['health']); // Comenzar con 'salud' expandido
   const [showAllHabits, setShowAllHabits] = useState(false);
-
   // Agrupar hábitos por categoría
   const habitGroups = useMemo(() => {
     const groups: { [key: string]: NegativeHabit[] } = {};
@@ -38,6 +37,33 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
 
     return groups;
   }, [searchTerm]);
+
+  // Calcular estadísticas de hábitos
+  const habitStats = useMemo(() => {
+    const totalHabits = NEGATIVE_HABITS.length;
+    const filteredHabits = Object.values(habitGroups).reduce((sum, habits) => sum + habits.length, 0);
+    
+    // Contar hábitos loggeados por categoría
+    const loggedByCategory: { [key: string]: number } = {};
+    const today = new Date().toISOString().split('T')[0];
+    
+    Object.entries(habits).forEach(([key]) => {
+      const [habitIdStr, date] = key.split('_');
+      if (date === today) {
+        const habit = NEGATIVE_HABITS.find(h => h.id === Number(habitIdStr));
+        if (habit) {
+          loggedByCategory[habit.category] = (loggedByCategory[habit.category] || 0) + 1;
+        }
+      }
+    });
+
+    return {
+      totalHabits,
+      filteredHabits,
+      loggedByCategory,
+      isFiltered: searchTerm.length > 0
+    };
+  }, [habitGroups, habits, searchTerm]);
 
   // Obtener hábitos más frecuentes
   const frequentHabits = useMemo(() => {
@@ -64,24 +90,35 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+    <div className="space-y-4">      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
           <Input
             placeholder="Buscar hábito..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
+            className="pl-8 pr-16"
           />
+          {habitStats.isFiltered && (
+            <div className="absolute right-2 top-2 bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md text-xs font-medium">
+              {habitStats.filteredHabits}/{habitStats.totalHabits}
+            </div>
+          )}
         </div>
-        <Button
-          variant="outline"
-          onClick={() => setShowAllHabits(!showAllHabits)}
-          className="w-full sm:w-auto"
-        >
-          {showAllHabits ? 'Mostrar más frecuentes' : 'Mostrar todos'}
-        </Button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={() => setShowAllHabits(!showAllHabits)}
+            className="flex-1 sm:flex-none"
+          >
+            {showAllHabits ? 'Mostrar más frecuentes' : 'Mostrar todos'}
+          </Button>
+          {Object.keys(habitStats.loggedByCategory).length > 0 && (
+            <div className="bg-green-100 text-green-800 px-3 py-1.5 rounded-md text-sm font-medium">
+              {Object.values(habitStats.loggedByCategory).reduce((sum, count) => sum + count, 0)} hoy
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -104,8 +141,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
                 const isExpanded = expandedCategories.includes(category);
                 const categoryInfo = NEGATIVE_HABIT_CATEGORIES[category as keyof typeof NEGATIVE_HABIT_CATEGORIES];
 
-                return (
-                  <div key={category} className="space-y-2">
+                return (                  <div key={category} className="space-y-2">
                     <Button
                       variant="ghost"
                       onClick={() => toggleCategory(category)}
@@ -117,6 +153,11 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
                         <span className="text-sm text-gray-500">
                           ({categoryHabits.length})
                         </span>
+                        {habitStats.loggedByCategory[category] && (
+                          <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-medium ml-1">
+                            {habitStats.loggedByCategory[category]} hoy
+                          </span>
+                        )}
                       </div>
                       {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                     </Button>
@@ -137,13 +178,11 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
             </div>
           )}
         </div>
-      </div>
-
-      <Alert variant="destructive"> {/* Removed bg-red-50 */}
+      </div>      <Alert variant="destructive"> {/* Removed bg-red-50 */}
         <AlertDescription>
           {showAllHabits 
-            ? 'Visualización completa de hábitos agrupados por categoría. Usa el buscador para encontrar hábitos específicos.'
-            : 'Mostrando solo tus hábitos más frecuentes. Haz clic en "Mostrar todos" para ver la lista completa.'}
+            ? `Visualización completa de hábitos agrupados por categoría${habitStats.isFiltered ? ` (${habitStats.filteredHabits} de ${habitStats.totalHabits} hábitos mostrados)` : ''}. Usa el buscador para encontrar hábitos específicos.`
+            : `Mostrando solo tus ${frequentHabits.length} hábitos más frecuentes. Haz clic en "Mostrar todos" para ver la lista completa.`}
         </AlertDescription>
       </Alert>
     </div>

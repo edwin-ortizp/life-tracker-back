@@ -18,16 +18,13 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
   disabled
 }) => {
   const weekDays = getWeekDays(new Date());
-
-  const renderHabitGroup = (habits: Array<{ id: number; icon: React.ReactNode; name: string; goal: string }>) => (
-    <div className="overflow-x-auto">
-      <div className="min-w-[640px]">
-        <div className="grid grid-cols-[minmax(120px,1fr)_repeat(7,minmax(40px,1fr))] gap-2">
+  const renderHabitGroup = (habits: Array<{ id: number; icon: React.ReactNode; name: string; goal: string }>) => (    <div className="overflow-x-auto">
+      <div className="min-w-[480px] sm:min-w-[600px]"><div className="grid grid-cols-[minmax(80px,140px)_repeat(7,minmax(32px,1fr))] sm:grid-cols-[minmax(120px,180px)_repeat(7,minmax(40px,1fr))] gap-1 sm:gap-2">
           <div></div>
           {weekDays.map(day => (
             <div key={day.fullDate} className="text-center">
-              <div className="font-medium">{day.dayName}</div>
-              <div className="text-[10px] text-gray-400">
+              <div className="font-medium text-xs sm:text-sm">{day.dayName}</div>
+              <div className="text-[9px] sm:text-[10px] text-gray-400">
                 {day.fullDate.split('-').slice(1).join('/')}
               </div>
             </div>
@@ -35,30 +32,27 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
           
           {habits.map(habit => (
             <React.Fragment key={habit.id}>
-              <div className="flex items-center gap-2">
-                <span>{habit.icon}</span>
-                <div className="flex flex-col">
-                  <span className="text-sm">{habit.name}</span>
-                  <span className="text-xs text-gray-500">{habit.goal}</span>
+              <div className="flex items-center gap-1 sm:gap-2 pr-1">
+                <span className="text-sm sm:text-base shrink-0">{habit.icon}</span>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-xs sm:text-sm font-medium truncate leading-tight">{habit.name}</span>
+                  <span className="text-[10px] sm:text-xs text-gray-500 truncate leading-tight">{habit.goal}</span>
                 </div>
               </div>
               {weekDays.map((day) => {
                 const isCompleted = completedHabits[`${habit.id}_${day.fullDate}`];
-                return (
-                  <Button
+                return (                  <Button
                     key={`${habit.id}_${day.fullDate}`}
-                    variant={isCompleted ? "default" : "outline"} // Changed from "ghost"
-                    className={`h-10 w-10 p-0 aspect-square rounded-lg flex items-center justify-center transition-colors mx-auto my-1
-                      ${isCompleted ? HABIT_COLORS[habit.id] : 'border-gray-300' // Ensure outline has a visible border
+                    variant={isCompleted ? "default" : "outline"}
+                    className={`h-8 w-8 sm:h-10 sm:w-10 p-0 aspect-square rounded-lg flex items-center justify-center transition-colors mx-auto my-0.5 sm:my-1
+                      ${isCompleted ? HABIT_COLORS[habit.id] : 'border-gray-300'
                       }`}
                     onClick={() => onToggle(habit.id, day.fullDate)}
                     disabled={disabled}
                   >
                     {isCompleted ? (
-                      <CheckCircle className="w-5 h-5 text-white" />
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     ) : (
-                      // Optionally, add a placeholder icon for non-completed state if desired
-                      // <Circle className="w-5 h-5 text-gray-400" /> 
                       null
                     )}
                   </Button>

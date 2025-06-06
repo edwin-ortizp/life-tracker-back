@@ -1,5 +1,5 @@
 // src/features/exercise/components/index.tsx
-import React, { useState } from 'react';
+import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import { Plus, BarChart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,11 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 
-export const Exercise: React.FC<ExerciseProps> = ({ selectedDate }) => {
+export interface ExerciseRef {
+  openAddExercise: () => void;
+}
+
+export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }, ref) => {
   const { user } = useAuth();
   const {
     exerciseLogs,
@@ -30,6 +34,10 @@ export const Exercise: React.FC<ExerciseProps> = ({ selectedDate }) => {
 
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [editingExerciseIndex, setEditingExerciseIndex] = useState<number | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    openAddExercise: () => setShowAddExercise(true)
+  }));
 
   if (!user) {
     return (
@@ -59,6 +67,7 @@ export const Exercise: React.FC<ExerciseProps> = ({ selectedDate }) => {
               className="gap-2"
             >
               <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Agregar</span>
             </Button>
           </div>
 
@@ -107,6 +116,8 @@ export const Exercise: React.FC<ExerciseProps> = ({ selectedDate }) => {
       </CardContent>
     </Card>
   );
-};
+});
+
+Exercise.displayName = 'Exercise';
 
 export default Exercise;
