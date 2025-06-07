@@ -67,15 +67,50 @@ const getPriorityInfo = (priority: string) => {
   return priorityMap[priority as keyof typeof priorityMap] || priorityMap.none;
 };
 
-export const TaskItem: React.FC<TaskItemProps> = ({ 
-  task, 
-  onToggle, 
-  onDelete, 
-  onEdit, 
-  onView, 
-  variant = 'list' 
+export const TaskItem: React.FC<TaskItemProps> = ({
+  task,
+  onToggle,
+  onDelete,
+  onEdit,
+  onView,
+  variant = 'list'
 }) => {
   const overdue = task.dueDate && isBefore(startOfDay(task.dueDate), startOfDay(new Date()));
+
+  const [confirmComplete, setConfirmComplete] = React.useState(false);
+
+  const handleToggleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!task.completed) {
+      setConfirmComplete(true);
+    } else {
+      onToggle(task.id, false);
+    }
+  };
+
+  const confirmDialog = (
+    <AlertDialog open={confirmComplete} onOpenChange={setConfirmComplete}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Marcar tarea como completada?</AlertDialogTitle>
+          <AlertDialogDescription>
+            La tarea "{task.title}" se marcará como completada.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => {
+              onToggle(task.id, true);
+              setConfirmComplete(false);
+            }}
+          >
+            Completar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
   
   // Obtener estilo de categoría
   const categoryStyle = {
@@ -88,6 +123,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 
   if (variant === 'kanban') {
     return (
+      <>
       <Card
         onClick={() => onView && onView(task)}
         className={cn(
@@ -102,7 +138,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               variant="ghost"
               size="icon"
               className="h-5 w-5 p-0 mt-0.5 rounded-full shrink-0 hover:bg-transparent"
-              onClick={(e) => { e.stopPropagation(); onToggle(task.id, !task.completed); }}
+              onClick={handleToggleClick}
             >
               {task.completed ? (
                 <CheckCircle2 className="w-5 h-5 text-green-600" />
@@ -202,11 +238,14 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           </div>
         </CardContent>
       </Card>
+      {confirmDialog}
+      </>
     );
   }
 
   // Vista Lista (horizontal, estilo Microsoft To-Do más compacta)
   return (
+    <>
     <Card
       onClick={() => onView && onView(task)}
       className={cn(
@@ -222,7 +261,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           variant="ghost"
           size="icon"
           className="h-5 w-5 p-0 rounded-full shrink-0 hover:bg-transparent"
-          onClick={(e) => { e.stopPropagation(); onToggle(task.id, !task.completed); }}
+          onClick={handleToggleClick}
         >
           {task.completed ? (
             <CheckCircle2 className="w-5 h-5 text-green-600" />
@@ -350,5 +389,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         </div>
       </CardContent>
     </Card>
+    {confirmDialog}
+    </>
   );
 };

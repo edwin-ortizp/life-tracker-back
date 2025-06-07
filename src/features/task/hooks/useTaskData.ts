@@ -214,7 +214,7 @@ export const useTaskData = () => {
       if (!task.isRecurrent) {
         const taskRef = doc(db, 'tasks', taskId);
         await updateDoc(taskRef, {
-          completed: !completed,
+          completed: completed,
           updatedAt: serverTimestamp()
         });
         setStatus('idle');
