@@ -55,7 +55,7 @@ export const YearlyHabitList: React.FC<YearlyHabitListProps> = ({
                           isLogged ? onRemoveLog(habit.id, date) : onLogHabit(habit.id, date)
                         }
                         className={cn(
-                          'w-3 h-3 p-0 rounded-full border transition-all duration-200 hover:scale-110',
+                          'w-1 h-1 p-0 rounded-full border transition-all duration-200 hover:scale-110',
                           isLogged
                             ? 'bg-red-600 border-red-700 hover:bg-red-700'
                             : 'bg-gray-100 border-gray-200 hover:bg-gray-200 hover:border-gray-300',
