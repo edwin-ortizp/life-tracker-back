@@ -7,9 +7,9 @@ import {
   TooltipProvider
 } from "@/components/ui/tooltip";
 import { NegativeHabit, NegativeHabitLog } from '../../types';
-import { getMonths } from '../../utils/dates';
-// import { cn } from "@/lib/utils"; // cn will be removed
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import YearlyActivityGrid from '@/components/ui/YearlyActivityGrid';
 
 interface YearlyHabitListProps {
   habits: NegativeHabit[];
@@ -25,7 +25,6 @@ export const YearlyHabitList: React.FC<YearlyHabitListProps> = ({
   onRemoveLog
 }) => {
   const currentYear = new Date().getFullYear();
-  const months = getMonths(currentYear);
 
   return (
     <TooltipProvider>
@@ -40,60 +39,45 @@ export const YearlyHabitList: React.FC<YearlyHabitListProps> = ({
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <div className="grid grid-cols-12 gap-4 sm:min-w-[800px]">
-                {months.map((month) => {
-                  const monthStr = String(month.number).padStart(2, '0');
-                  
-                  return (
-                    <div key={month.name} className="space-y-1">
-                      <div className="text-xs text-gray-500 text-center mb-2">
-                        {month.name}
-                      </div>
-                      <div className="grid grid-cols-7 gap-1">
-                        {Array.from({ length: month.days }, (_, day) => {
-                          const dayStr = String(day + 1).padStart(2, '0');
-                          const date = `${currentYear}-${monthStr}-${dayStr}`;
-                          const key = `${habit.id}_${date}`;
-                          const isLogged = completedHabits[key];
-                          
-                          return (
-                            <Tooltip key={date}>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant={isLogged ? "destructive" : "ghost"}
-                                  size="icon"
-                                  className="w-3 h-3 p-0 rounded-full transition-all"
-                                  onClick={() => isLogged 
-                                    ? onRemoveLog(habit.id, date)
-                                    : onLogHabit(habit.id, date)
-                                  }
-                                  aria-label={isLogged ? 'Eliminar registro' : 'Registrar hábito'}
-                                >
-                                  {/* Content of the button can be empty if color itself indicates state */}
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-sm">
-                                  {new Date(date).toLocaleDateString('es-ES', {
-                                    weekday: 'long',
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                  })}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  {isLogged ? 'Haz clic para eliminar' : 'Haz clic para registrar'}
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          );
+          <div className="overflow-x-auto">
+            <YearlyActivityGrid
+              year={currentYear}
+              renderCell={(date) => {
+                const key = `${habit.id}_${date}`;
+                const isLogged = completedHabits[key];
+                const isToday = new Date().toISOString().split('T')[0] === date;
+                return (
+                  <Tooltip key={date}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={isLogged ? 'destructive' : 'ghost'}
+                        onClick={() =>
+                          isLogged ? onRemoveLog(habit.id, date) : onLogHabit(habit.id, date)
+                        }
+                        className={cn(
+                          'w-3 h-3 p-0 rounded-full border transition-all duration-200 hover:scale-110',
+                          isLogged
+                            ? 'bg-red-600 border-red-700 hover:bg-red-700'
+                            : 'bg-gray-100 border-gray-200 hover:bg-gray-200 hover:border-gray-300',
+                          isToday && 'ring-2 ring-blue-400 ring-offset-1'
+                        )}
+                        aria-label={isLogged ? 'Eliminar registro' : 'Registrar hábito'}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-sm">
+                        {new Date(date).toLocaleDateString('es-ES', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
                         })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              }}
+            />
             </div>
           </div>
         ))}

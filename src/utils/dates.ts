@@ -117,3 +117,11 @@ export const formatDateToSpanish = (date: Date): string => {
 export const isDateInRange = (date: Date, start: Date, end: Date): boolean => {
   return isWithinInterval(date, { start: startOfDay(start), end: endOfDay(end) });
 };
+// Obtener datos de los meses de un año
+export const getMonths = (year: number) => {
+  return Array.from({ length: 12 }, (_, i) => ({
+    name: new Date(year, i).toLocaleString('es', { month: 'short' }),
+    days: new Date(year, i + 1, 0).getDate(),
+    number: i + 1
+  }));
+};
