@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Upload, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { TaskItem } from './TaskItem';
@@ -155,78 +155,6 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
               {privateTasks.length} total
             </Badge>
           </div>
-          <div className="flex gap-2">
-            <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="outline">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Importar
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Importar Tareas Privadas</DialogTitle>
-                  <DialogDescription>
-                    Pega el JSON con las tareas a importar. Todas se marcarán como privadas.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">                  <Textarea
-                    placeholder={`Ejemplo - Puedes incluir fechas en formato ISO (YYYY-MM-DD) o dejarlas sin fecha:
-[
-  {
-    "title": "Reflexión personal importante",
-    "description": "Pensar sobre mis metas de vida",
-    "dueDate": "2024-12-31",
-    "category": "personal",
-    "priority": "do",
-    "size": "mediana"
-  },
-  {
-    "title": "Tarea sensible del trabajo", 
-    "description": "Revisar tema confidencial",
-    "dueDate": "2024-06-15T14:30:00Z",
-    "category": "work",
-    "priority": "decide"
-  },
-  {
-    "title": "Tarea sin fecha específica",
-    "description": "Esta tarea no tiene fecha límite",
-    "category": "personal"
-  }
-]
-
-Formatos de fecha soportados:
-- "2024-12-31" (solo fecha)
-- "2024-06-15T14:30:00Z" (fecha y hora ISO)
-- "2024-06-15T14:30:00" (fecha y hora local)
-- Sin campo "dueDate" = sin fecha asignada`}
-                    value={importJson}
-                    onChange={(e) => setImportJson(e.target.value)}
-                    rows={15}
-                    className="font-mono text-sm"
-                  />
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => setShowImportDialog(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleImportTasks} disabled={!importJson.trim()}>
-                      Importar Tareas
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-            
-            <Button size="sm" variant="outline" onClick={handleExportTasks}>
-              <Download className="w-4 h-4 mr-2" />
-              Exportar
-            </Button>
-            
-            <Button size="sm" onClick={handleCreatePrivateTask}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nueva Privada
-            </Button>
-          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -291,6 +219,80 @@ Formatos de fecha soportados:
           <p className="text-sm text-red-500">{error}</p>
         )}
       </CardContent>
+
+      <CardFooter className="justify-end flex-wrap gap-2">
+        <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="outline">
+              <Upload className="w-4 h-4 mr-2" />
+              Importar
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Importar Tareas Privadas</DialogTitle>
+              <DialogDescription>
+                Pega el JSON con las tareas a importar. Todas se marcar\u00e1n como privadas.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Textarea
+                placeholder={`Ejemplo - Puedes incluir fechas en formato ISO (YYYY-MM-DD) o dejarlas sin fecha:
+[
+  {
+    "title": "Reflexi\u00f3n personal importante",
+    "description": "Pensar sobre mis metas de vida",
+    "dueDate": "2024-12-31",
+    "category": "personal",
+    "priority": "do",
+    "size": "mediana"
+  },
+  {
+    "title": "Tarea sensible del trabajo",
+    "description": "Revisar tema confidencial",
+    "dueDate": "2024-06-15T14:30:00Z",
+    "category": "work",
+    "priority": "decide"
+  },
+  {
+    "title": "Tarea sin fecha espec\u00edfica",
+    "description": "Esta tarea no tiene fecha l\u00edmite",
+    "category": "personal"
+  }
+]
+
+Formatos de fecha soportados:
+- "2024-12-31" (solo fecha)
+- "2024-06-15T14:30:00Z" (fecha y hora ISO)
+- "2024-06-15T14:30:00" (fecha y hora local)
+- Sin campo "dueDate" = sin fecha asignada`}
+                value={importJson}
+                onChange={(e) => setImportJson(e.target.value)}
+                rows={15}
+                className="font-mono text-sm"
+              />
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setShowImportDialog(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleImportTasks} disabled={!importJson.trim()}>
+                  Importar Tareas
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Button size="sm" variant="outline" onClick={handleExportTasks}>
+          <Download className="w-4 h-4 mr-2" />
+          Exportar
+        </Button>
+
+        <Button size="sm" onClick={handleCreatePrivateTask}>
+          <Plus className="w-4 h-4 mr-2" />
+          Nueva Privada
+        </Button>
+      </CardFooter>
 
       {/* Modales */}
       <RecurrenceModal

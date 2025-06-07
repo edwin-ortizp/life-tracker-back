@@ -59,7 +59,7 @@ export const DrinkSelector: React.FC<DrinkSelectorProps> = ({
         <h3 className="text-lg font-semibold text-gray-800">Agregar bebida</h3>
         <p className="text-sm text-gray-500">Selecciona una bebida para registrar</p>
       </div>      {/* Bebidas rápidas - Grid limpio y funcional */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {QUICK_ACCESS_DRINKS.map((key) => {
           const drink = DRINKS[key];
           const Icon = Icons[drink.icon as keyof typeof Icons] as React.ElementType;
@@ -70,7 +70,7 @@ export const DrinkSelector: React.FC<DrinkSelectorProps> = ({
               key={key}
               variant={isSelected ? "default" : "outline"}
               className={cn(
-                "h-16 w-full flex flex-col items-center justify-center gap-1 p-2",
+                "h-20 w-full flex flex-col items-center justify-center gap-1 p-2",
                 "transition-all duration-200 hover:scale-105",
                 isSelected && "ring-2 ring-blue-500 ring-offset-1"
               )}
@@ -91,7 +91,7 @@ export const DrinkSelector: React.FC<DrinkSelectorProps> = ({
         {/* Botón para más bebidas */}
         <Button
           variant="outline"
-          className="h-16 w-full flex flex-col items-center justify-center gap-1 p-2 border-dashed border-2 hover:border-blue-300 hover:bg-blue-50"
+          className="h-20 w-full flex flex-col items-center justify-center gap-1 p-2 border-dashed border-2 hover:border-blue-300 hover:bg-blue-50"
           onClick={() => setShowModal(true)}
           disabled={disabled}
         >

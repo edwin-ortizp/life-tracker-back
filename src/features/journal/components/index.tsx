@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { JournalHeader } from './JournalHeader';
 import { JournalInput } from './JournalInput';
 import { PasswordProtection } from './PasswordProtection';
 import { PrivateTaskSection } from '@/features/task/components/PrivateTaskSection';
+import ExportWeekButton from './ExportWeekButton';
 import { useJournalData } from '../hooks/useJournalData';
 import type { JournalProps } from '../types';
 
@@ -46,8 +47,8 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
     <>
       <Card className="w-full">
         <CardContent className="p-4">
-          <JournalHeader 
-            status={status} 
+          <JournalHeader
+            status={status}
             onLock={handleLock}
             isUnlocked={isUnlocked}
           />
@@ -66,6 +67,9 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
             </p>
           )}
         </CardContent>
+        <CardFooter className="justify-end">
+          <ExportWeekButton weekDate={selectedDate} />
+        </CardFooter>
       </Card>
       <PrivateTaskSection selectedDate={selectedDate} />
     </>

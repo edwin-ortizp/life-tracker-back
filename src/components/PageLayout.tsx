@@ -28,7 +28,7 @@ const PageLayout = ({
         {showFloatingButton && (
           <Button
             onClick={onFloatingButtonClick}
-            className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50 md:hidden"
+            className="fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50 md:hidden"
             size="icon"
             title={floatingButtonLabel}
           >
@@ -65,7 +65,7 @@ const PageLayout = ({
       {showFloatingButton && (
         <Button
           onClick={onFloatingButtonClick}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50 md:hidden"
+          className="fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50 md:hidden"
           size="icon"
           title={floatingButtonLabel}
         >
