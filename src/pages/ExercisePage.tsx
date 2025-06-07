@@ -1,6 +1,6 @@
 // src/pages/ExercisePage.tsx
 import React, { useState, useRef } from 'react';
-import Exercise, { ExerciseRef } from '@/features/exercise/components';
+import Exercise from '@/features/exercise/components';
 
 import DateSelector from '@/components/DateSelector';
 import { Card, CardContent } from '@/components/ui/card';
