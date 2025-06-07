@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { JournalHeader } from './JournalHeader';
 import { JournalInput } from './JournalInput';
 import { PasswordProtection } from './PasswordProtection';
 import { PrivateTaskSection } from '@/features/task/components/PrivateTaskSection';
+import ExportWeekButton from './ExportWeekButton';
+import { LastUpdatedInfo } from './LastUpdatedInfo';
+import { Button } from '@/components/ui/button';
+import { Save } from 'lucide-react';
 import { useJournalData } from '../hooks/useJournalData';
 import type { JournalProps } from '../types';
 
@@ -46,8 +50,8 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
     <>
       <Card className="w-full">
         <CardContent className="p-4">
-          <JournalHeader 
-            status={status} 
+          <JournalHeader
+            status={status}
             onLock={handleLock}
             isUnlocked={isUnlocked}
           />
@@ -56,9 +60,6 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
             onChange={(value) => {
               setEntry(value);
             }}
-            onSave={() => saveEntry(entry)}
-            status={status}
-            lastUpdated={lastUpdated}
           />
           {error && (
             <p className="mt-2 text-sm text-red-500">
@@ -66,6 +67,28 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
             </p>
           )}
         </CardContent>
+        <CardFooter className="flex flex-col items-end gap-2 sm:flex-row sm:justify-between">
+          <LastUpdatedInfo lastUpdated={lastUpdated} />
+          <div className="flex gap-2">
+            <Button
+              onClick={() => saveEntry(entry)}
+              disabled={status === 'saving'}
+            >
+              {status === 'saving' ? (
+                <span className="flex items-center gap-2">
+                  <Save className="w-4 h-4 animate-spin" />
+                  Guardando...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Save className="w-4 h-4" />
+                  Guardar entrada
+                </span>
+              )}
+            </Button>
+            <ExportWeekButton weekDate={selectedDate} />
+          </div>
+        </CardFooter>
       </Card>
       <PrivateTaskSection selectedDate={selectedDate} />
     </>
