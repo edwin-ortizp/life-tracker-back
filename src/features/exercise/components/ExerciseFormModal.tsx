@@ -1,12 +1,13 @@
 // src/features/exercise/components/ExerciseFormModal.tsx
 import React, { useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -113,22 +114,29 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] sm:h-auto overflow-y-auto">
-        <DialogHeader className="sticky top-0 bg-white z-10 pb-4 mb-4 border-b">
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            {selectedExercise && !initialData && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setSelectedExercise(null)}
-                className="h-8 w-8"
-              >
-                <ArrowLeft className="h-5 w-5" />
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] sm:h-auto overflow-y-auto">
+        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 mb-4 border-b">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              {selectedExercise && !initialData && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSelectedExercise(null)}
+                  className="h-8 w-8"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              )}
+              {initialData ? 'Editar ejercicio' : 'Agregar ejercicio'}
+            </DialogTitle>
+            <DialogClose asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <X className="h-5 w-5" />
               </Button>
-            )}
-            {initialData ? 'Editar ejercicio' : 'Agregar ejercicio'}
-          </DialogTitle>
+            </DialogClose>
+          </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 pt-2">
@@ -176,7 +184,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
               </div>
 
               {selectedExercise.category === 'strength' && (
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="sets">Series</Label>
                     <Input
@@ -213,9 +221,9 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
                 </div>
               )}
 
-              {(selectedExercise.category === 'cardio' || 
+              {(selectedExercise.category === 'cardio' ||
                selectedExercise.category === 'flexibility') && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="duration">Duración (min)</Label>
                     <Input
