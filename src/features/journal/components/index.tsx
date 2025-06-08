@@ -5,7 +5,7 @@ import { JournalHeader } from './JournalHeader';
 import { JournalInput } from './JournalInput';
 import { PasswordProtection } from './PasswordProtection';
 import { PrivateTaskSection } from '@/features/task/components/PrivateTaskSection';
-import ExportWeekButton from './ExportWeekButton';
+import ExportRangeButton from './ExportRangeButton';
 import { LastUpdatedInfo } from './LastUpdatedInfo';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
@@ -86,7 +86,7 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
                 </span>
               )}
             </Button>
-            <ExportWeekButton weekDate={selectedDate} />
+            <ExportRangeButton />
           </div>
         </CardFooter>
       </Card>
@@ -95,5 +95,5 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
   );
 };
 export * from "./MarkdownJournal";
-export * from "./ExportWeekButton";
+export * from "./ExportRangeButton";
 export default Journal;
