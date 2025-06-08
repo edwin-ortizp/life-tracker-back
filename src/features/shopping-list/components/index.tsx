@@ -26,19 +26,32 @@ export const ShoppingList: React.FC = () => {
       <CardContent className="p-4 space-y-4">
         <div className="flex justify-between items-center">
           <h3 className="font-medium text-lg">Lista de Compras</h3>
-          <Button onClick={() => setShowModal(true)}>Agregar</Button>
+          <Button onClick={() => setShowModal(true)}>
+            Agregar
+          </Button>
         </div>
+        
         <Tabs defaultValue="kanban" className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="kanban">Kanban</TabsTrigger>
             <TabsTrigger value="list">Lista</TabsTrigger>
           </TabsList>
-          <TabsContent value="kanban">
-            <KanbanView items={items} onMove={moveItem} onView={setEditingItem} />
-          </TabsContent>
-          <TabsContent value="list">
-            <ListView items={items} onEdit={setEditingItem} onDelete={deleteItem} />
-          </TabsContent>
+          
+          {items.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p className="text-lg">No hay elementos en tu lista</p>
+              <p className="text-sm">Haz clic en "Agregar" para comenzar</p>
+            </div>
+          ) : (
+            <>
+              <TabsContent value="kanban">
+                <KanbanView items={items} onMove={moveItem} onView={setEditingItem} />
+              </TabsContent>
+              <TabsContent value="list">
+                <ListView items={items} onEdit={setEditingItem} onDelete={deleteItem} />
+              </TabsContent>
+            </>
+          )}
         </Tabs>
       </CardContent>
       <ItemModal

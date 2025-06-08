@@ -6,6 +6,37 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ShoppingItem, ItemStatus } from '../types';
 
+// Predefined options
+const PLACES = [
+  'Éxito',
+  'D1',
+  'Ara',
+  'Dollarcity',
+  'Olimpica (SAO)',
+  'Jumbo',
+  'Plaza de mercado',
+  'Panadería',
+  'Droguería',
+  'Otro'
+];
+
+const CATEGORIES = [
+  'Aseo y Limpieza',
+  'Bebidas',
+  'Carnes y Pescados',
+  'Cereales y Granos',
+  'Condimentos y Especias',
+  'Congelados',
+  'Cuidado Personal',
+  'Enlatados y Conservas',
+  'Frutas y Verduras',
+  'Lácteos y Huevos',
+  'Panadería',
+  'Snacks y Dulces',
+  'Mascotas',
+  'Otro'
+];
+
 interface ItemModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -38,17 +69,27 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
       setPlace('');
       setStatus('to-buy');
     }
-  }, [item, open]);
-
-  const handleSave = () => {
-    onSave({
+  }, [item, open]);  const handleSave = () => {
+    const itemData: any = {
       name,
       quantity: Number(quantity),
-      price: price ? Number(price) : undefined,
-      category: category || undefined,
-      place: place || undefined,
       status
-    }, item?.id);
+    };
+    
+    // Solo incluir campos opcionales si tienen valor
+    if (price && price.trim() !== '') {
+      itemData.price = Number(price);
+    }
+    
+    if (category && category.trim() !== '') {
+      itemData.category = category;
+    }
+    
+    if (place && place.trim() !== '') {
+      itemData.place = place;
+    }
+    
+    onSave(itemData, item?.id);
     onOpenChange(false);
   };
 
@@ -72,14 +113,31 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
               <Label htmlFor="price">Precio</Label>
               <Input id="price" type="number" value={price} onChange={e => setPrice(e.target.value)} />
             </div>
-          </div>
-          <div className="space-y-1">
+          </div>          <div className="space-y-1">
             <Label htmlFor="category">Categoría</Label>
-            <Input id="category" value={category} onChange={e => setCategory(e.target.value)} />
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger id="category">
+                <SelectValue placeholder="Seleccionar categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1">
             <Label htmlFor="place">Lugar de compra</Label>
-            <Input id="place" value={place} onChange={e => setPlace(e.target.value)} />
+            <Select value={place} onValueChange={setPlace}>
+              <SelectTrigger id="place">
+                <SelectValue placeholder="Seleccionar lugar" />
+              </SelectTrigger>
+              <SelectContent>
+                {PLACES.map(p => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1">
             <Label htmlFor="status">Estado</Label>

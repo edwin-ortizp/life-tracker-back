@@ -20,83 +20,151 @@ export const useShoppingList = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'error'>(
     'idle'
   );
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!user) return;
+  const [error, setError] = useState<string | null>(null);  useEffect(() => {
+    if (!user) {
+      setItems([]);
+      return;
+    }
 
     setStatus('loading');
+    
     const q = query(
       collection(db, 'shopping-list'),
       where('userId', '==', user.uid)
     );
-
+    
     const unsubscribe = onSnapshot(
       q,
       snapshot => {
+        if (snapshot.empty) {
+          setItems([]);
+          setStatus('idle');
+          return;
+        }
+        
         const list: ShoppingItem[] = snapshot.docs.map(docSnap => {
           const data = docSnap.data();
-          return {
+          
+          const item: ShoppingItem = {
             id: docSnap.id,
-            name: data.name,
-            quantity: data.quantity,
-            price: data.price,
-            category: data.category,
-            place: data.place,
-            status: data.status as ItemStatus
+            name: data.name || '',
+            quantity: data.quantity || 0,
+            status: (data.status as ItemStatus) || 'to-buy',
+            // Campos opcionales
+            ...(data.price !== undefined && { price: data.price }),
+            ...(data.category && { category: data.category }),
+            ...(data.place && { place: data.place })
           };
+          
+          return item;
         });
+        
         setItems(list);
         setStatus('idle');
       },
       err => {
-        setError(err instanceof Error ? err.message : 'Error al cargar');
-        setStatus('error');
+        // Si es un error de permisos, mantener los datos actuales pero marcar error
+        if (err?.code === 'permission-denied') {
+          setError('Error de permisos - Verificar reglas de Firestore');
+          setStatus('error');
+        } else {
+          // Para otros errores, limpiar datos
+          setError(err instanceof Error ? err.message : 'Error al cargar');
+          setStatus('error');
+          setItems([]);
+        }
       }
     );
 
-    return () => unsubscribe();
-  }, [user]);
-
-  const addItem = async (item: Omit<ShoppingItem, 'id'>) => {
-    if (!user) return;
-
+    return () => {
+      unsubscribe();
+    };
+  }, [user]);  const addItem = async (item: Omit<ShoppingItem, 'id'>) => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return;
+    }
+    
     setStatus('saving');
     setError(null);
 
     try {
-      await addDoc(collection(db, 'shopping-list'), {
+      // Construir datos limpios sin undefined
+      const docData: any = {
         userId: user.uid,
-        ...item,
+        name: item.name,
+        quantity: Number(item.quantity),
+        status: item.status,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
-      });
+      };
+      
+      // Agregar campos opcionales solo si tienen valor válido
+      if (item.price !== undefined && item.price !== null && !isNaN(Number(item.price))) {
+        docData.price = Number(item.price);
+      }
+      
+      if (item.category && typeof item.category === 'string' && item.category.trim() !== '') {
+        docData.category = item.category.trim();
+      }
+      
+      if (item.place && typeof item.place === 'string' && item.place.trim() !== '') {
+        docData.place = item.place.trim();
+      }      
+      await addDoc(collection(db, 'shopping-list'), docData);
       setStatus('idle');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al guardar');
+      const errorMessage = e instanceof Error ? e.message : 'Error al guardar';
+      setError(errorMessage);
       setStatus('error');
     }
-  };
-
-  const updateItem = async (id: string, data: Partial<ShoppingItem>) => {
-    if (!user) return;
-
+  };  const updateItem = async (id: string, data: Partial<ShoppingItem>) => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return;
+    }
+    
     setStatus('saving');
     setError(null);
 
     try {
       const docRef = doc(db, 'shopping-list', id);
-      await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() });
+      
+      // Construir datos limpios sin undefined
+      const updateData: any = {
+        updatedAt: serverTimestamp()
+      };
+      
+      // Solo incluir campos que tienen valor válido
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.quantity !== undefined) updateData.quantity = Number(data.quantity);
+      if (data.status !== undefined) updateData.status = data.status;
+      
+      if (data.price !== undefined && data.price !== null && !isNaN(Number(data.price))) {
+        updateData.price = Number(data.price);
+      }
+      
+      if (data.category !== undefined && typeof data.category === 'string' && data.category.trim() !== '') {
+        updateData.category = data.category.trim();
+      }
+      
+      if (data.place !== undefined && typeof data.place === 'string' && data.place.trim() !== '') {
+        updateData.place = data.place.trim();
+      }
+      
+      await updateDoc(docRef, updateData);
       setStatus('idle');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al actualizar');
+      const errorMessage = e instanceof Error ? e.message : 'Error al actualizar';
+      setError(errorMessage);
       setStatus('error');
     }
-  };
-
-  const deleteItem = async (id: string) => {
-    if (!user) return;
-
+  };  const deleteItem = async (id: string) => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return;
+    }
+    
     setStatus('saving');
     setError(null);
 
@@ -104,7 +172,8 @@ export const useShoppingList = () => {
       await deleteDoc(doc(db, 'shopping-list', id));
       setStatus('idle');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al eliminar');
+      const errorMessage = e instanceof Error ? e.message : 'Error al eliminar';
+      setError(errorMessage);
       setStatus('error');
     }
   };
