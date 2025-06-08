@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { Calendar, AlertCircle, MoreVertical, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -75,6 +76,9 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
             <Calendar className="h-4 w-4 text-gray-500" />
             <span className="text-xs sm:text-sm text-gray-500">Semanal</span>
           </div>
+          <Link to="/shopping-list" className="text-sm text-blue-600 underline">
+            Lista de Compras
+          </Link>
         </div>
         
         {/* Menú de opciones */}

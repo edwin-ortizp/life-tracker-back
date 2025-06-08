@@ -17,7 +17,8 @@ import {
   ChevronRight,
   UtensilsCrossed,
   LogOut,
-  Dumbbell
+  Dumbbell,
+  ShoppingCart
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { MenuItem } from './types';
@@ -32,6 +33,7 @@ export const menuItems: MenuItem[] = [
   { icon: BookOpen, label: 'Diario', path: '/journal' },
   { icon: Timer, label: 'Pomodoro', path: '/pomodoro' },
   { icon: UtensilsCrossed, label: 'Comidas', path: '/meal' },
+  { icon: ShoppingCart, label: 'Compras', path: '/shopping-list' },
   { icon: ClipboardList, label: 'Tareas', path: '/task' },
   { icon: KanbanIcon, label: 'Kanban', path: '/kanban' },
   { icon: ThumbsDown, label: 'Hábitos Negativos', path: '/negative' },
