@@ -4,17 +4,20 @@ import { BrowserRouter } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';
 import App from './App';
 import './index.css';
+import './styles/pwa.css';
 
-// Registrar el service worker con actualización automática
-const updateSW = registerSW({
+// Registrar el service worker con mejor manejo de actualizaciones
+registerSW({
   onNeedRefresh() {
-    if (confirm('Nueva versión disponible. ¿Actualizar?')) {
-      updateSW();
-    }
+    // Enviar mensaje al componente PWAStatus para mostrar notificación
+    window.dispatchEvent(new CustomEvent('sw-update-available'));
   },
   onOfflineReady() {
     console.log('La aplicación está lista para usar sin conexión');
+    // Opcional: mostrar toast de confirmación
+    window.dispatchEvent(new CustomEvent('sw-offline-ready'));
   },
+  immediate: true
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
