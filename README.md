@@ -127,3 +127,7 @@ Al contribuir a este proyecto, por favor considera:
 - Tailwind CSS
 - Lucide para iconos
 - Recharts para visualizaciones
+
+## Módulo de Lista de Compras
+
+El módulo de compras permite gestionar elementos en vistas de tipo Kanban o lista. Los datos se guardan en **Firestore** dentro de la colección `shopping-list` mediante el hook `useShoppingList`.
