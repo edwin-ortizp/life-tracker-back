@@ -52,7 +52,7 @@ const ExercisePage: React.FC = () => {
         onChange={setSelectedDate}
       />
       
-      <Exercise selectedDate={selectedDate} />
+      <Exercise ref={exerciseRef} selectedDate={selectedDate} />
     </PageLayout>
   );
 };

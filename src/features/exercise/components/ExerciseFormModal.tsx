@@ -113,7 +113,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] sm:h-auto overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] sm:h-auto overflow-y-auto">
         <DialogHeader className="sticky top-0 bg-white z-10 pb-4 mb-4 border-b">
           <DialogTitle className="flex items-center gap-2 text-xl">
             {selectedExercise && !initialData && (
@@ -176,7 +176,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
               </div>
 
               {selectedExercise.category === 'strength' && (
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="sets">Series</Label>
                     <Input
@@ -213,9 +213,9 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
                 </div>
               )}
 
-              {(selectedExercise.category === 'cardio' || 
+              {(selectedExercise.category === 'cardio' ||
                selectedExercise.category === 'flexibility') && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="duration">Duración (min)</Label>
                     <Input
