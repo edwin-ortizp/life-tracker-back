@@ -34,7 +34,7 @@ export const ShoppingList: React.FC = () => {
             <TabsTrigger value="list">Lista</TabsTrigger>
           </TabsList>
           <TabsContent value="kanban">
-            <KanbanView items={items} onMove={moveItem} onEdit={setEditingItem} onDelete={deleteItem} />
+            <KanbanView items={items} onMove={moveItem} onView={setEditingItem} />
           </TabsContent>
           <TabsContent value="list">
             <ListView items={items} onEdit={setEditingItem} onDelete={deleteItem} />
@@ -48,6 +48,7 @@ export const ShoppingList: React.FC = () => {
           setEditingItem(null);
         }}
         onSave={handleSave}
+        onDelete={id => deleteItem(id)}
         item={editingItem || undefined}
       />
     </Card>

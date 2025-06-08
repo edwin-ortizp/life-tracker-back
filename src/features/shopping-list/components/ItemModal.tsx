@@ -10,10 +10,11 @@ interface ItemModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (item: Omit<ShoppingItem, 'id'>, id?: string) => void;
+  onDelete?: (id: string) => void;
   item?: ShoppingItem;
 }
 
-export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave, item }) => {
+export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave, onDelete, item }) => {
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState('');
@@ -94,7 +95,13 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
             </Select>
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex justify-between">
+          {item && onDelete ? (
+            <Button variant="destructive" onClick={() => {
+              onDelete(item.id);
+              onOpenChange(false);
+            }}>Eliminar</Button>
+          ) : <span />}
           <Button onClick={handleSave}>Guardar</Button>
         </DialogFooter>
       </DialogContent>

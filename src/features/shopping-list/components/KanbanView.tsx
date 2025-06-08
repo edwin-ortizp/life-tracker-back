@@ -11,15 +11,13 @@ import {
   ShoppingCart,
   AlertTriangle,
   Check,
-  Pencil,
-  Trash2
+  Eye
 } from 'lucide-react';
 
 interface KanbanViewProps {
   items: ShoppingItem[];
   onMove: (id: string, status: ItemStatus) => void;
-  onEdit: (item: ShoppingItem) => void;
-  onDelete: (id: string) => void;
+  onView: (item: ShoppingItem) => void;
 }
 
 const columns: { key: ItemStatus; title: string }[] = [
@@ -34,7 +32,7 @@ const statusIcons: Record<ItemStatus, React.ElementType> = {
   'in-stock': Check
 };
 
-export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onEdit, onDelete }) => {
+export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView }) => {
   return (
     <TooltipProvider>
       <div className="flex gap-4 overflow-x-auto pb-4">
@@ -44,7 +42,11 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onEdit, o
               {col.title}
             </h3>
             {items.filter(it => it.status === col.key).map(item => (
-              <div key={item.id} className="bg-white shadow-sm border rounded-lg p-2 space-y-1">
+              <div
+                key={item.id}
+                className="bg-white shadow-sm border rounded-lg p-2 space-y-1 cursor-pointer"
+                onClick={() => onView(item)}
+              >
                 <div className="font-medium">{item.name}</div>
                 <div className="text-sm text-gray-500">{item.quantity} - {item.category}</div>
                 <div className="flex justify-end gap-2 text-xs">
@@ -53,7 +55,14 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onEdit, o
                     return (
                       <Tooltip key={c.key}>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => onMove(item.id, c.key)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={e => {
+                              e.stopPropagation();
+                              onMove(item.id, c.key);
+                            }}
+                          >
                             <Icon className="w-4 h-4" />
                           </Button>
                         </TooltipTrigger>
@@ -63,19 +72,18 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onEdit, o
                   })}
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
-                        <Pencil className="w-4 h-4" />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={e => {
+                          e.stopPropagation();
+                          onView(item);
+                        }}
+                      >
+                        <Eye className="w-4 h-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Editar</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => onDelete(item.id)}>
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Eliminar</TooltipContent>
+                    <TooltipContent>Ver detalles</TooltipContent>
                   </Tooltip>
                 </div>
               </div>
