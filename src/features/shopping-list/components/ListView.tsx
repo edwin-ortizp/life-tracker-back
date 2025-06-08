@@ -81,24 +81,34 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete }) =
             </SelectContent>
           </Select>
 
-          <Select value={placeFilter} onValueChange={setPlaceFilter}>
+          <Select
+            value={placeFilter || 'all'}
+            onValueChange={v => setPlaceFilter(v === 'all' ? '' : v)}
+          >
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Lugar" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos los lugares</SelectItem>
+              <SelectItem value="all">Todos los lugares</SelectItem>
               {places.map(p => (
-                <SelectItem key={p} value={p}>{p}</SelectItem>
+                <SelectItem key={p} value={p}>
+                  {p}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Select value={statusFilter} onValueChange={v => setStatusFilter(v as ItemStatus | '')}>
+          <Select
+            value={statusFilter || 'all'}
+            onValueChange={v =>
+              setStatusFilter(v === 'all' ? '' : (v as ItemStatus))
+            }
+          >
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="to-buy">Por Comprar</SelectItem>
               <SelectItem value="in-stock">En Stock</SelectItem>
               <SelectItem value="low-stock">Poco Stock</SelectItem>
