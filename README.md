@@ -130,4 +130,4 @@ Al contribuir a este proyecto, por favor considera:
 
 ## Módulo de Lista de Compras
 
-El módulo de compras permite gestionar elementos en vistas de tipo Kanban o lista. Actualmente los datos se almacenan **en el `localStorage` del navegador** mediante el hook `useShoppingList`. No se ha creado todavía una colección en Firestore para este módulo.
+El módulo de compras permite gestionar elementos en vistas de tipo Kanban o lista. Los datos se guardan en **Firestore** dentro de la colección `shopping-list` mediante el hook `useShoppingList`.
