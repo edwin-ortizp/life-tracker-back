@@ -64,7 +64,7 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
 
             <Button
               onClick={() => setShowAddExercise(true)}
-              className="gap-2"
+              className="gap-2 hidden sm:flex"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Agregar</span>
