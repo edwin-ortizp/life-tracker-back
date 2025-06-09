@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ShoppingItem, ItemStatus } from '../types';
@@ -46,7 +47,7 @@ interface ItemModalProps {
 }
 
 export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave, onDelete, item }) => {
-  const [name, setName] = useState('');
+  const [names, setNames] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
@@ -55,41 +56,50 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
 
   useEffect(() => {
     if (item) {
-      setName(item.name);
+      setNames(item.name);
       setQuantity(item.quantity);
       setPrice(item.price ? String(item.price) : '');
       setCategory(item.category || '');
       setPlace(item.place || '');
       setStatus(item.status);
     } else {
-      setName('');
+      setNames('');
       setQuantity(1);
       setPrice('');
       setCategory('');
       setPlace('');
       setStatus('to-buy');
     }
-  }, [item, open]);  const handleSave = () => {
-    const itemData: any = {
-      name,
+  }, [item, open]);
+
+  const handleSave = () => {
+    const baseData: any = {
       quantity: Number(quantity),
-      status
+      status,
     };
-    
-    // Solo incluir campos opcionales si tienen valor
+
     if (price && price.trim() !== '') {
-      itemData.price = Number(price);
+      baseData.price = Number(price);
     }
-    
+
     if (category && category.trim() !== '') {
-      itemData.category = category;
+      baseData.category = category;
     }
-    
+
     if (place && place.trim() !== '') {
-      itemData.place = place;
+      baseData.place = place;
     }
-    
-    onSave(itemData, item?.id);
+
+    if (item) {
+      onSave({ ...baseData, name: names }, item.id);
+    } else {
+      const lines = names
+        .split('\n')
+        .map(l => l.trim())
+        .filter(Boolean);
+      lines.forEach(n => onSave({ ...baseData, name: n }));
+    }
+
     onOpenChange(false);
   };
 
@@ -101,8 +111,18 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-1">
-            <Label htmlFor="name">Nombre</Label>
-            <Input id="name" value={name} onChange={e => setName(e.target.value)} />
+            <Label htmlFor="names">Nombre{item ? '' : 's'}</Label>
+            {item ? (
+              <Input id="names" value={names} onChange={e => setNames(e.target.value)} />
+            ) : (
+              <Textarea
+                id="names"
+                value={names}
+                onChange={e => setNames(e.target.value)}
+                placeholder="Un producto por línea"
+                className="min-h-[120px]"
+              />
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
