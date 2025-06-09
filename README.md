@@ -128,6 +128,17 @@ Al contribuir a este proyecto, por favor considera:
 - Lucide para iconos
 - Recharts para visualizaciones
 
+## Variables de Entorno
+
+Crea un archivo `.env` en la raíz del proyecto basado en `.env.example` y define:
+
+```
+VITE_GEMINI_API_KEY=tu_clave
+VITE_GEMINI_TASK_PROMPT=Tu mensaje base para las sugerencias
+```
+
+Estas variables permiten configurar la integración opcional con Gemini.
+
 ## Módulo de Lista de Compras
 
 El módulo de compras permite gestionar elementos en vistas de tipo Kanban o lista. Los datos se guardan en **Firestore** dentro de la colección `shopping-list` mediante el hook `useShoppingList`.
