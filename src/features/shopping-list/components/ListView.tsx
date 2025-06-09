@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ShoppingItem, ItemStatus } from '../types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, ShoppingCart } from 'lucide-react';
+import { Edit, Trash2, ShoppingCart, ChevronUp, ChevronDown } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -11,22 +11,29 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { formatCategory } from '../utils/categories';
 
 interface ListViewProps {
   items: ShoppingItem[];
   onEdit: (item: ShoppingItem) => void;
   onDelete: (id: string) => void;
+  onUpdate: (id: string, data: Partial<ShoppingItem>) => void;
 }
 
-export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete }) => {
+export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onUpdate }) => {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'az' | 'za' | 'category'>('az');
   const [placeFilter, setPlaceFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<ItemStatus | ''>('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [onlyToBuy, setOnlyToBuy] = useState(false);
 
   const places = useMemo(() => {
     return Array.from(new Set(items.map(i => i.place).filter(Boolean))) as string[];
+  }, [items]);
+
+  const categories = useMemo(() => {
+    return Array.from(new Set(items.map(i => i.category).filter(Boolean))) as string[];
   }, [items]);
 
   const filtered = useMemo(() => {
@@ -38,6 +45,10 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete }) =
 
     if (statusFilter) {
       list = list.filter(i => i.status === statusFilter);
+    }
+
+    if (categoryFilter) {
+      list = list.filter(i => i.category === categoryFilter);
     }
 
     if (onlyToBuy) {
@@ -58,7 +69,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete }) =
     }
 
     return sorted;
-  }, [items, query, placeFilter, statusFilter, onlyToBuy, sort]);
+  }, [items, query, placeFilter, statusFilter, categoryFilter, onlyToBuy, sort]);
 
   const totalPending = useMemo(() => {
     return filtered.reduce((sum, item) => {
@@ -124,6 +135,23 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete }) =
             </SelectContent>
           </Select>
 
+          <Select
+            value={categoryFilter || 'all'}
+            onValueChange={v => setCategoryFilter(v === 'all' ? '' : v)}
+          >
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Categoría" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {categories.map(c => (
+                <SelectItem key={c} value={c}>
+                  {formatCategory(c)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <label className="flex items-center gap-2 text-sm">
             <Checkbox checked={onlyToBuy} onCheckedChange={v => setOnlyToBuy(Boolean(v))} />
             <ShoppingCart className="w-4 h-4" />
@@ -139,7 +167,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete }) =
               <div className="font-medium">{item.name}</div>
               <div className="text-sm text-gray-500">
                 Cantidad: {item.quantity}
-                {item.category && ` • ${item.category}`}
+                {item.category && ` • ${formatCategory(item.category)}`}
                 {item.place && ` • ${item.place}`}
               </div>
               <div className="text-sm">
@@ -155,6 +183,22 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete }) =
               </div>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onUpdate(item.id, { quantity: item.quantity + 1 })}
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() =>
+                  item.quantity > 1 && onUpdate(item.id, { quantity: item.quantity - 1 })
+                }
+              >
+                <ChevronDown className="h-4 w-4" />
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => onEdit(item)}>
                 <Edit className="h-4 w-4" />
               </Button>
