@@ -27,6 +27,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
   const [statusFilter, setStatusFilter] = useState<ItemStatus | ''>('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [onlyToBuy, setOnlyToBuy] = useState(false);
+  const [noPriceOnly, setNoPriceOnly] = useState(false);
 
   const places = useMemo(() => {
     return Array.from(new Set(items.map(i => i.place).filter(Boolean))) as string[];
@@ -48,7 +49,15 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
     }
 
     if (categoryFilter) {
-      list = list.filter(i => i.category === categoryFilter);
+      if (categoryFilter === '__empty') {
+        list = list.filter(i => !i.category);
+      } else {
+        list = list.filter(i => i.category === categoryFilter);
+      }
+    }
+
+    if (noPriceOnly) {
+      list = list.filter(i => i.price === undefined);
     }
 
     if (onlyToBuy) {
@@ -69,7 +78,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
     }
 
     return sorted;
-  }, [items, query, placeFilter, statusFilter, categoryFilter, onlyToBuy, sort]);
+  }, [items, query, placeFilter, statusFilter, categoryFilter, noPriceOnly, onlyToBuy, sort]);
 
   const totalPending = useMemo(() => {
     return filtered.reduce((sum, item) => {
@@ -144,6 +153,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="__empty">Sin categoría</SelectItem>
               {categories.map(c => (
                 <SelectItem key={c} value={c}>
                   {formatCategory(c)}
@@ -153,11 +163,20 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
           </Select>
 
           <label className="flex items-center gap-2 text-sm">
+            <Checkbox checked={noPriceOnly} onCheckedChange={v => setNoPriceOnly(Boolean(v))} />
+            Sin precio
+          </label>
+
+          <label className="flex items-center gap-2 text-sm">
             <Checkbox checked={onlyToBuy} onCheckedChange={v => setOnlyToBuy(Boolean(v))} />
             <ShoppingCart className="w-4 h-4" />
             Lista activa
           </label>
         </div>
+      </div>
+
+      <div className="text-right font-medium">
+        Total pendiente: {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(totalPending)}
       </div>
 
       <div className="space-y-2">
@@ -208,9 +227,6 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
             </div>
           </div>
         ))}
-      </div>
-      <div className="pt-2 border-t text-right font-medium">
-        Total pendiente: {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(totalPending)}
       </div>
     </div>
   );
