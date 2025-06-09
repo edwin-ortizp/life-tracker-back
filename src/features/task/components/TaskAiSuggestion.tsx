@@ -18,13 +18,14 @@ import { MoodSelector } from '@/features/mood/components';
 import type { Task, TaskCategory } from '../types';
 import { TASK_CATEGORIES, CATEGORY_LABELS } from '../types';
 import { format } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import { Bot, Loader2 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 interface TaskAiSuggestionProps {
   tasks: Task[];
 }
 
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
 
 export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks }) => {
   const [open, setOpen] = useState(false);
@@ -74,10 +75,11 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks }) => 
 
   return (
     <Dialog open={open} onOpenChange={o => (o ? setOpen(true) : closeDialog())}>
-      <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
+      <Button size="sm" variant="outline" onClick={() => setOpen(true)} className="flex items-center gap-2">
+        <Bot className="w-4 h-4" />
         Sugerir tarea
       </Button>
-      <DialogContent className="w-full sm:max-w-3xl">
+      <DialogContent className="w-full sm:max-w-5xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Sugerencia de tarea</DialogTitle>
           <DialogDescription>
@@ -112,9 +114,9 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks }) => 
                 {loading ? 'Consultando...' : 'Obtener sugerencia'}
               </Button>
               {suggestion && (
-                <p className="p-4 bg-muted rounded-md whitespace-pre-wrap text-sm">
-                  {suggestion}
-                </p>
+                <div className="p-4 bg-muted rounded-md prose max-w-none">
+                  <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(suggestion) }} />
+                </div>
               )}
             </div>
           )}

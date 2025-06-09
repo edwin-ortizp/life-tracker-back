@@ -135,11 +135,13 @@ Crea un archivo `.env` en la raíz del proyecto basado en `.env.example` y defin
 ```
 VITE_GEMINI_API_KEY=tu_clave
 VITE_GEMINI_TASK_PROMPT=Tu mensaje base para las sugerencias
+VITE_GEMINI_JOURNAL_PROMPT=Mensaje para reescribir el diario
 ```
 
 Estas variables permiten configurar la integración opcional con Gemini.
 La sugerencia se genera solo cuando el usuario la solicita y puede
-personalizarse mediante estas variables.
+personalizarse mediante estas variables. Las respuestas pueden incluir HTML o
+Markdown, el cual se sanitiza antes de mostrarse.
 
 ## Módulo de Lista de Compras
 
