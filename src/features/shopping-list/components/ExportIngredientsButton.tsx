@@ -18,13 +18,20 @@ export const ExportIngredientsButton: React.FC<ExportIngredientsButtonProps> = (
       return !EXCLUDED_WORDS.some(word => category.includes(word));
     });
 
-    const exportData = filtered.map(item => ({
-      name: item.name,
-      status: item.status,
-      quantity: item.quantity
-    }));
+    const statusMap: Record<string, string> = {
+      'in-stock': 'en_stock',
+      'low-stock': 'stock_bajo',
+      'to-buy': 'pendiente_compra'
+    };
 
-    const jsonString = JSON.stringify(exportData, null, 2);
+    const grouped = filtered.reduce<Record<string, { name: string; quantity: number }[]>>((acc, item) => {
+      const key = statusMap[item.status] || item.status;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push({ name: item.name, quantity: item.quantity });
+      return acc;
+    }, {});
+
+    const jsonString = JSON.stringify(grouped, null, 2);
     navigator.clipboard.writeText(jsonString).then(() => {
       toast.success('Ingredientes copiados al portapapeles');
     });
