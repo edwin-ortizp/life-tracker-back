@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ShoppingItem, ItemStatus } from '../types';
+import { CATEGORIES, formatCategory } from '../utils/categories';
 
 // Predefined options
 const PLACES = [
@@ -21,22 +22,6 @@ const PLACES = [
   'Otro'
 ];
 
-const CATEGORIES = [
-  'Aseo y Limpieza',
-  'Bebidas',
-  'Carnes y Pescados',
-  'Cereales y Granos',
-  'Condimentos y Especias',
-  'Congelados',
-  'Cuidado Personal',
-  'Enlatados y Conservas',
-  'Frutas y Verduras',
-  'Lácteos y Huevos',
-  'Panadería',
-  'Snacks y Dulces',
-  'Mascotas',
-  'Otro'
-];
 
 interface ItemModalProps {
   open: boolean;
@@ -141,7 +126,9 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
               </SelectTrigger>
               <SelectContent>
                 {CATEGORIES.map(cat => (
-                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  <SelectItem key={cat} value={cat}>
+                    {formatCategory(cat)}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

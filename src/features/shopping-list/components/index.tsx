@@ -49,10 +49,19 @@ export const ShoppingList: React.FC = () => {
           ) : (
             <>
               <TabsContent value="kanban">
-                <KanbanView items={items} onMove={moveItem} onView={setEditingItem} />
+                <KanbanView
+                  items={items}
+                  onMove={moveItem}
+                  onView={setEditingItem}
+                />
               </TabsContent>
               <TabsContent value="list">
-                <ListView items={items} onEdit={setEditingItem} onDelete={deleteItem} />
+                <ListView
+                  items={items}
+                  onEdit={setEditingItem}
+                  onDelete={deleteItem}
+                  onUpdate={updateItem}
+                />
               </TabsContent>
             </>
           )}
