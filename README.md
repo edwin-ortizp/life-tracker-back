@@ -138,6 +138,8 @@ VITE_GEMINI_TASK_PROMPT=Tu mensaje base para las sugerencias
 ```
 
 Estas variables permiten configurar la integración opcional con Gemini.
+La sugerencia se genera solo cuando el usuario la solicita y puede
+personalizarse mediante estas variables.
 
 ## Módulo de Lista de Compras
 
