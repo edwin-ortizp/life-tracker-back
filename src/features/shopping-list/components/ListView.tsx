@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ShoppingItem, ItemStatus } from '../types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, ShoppingCart } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -23,7 +23,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete }) =
   const [sort, setSort] = useState<'az' | 'za' | 'category'>('az');
   const [placeFilter, setPlaceFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<ItemStatus | ''>('');
-  const [onlyLowStock, setOnlyLowStock] = useState(false);
+  const [onlyToBuy, setOnlyToBuy] = useState(false);
 
   const places = useMemo(() => {
     return Array.from(new Set(items.map(i => i.place).filter(Boolean))) as string[];
@@ -40,8 +40,8 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete }) =
       list = list.filter(i => i.status === statusFilter);
     }
 
-    if (onlyLowStock) {
-      list = list.filter(i => i.status === 'low-stock');
+    if (onlyToBuy) {
+      list = list.filter(i => i.status === 'to-buy');
     }
 
     let sorted = [...list];
@@ -58,7 +58,16 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete }) =
     }
 
     return sorted;
-  }, [items, query, placeFilter, statusFilter, onlyLowStock, sort]);
+  }, [items, query, placeFilter, statusFilter, onlyToBuy, sort]);
+
+  const totalPending = useMemo(() => {
+    return filtered.reduce((sum, item) => {
+      if (item.status === 'to-buy' && item.price !== undefined) {
+        return sum + item.price * item.quantity;
+      }
+      return sum;
+    }, 0);
+  }, [filtered]);
 
   return (
     <div className="space-y-4">
@@ -116,8 +125,9 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete }) =
           </Select>
 
           <label className="flex items-center gap-2 text-sm">
-            <Checkbox checked={onlyLowStock} onCheckedChange={v => setOnlyLowStock(Boolean(v))} />
-            Stock bajo
+            <Checkbox checked={onlyToBuy} onCheckedChange={v => setOnlyToBuy(Boolean(v))} />
+            <ShoppingCart className="w-4 h-4" />
+            Lista activa
           </label>
         </div>
       </div>
@@ -154,6 +164,9 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete }) =
             </div>
           </div>
         ))}
+      </div>
+      <div className="pt-2 border-t text-right font-medium">
+        Total pendiente: {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(totalPending)}
       </div>
     </div>
   );
