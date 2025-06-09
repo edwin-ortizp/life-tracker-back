@@ -79,16 +79,38 @@ export const useShoppingList = () => {
     return () => {
       unsubscribe();
     };
-  }, [user]);  const addItem = async (item: Omit<ShoppingItem, 'id'>) => {
+  }, [user]);
+
+  const addItem = async (item: Omit<ShoppingItem, 'id'>) => {
     if (!user) {
       setError('Usuario no autenticado');
       return;
     }
-    
+
     setStatus('saving');
     setError(null);
 
     try {
+      // Verificar si el producto ya existe para evitar duplicados
+      const existing = items.find(
+        i => i.name.toLowerCase() === item.name.toLowerCase()
+      );
+
+      if (existing) {
+        const newQuantity = existing.quantity + Number(item.quantity);
+
+        if (existing.status === 'low-stock') {
+          await updateItem(existing.id, { quantity: newQuantity });
+        } else if (existing.status === 'to-buy') {
+          await updateItem(existing.id, { quantity: newQuantity, status: 'in-stock' });
+        } else {
+          await updateItem(existing.id, { quantity: newQuantity });
+        }
+
+        setStatus('idle');
+        return;
+      }
+
       // Construir datos limpios sin undefined
       const docData: any = {
         userId: user.uid,

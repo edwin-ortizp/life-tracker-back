@@ -22,8 +22,8 @@ export const ShoppingList: React.FC = () => {
   };
 
   return (
-    <Card className="w-full h-full">
-      <CardContent className="p-4 space-y-4">
+    <Card className="w-full h-full flex flex-col">
+      <CardContent className="p-4 space-y-4 overflow-y-auto flex-1">
         <div className="flex justify-between items-center">
           <h3 className="font-medium text-lg">Lista de Compras</h3>
           <Button onClick={() => setShowModal(true)}>
