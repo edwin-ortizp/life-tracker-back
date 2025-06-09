@@ -6,6 +6,7 @@ import { JournalInput } from './JournalInput';
 import { PasswordProtection } from './PasswordProtection';
 import { PrivateTaskSection } from '@/features/task/components/PrivateTaskSection';
 import ExportRangeButton from './ExportRangeButton';
+import JournalAiRewrite from './JournalAiRewrite';
 import { LastUpdatedInfo } from './LastUpdatedInfo';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
@@ -86,6 +87,7 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
                 </span>
               )}
             </Button>
+            <JournalAiRewrite entry={entry} />
             <ExportRangeButton />
           </div>
         </CardFooter>
@@ -96,4 +98,5 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
 };
 export * from "./MarkdownJournal";
 export * from "./ExportRangeButton";
+export * from "./JournalAiRewrite";
 export default Journal;
