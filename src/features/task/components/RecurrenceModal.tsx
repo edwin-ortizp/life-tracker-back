@@ -104,7 +104,19 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
       : urgent
       ? 'delegate'
       : 'delete';
-    onConfirm({ ...formData, priority, size: sizeState });
+
+    if (mode === 'create') {
+      const lines = formData.title
+        .split('\n')
+        .map(l => l.trim())
+        .filter(Boolean);
+      lines.forEach(title => {
+        onConfirm({ ...formData, title, priority, size: sizeState });
+      });
+      onClose();
+    } else {
+      onConfirm({ ...formData, priority, size: sizeState });
+    }
   };
 
   const getModalTitle = () => {
@@ -133,6 +145,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
           <div className="space-y-4">
             {mode !== 'complete' && (
               <TaskTitleInput
+                multiline={mode === 'create'}
                 value={formData.title}
                 onChange={(title) => setFormData({ ...formData, title })}
               />
