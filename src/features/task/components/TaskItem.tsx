@@ -1,5 +1,6 @@
 import React from 'react';
-import { isBefore, startOfDay, format, addDays, endOfDay } from 'date-fns';
+import { isBefore, startOfDay, format, addDays } from 'date-fns';
+import { toNoon } from '@/utils/dates';
 import { CheckCircle2, Circle, X, Repeat, Calendar, Edit, Tag, AlignLeft } from 'lucide-react';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
@@ -125,12 +126,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 
   const handleSetToday = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onMove?.(task.id, endOfDay(new Date()));
+    onMove?.(task.id, toNoon(new Date()));
   };
 
   const handleSetTomorrow = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onMove?.(task.id, endOfDay(addDays(new Date(), 1)));
+    onMove?.(task.id, toNoon(addDays(new Date(), 1)));
   };
 
   if (variant === 'kanban') {
@@ -146,18 +147,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       >
         <CardContent className="p-4 flex flex-col gap-3">
           <div className="flex items-start gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5 p-0 mt-0.5 rounded-full shrink-0 hover:bg-transparent"
-              onClick={handleToggleClick}
-            >
-              {task.completed ? (
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-              ) : (
-                <Circle className="w-5 h-5 text-gray-400 hover:text-gray-600" />
-              )}
-            </Button>
             
             <div className="flex-1 min-w-0 space-y-2">
               <div className="flex items-center gap-2">
