@@ -18,6 +18,7 @@ interface TaskDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit: (task: Task) => void;
+  onToggle?: (taskId: string, completed: boolean) => void;
 }
 
 export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
@@ -25,6 +26,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   isOpen,
   onClose,
   onEdit,
+  onToggle
 }) => {
   if (!task) return null;
 
@@ -43,7 +45,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-[70vw]">
         <div className="grid gap-6 md:grid-cols-12">
           <div className="md:col-span-8 space-y-4">
             <DialogHeader className="text-left">
@@ -87,6 +89,14 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
           <Button variant="outline" onClick={onClose}>
             Cerrar
           </Button>
+          {onToggle && (
+            <Button
+              variant="secondary"
+              onClick={() => onToggle(task.id, !task.completed)}
+            >
+              {task.completed ? 'Marcar incompleta' : 'Completar'}
+            </Button>
+          )}
           <Button onClick={() => onEdit(task)}>Editar</Button>
         </DialogFooter>
       </DialogContent>

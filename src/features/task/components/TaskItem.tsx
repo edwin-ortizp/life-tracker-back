@@ -1,5 +1,6 @@
 import React from 'react';
-import { isBefore, startOfDay, format } from 'date-fns';
+import { isBefore, startOfDay, format, addDays } from 'date-fns';
+import { toNoon } from '@/utils/dates';
 import { CheckCircle2, Circle, X, Repeat, Calendar, Edit, Tag, AlignLeft } from 'lucide-react';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ interface TaskItemProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
+  onMove?: (taskId: string, dueDate: Date | null) => void;
   variant?: 'list' | 'kanban';
 }
 
@@ -73,6 +75,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   onDelete,
   onEdit,
   onView,
+  onMove,
   variant = 'list'
 }) => {
   const overdue = task.dueDate && isBefore(startOfDay(task.dueDate), startOfDay(new Date()));
@@ -121,6 +124,21 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   const recurrenceDescription = getRecurrenceDescription(task.recurrence);
   const pInfo = getPriorityInfo(task.priority || 'none');
 
+  const handleSetToday = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMove?.(task.id, toNoon(new Date()));
+  };
+
+  const handleSetTomorrow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMove?.(task.id, toNoon(addDays(new Date(), 1)));
+  };
+
+  const handleRemoveDate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMove?.(task.id, null);
+  };
+
   if (variant === 'kanban') {
     return (
       <>
@@ -132,22 +150,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           task.completed ? 'bg-muted/30' : overdue ? 'border-l-4 border-l-red-500 bg-red-50' : 'bg-white'
         )}
       >
-        <CardContent className="p-4 flex flex-col gap-3">
+        <CardContent className="p-3 flex flex-col gap-2">
           <div className="flex items-start gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5 p-0 mt-0.5 rounded-full shrink-0 hover:bg-transparent"
-              onClick={handleToggleClick}
-            >
-              {task.completed ? (
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-              ) : (
-                <Circle className="w-5 h-5 text-gray-400 hover:text-gray-600" />
-              )}
-            </Button>
             
-            <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex-1 min-w-0 space-y-1.5">
               <div className="flex items-center gap-2">
                 {task.isPrivate && (
                   <span className="text-xs">🔒</span>
@@ -195,46 +201,79 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           </div>
           
           {/* Botones de acción para kanban */}
-          <div className="flex justify-end gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 p-0 rounded-full hover:bg-muted"
-              title="Editar tarea"
-              onClick={(e) => { e.stopPropagation(); onEdit(task); }}
-            >
-              <Edit className="w-3.5 h-3.5 text-muted-foreground" />
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
+          <div className="flex justify-between gap-1">
+            {onMove && (
+              <div className="flex gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 p-0 rounded-full hover:bg-red-50"
-                  title="Eliminar tarea"
-                  onClick={(e) => e.stopPropagation()}
+                  className="h-7 w-7 p-0 rounded-full hover:bg-muted"
+                  title="Asignar para hoy"
+                  onClick={handleSetToday}
                 >
-                  <X className="w-3.5 h-3.5 text-red-500" />
+                  <span role="img" aria-label="hoy">📅</span>
                 </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>¿Eliminar tarea?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta acción no se puede deshacer. La tarea "{task.title}" será eliminada permanentemente.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => onDelete(task.id)}
-                    className="bg-red-600 hover:bg-red-700"
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 p-0 rounded-full hover:bg-muted"
+                  title="Asignar para mañana"
+                  onClick={handleSetTomorrow}
+                >
+                  <span role="img" aria-label="mañana">🌅</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 p-0 rounded-full hover:bg-muted"
+                  title="Quitar fecha"
+                  onClick={handleRemoveDate}
+                >
+                  <span role="img" aria-label="sin fecha">❌</span>
+                </Button>
+              </div>
+            )}
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 p-0 rounded-full hover:bg-muted"
+                title="Editar tarea"
+                onClick={(e) => { e.stopPropagation(); onEdit(task); }}
+              >
+                <Edit className="w-3.5 h-3.5 text-muted-foreground" />
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 p-0 rounded-full hover:bg-red-50"
+                    title="Eliminar tarea"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    Eliminar
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    <X className="w-3.5 h-3.5 text-red-500" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Eliminar tarea?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta acción no se puede deshacer. La tarea "{task.title}" será eliminada permanentemente.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onDelete(task.id)}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Eliminar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
         </CardContent>
       </Card>
