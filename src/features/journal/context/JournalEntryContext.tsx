@@ -5,7 +5,13 @@ interface JournalEntryContextValue {
   setEntry: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const JournalEntryContext = createContext<JournalEntryContextValue | undefined>(undefined);
+const defaultContext: JournalEntryContextValue = {
+  entry: '',
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  setEntry: () => {}
+};
+
+const JournalEntryContext = createContext<JournalEntryContextValue>(defaultContext);
 
 export const JournalEntryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [entry, setEntry] = useState('');
@@ -16,10 +22,4 @@ export const JournalEntryProvider: React.FC<{ children: React.ReactNode }> = ({ 
   );
 };
 
-export const useJournalEntry = () => {
-  const context = useContext(JournalEntryContext);
-  if (!context) {
-    throw new Error('useJournalEntry must be used within JournalEntryProvider');
-  }
-  return context;
-};
+export const useJournalEntry = () => useContext(JournalEntryContext);
