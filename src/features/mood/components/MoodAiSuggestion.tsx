@@ -12,6 +12,7 @@ import { db } from '@/firebase';
 import { doc, getDoc, setDoc, collection } from 'firebase/firestore';
 import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
 import type { MoodEntry } from '../types';
+import { useJournalEntry } from '@/features/journal/context/JournalEntryContext';
 import DOMPurify from 'dompurify';
 
 interface MoodAiSuggestionProps {
@@ -30,6 +31,7 @@ const API_URL =
 
 export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate }) => {
   const { user } = useAuth();
+  const { entry } = useJournalEntry();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -48,14 +50,10 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
 
   const parseSuggestions = (text: string): Suggestion[] => {
     try {
-      const start = text.indexOf('[');
-      const end = text.lastIndexOf(']');
-      if (start !== -1 && end !== -1) {
-        const json = text.substring(start, end + 1);
-        const data = JSON.parse(json) as Suggestion[];
-        return Array.isArray(data) ? data : [];
-      }
-      return [];
+      const match = text.match(/\[[\s\S]*\]/);
+      if (!match) return [];
+      const data = JSON.parse(match[0]) as Suggestion[];
+      return Array.isArray(data) ? data : [];
     } catch {
       return [];
     }
@@ -65,12 +63,12 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
     if (!apiKey) return;
     setLoading(true);
     try {
-      const entry = await fetchJournalEntry();
-      if (!entry) {
+      const journalText = entry || (await fetchJournalEntry());
+      if (!journalText.trim()) {
         setSuggestions([]);
         return;
       }
-      const prompt = `${basePrompt}\n${entry}`;
+      const prompt = `${basePrompt}\n${journalText}`;
       const res = await fetch(`${API_URL}?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
