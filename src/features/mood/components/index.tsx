@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { MoodSelector } from './MoodSelector';
 import { MoodHistory } from './MoodHistory';
 import { ImportMoodButton } from './ImportMoodButton';
+import { MoodAiSuggestion } from './MoodAiSuggestion';
 import { useMoodData } from '../hooks/useMoodData';
 import { getLocalDateString } from '@/utils/dates';
 import type { MoodProps } from '../types';
@@ -38,6 +39,7 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
           <h3 className="font-medium">Estado de ánimo</h3>
           <div className="flex items-center gap-2">
             <ImportMoodButton />
+            <MoodAiSuggestion selectedDate={selectedDate} />
             {status === 'saving' && (
               <span className="text-xs text-blue-500">Guardando...</span>
             )}
@@ -73,5 +75,6 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
 export * from './MoodSelector';
 export * from './MoodHistory';
 export * from './ImportMoodButton';
+export * from './MoodAiSuggestion';
 
 export default Mood;

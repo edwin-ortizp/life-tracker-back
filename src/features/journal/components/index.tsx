@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { JournalHeader } from './JournalHeader';
@@ -11,6 +11,7 @@ import { LastUpdatedInfo } from './LastUpdatedInfo';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import { useJournalData } from '../hooks/useJournalData';
+import { useJournalEntry } from '../context/JournalEntryContext';
 import type { JournalProps } from '../types';
 
 export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
@@ -24,6 +25,12 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
     saveEntry,
     lastUpdated
   } = useJournalData(selectedDate);
+
+  const { entry: sharedEntry, setEntry: setSharedEntry } = useJournalEntry();
+
+  useEffect(() => {
+    setSharedEntry(entry);
+  }, [entry, setSharedEntry]);
 
   const handleLock = () => {
     setIsUnlocked(false);
@@ -57,8 +64,9 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
             isUnlocked={isUnlocked}
           />
           <JournalInput
-            value={entry}
+            value={sharedEntry}
             onChange={(value) => {
+              setSharedEntry(value);
               setEntry(value);
             }}
           />
@@ -72,7 +80,7 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
           <LastUpdatedInfo lastUpdated={lastUpdated} />
           <div className="flex gap-2">
             <Button
-              onClick={() => saveEntry(entry)}
+              onClick={() => saveEntry(sharedEntry)}
               disabled={status === 'saving'}
             >
               {status === 'saving' ? (
@@ -87,7 +95,7 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
                 </span>
               )}
             </Button>
-            <JournalAiRewrite entry={entry} />
+            <JournalAiRewrite entry={sharedEntry} />
             <ExportRangeButton />
           </div>
         </CardFooter>
