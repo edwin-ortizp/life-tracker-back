@@ -9,6 +9,7 @@ import KanbanPage from './pages/KanbanPage';
 import HabitPage from './pages/HabitPage';
 import MealPage from './pages/MealPage';
 import ShoppingListPage from './pages/ShoppingListPage';
+import RecipesPage from './pages/RecipesPage';
 import Home from './artifacts/Home';
 import ExercisePage from './pages/ExercisePage';
 import NegativeHabitsPage from './pages/NegativeHabitsPage';
@@ -30,6 +31,7 @@ function App() {
         <Route path="negative" element={<NegativeHabitsPage />} />
         <Route path="meal" element={<MealPage />} />
         <Route path="shopping-list" element={<ShoppingListPage />} />
+        <Route path="recipes" element={<RecipesPage />} />
       </Route>
     </Routes>
   );
