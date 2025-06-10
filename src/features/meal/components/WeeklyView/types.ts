@@ -46,7 +46,8 @@ export interface MealCellProps {
   date: string;
   type: Meal['type'];
   meal?: Meal;
-  disabled?: boolean;  onOpenModal: (date: string, type: Meal['type'], meal?: Meal) => void;
+  disabled?: boolean;
+  onOpenModal: (date: string, type: Meal['type'], meal?: Meal) => void;
 }
 
 export interface MealModalProps {
@@ -57,5 +58,6 @@ export interface MealModalProps {
   onFormChange: (field: keyof MealFormData, value: string) => void;
   onSubmit: () => Promise<void>;
   onDelete: () => Promise<void>;
+  onOverwriteDay: (date: string, meals: Record<Meal['type'], Omit<Meal, 'id'>>) => Promise<void>;
   weekDays: DayInfo[];
 }
