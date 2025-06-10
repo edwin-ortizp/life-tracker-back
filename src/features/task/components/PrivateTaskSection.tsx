@@ -323,6 +323,7 @@ Formatos de fecha soportados:
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
         onEdit={(t) => { setShowDetailModal(false); openEditModal(t); }}
+        onToggle={(id, c) => toggleTask(id, c)}
       />
     </Card>
   );

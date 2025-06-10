@@ -24,6 +24,13 @@ export const areSameLocalDay = (timestamp1: number, timestamp2: number): boolean
   return getLocalDateString(date1) === getLocalDateString(date2);
 };
 
+// Normaliza una fecha para establecerla al mediodía local
+export const toNoon = (date: Date): Date => {
+  const d = new Date(date);
+  d.setHours(12, 0, 0, 0);
+  return d;
+};
+
 // Formato de fecha completo en español con UTC
 export const formatDateToSpanishWithUTC = (date: Date): string => {
   const months = [

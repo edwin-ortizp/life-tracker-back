@@ -8,6 +8,7 @@ import { WeeklyViewProps, MealModalState, MealFormData } from './types';
 import MobileDay from './MobileDay';
 import DesktopDay from './DesktopDay';
 import MealModal from './MealModal';
+import type { Meal } from '../../types';
 
 export const WeeklyView: React.FC<WeeklyViewProps> = ({
   mealPlan,
@@ -78,7 +79,27 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
       console.error('Error al eliminar:', err);
       toast({ title: "Error al Eliminar", description: "No se pudo eliminar la comida.", variant: "destructive" });
     }
-  };  return (
+  };
+
+  const overwriteDay = async (date: string, meals: Record<Meal['type'], Omit<Meal, 'id'>>) => {
+    for (const [type, meal] of Object.entries(meals) as [Meal['type'], Omit<Meal, 'id'>][]) {
+      await onAddMeal(date, type, meal);
+    }
+
+    if (selectedMealInfo) {
+      const current = meals[selectedMealInfo.type];
+      if (current) {
+        setFormData({
+          type: selectedMealInfo.type,
+          name: current.name,
+          notes: current.notes || '',
+          recipe: current.recipe || ''
+        });
+      }
+    }
+  };
+
+  return (
     <div className="w-full h-full flex flex-col">
       {/* Vista móvil - Mejorada */}
       <div className="md:hidden flex-1 overflow-y-auto">
@@ -136,6 +157,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
         onFormChange={handleFormChange}
         onSubmit={handleSubmit}
         onDelete={handleDelete}
+        onOverwriteDay={overwriteDay}
         weekDays={weekDays}
       />
     </div>
