@@ -134,14 +134,11 @@ Crea un archivo `.env` en la raíz del proyecto basado en `.env.example` y defin
 
 ```
 VITE_GEMINI_API_KEY=tu_clave
-VITE_GEMINI_TASK_PROMPT=Tu mensaje base para las sugerencias
-VITE_GEMINI_JOURNAL_PROMPT=Mensaje para reescribir el diario
 ```
 
-Estas variables permiten configurar la integración opcional con Gemini.
-La sugerencia se genera solo cuando el usuario la solicita y puede
-personalizarse mediante estas variables. Las respuestas pueden incluir HTML o
-Markdown, el cual se sanitiza antes de mostrarse.
+Esta clave permite conectar con la API de Gemini. El modelo y el mensaje base
+para cada módulo se configuran ahora en `src/config/ai.ts`, donde también puedes
+añadir parámetros extra como `temperature` o `top_p`.
 
 ## Módulo de Lista de Compras
 

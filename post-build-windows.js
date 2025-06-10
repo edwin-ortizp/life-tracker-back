@@ -1,3 +1,4 @@
+/* eslint-env node */
 // post-build-windows.js
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -31,15 +32,15 @@ async function buildWithEnv() {
     };
 
     // Verificar que las variables estén definidas
-    const missingVars = Object.entries(envVars).filter(([key, value]) => !value);
+    const missingVars = Object.entries(envVars).filter(([, value]) => !value);
     if (missingVars.length > 0) {
-        console.warn('⚠️  Variables de entorno faltantes:', missingVars.map(([key]) => key).join(', '));
+        console.warn('⚠️  Variables de entorno faltantes:', missingVars.map(([k]) => k).join(', '));
     }
 
     // Crear string de variables de entorno para Windows
     const envString = Object.entries(envVars)
-        .filter(([key, value]) => value !== undefined)
-        .map(([key, value]) => `$env:${key}="${value}"`)
+        .filter(([, value]) => value !== undefined)
+        .map(([k, value]) => `$env:${k}="${value}"`)
         .join('; ');
 
     try {
@@ -71,8 +72,8 @@ async function createEnvForGitHubPages() {
 
     // Crear archivo .env en el directorio de destino
     const envContent = Object.entries(envVars)
-        .filter(([key, value]) => value !== undefined)
-        .map(([key, value]) => `${key}=${value}`)
+        .filter(([, value]) => value !== undefined)
+        .map(([k, value]) => `${k}=${value}`)
         .join('\n');
 
     const envPath = path.join(config.destinationPath, '.env');

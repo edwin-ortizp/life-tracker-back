@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sparkles, RefreshCw, Loader2 } from 'lucide-react';
+import { getAiConfig } from '@/config/ai';
 import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList';
 import type { MealModalState, MealFormData } from './types';
 import { MEAL_TYPES, Meal } from '../../types';
@@ -11,7 +12,10 @@ interface MealAiButtonsProps {
   onOverwriteDay: (meals: Record<Meal['type'], Omit<Meal, 'id'>>) => Promise<void>;
 }
 
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
+const mealConfig = getAiConfig('meal');
+const API_URL = mealConfig
+  ? `https://generativelanguage.googleapis.com/v1beta/models/${mealConfig.model}:generateContent`
+  : '';
 
 export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFormChange, onOverwriteDay }) => {
   const { items } = useShoppingList();
@@ -19,8 +23,9 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
   const [loadingDay, setLoadingDay] = useState(false);
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
-  const basePrompt = (import.meta.env.VITE_GEMINI_MEAL_PROMPT as string | undefined) ??
+  const basePrompt = mealConfig?.prompt ??
     'Sugiere comidas en formato JSON según los ingredientes disponibles.';
+  const params = mealConfig?.params;
 
   const getIngredientList = () => {
     return items.map(i => `${i.name} (${i.quantity})`).join(', ');
@@ -35,7 +40,10 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
       const res = await fetch(`${API_URL}?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          ...params
+        })
       });
       const data = await res.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -62,7 +70,10 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
       const res = await fetch(`${API_URL}?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          ...params
+        })
       });
       const data = await res.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
