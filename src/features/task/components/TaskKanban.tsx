@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 
 interface TaskKanbanProps {
@@ -89,6 +90,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
   const [selectedUrgent, setSelectedUrgent] = useState<'all' | 'yes' | 'no'>('all');
   const [selectedImportant, setSelectedImportant] = useState<'all' | 'yes' | 'no'>('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [exportDateFilter, setExportDateFilter] = useState<DateFilter>('today');
 
   const filteredTasks = useMemo(() => {
     let filtered = tasks.filter(t => !t.isRecurrent && !t.isPrivate);
@@ -215,6 +217,42 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     return grouped;
   }, [filteredTasks]);
 
+  const filterTasksByDate = (list: Task[], filter: DateFilter) => {
+    const now = new Date();
+    const today = startOfDay(now);
+    const weekStart = startOfWeek(now);
+    const weekEnd = endOfWeek(now);
+    const monthStart = startOfMonth(now);
+    const monthEnd = endOfMonth(now);
+    const tomorrowStart = addDays(today, 1);
+    const tomorrowEnd = endOfDay(tomorrowStart);
+
+    switch (filter) {
+      case 'today':
+        return list.filter(t =>
+          t.dueDate && isWithinInterval(t.dueDate, { start: today, end: endOfDay(now) })
+        );
+      case 'tomorrow':
+        return list.filter(t =>
+          t.dueDate && isWithinInterval(t.dueDate, { start: tomorrowStart, end: tomorrowEnd })
+        );
+      case 'week':
+        return list.filter(t =>
+          t.dueDate && isWithinInterval(t.dueDate, { start: weekStart, end: weekEnd })
+        );
+      case 'month':
+        return list.filter(t =>
+          t.dueDate && isWithinInterval(t.dueDate, { start: monthStart, end: monthEnd })
+        );
+      case 'overdue':
+        return list.filter(t => t.dueDate && isBefore(t.dueDate, today));
+      case 'noDate':
+        return list.filter(t => !t.dueDate);
+      default:
+        return list;
+    }
+  };
+
   const columns = [
     { key: 'overdue', title: 'Vencidas' },
     { key: 'today', title: 'Para Hoy' },
@@ -250,6 +288,18 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       onMove(dragging.id, getDateForColumn(col));
       setDragging(null);
     }
+  };
+
+  const handleCopyTasks = () => {
+    const list = filterTasksByDate(tasks, exportDateFilter);
+    const exportData = list.map(t => ({
+      nombre: t.title,
+      descripción: t.description || ''
+    }));
+    const jsonString = JSON.stringify(exportData, null, 2);
+    navigator.clipboard.writeText(jsonString).then(() => {
+      toast.success('Tareas copiadas al portapapeles');
+    });
   };
 
   return (
@@ -354,6 +404,21 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
         {/* Botón de sugerencias IA */}
         <div className="flex items-end">
           <TaskAiSuggestion tasks={filteredTasks} />
+        </div>
+
+        {/* Copiar tareas por fecha */}
+        <div className="flex items-end gap-2">
+          <Select value={exportDateFilter} onValueChange={v => setExportDateFilter(v as DateFilter)}>
+            <SelectTrigger className="w-32">
+              <SelectValue>{DATE_FILTER_LABELS[exportDateFilter]}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(DATE_FILTER_LABELS).map(([val, label]) => (
+                <SelectItem key={val} value={val}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm" onClick={handleCopyTasks}>Copiar</Button>
         </div>
       </div>
 
