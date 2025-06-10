@@ -35,10 +35,11 @@ interface TaskKanbanProps {
   onAdd: (dueDate?: Date | null) => void;
 }
 
-type DateFilter = 'all' | 'today' | 'week' | 'month' | 'overdue' | 'noDate';
+type DateFilter = 'all' | 'today' | 'tomorrow' | 'week' | 'month' | 'overdue' | 'noDate';
 const DATE_FILTER_LABELS: Record<DateFilter, string> = {
   all: 'Todas las fechas',
   today: 'Hoy',
+  tomorrow: 'Mañana',
   week: 'Esta semana',
   month: 'Este mes',
   overdue: 'Vencidas',
@@ -54,9 +55,10 @@ const PRIORITY_LABELS: Record<PriorityFilter, string> = {
   delete: 'delete'
 };
 
-type SizeFilter = 'all' | 'pequeña' | 'mediana' | 'grande';
+type SizeFilter = 'all' | 'none' | 'pequeña' | 'mediana' | 'grande';
 const SIZE_LABELS: Record<SizeFilter, string> = {
   all: 'Todas',
+  none: 'Sin tamaño',
   'pequeña': 'pequeña',
   'mediana': 'mediana',
   'grande': 'grande'
@@ -80,9 +82,9 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
 }) => {
   const [dragging, setDragging] = useState<Task | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Task['category'] | 'all'>('all');
-  const [selectedDateFilter, setSelectedDateFilter] = useState<'all' | 'today' | 'week' | 'month' | 'overdue' | 'noDate'>('all');
+  const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>('today');
   const [selectedPriority, setSelectedPriority] = useState<'all' | 'do' | 'decide' | 'delegate' | 'delete'>('all');
-  const [selectedSize, setSelectedSize] = useState<'all' | 'pequeña' | 'mediana' | 'grande'>('all');
+  const [selectedSize, setSelectedSize] = useState<SizeFilter>('all');
   const [selectedUrgent, setSelectedUrgent] = useState<'all' | 'yes' | 'no'>('all');
   const [selectedImportant, setSelectedImportant] = useState<'all' | 'yes' | 'no'>('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -99,7 +101,11 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     }
 
     if (selectedSize !== 'all') {
-      filtered = filtered.filter(t => t.size === selectedSize);
+      if (selectedSize === 'none') {
+        filtered = filtered.filter(t => !t.size);
+      } else {
+        filtered = filtered.filter(t => t.size === selectedSize);
+      }
     }
 
     if (selectedUrgent !== 'all') {
@@ -123,10 +129,17 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     const monthStart = startOfMonth(now);
     const monthEnd = endOfMonth(now);
 
+    const tomorrowStart = addDays(today, 1);
+    const tomorrowEnd = endOfDay(tomorrowStart);
+
     switch (selectedDateFilter) {
       case 'today':
         return filtered.filter(task =>
           task.dueDate && isWithinInterval(task.dueDate, { start: today, end: endOfDay(now) })
+        );
+      case 'tomorrow':
+        return filtered.filter(task =>
+          task.dueDate && isWithinInterval(task.dueDate, { start: tomorrowStart, end: tomorrowEnd })
         );
       case 'week':
         return filtered.filter(task =>
@@ -149,6 +162,8 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     const now = new Date();
     const today = startOfDay(now);
     const endToday = endOfDay(now);
+    const tomorrow = addDays(startOfDay(now), 1);
+    const endTomorrow = endOfDay(tomorrow);
     const endWeek = endOfWeek(now);
 
     const priorityOrder: Record<string, number> = {
@@ -164,6 +179,8 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
           acc.noDate.push(task);
         } else if (isBefore(task.dueDate, endToday)) {
           acc.today.push(task);
+        } else if (isBefore(task.dueDate, endTomorrow)) {
+          acc.tomorrow.push(task);
         } else if (isBefore(task.dueDate, endWeek)) {
           acc.thisWeek.push(task);
         } else {
@@ -173,6 +190,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       }, {
         overdue: [] as Task[],
         today: [] as Task[],
+        tomorrow: [] as Task[],
         thisWeek: [] as Task[],
         future: [] as Task[],
         noDate: [] as Task[],
@@ -199,6 +217,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
   const columns = [
     { key: 'overdue', title: 'Vencidas' },
     { key: 'today', title: 'Para Hoy' },
+    { key: 'tomorrow', title: 'Mañana' },
     { key: 'thisWeek', title: 'Esta Semana' },
     { key: 'future', title: 'Próximamente' },
     { key: 'noDate', title: 'Sin Fecha' },
@@ -213,6 +232,8 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
         return toNoon(addDays(startOfDay(now), -1));
       case 'today':
         return toNoon(now);
+      case 'tomorrow':
+        return toNoon(addDays(startOfDay(now), 1));
       case 'thisWeek':
         return toNoon(endOfWeek(now));
       case 'future':
@@ -332,7 +353,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row items-start gap-4 overflow-x-auto pb-4 p-4 rounded bg-gray-50">
+      <div className="flex flex-col lg:flex-row items-start gap-4 overflow-x-auto pb-4 p-4 rounded bg-gradient-to-br from-blue-50 via-indigo-50 to-indigo-100">
       {columns.map(col => (
         <div
           key={col.key}

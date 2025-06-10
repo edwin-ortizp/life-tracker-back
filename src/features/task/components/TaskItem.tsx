@@ -134,6 +134,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({
     onMove?.(task.id, toNoon(addDays(new Date(), 1)));
   };
 
+  const handleRemoveDate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMove?.(task.id, null);
+  };
+
   if (variant === 'kanban') {
     return (
       <>
@@ -145,10 +150,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           task.completed ? 'bg-muted/30' : overdue ? 'border-l-4 border-l-red-500 bg-red-50' : 'bg-white'
         )}
       >
-        <CardContent className="p-4 flex flex-col gap-3">
+        <CardContent className="p-3 flex flex-col gap-2">
           <div className="flex items-start gap-3">
             
-            <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex-1 min-w-0 space-y-1.5">
               <div className="flex items-center gap-2">
                 {task.isPrivate && (
                   <span className="text-xs">🔒</span>
@@ -216,6 +221,15 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                   onClick={handleSetTomorrow}
                 >
                   <span role="img" aria-label="mañana">🌅</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 p-0 rounded-full hover:bg-muted"
+                  title="Quitar fecha"
+                  onClick={handleRemoveDate}
+                >
+                  <span role="img" aria-label="sin fecha">❌</span>
                 </Button>
               </div>
             )}
