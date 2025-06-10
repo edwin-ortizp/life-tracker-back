@@ -5,7 +5,7 @@ import { CheckCircle2, Circle, X, Repeat, Calendar, Edit, Tag, AlignLeft } from 
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
   Tooltip,
   TooltipContent,
@@ -151,11 +151,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           'text-sm w-full max-w-none lg:max-w-[18rem]',
           task.completed ? 'bg-muted/30' : overdue ? 'border-l-4 border-l-red-500 bg-red-50' : 'bg-white'
         )}
-      >
-        <CardContent className="p-3 flex flex-col gap-2">
-          <div className="flex items-start gap-3">
+      >        <CardContent className="p-2 md:p-2 flex flex-col gap-1.5">
+          <div className="flex items-start gap-2">
             
-            <div className="flex-1 min-w-0 space-y-1.5">
+            <div className="flex-1 min-w-0 space-y-1">
               <div className="flex items-center gap-2">
                 {task.isPrivate && (
                   <span className="text-xs">🔒</span>
@@ -175,12 +174,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 )}>
                   {task.description}
                 </p>
-              )}
-                {/* Metadatos en kanban */}
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {/* Solo mostrar categoría si showCategoryLabel es true */}
-                {showCategoryLabel && (
-                  <Badge className={cn("text-xs px-2 py-1", categoryStyle.bg, categoryStyle.text)}>
+              )}                {/* Metadatos en kanban */}
+              <div className="flex flex-wrap gap-1 pt-0.5">
+                {/* Solo mostrar categoría si showCategoryLabel es true */}                {showCategoryLabel && (
+                  <Badge className={cn("text-xs px-1.5 py-0.5", categoryStyle.bg, categoryStyle.text)}>
                     <Tag className="w-3 h-3 mr-1" />
                     {CATEGORY_LABELS[task.category]}
                   </Badge>
@@ -189,9 +186,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 {/* Mostrar prioridad en lugar de categoría cuando se oculta categoría */}
                 {!showCategoryLabel && pInfo.label && (
                   <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Badge className={cn("text-xs px-2 py-1 text-white", pInfo.color)}>
+                    <Tooltip>                      <TooltipTrigger asChild>
+                        <Badge className={cn("text-xs px-1.5 py-0.5 text-white", pInfo.color)}>
                           {pInfo.label}
                         </Badge>
                       </TooltipTrigger>
@@ -200,61 +196,57 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                   </TooltipProvider>
                 )}
 
-                {/* Mostrar tamaño cuando no se muestra categoría */}
-                {!showCategoryLabel && task.size && (
-                  <Badge variant="outline" className="text-xs px-2 py-1">
+                {/* Mostrar tamaño cuando no se muestra categoría */}                {!showCategoryLabel && task.size && (
+                  <Badge variant="outline" className="text-xs px-1.5 py-0.5">
                     {task.size}
                   </Badge>
-                )}
-
-                {task.dueDate && (
-                  <Badge variant={overdue ? "destructive" : "secondary"} className="text-xs px-2 py-1">
+                )}                {task.dueDate && (
+                  <Badge variant={overdue ? "destructive" : "secondary"} className="text-xs px-1.5 py-0.5">
                     <Calendar className="w-3 h-3 mr-1" />
                     {formatDateToSpanish(task.dueDate)}
                     {overdue && " (vencida)"}
                   </Badge>
-                )}
-
-                {task.isRecurrent && task.recurrence && (
-                  <Badge variant="outline" className="text-xs px-2 py-1">
+                )}                {task.isRecurrent && task.recurrence && (
+                  <Badge variant="outline" className="text-xs px-1.5 py-0.5">
                     <Repeat className="w-3 h-3 mr-1" />
                     {recurrenceDescription}
                   </Badge>
                 )}
               </div>
             </div>
-          </div>
-          
-          {/* Botones de acción para kanban */}
-          <div className="flex justify-between gap-1">
+          </div>        </CardContent>
+        
+        {/* Footer con botones de acción para kanban */}
+        <CardFooter className="px-2 py-1.5 bg-gray-50/50 border-t border-gray-100 p-0 md:p-0">
+          <div className="flex justify-between w-full gap-1 px-2 py-1.5">
             {onMove && (
               <div className="flex gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 p-0 rounded-full hover:bg-muted"
+                  className="h-6 w-6 md:h-5 md:w-5 p-0 rounded-full hover:bg-muted"
                   title="Asignar para hoy"
                   onClick={handleSetToday}
                 >
-                  <span role="img" aria-label="hoy">📅</span>
+                  <span role="img" aria-label="hoy" className="text-sm md:text-xs">📅</span>
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 p-0 rounded-full hover:bg-muted"
+                  className="h-6 w-6 md:h-5 md:w-5 p-0 rounded-full hover:bg-muted"
                   title="Asignar para mañana"
                   onClick={handleSetTomorrow}
                 >
-                  <span role="img" aria-label="mañana">🌅</span>
+                  <span role="img" aria-label="mañana" className="text-sm md:text-xs">🌅</span>
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 p-0 rounded-full hover:bg-muted"
+                  className="h-6 w-6 md:h-5 md:w-5 p-0 rounded-full hover:bg-muted"
                   title="Quitar fecha"
                   onClick={handleRemoveDate}
                 >
-                  <span role="img" aria-label="sin fecha">❌</span>
+                  <span role="img" aria-label="sin fecha" className="text-sm md:text-xs">❌</span>
                 </Button>
               </div>
             )}
@@ -262,22 +254,22 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 p-0 rounded-full hover:bg-muted"
+                className="h-6 w-6 md:h-5 md:w-5 p-0 rounded-full hover:bg-muted"
                 title="Editar tarea"
                 onClick={(e) => { e.stopPropagation(); onEdit(task); }}
               >
-                <Edit className="w-3.5 h-3.5 text-muted-foreground" />
+                <Edit className="w-3.5 h-3.5 md:w-3 md:h-3 text-muted-foreground" />
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 p-0 rounded-full hover:bg-red-50"
+                    className="h-6 w-6 md:h-5 md:w-5 p-0 rounded-full hover:bg-red-50"
                     title="Eliminar tarea"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <X className="w-3.5 h-3.5 text-red-500" />
+                    <X className="w-3.5 h-3.5 md:w-3 md:h-3 text-red-500" />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -300,7 +292,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               </AlertDialog>
             </div>
           </div>
-        </CardContent>
+        </CardFooter>
       </Card>
       {confirmDialog}
       </>
@@ -319,7 +311,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         overdue && !task.completed && 'border-l-4 border-l-red-500 bg-red-50'
       )}
     >
-      <CardContent className="flex items-center gap-3 py-3 px-4">
+      <CardContent className="flex items-center gap-2.5 py-2 px-3 md:py-2 md:px-3">
         {/* Checkbox */}
         <Button
           variant="ghost"
@@ -333,11 +325,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             <Circle className="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors" />
           )}
         </Button>
-        
-        {/* Contenido principal */}
-        <div className="flex-1 min-w-0 space-y-1">
-          {/* Título y descripción */}
-          <div className="space-y-0.5">
+          {/* Contenido principal */}
+        <div className="flex-1 min-w-0 space-y-0.5">          {/* Título y descripción */}
+          <div className="space-y-0">
             <div className="flex items-center gap-2">
               {task.isPrivate && (
                 <span className="text-xs opacity-70">🔒</span>
@@ -362,27 +352,21 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               </p>
             )}
           </div>
-          
-          {/* Metadatos compactos */}
-          <div className="flex flex-wrap gap-1.5">
-            {/* Categoría más pequeña */}
-            <Badge className={cn("text-xs px-1.5 py-0.5 h-auto", categoryStyle.bg, categoryStyle.text)}>
+            {/* Metadatos compactos */}
+          <div className="flex flex-wrap gap-1">            {/* Categoría más pequeña */}
+            <Badge className={cn("text-xs px-1 py-0.5 h-auto", categoryStyle.bg, categoryStyle.text)}>
               <Tag className="w-2.5 h-2.5 mr-1" />
               {CATEGORY_LABELS[task.category]}
-            </Badge>
-
-            {/* Fecha de vencimiento */}
+            </Badge>            {/* Fecha de vencimiento */}
             {task.dueDate && (
-              <Badge variant={overdue ? "destructive" : "secondary"} className="text-xs px-1.5 py-0.5 h-auto">
+              <Badge variant={overdue ? "destructive" : "secondary"} className="text-xs px-1 py-0.5 h-auto">
                 <Calendar className="w-2.5 h-2.5 mr-1" />
                 {formatDateToSpanish(task.dueDate)}
                 {overdue && " (vencida)"}
               </Badge>
-            )}
-
-            {/* Recurrencia */}
+            )}            {/* Recurrencia */}
             {task.isRecurrent && task.recurrence && (
-              <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-auto">
+              <Badge variant="outline" className="text-xs px-1 py-0.5 h-auto">
                 <Repeat className="w-2.5 h-2.5 mr-1" />
                 {recurrenceDescription}
               </Badge>
@@ -392,10 +376,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             {!task.isRecurrent && pInfo.label && (
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge
+                  <TooltipTrigger asChild>                    <Badge
                       className={cn(
-                        'text-xs px-1.5 py-0.5 text-white h-auto cursor-help',
+                        'text-xs px-1 py-0.5 text-white h-auto cursor-help',
                         pInfo.color
                       )}
                     >
@@ -407,29 +390,27 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               </TooltipProvider>
             )}
           </div>
-        </div>
-
-        {/* Botones de acción compactos */}
+        </div>        {/* Botones de acción compactos */}
         <div className="flex gap-1 shrink-0 opacity-60 hover:opacity-100 transition-opacity">
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 p-0 rounded-full hover:bg-muted"
+            className="h-6 w-6 md:h-5 md:w-5 p-0 rounded-full hover:bg-muted"
             title="Editar tarea"
             onClick={(e) => { e.stopPropagation(); onEdit(task); }}
           >
-            <Edit className="w-3.5 h-3.5 text-muted-foreground" />
+            <Edit className="w-3.5 h-3.5 md:w-3 md:h-3 text-muted-foreground" />
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 p-0 rounded-full hover:bg-red-50"
+                className="h-6 w-6 md:h-5 md:w-5 p-0 rounded-full hover:bg-red-50"
                 title="Eliminar tarea"
                 onClick={(e) => e.stopPropagation()}
               >
-                <X className="w-3.5 h-3.5 text-red-500" />
+                <X className="w-3.5 h-3.5 md:w-3 md:h-3 text-red-500" />
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
