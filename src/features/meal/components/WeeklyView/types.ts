@@ -57,5 +57,6 @@ export interface MealModalProps {
   onFormChange: (field: keyof MealFormData, value: string) => void;
   onSubmit: () => Promise<void>;
   onDelete: () => Promise<void>;
+  onOverwriteDay: (date: string, meals: Record<Meal['type'], Omit<Meal, 'id'>>) => Promise<void>;
   weekDays: DayInfo[];
 }

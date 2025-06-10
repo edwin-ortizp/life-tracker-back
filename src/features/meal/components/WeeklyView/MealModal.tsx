@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Trash2 } from 'lucide-react';
 import { MEAL_TYPES } from '../../types';
 import { MealModalProps } from './types';
+import MealAiButtons from './MealAiButtons';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -35,6 +36,7 @@ export const MealModal: React.FC<MealModalProps> = ({
   onFormChange,
   onSubmit,
   onDelete,
+  onOverwriteDay,
   weekDays,
 }) => {
   if (!selectedMealInfo) return null;
@@ -95,6 +97,14 @@ export const MealModal: React.FC<MealModalProps> = ({
                 onChange={(e) => onFormChange('recipe', e.target.value)}
                 placeholder="Ingredientes y preparación..."
                 className="h-40 resize-none"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <MealAiButtons
+                selectedMeal={selectedMealInfo}
+                onFormChange={onFormChange}
+                onOverwriteDay={(meals) => onOverwriteDay(selectedMealInfo.date, meals)}
               />
             </div>
           </div>
