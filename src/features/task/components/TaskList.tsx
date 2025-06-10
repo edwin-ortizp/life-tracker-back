@@ -18,8 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Filter } from 'lucide-react';
+import { Filter, Search, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Input } from '@/components/ui/input';
 
 type DateFilter = 'all' | 'today' | 'week' | 'month' | 'overdue' | 'noDate';
 
@@ -46,16 +47,24 @@ export const TaskList: React.FC<TaskListProps> = ({
   onDelete,
   onEdit,
   onView
-}) => {
-  const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
+}) => {  const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
   const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>('all');
   const [showFilters, setShowFilters] = useState(false);
-
-  // Filtrar tareas por categoría y fecha
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  // Filtrar tareas por categoría, fecha y búsqueda
   const filteredTasks = useMemo(() => {
     let filtered = selectedCategory === 'all' 
       ? tasks 
       : tasks.filter(task => task.category === selectedCategory);
+
+    // Filtro de búsqueda por texto
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(task => 
+        task.title.toLowerCase().includes(query) ||
+        (task.description && task.description.toLowerCase().includes(query))
+      );
+    }
 
     const now = new Date();
     const today = startOfDay(now);
@@ -86,7 +95,23 @@ export const TaskList: React.FC<TaskListProps> = ({
       default:
         return filtered;
     }
-  }, [tasks, selectedCategory, selectedDateFilter]);
+  }, [tasks, selectedCategory, selectedDateFilter, searchQuery]);
+
+  // Función para determinar si hay filtros activos
+  const hasActiveFilters = useMemo(() => {
+    return (
+      searchQuery.trim() !== '' ||
+      selectedCategory !== 'all' ||
+      selectedDateFilter !== 'all'
+    );
+  }, [searchQuery, selectedCategory, selectedDateFilter]);
+
+  // Función para limpiar todos los filtros
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setSelectedDateFilter('all');
+  };
 
   // Agrupar tareas
   const groupedTasks = useMemo(() => {
@@ -117,29 +142,70 @@ export const TaskList: React.FC<TaskListProps> = ({
     });
   }, [filteredTasks]);
 
-  return (
-    <div className="space-y-6">
-      {/* Botón de filtros móvil */}
-      {/* The parent div with md:hidden is kept as is. Button itself is also md:hidden to avoid rendering it on larger screens where filters are visible. */}
-      <div className="md:hidden">
-        <Button
-          variant="outline"
-          onClick={() => setShowFilters(!showFilters)}
-          className="w-full flex items-center justify-between" // md:hidden is not needed here if parent div handles it
-        >
-          <span className="flex items-center gap-2">
+  return (    <div className="space-y-6">
+      {/* Buscador y botón de filtros para móvil */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center">
+        {/* Buscador */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Buscar tareas por nombre..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-10"
+          />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
+            >
+              <X className="w-3 h-3" />
+            </Button>
+          )}
+        </div>
+
+        {/* Botón de filtros para móvil con indicador */}
+        <div className="md:hidden flex gap-2">
+          <Button
+            variant={hasActiveFilters ? "default" : "outline"}
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-2 ${hasActiveFilters ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+          >
             <Filter className="w-4 h-4" />
             Filtros
-          </span>
-          <span className="text-sm text-muted-foreground"> {/* Changed text-gray-500 */}
-            {selectedCategory !== 'all' && CATEGORY_LABELS[selectedCategory as TaskCategory]}
-            {selectedCategory !== 'all' && selectedDateFilter !== 'all' && ' • '}
-            {selectedDateFilter !== 'all' && DATE_FILTER_LABELS[selectedDateFilter]}
-          </span>
-        </Button>
-      </div>
+            {hasActiveFilters && (
+              <span className="bg-white text-blue-600 rounded-full px-2 py-0.5 text-xs font-medium">
+                Activos
+              </span>
+            )}
+          </Button>
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              onClick={clearAllFilters}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
 
-      {/* Filtros */}
+        {/* Botón limpiar filtros para desktop */}
+        <div className="hidden md:flex">
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              onClick={clearAllFilters}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              Limpiar filtros
+            </Button>
+          )}
+        </div>
+      </div>      {/* Filtros */}
       <div className={`space-y-4 md:space-y-0 md:flex md:items-center md:gap-4 ${showFilters ? 'block' : 'hidden md:flex'}`}>
         <div className="flex-1 space-y-2 md:space-y-0">
           <span className="text-sm text-gray-500 font-medium block md:inline md:mr-2">Categoría:</span>
@@ -147,7 +213,7 @@ export const TaskList: React.FC<TaskListProps> = ({
             value={selectedCategory}
             onValueChange={(value) => setSelectedCategory(value as TaskCategory | 'all')}
           >
-            <SelectTrigger className="w-full md:w-[180px]">
+            <SelectTrigger className={`w-full md:w-[180px] ${selectedCategory !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
               <SelectValue>
                 {selectedCategory === 'all' ? 'Todas las categorías' : CATEGORY_LABELS[selectedCategory as TaskCategory]}
               </SelectValue>
@@ -169,7 +235,7 @@ export const TaskList: React.FC<TaskListProps> = ({
             value={selectedDateFilter}
             onValueChange={(value) => setSelectedDateFilter(value as DateFilter)}
           >
-            <SelectTrigger className="w-full md:w-[180px]">
+            <SelectTrigger className={`w-full md:w-[180px] ${selectedDateFilter !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
               <SelectValue>
                 {DATE_FILTER_LABELS[selectedDateFilter]}
               </SelectValue>

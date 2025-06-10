@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Task, TASK_CATEGORIES, CATEGORY_LABELS } from '../types';
 import { TaskItem } from './TaskItem';
-import { TaskAiSuggestion } from './TaskAiSuggestion';
 import {
   isBefore,
   startOfDay,
@@ -16,7 +15,8 @@ import {
 } from 'date-fns';
 import { toNoon } from '@/utils/dates';
 import { Button } from '@/components/ui/button';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, Search, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -85,13 +85,21 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<Task['category'] | 'all'>('all');
   const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>('today');
   const [selectedPriority, setSelectedPriority] = useState<'all' | 'do' | 'decide' | 'delegate' | 'delete'>('all');
-  const [selectedSize, setSelectedSize] = useState<SizeFilter>('all');
-  const [selectedUrgent, setSelectedUrgent] = useState<'all' | 'yes' | 'no'>('all');
+  const [selectedSize, setSelectedSize] = useState<SizeFilter>('all');  const [selectedUrgent, setSelectedUrgent] = useState<'all' | 'yes' | 'no'>('all');
   const [selectedImportant, setSelectedImportant] = useState<'all' | 'yes' | 'no'>('all');
   const [showFilters, setShowFilters] = useState(false);
-
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const filteredTasks = useMemo(() => {
     let filtered = tasks.filter(t => !t.isRecurrent && !t.isPrivate);
+
+    // Filtro de búsqueda por texto
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(task => 
+        task.title.toLowerCase().includes(query) ||
+        (task.description && task.description.toLowerCase().includes(query))
+      );
+    }
 
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(t => t.category === selectedCategory);
@@ -157,7 +165,31 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       default:
         return filtered;
     }
-  }, [tasks, selectedCategory, selectedPriority, selectedSize, selectedUrgent, selectedImportant, selectedDateFilter]);
+  }, [tasks, selectedCategory, selectedPriority, selectedSize, selectedUrgent, selectedImportant, selectedDateFilter, searchQuery]);
+
+  // Función para determinar si hay filtros activos
+  const hasActiveFilters = useMemo(() => {
+    return (
+      searchQuery.trim() !== '' ||
+      selectedCategory !== 'all' ||
+      selectedDateFilter !== 'today' ||  // 'today' es el filtro por defecto
+      selectedPriority !== 'all' ||
+      selectedSize !== 'all' ||
+      selectedUrgent !== 'all' ||
+      selectedImportant !== 'all'
+    );
+  }, [searchQuery, selectedCategory, selectedDateFilter, selectedPriority, selectedSize, selectedUrgent, selectedImportant]);
+
+  // Función para limpiar todos los filtros
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setSelectedDateFilter('today');
+    setSelectedPriority('all');
+    setSelectedSize('all');
+    setSelectedUrgent('all');
+    setSelectedImportant('all');
+  };
 
   const groups = useMemo(() => {
     const now = new Date();
@@ -252,24 +284,77 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     }
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="md:hidden">
-        <Button
-          variant="outline"
-          onClick={() => setShowFilters(!showFilters)}
-          className="w-full flex items-center justify-between"
-        >
-          <span className="flex items-center gap-2">
+  return (    <div className="space-y-3">
+      {/* Buscador y botón de filtros para móvil */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center">
+        {/* Buscador */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Buscar tareas por nombre..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-10"
+          />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
+            >
+              <X className="w-3 h-3" />
+            </Button>
+          )}
+        </div>
+
+        {/* Botón de filtros para móvil con indicador */}
+        <div className="md:hidden flex gap-2">
+          <Button
+            variant={hasActiveFilters ? "default" : "outline"}
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-2 ${hasActiveFilters ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+          >
             <Filter className="w-4 h-4" />
             Filtros
-          </span>
-        </Button>
-      </div>      <div className={`space-y-4 md:space-y-0 md:flex md:flex-wrap md:gap-4 ${showFilters ? 'block' : 'hidden md:flex'}`}> 
-        <div className="space-y-1">
-          <span className="text-sm font-medium text-gray-500">Categoría</span>
+            {hasActiveFilters && (
+              <span className="bg-white text-blue-600 rounded-full px-2 py-0.5 text-xs font-medium">
+                Activos
+              </span>
+            )}
+          </Button>
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              onClick={clearAllFilters}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+
+        {/* Botón limpiar filtros para desktop */}
+        <div className="hidden md:flex">
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              onClick={clearAllFilters}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              Limpiar filtros
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Filtros - Disposición más compacta en una línea */}
+      <div className={`${showFilters ? 'block' : 'hidden md:block'}`}>
+        <div className="flex flex-wrap items-end gap-3 md:gap-4">        <div className="space-y-1">
+          <span className="text-xs font-medium text-gray-500">Categoría</span>
           <Select value={selectedCategory} onValueChange={v => setSelectedCategory(v as Task['category'] | 'all')}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className={`w-32 ${selectedCategory !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
               <SelectValue>{selectedCategory === 'all' ? 'Todas' : CATEGORY_LABELS[selectedCategory as keyof typeof CATEGORY_LABELS]}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -279,12 +364,10 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        <div className="space-y-1">
-          <span className="text-sm font-medium text-gray-500">Fecha</span>
+        </div>        <div className="space-y-1">
+          <span className="text-xs font-medium text-gray-500">Fecha</span>
           <Select value={selectedDateFilter} onValueChange={v => setSelectedDateFilter(v as DateFilter)}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className={`w-32 ${selectedDateFilter !== 'today' ? 'border-blue-500 bg-blue-50' : ''}`}>
               <SelectValue>{DATE_FILTER_LABELS[selectedDateFilter]}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -296,9 +379,9 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
         </div>
 
         <div className="space-y-1">
-          <span className="text-sm font-medium text-gray-500">Prioridad</span>
+          <span className="text-xs font-medium text-gray-500">Prioridad</span>
           <Select value={selectedPriority} onValueChange={v => setSelectedPriority(v as PriorityFilter)}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className={`w-24 ${selectedPriority !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
               <SelectValue>{PRIORITY_LABELS[selectedPriority]}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -307,12 +390,10 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        <div className="space-y-1">
-          <span className="text-sm font-medium text-gray-500">Tamaño</span>
+        </div>        <div className="space-y-1">
+          <span className="text-xs font-medium text-gray-500">Tamaño</span>
           <Select value={selectedSize} onValueChange={v => setSelectedSize(v as SizeFilter)}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className={`w-24 ${selectedSize !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
               <SelectValue>{SIZE_LABELS[selectedSize]}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -324,9 +405,9 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
         </div>
 
         <div className="space-y-1">
-          <span className="text-sm font-medium text-gray-500">Urgente</span>
+          <span className="text-xs font-medium text-gray-500">Urgente</span>
           <Select value={selectedUrgent} onValueChange={v => setSelectedUrgent(v as BooleanFilter)}>
-            <SelectTrigger className="w-28">
+            <SelectTrigger className={`w-20 ${selectedUrgent !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
               <SelectValue>{BOOLEAN_LABELS[selectedUrgent]}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -335,44 +416,34 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        <div className="space-y-1">
-          <span className="text-sm font-medium text-gray-500">Importante</span>
+        </div>        <div className="space-y-1">
+          <span className="text-xs font-medium text-gray-500">Importante</span>
           <Select value={selectedImportant} onValueChange={v => setSelectedImportant(v as BooleanFilter)}>
-            <SelectTrigger className="w-28">
+            <SelectTrigger className={`w-20 ${selectedImportant !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
               <SelectValue>{BOOLEAN_LABELS[selectedImportant]}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {Object.entries(BOOLEAN_LABELS).map(([val, label]) => (
                 <SelectItem key={val} value={val}>{label}</SelectItem>
               ))}
-            </SelectContent>
-          </Select>
+            </SelectContent>          </Select>
         </div>
-
-        {/* Botón de sugerencias IA */}
-        <div className="flex items-end">
-          <TaskAiSuggestion tasks={filteredTasks} />
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row items-start gap-4 overflow-x-auto pb-4 p-4 rounded bg-gradient-to-br from-blue-50 via-indigo-50 to-indigo-100">
+      </div>      <div className="flex flex-col lg:flex-row items-start gap-2 lg:gap-4 overflow-x-auto pb-2 p-2 lg:p-3 rounded bg-gradient-to-br from-blue-50 via-indigo-50 to-indigo-100">
       {columns.map(col => (
         <div
           key={col.key}
-          className="w-full lg:w-[16rem] xl:w-[18rem] lg:flex-shrink-0 space-y-3"
+          className="w-full lg:w-[16rem] xl:w-[18rem] lg:flex-shrink-0 space-y-2"
           onDragOver={(e) => e.preventDefault()}
           onDrop={() => handleDrop(col.key)}
-        >
-          <div className="flex items-center justify-between pt-4">
-            <h3 className="font-medium text-sm text-gray-500 uppercase tracking-wider">
+        >          <div className="flex items-center justify-between pt-2">
+            <h3 className="font-medium text-xs lg:text-sm text-gray-500 uppercase tracking-wider">
               {col.title}
-            </h3>
-            <Button size="icon" variant="ghost" onClick={() => onAdd(getDateForColumn(col.key))}>
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>          {groups[col.key].map(task => (
+            </h3>            <div className="flex gap-1">
+              <Button size="icon" variant="ghost" onClick={() => onAdd(getDateForColumn(col.key))} className="h-6 w-6 lg:h-8 lg:w-8">
+                <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
+              </Button>
+            </div>
+          </div>{groups[col.key].map(task => (
             <div
               key={task.id}
               draggable
@@ -391,9 +462,9 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
               />
             </div>
           ))}
-        </div>
-      ))}
+        </div>      ))}
       </div>
+        </div>
     </div>
   );
 };
