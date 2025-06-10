@@ -33,6 +33,7 @@ interface TaskItemProps {
   onView?: (task: Task) => void;
   onMove?: (taskId: string, dueDate: Date | null) => void;
   variant?: 'list' | 'kanban';
+  showCategoryLabel?: boolean; // Nueva prop para controlar si mostrar la etiqueta de categoría
 }
 
 // Utilidad para formatear fechas en español
@@ -76,7 +77,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   onEdit,
   onView,
   onMove,
-  variant = 'list'
+  variant = 'list',
+  showCategoryLabel = true
 }) => {
   const overdue = task.dueDate && isBefore(startOfDay(task.dueDate), startOfDay(new Date()));
 
@@ -174,13 +176,36 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                   {task.description}
                 </p>
               )}
-              
-              {/* Metadatos en kanban */}
+                {/* Metadatos en kanban */}
               <div className="flex flex-wrap gap-1.5 pt-1">
-                <Badge className={cn("text-xs px-2 py-1", categoryStyle.bg, categoryStyle.text)}>
-                  <Tag className="w-3 h-3 mr-1" />
-                  {CATEGORY_LABELS[task.category]}
-                </Badge>
+                {/* Solo mostrar categoría si showCategoryLabel es true */}
+                {showCategoryLabel && (
+                  <Badge className={cn("text-xs px-2 py-1", categoryStyle.bg, categoryStyle.text)}>
+                    <Tag className="w-3 h-3 mr-1" />
+                    {CATEGORY_LABELS[task.category]}
+                  </Badge>
+                )}
+
+                {/* Mostrar prioridad en lugar de categoría cuando se oculta categoría */}
+                {!showCategoryLabel && pInfo.label && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge className={cn("text-xs px-2 py-1 text-white", pInfo.color)}>
+                          {pInfo.label}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>{pInfo.text}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+
+                {/* Mostrar tamaño cuando no se muestra categoría */}
+                {!showCategoryLabel && task.size && (
+                  <Badge variant="outline" className="text-xs px-2 py-1">
+                    {task.size}
+                  </Badge>
+                )}
 
                 {task.dueDate && (
                   <Badge variant={overdue ? "destructive" : "secondary"} className="text-xs px-2 py-1">

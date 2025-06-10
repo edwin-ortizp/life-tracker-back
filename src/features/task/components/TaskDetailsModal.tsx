@@ -21,6 +21,27 @@ interface TaskDetailsModalProps {
   onToggle?: (taskId: string, completed: boolean) => void;
 }
 
+// Función para obtener información de prioridad
+const getPriorityInfo = (priority?: string) => {
+  const priorityMap = {
+    do: { label: 'HACER', color: 'bg-red-500', text: 'Urgente e importante', urgent: true, important: true },
+    decide: { label: 'DECIDIR', color: 'bg-yellow-500', text: 'Importante pero no urgente', urgent: false, important: true },
+    delegate: { label: 'DELEGAR', color: 'bg-blue-500', text: 'Urgente pero no importante', urgent: true, important: false },
+    delete: { label: 'ELIMINAR', color: 'bg-gray-500', text: 'Ni urgente ni importante', urgent: false, important: false },
+    none: { label: '', color: '', text: '', urgent: false, important: false }
+  };
+  
+  return priorityMap[priority as keyof typeof priorityMap] || priorityMap.none;
+};
+
+interface TaskDetailsModalProps {
+  task: Task | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onEdit: (task: Task) => void;
+  onToggle?: (taskId: string, completed: boolean) => void;
+}
+
 export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   task,
   isOpen,
@@ -31,6 +52,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   if (!task) return null;
 
   const categoryStyle = CATEGORY_COLORS[task.category];
+  const priorityInfo = getPriorityInfo(task.priority);
   const recurrenceDescription =
     task.isRecurrent && task.recurrence
       ? getRecurrenceText(
@@ -56,8 +78,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                 </DialogDescription>
               )}
             </DialogHeader>
-          </div>
-          <div className="md:col-span-4 space-y-4 text-sm">
+          </div>          <div className="md:col-span-4 space-y-4 text-sm">
             {task.dueDate && (
               <p className="flex items-center gap-2">
                 <span className="font-medium">Fecha límite:</span>
@@ -70,17 +91,70 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                 </Badge>
               </p>
             )}
+            
             <p className="flex items-center gap-2">
+              <span className="font-medium">Categoría:</span>
               <span className={
                 `${categoryStyle.bg} ${categoryStyle.text} px-2 py-0.5 rounded-md text-xs flex items-center`
               }>
                 {CATEGORY_LABELS[task.category]}
               </span>
             </p>
+
+            {/* Prioridad */}
+            {priorityInfo.label && (
+              <p className="flex items-center gap-2">
+                <span className="font-medium">Prioridad:</span>
+                <Badge className={`text-xs text-white ${priorityInfo.color}`}>
+                  {priorityInfo.label}
+                </Badge>
+                <span className="text-xs text-gray-500">({priorityInfo.text})</span>
+              </p>
+            )}
+
+            {/* Tamaño */}
+            {task.size && (
+              <p className="flex items-center gap-2">
+                <span className="font-medium">Tamaño:</span>
+                <Badge variant="outline" className="text-xs">
+                  {task.size}
+                </Badge>
+              </p>
+            )}            {/* Urgente/Importante */}
+            {task.priority && (
+              <div className="space-y-2">
+                <p className="flex items-center gap-2">
+                  <span className="font-medium">Urgente:</span>
+                  <Badge variant={priorityInfo.urgent ? "default" : "secondary"} className="text-xs">
+                    {priorityInfo.urgent ? "Sí" : "No"}
+                  </Badge>
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="font-medium">Importante:</span>
+                  <Badge variant={priorityInfo.important ? "default" : "secondary"} className="text-xs">
+                    {priorityInfo.important ? "Sí" : "No"}
+                  </Badge>
+                </p>
+              </div>
+            )}
+
+            {/* Tarea privada */}
+            {task.isPrivate && (
+              <p className="flex items-center gap-2">
+                <span className="font-medium">Privada:</span>
+                <Badge variant="outline" className="text-xs">
+                  🔒 Sí
+                </Badge>
+              </p>
+            )}
+            
             {task.isRecurrent && task.recurrence && (
-              <Badge variant="outline" className="text-xs font-normal px-2 py-0.5 text-accent-foreground border-accent">
-                {recurrenceDescription}
-              </Badge>
+              <p className="flex items-center gap-2">
+                <span className="font-medium">Recurrencia:</span>
+                <Badge variant="outline" className="text-xs font-normal px-2 py-0.5 text-accent-foreground border-accent">
+                  {recurrenceDescription}
+                </Badge>
+              </p>
             )}
           </div>
         </div>

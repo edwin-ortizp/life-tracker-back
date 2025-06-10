@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Task, TASK_CATEGORIES, CATEGORY_LABELS } from '../types';
 import { TaskItem } from './TaskItem';
+import { TaskAiSuggestion } from './TaskAiSuggestion';
 import {
   isBefore,
   startOfDay,
@@ -264,9 +265,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
             Filtros
           </span>
         </Button>
-      </div>
-
-      <div className={`space-y-4 md:space-y-0 md:flex md:flex-wrap md:gap-4 ${showFilters ? 'block' : 'hidden md:flex'}`}> 
+      </div>      <div className={`space-y-4 md:space-y-0 md:flex md:flex-wrap md:gap-4 ${showFilters ? 'block' : 'hidden md:flex'}`}> 
         <div className="space-y-1">
           <span className="text-sm font-medium text-gray-500">Categoría</span>
           <Select value={selectedCategory} onValueChange={v => setSelectedCategory(v as Task['category'] | 'all')}>
@@ -351,6 +350,11 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
             </SelectContent>
           </Select>
         </div>
+
+        {/* Botón de sugerencias IA */}
+        <div className="flex items-end">
+          <TaskAiSuggestion tasks={filteredTasks} />
+        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row items-start gap-4 overflow-x-auto pb-4 p-4 rounded bg-gradient-to-br from-blue-50 via-indigo-50 to-indigo-100">
@@ -368,8 +372,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
             <Button size="icon" variant="ghost" onClick={() => onAdd(getDateForColumn(col.key))}>
               <Plus className="w-4 h-4" />
             </Button>
-          </div>
-          {groups[col.key].map(task => (
+          </div>          {groups[col.key].map(task => (
             <div
               key={task.id}
               draggable
@@ -384,6 +387,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
                 onView={onView}
                 onMove={onMove}
                 variant="kanban"
+                showCategoryLabel={selectedCategory === 'all'}
               />
             </div>
           ))}
