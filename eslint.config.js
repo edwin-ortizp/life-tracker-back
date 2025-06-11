@@ -35,7 +35,7 @@ export default [
     },
   },
   {
-    files: ['shared.js'],
+    files: ['shared.js', 'post-build-windows.js', 'post-build-mac.js'],
     languageOptions: {
       globals: {
         ...globals.node,

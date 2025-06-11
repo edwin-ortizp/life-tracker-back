@@ -1,3 +1,4 @@
+/* eslint-env node */
 // post-build-mac.js
 import { fileURLToPath } from 'url';
 import path from 'path';

@@ -20,12 +20,16 @@ import { TASK_CATEGORIES, CATEGORY_LABELS } from '../types';
 import { format } from 'date-fns';
 import { Bot, Loader2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
+import { getAiConfig } from '@/config/ai';
 
 interface TaskAiSuggestionProps {
   tasks: Task[];
 }
 
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
+const taskConfig = getAiConfig('task');
+const API_URL = taskConfig
+  ? `https://generativelanguage.googleapis.com/v1beta/models/${taskConfig.model}:generateContent`
+  : '';
 
 export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks }) => {
   const [open, setOpen] = useState(false);
@@ -35,8 +39,9 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks }) => 
   const [loading, setLoading] = useState(false);
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
-  const basePrompt = (import.meta.env.VITE_GEMINI_TASK_PROMPT as string | undefined) ??
+  const basePrompt = taskConfig?.prompt ??
     'Eres un asistente de productividad. Basándote en el estado de ánimo y las tareas pendientes sugiere cuál debería abordar primero.';
+  const params = taskConfig?.params;
 
   const getSuggestion = async () => {
     if (!apiKey || !selectedMood || !selectedCategory) return;
@@ -54,7 +59,10 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks }) => 
       const res = await fetch(`${API_URL}?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          ...params
+        })
       });
       const data = await res.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
