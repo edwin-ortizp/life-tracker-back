@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { MoodSelector } from './MoodSelector';
 import { MoodHistory } from './MoodHistory';
 import { ImportMoodButton } from './ImportMoodButton';
-import { MoodAiSuggestion } from './MoodAiSuggestion';
+import { MoodAiMenu } from './MoodAiMenu';
 import { useJournalLock } from '@/features/journal/context/JournalLockContext';
 import { useMoodData } from '../hooks/useMoodData';
 import { getLocalDateString } from '@/utils/dates';
@@ -42,7 +42,7 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
           <div className="flex items-center gap-2">
             <ImportMoodButton />
             {isUnlocked && (
-              <MoodAiSuggestion selectedDate={selectedDate} />
+              <MoodAiMenu selectedDate={selectedDate} />
             )}
             {status === 'saving' && (
               <span className="text-xs text-blue-500">Guardando...</span>
@@ -79,6 +79,6 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
 export * from './MoodSelector';
 export * from './MoodHistory';
 export * from './ImportMoodButton';
-export * from './MoodAiSuggestion';
+export * from './MoodAiMenu';
 
 export default Mood;
