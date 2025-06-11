@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,6 +10,8 @@ import {
 import { Bot, Loader2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { getAiConfig } from '@/config/ai';
+import { Textarea } from '@/components/ui/textarea';
+import { countTokens } from '@/utils/tokens';
 
 interface JournalAiRewriteProps {
   entry: string;
@@ -24,17 +26,28 @@ export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry }) => 
   const [open, setOpen] = useState(false);
   const [rewrite, setRewrite] = useState('');
   const [loading, setLoading] = useState(false);
+  const [prompt, setPrompt] = useState('');
+  const [tokenCount, setTokenCount] = useState(0);
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   const basePrompt = journalConfig?.prompt ??
     'Reescribe el siguiente texto del diario de forma clara y natural:';
   const params = journalConfig?.params;
 
+  useEffect(() => {
+    if (open) {
+      setPrompt(`${basePrompt}\n${entry}`);
+    }
+  }, [open, entry]);
+
+  useEffect(() => {
+    setTokenCount(countTokens(prompt));
+  }, [prompt]);
+
   const getRewrite = async () => {
     if (!apiKey || !entry) return;
     setLoading(true);
     try {
-      const prompt = `${basePrompt}\n${entry}`;
       const res = await fetch(`${API_URL}?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -56,6 +69,8 @@ export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry }) => 
   const closeDialog = () => {
     setOpen(false);
     setRewrite('');
+    setPrompt('');
+    setTokenCount(0);
   };
 
   const sanitized = DOMPurify.sanitize(rewrite);
@@ -74,6 +89,17 @@ export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry }) => 
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
+          <Textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="max-h-[300px] overflow-y-auto"
+          />
+          <p className="text-xs text-right">
+            Tokens: {tokenCount}{' '}
+            {tokenCount > 3500 && (
+              <span className="text-red-500">¡Prompt demasiado largo!</span>
+            )}
+          </p>
           <Button onClick={getRewrite} disabled={loading || !apiKey} className="w-full flex items-center justify-center gap-2">
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? 'Consultando...' : 'Generar versión mejorada'}
