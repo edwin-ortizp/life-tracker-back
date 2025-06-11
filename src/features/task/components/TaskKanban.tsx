@@ -15,7 +15,7 @@ import {
 } from 'date-fns';
 import { toNoon } from '@/utils/dates';
 import { Button } from '@/components/ui/button';
-import { Plus, Filter, Search, X } from 'lucide-react';
+import { Plus, Filter, Search, X, Copy } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
+import { toast } from 'sonner';
 
 interface TaskKanbanProps {
   tasks: Task[];
@@ -85,10 +85,13 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<Task['category'] | 'all'>('all');
   const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>('today');
   const [selectedPriority, setSelectedPriority] = useState<'all' | 'do' | 'decide' | 'delegate' | 'delete'>('all');
-  const [selectedSize, setSelectedSize] = useState<SizeFilter>('all');  const [selectedUrgent, setSelectedUrgent] = useState<'all' | 'yes' | 'no'>('all');
+  const [selectedSize, setSelectedSize] = useState<SizeFilter>('all');
+  const [selectedUrgent, setSelectedUrgent] = useState<'all' | 'yes' | 'no'>('all');
   const [selectedImportant, setSelectedImportant] = useState<'all' | 'yes' | 'no'>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [exportDateFilter, setExportDateFilter] = useState<DateFilter>('today');
+
   const filteredTasks = useMemo(() => {
     let filtered = tasks.filter(t => !t.isRecurrent && !t.isPrivate);
 
@@ -204,7 +207,9 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       decide: 1,
       delegate: 2,
       delete: 3,
-    };    const grouped = filteredTasks
+    };
+
+    const grouped = filteredTasks
       .reduce((acc, task) => {
         if (task.dueDate && isBefore(task.dueDate, today)) {
           acc.overdue.push(task);
@@ -247,6 +252,42 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     return grouped;
   }, [filteredTasks]);
 
+  const filterTasksByDate = (list: Task[], filter: DateFilter) => {
+    const now = new Date();
+    const today = startOfDay(now);
+    const weekStart = startOfWeek(now);
+    const weekEnd = endOfWeek(now);
+    const monthStart = startOfMonth(now);
+    const monthEnd = endOfMonth(now);
+    const tomorrowStart = addDays(today, 1);
+    const tomorrowEnd = endOfDay(tomorrowStart);
+
+    switch (filter) {
+      case 'today':
+        return list.filter(t =>
+          t.dueDate && isWithinInterval(t.dueDate, { start: today, end: endOfDay(now) })
+        );
+      case 'tomorrow':
+        return list.filter(t =>
+          t.dueDate && isWithinInterval(t.dueDate, { start: tomorrowStart, end: tomorrowEnd })
+        );
+      case 'week':
+        return list.filter(t =>
+          t.dueDate && isWithinInterval(t.dueDate, { start: weekStart, end: weekEnd })
+        );
+      case 'month':
+        return list.filter(t =>
+          t.dueDate && isWithinInterval(t.dueDate, { start: monthStart, end: monthEnd })
+        );
+      case 'overdue':
+        return list.filter(t => t.dueDate && isBefore(t.dueDate, today));
+      case 'noDate':
+        return list.filter(t => !t.dueDate);
+      default:
+        return list;
+    }
+  };
+
   const columns = [
     { key: 'overdue', title: 'Vencidas' },
     { key: 'today', title: 'Para Hoy' },
@@ -284,7 +325,20 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     }
   };
 
-  return (    <div className="space-y-3">
+  const handleCopyTasks = () => {
+    const list = filterTasksByDate(tasks, exportDateFilter);
+    const exportData = list.map(t => ({
+      nombre: t.title,
+      descripción: t.description || ''
+    }));
+    const jsonString = JSON.stringify(exportData, null, 2);
+    navigator.clipboard.writeText(jsonString).then(() => {
+      toast.success('Tareas copiadas al portapapeles');
+    });
+  };
+
+  return (
+    <div className="space-y-3">
       {/* Buscador y botón de filtros para móvil */}
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center">
         {/* Buscador */}
@@ -351,120 +405,163 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
 
       {/* Filtros - Disposición más compacta en una línea */}
       <div className={`${showFilters ? 'block' : 'hidden md:block'}`}>
-        <div className="flex flex-wrap items-end gap-3 md:gap-4">        <div className="space-y-1">
-          <span className="text-xs font-medium text-gray-500">Categoría</span>
-          <Select value={selectedCategory} onValueChange={v => setSelectedCategory(v as Task['category'] | 'all')}>
-            <SelectTrigger className={`w-32 ${selectedCategory !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
-              <SelectValue>{selectedCategory === 'all' ? 'Todas' : CATEGORY_LABELS[selectedCategory as keyof typeof CATEGORY_LABELS]}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              {Object.values(TASK_CATEGORIES).map(cat => (
-                <SelectItem key={cat} value={cat}>{CATEGORY_LABELS[cat]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>        <div className="space-y-1">
-          <span className="text-xs font-medium text-gray-500">Fecha</span>
-          <Select value={selectedDateFilter} onValueChange={v => setSelectedDateFilter(v as DateFilter)}>
-            <SelectTrigger className={`w-32 ${selectedDateFilter !== 'today' ? 'border-blue-500 bg-blue-50' : ''}`}>
-              <SelectValue>{DATE_FILTER_LABELS[selectedDateFilter]}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(DATE_FILTER_LABELS).map(([val, label]) => (
-                <SelectItem key={val} value={val}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <div className="flex flex-wrap items-end gap-3 md:gap-4">
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-gray-500">Categoría</span>
+            <Select value={selectedCategory} onValueChange={v => setSelectedCategory(v as Task['category'] | 'all')}>
+              <SelectTrigger className={`w-32 ${selectedCategory !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
+                <SelectValue>{selectedCategory === 'all' ? 'Todas' : CATEGORY_LABELS[selectedCategory as keyof typeof CATEGORY_LABELS]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                {Object.values(TASK_CATEGORIES).map(cat => (
+                  <SelectItem key={cat} value={cat}>{CATEGORY_LABELS[cat]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className="space-y-1">
-          <span className="text-xs font-medium text-gray-500">Prioridad</span>
-          <Select value={selectedPriority} onValueChange={v => setSelectedPriority(v as PriorityFilter)}>
-            <SelectTrigger className={`w-24 ${selectedPriority !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
-              <SelectValue>{PRIORITY_LABELS[selectedPriority]}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(PRIORITY_LABELS).map(([val, label]) => (
-                <SelectItem key={val} value={val}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>        <div className="space-y-1">
-          <span className="text-xs font-medium text-gray-500">Tamaño</span>
-          <Select value={selectedSize} onValueChange={v => setSelectedSize(v as SizeFilter)}>
-            <SelectTrigger className={`w-24 ${selectedSize !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
-              <SelectValue>{SIZE_LABELS[selectedSize]}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(SIZE_LABELS).map(([val, label]) => (
-                <SelectItem key={val} value={val}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-gray-500">Fecha</span>
+            <Select value={selectedDateFilter} onValueChange={v => setSelectedDateFilter(v as DateFilter)}>
+              <SelectTrigger className={`w-32 ${selectedDateFilter !== 'today' ? 'border-blue-500 bg-blue-50' : ''}`}>
+                <SelectValue>{DATE_FILTER_LABELS[selectedDateFilter]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(DATE_FILTER_LABELS).map(([val, label]) => (
+                  <SelectItem key={val} value={val}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className="space-y-1">
-          <span className="text-xs font-medium text-gray-500">Urgente</span>
-          <Select value={selectedUrgent} onValueChange={v => setSelectedUrgent(v as BooleanFilter)}>
-            <SelectTrigger className={`w-20 ${selectedUrgent !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
-              <SelectValue>{BOOLEAN_LABELS[selectedUrgent]}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(BOOLEAN_LABELS).map(([val, label]) => (
-                <SelectItem key={val} value={val}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>        <div className="space-y-1">
-          <span className="text-xs font-medium text-gray-500">Importante</span>
-          <Select value={selectedImportant} onValueChange={v => setSelectedImportant(v as BooleanFilter)}>
-            <SelectTrigger className={`w-20 ${selectedImportant !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
-              <SelectValue>{BOOLEAN_LABELS[selectedImportant]}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(BOOLEAN_LABELS).map(([val, label]) => (
-                <SelectItem key={val} value={val}>{label}</SelectItem>
-              ))}
-            </SelectContent>          </Select>
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-gray-500">Prioridad</span>
+            <Select value={selectedPriority} onValueChange={v => setSelectedPriority(v as PriorityFilter)}>
+              <SelectTrigger className={`w-24 ${selectedPriority !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
+                <SelectValue>{PRIORITY_LABELS[selectedPriority]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(PRIORITY_LABELS).map(([val, label]) => (
+                  <SelectItem key={val} value={val}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-gray-500">Tamaño</span>
+            <Select value={selectedSize} onValueChange={v => setSelectedSize(v as SizeFilter)}>
+              <SelectTrigger className={`w-24 ${selectedSize !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
+                <SelectValue>{SIZE_LABELS[selectedSize]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(SIZE_LABELS).map(([val, label]) => (
+                  <SelectItem key={val} value={val}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-gray-500">Urgente</span>
+            <Select value={selectedUrgent} onValueChange={v => setSelectedUrgent(v as BooleanFilter)}>
+              <SelectTrigger className={`w-20 ${selectedUrgent !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
+                <SelectValue>{BOOLEAN_LABELS[selectedUrgent]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(BOOLEAN_LABELS).map(([val, label]) => (
+                  <SelectItem key={val} value={val}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-gray-500">Importante</span>
+            <Select value={selectedImportant} onValueChange={v => setSelectedImportant(v as BooleanFilter)}>
+              <SelectTrigger className={`w-20 ${selectedImportant !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
+                <SelectValue>{BOOLEAN_LABELS[selectedImportant]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(BOOLEAN_LABELS).map(([val, label]) => (
+                  <SelectItem key={val} value={val}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Copiar tareas por fecha */}
+          <div className="flex items-end gap-2">
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-gray-500">Exportar</span>
+              <div className="flex gap-1">
+                <Select value={exportDateFilter} onValueChange={v => setExportDateFilter(v as DateFilter)}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue>{DATE_FILTER_LABELS[exportDateFilter]}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(DATE_FILTER_LABELS).map(([val, label]) => (
+                      <SelectItem key={val} value={val}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleCopyTasks}
+                  className="flex items-center gap-1"
+                >
+                  <Copy className="w-3 h-3" />
+                  Copiar
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>      <div className="flex flex-col lg:flex-row items-start gap-2 lg:gap-4 overflow-x-auto pb-2 p-2 lg:p-3 rounded bg-gradient-to-br from-blue-50 via-indigo-50 to-indigo-100">
-      {columns.map(col => (
-        <div
-          key={col.key}
-          className="w-full lg:w-[16rem] xl:w-[18rem] lg:flex-shrink-0 space-y-2"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop(col.key)}
-        >          <div className="flex items-center justify-between pt-2">
-            <h3 className="font-medium text-xs lg:text-sm text-gray-500 uppercase tracking-wider">
-              {col.title}
-            </h3>            <div className="flex gap-1">
-              <Button size="icon" variant="ghost" onClick={() => onAdd(getDateForColumn(col.key))} className="h-6 w-6 lg:h-8 lg:w-8">
-                <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
-              </Button>
-            </div>
-          </div>{groups[col.key].map(task => (
-            <div
-              key={task.id}
-              draggable
-              onDragStart={() => setDragging(task)}
-              onDragEnd={() => setDragging(null)}
-            >
-              <TaskItem
-                task={task}
-                onToggle={onToggle}
-                onDelete={onDelete}
-                onEdit={onEdit}
-                onView={onView}
-                onMove={onMove}
-                variant="kanban"
-                showCategoryLabel={selectedCategory === 'all'}
-              />
-            </div>
-          ))}
-        </div>      ))}
       </div>
-        </div>
+
+      {/* Kanban columns */}
+      <div className="flex flex-col lg:flex-row items-start gap-2 lg:gap-4 overflow-x-auto pb-2 p-2 lg:p-3 rounded bg-gradient-to-br from-blue-50 via-indigo-50 to-indigo-100">
+        {columns.map(col => (
+          <div
+            key={col.key}
+            className="w-full lg:w-[16rem] xl:w-[18rem] lg:flex-shrink-0 space-y-2"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => handleDrop(col.key)}
+          >
+            <div className="flex items-center justify-between pt-2">
+              <h3 className="font-medium text-xs lg:text-sm text-gray-500 uppercase tracking-wider">
+                {col.title}
+              </h3>
+              <div className="flex gap-1">
+                <Button size="icon" variant="ghost" onClick={() => onAdd(getDateForColumn(col.key))} className="h-6 w-6 lg:h-8 lg:w-8">
+                  <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
+                </Button>
+              </div>
+            </div>
+            {groups[col.key].map(task => (
+              <div
+                key={task.id}
+                draggable
+                onDragStart={() => setDragging(task)}
+                onDragEnd={() => setDragging(null)}
+              >
+                <TaskItem
+                  task={task}
+                  onToggle={onToggle}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                  onView={onView}
+                  onMove={onMove}
+                  variant="kanban"
+                  showCategoryLabel={selectedCategory === 'all'}
+                />
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
