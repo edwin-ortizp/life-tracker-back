@@ -15,6 +15,7 @@ import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
 import type { MoodEntry } from '../types';
 import { MOODS } from '../types';
 import { useJournalEntry } from '@/features/journal/context/JournalEntryContext';
+import { useJournalLock } from '@/features/journal/context/JournalLockContext';
 import DOMPurify from 'dompurify';
 import { Textarea } from '@/components/ui/textarea';
 import { countTokens } from '@/utils/tokens';
@@ -39,6 +40,7 @@ const API_URL = moodConfig
 export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate }) => {
   const { user } = useAuth();
   const { entry } = useJournalEntry();
+  const { isUnlocked } = useJournalLock();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -50,6 +52,10 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
     moodConfig?.prompt ??
     'Analiza la siguiente entrada del diario y sugiere estados de ánimo en formato JSON: [{"emoji":"","text":"","time":"HH:mm","reason":""}]';
   const params = moodConfig?.params;
+
+  if (!isUnlocked) {
+    return null;
+  }
 
   useEffect(() => {
     if (open) {
@@ -81,11 +87,20 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
       const data = JSON.parse(match[0]) as Suggestion[];
       if (!Array.isArray(data)) return [];
       const allowed = new Set<string>(MOODS.map(m => m.text));
-      const hourMap: Record<string, string> = { mañana: '09:00', tarde: '15:00', noche: '21:00' };
+      const hourMap: Record<string, string> = {
+        mañana: '09:00',
+        tarde: '15:00',
+        noche: '21:00'
+      };
+      const emojiMap = new Map(MOODS.map(m => [m.text, m.emoji]));
       return data
         .filter(s => allowed.has(s.text))
         .map(s => ({
           ...s,
+          emoji:
+            s.emoji ||
+            emojiMap.get(s.text as (typeof MOODS)[number]['text']) ||
+            '',
           time: s.time || hourMap[s.timeOfDay ?? ''] || '12:00'
         }));
     } catch {
@@ -142,8 +157,11 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
     const docSnap = await getDoc(moodRef);
     const existing = docSnap.exists() && Array.isArray(docSnap.data().moods) ? docSnap.data().moods : [];
 
+    const moodItem = MOODS.find(
+      m => m.text === (s.text as (typeof MOODS)[number]['text'])
+    );
     const newMood: MoodEntry = {
-      emoji: s.emoji,
+      emoji: s.emoji || moodItem?.emoji || '',
       text: s.text,
       time: timeStr,
       timestamp: formattedTimestamp.timestamp

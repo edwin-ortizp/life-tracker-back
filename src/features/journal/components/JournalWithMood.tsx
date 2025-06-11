@@ -2,6 +2,7 @@ import React from 'react';
 import { Journal } from '@/features/journal/components';
 import { Mood } from '@/features/mood/components';
 import { JournalEntryProvider } from '../context/JournalEntryContext';
+import { JournalLockProvider } from '../context/JournalLockContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Smile } from 'lucide-react';
 
@@ -12,12 +13,13 @@ interface JournalWithMoodProps {
 export const JournalWithMood: React.FC<JournalWithMoodProps> = ({ selectedDate }) => {
   return (
     <JournalEntryProvider>
-      <div className="space-y-6">
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Panel principal - Diario */}
-          <div className="md:col-span-2">
-            <Journal selectedDate={selectedDate} />
-          </div>
+      <JournalLockProvider>
+        <div className="space-y-6">
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Panel principal - Diario */}
+            <div className="md:col-span-2">
+              <Journal selectedDate={selectedDate} />
+            </div>
 
           {/* Panel lateral - Estados de ánimo */}
           <div className="md:col-span-1 space-y-4">
@@ -31,7 +33,8 @@ export const JournalWithMood: React.FC<JournalWithMoodProps> = ({ selectedDate }
             </Alert>
           </div>
         </div>
-      </div>
+        </div>
+      </JournalLockProvider>
     </JournalEntryProvider>
   );
 };

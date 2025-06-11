@@ -19,8 +19,8 @@ export const MoodHistory: React.FC<MoodHistoryProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedMood, setSelectedMood] = useState<MoodEntry | null>(null);
 
-  // Ordenar los estados de ánimo por timestamp de más reciente a más antiguo
-  const sortedMoods = [...moods].sort((a, b) => b.timestamp - a.timestamp);
+  // Ordenar los estados de ánimo por timestamp de forma cronológica
+  const sortedMoods = [...moods].sort((a, b) => a.timestamp - b.timestamp);
   const displayMoods = isExpanded ? sortedMoods : sortedMoods.slice(0, 3);
   const hasMoreMoods = moods.length > 3;
 

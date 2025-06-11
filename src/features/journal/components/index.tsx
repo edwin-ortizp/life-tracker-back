@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { JournalHeader } from './JournalHeader';
@@ -12,11 +12,12 @@ import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import { useJournalData } from '../hooks/useJournalData';
 import { useJournalEntry } from '../context/JournalEntryContext';
+import { useJournalLock } from '../context/JournalLockContext';
 import type { JournalProps } from '../types';
 
 export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
   const { user } = useAuth();
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  const { isUnlocked, setUnlocked } = useJournalLock();
   const {
     entry,
     setEntry,
@@ -33,7 +34,7 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
   }, [entry, setSharedEntry]);
 
   const handleLock = () => {
-    setIsUnlocked(false);
+    setUnlocked(false);
   };
 
   if (!user) {
@@ -49,7 +50,7 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
   if (!isUnlocked) {
     return (
       <PasswordProtection 
-        onUnlock={() => setIsUnlocked(true)} 
+        onUnlock={() => setUnlocked(true)}
         lastUpdated={lastUpdated}
       />
     );
