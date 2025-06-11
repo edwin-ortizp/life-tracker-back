@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,6 +15,8 @@ import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
 import type { MoodEntry } from '../types';
 import { useJournalEntry } from '@/features/journal/context/JournalEntryContext';
 import DOMPurify from 'dompurify';
+import { Textarea } from '@/components/ui/textarea';
+import { countTokens } from '@/utils/tokens';
 
 interface MoodAiSuggestionProps {
   selectedDate: Date;
@@ -38,11 +40,26 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [prompt, setPrompt] = useState('');
+  const [tokenCount, setTokenCount] = useState(0);
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   const basePrompt =
     moodConfig?.prompt ??
     'Analiza la siguiente entrada del diario y sugiere estados de ánimo con franja horaria (mañana, tarde o noche) en formato JSON: [{"emoji":"","text":"","timeOfDay":"","reason":""}]';
   const params = moodConfig?.params;
+
+  useEffect(() => {
+    if (open) {
+      (async () => {
+        const journalText = entry || (await fetchJournalEntry());
+        setPrompt(`${basePrompt}\n${journalText}`);
+      })();
+    }
+  }, [open, entry]);
+
+  useEffect(() => {
+    setTokenCount(countTokens(prompt));
+  }, [prompt]);
 
   const fetchJournalEntry = async (): Promise<string> => {
     if (!user) return '';
@@ -63,21 +80,19 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
     }
   };
 
-  const getSuggestions = async () => {
+  const getSuggestions = async (p: string) => {
     if (!apiKey) return;
     setLoading(true);
     try {
-      const journalText = entry || (await fetchJournalEntry());
-      if (!journalText.trim()) {
+      if (!p.trim()) {
         setSuggestions([]);
         return;
       }
-      const prompt = `${basePrompt}\n${journalText}`;
       const res = await fetch(`${API_URL}?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
+          contents: [{ parts: [{ text: p }] }],
           ...params
         })
       });
@@ -124,20 +139,12 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
   const closeDialog = () => {
     setOpen(false);
     setSuggestions([]);
+    setPrompt('');
+    setTokenCount(0);
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        if (o) {
-          setOpen(true);
-          getSuggestions();
-        } else {
-          closeDialog();
-        }
-      }}
-    >
+    <Dialog open={open} onOpenChange={(o) => (o ? setOpen(true) : closeDialog())}>
       <Button variant="outline" size="sm" onClick={() => setOpen(true)} className="flex items-center gap-2">
         <Bot className="h-4 w-4" />
         Analizar Diario
@@ -147,6 +154,25 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
           <DialogTitle>Sugerencias de estados de ánimo</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          <Textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="max-h-[500px] overflow-y-auto"
+          />
+          <p className="text-xs text-right">
+            Tokens: {tokenCount}{' '}
+            {tokenCount > 3500 && (
+              <span className="text-red-500">¡Prompt demasiado largo!</span>
+            )}
+          </p>
+          <Button
+            onClick={() => getSuggestions(prompt)}
+            disabled={loading || !apiKey}
+            className="w-full flex items-center justify-center gap-2"
+          >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading ? 'Consultando...' : 'Analizar'}
+          </Button>
           {loading && (
             <p className="flex items-center justify-center gap-2 text-sm">
               <Loader2 className="h-4 w-4 animate-spin" /> Consultando...
