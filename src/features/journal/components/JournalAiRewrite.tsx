@@ -92,7 +92,7 @@ export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry }) => 
           <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="max-h-[300px] overflow-y-auto"
+            className="max-h-[500px] overflow-y-auto"
           />
           <p className="text-xs text-right">
             Tokens: {tokenCount}{' '}
