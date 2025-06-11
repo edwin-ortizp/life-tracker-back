@@ -13,6 +13,7 @@ import { db } from '@/firebase';
 import { doc, getDoc, setDoc, collection } from 'firebase/firestore';
 import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
 import type { MoodEntry } from '../types';
+import { MOODS } from '../types';
 import { useJournalEntry } from '@/features/journal/context/JournalEntryContext';
 import DOMPurify from 'dompurify';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,7 +26,8 @@ interface MoodAiSuggestionProps {
 interface Suggestion {
   emoji: string;
   text: string;
-  timeOfDay: 'mañana' | 'tarde' | 'noche';
+  time?: string;
+  timeOfDay?: 'mañana' | 'tarde' | 'noche';
   reason?: string;
 }
 
@@ -43,16 +45,19 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
   const [prompt, setPrompt] = useState('');
   const [tokenCount, setTokenCount] = useState(0);
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
+  const moodList = MOODS.map(m => m.text).join(', ');
   const basePrompt =
     moodConfig?.prompt ??
-    'Analiza la siguiente entrada del diario y sugiere estados de ánimo con franja horaria (mañana, tarde o noche) en formato JSON: [{"emoji":"","text":"","timeOfDay":"","reason":""}]';
+    'Analiza la siguiente entrada del diario y sugiere estados de ánimo en formato JSON: [{"emoji":"","text":"","time":"HH:mm","reason":""}]';
   const params = moodConfig?.params;
 
   useEffect(() => {
     if (open) {
       (async () => {
         const journalText = entry || (await fetchJournalEntry());
-        setPrompt(`${basePrompt}\n${journalText}`);
+        setPrompt(
+          `${basePrompt}\nMoods disponibles: ${moodList}. Solo usa estos valores.\n${journalText}`
+        );
       })();
     }
   }, [open, entry]);
@@ -74,7 +79,15 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
       const match = text.match(/\[[\s\S]*\]/);
       if (!match) return [];
       const data = JSON.parse(match[0]) as Suggestion[];
-      return Array.isArray(data) ? data : [];
+      if (!Array.isArray(data)) return [];
+      const allowed = new Set<string>(MOODS.map(m => m.text));
+      const hourMap: Record<string, string> = { mañana: '09:00', tarde: '15:00', noche: '21:00' };
+      return data
+        .filter(s => allowed.has(s.text))
+        .map(s => ({
+          ...s,
+          time: s.time || hourMap[s.timeOfDay ?? ''] || '12:00'
+        }));
     } catch {
       return [];
     }
@@ -113,10 +126,18 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
     const docId = `${user.uid}_${dateString}`;
     const moodRef = doc(collection(db, 'moods'), docId);
 
-    const hourMap: Record<string, number> = { mañana: 9, tarde: 15, noche: 21 };
-    const hour = hourMap[s.timeOfDay] ?? 12;
-    const timeStr = `${hour.toString().padStart(2, '0')}:00`;
-    const formattedTimestamp = createFormattedTimestamp(selectedDate, hour, 0);
+    let hour = 12;
+    let minute = 0;
+    if (s.time) {
+      const [h, m] = s.time.split(':').map(Number);
+      hour = h ?? 12;
+      minute = m ?? 0;
+    } else if (s.timeOfDay) {
+      const hourMap: Record<string, number> = { mañana: 9, tarde: 15, noche: 21 };
+      hour = hourMap[s.timeOfDay] ?? 12;
+    }
+    const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    const formattedTimestamp = createFormattedTimestamp(selectedDate, hour, minute);
 
     const docSnap = await getDoc(moodRef);
     const existing = docSnap.exists() && Array.isArray(docSnap.data().moods) ? docSnap.data().moods : [];
@@ -184,7 +205,7 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{s.emoji}</span>
                   <span>{s.text}</span>
-                  <span className="ml-auto text-sm text-gray-500">{s.timeOfDay}</span>
+                  <span className="ml-auto text-sm text-gray-500">{s.time}</span>
                 </div>
                 {s.reason && (
                   <p
