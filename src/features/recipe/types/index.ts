@@ -15,6 +15,8 @@ export interface NutritionInfo {
 export interface Recipe {
   id: string;
   name: string;
+  /** Breve descripción opcional de la receta */
+  description?: string;
   ingredients: RecipeIngredient[];
   instructions: string;
   nutrition: NutritionInfo;

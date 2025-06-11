@@ -17,6 +17,7 @@ interface AddRecipeModalProps {
 
 export const AddRecipeModal: React.FC<AddRecipeModalProps> = ({ open, onOpenChange, onSave, recipe }) => {
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [ingredients, setIngredients] = useState('');
   const [instructions, setInstructions] = useState('');
   const [calories, setCalories] = useState('');
@@ -28,6 +29,7 @@ export const AddRecipeModal: React.FC<AddRecipeModalProps> = ({ open, onOpenChan
   useEffect(() => {
     if (recipe) {
       setName(recipe.name);
+      setDescription(recipe.description || '');
       setIngredients(recipe.ingredients.map(i => `${i.quantity} ${i.name}`).join('\n'));
       setInstructions(recipe.instructions);
       setCalories(String(recipe.nutrition.calories));
@@ -37,6 +39,7 @@ export const AddRecipeModal: React.FC<AddRecipeModalProps> = ({ open, onOpenChan
       setMealType(recipe.mealType);
     } else {
       setName('');
+      setDescription('');
       setIngredients('');
       setInstructions('');
       setCalories('');
@@ -60,6 +63,7 @@ export const AddRecipeModal: React.FC<AddRecipeModalProps> = ({ open, onOpenChan
     const data: Omit<Recipe, 'id'> = {
       name,
       ingredients: ingredientsArr,
+      description: description.trim() || undefined,
       instructions,
       nutrition: {
         calories: Number(calories) || 0,
@@ -85,11 +89,20 @@ export const AddRecipeModal: React.FC<AddRecipeModalProps> = ({ open, onOpenChan
           <DialogTitle>{recipe ? 'Editar' : 'Agregar'} Receta</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="space-y-1">
-            <Label htmlFor="name">Nombre</Label>
-            <Input id="name" value={name} onChange={e => setName(e.target.value)} />
-          </div>
-          <div className="space-y-1">
+        <div className="space-y-1">
+          <Label htmlFor="name">Nombre</Label>
+          <Input id="name" value={name} onChange={e => setName(e.target.value)} />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="description">Descripción (opcional)</Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            className="min-h-[80px]"
+          />
+        </div>
+        <div className="space-y-1">
             <Label htmlFor="ingredients">Ingredientes (uno por línea)</Label>
             <Textarea id="ingredients" value={ingredients} onChange={e => setIngredients(e.target.value)} className="min-h-[120px]" />
           </div>
