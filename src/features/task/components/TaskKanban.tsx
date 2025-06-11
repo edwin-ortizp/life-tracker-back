@@ -90,7 +90,6 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
   const [selectedImportant, setSelectedImportant] = useState<'all' | 'yes' | 'no'>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [exportDateFilter, setExportDateFilter] = useState<DateFilter>('today');
 
   const filteredTasks = useMemo(() => {
     let filtered = tasks.filter(t => !t.isRecurrent && !t.isPrivate);
@@ -252,42 +251,6 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     return grouped;
   }, [filteredTasks]);
 
-  const filterTasksByDate = (list: Task[], filter: DateFilter) => {
-    const now = new Date();
-    const today = startOfDay(now);
-    const weekStart = startOfWeek(now);
-    const weekEnd = endOfWeek(now);
-    const monthStart = startOfMonth(now);
-    const monthEnd = endOfMonth(now);
-    const tomorrowStart = addDays(today, 1);
-    const tomorrowEnd = endOfDay(tomorrowStart);
-
-    switch (filter) {
-      case 'today':
-        return list.filter(t =>
-          t.dueDate && isWithinInterval(t.dueDate, { start: today, end: endOfDay(now) })
-        );
-      case 'tomorrow':
-        return list.filter(t =>
-          t.dueDate && isWithinInterval(t.dueDate, { start: tomorrowStart, end: tomorrowEnd })
-        );
-      case 'week':
-        return list.filter(t =>
-          t.dueDate && isWithinInterval(t.dueDate, { start: weekStart, end: weekEnd })
-        );
-      case 'month':
-        return list.filter(t =>
-          t.dueDate && isWithinInterval(t.dueDate, { start: monthStart, end: monthEnd })
-        );
-      case 'overdue':
-        return list.filter(t => t.dueDate && isBefore(t.dueDate, today));
-      case 'noDate':
-        return list.filter(t => !t.dueDate);
-      default:
-        return list;
-    }
-  };
-
   const columns = [
     { key: 'overdue', title: 'Vencidas' },
     { key: 'today', title: 'Para Hoy' },
@@ -325,15 +288,24 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     }
   };
 
-  const handleCopyTasks = () => {
-    const list = filterTasksByDate(tasks, exportDateFilter);
-    const exportData = list.map(t => ({
+  // Nueva función mejorada para copiar solo las tareas visibles filtradas
+  const handleCopyFilteredTasks = () => {
+    // Usar las tareas ya filtradas que se muestran en la interfaz
+    const exportData = filteredTasks.map(t => ({
       nombre: t.title,
-      descripción: t.description || ''
+      descripción: t.description || '',
+      categoria: CATEGORY_LABELS[t.category],
+      prioridad: t.priority || 'sin prioridad',
+      tamaño: t.size || 'sin tamaño',
+      fecha: t.dueDate ? new Date(t.dueDate).toLocaleDateString('es-ES') : 'sin fecha',
+      completada: t.completed ? 'Sí' : 'No'
     }));
+    
     const jsonString = JSON.stringify(exportData, null, 2);
     navigator.clipboard.writeText(jsonString).then(() => {
-      toast.success('Tareas copiadas al portapapeles');
+      toast.success(`${exportData.length} tareas filtradas copiadas al portapapeles`);
+    }).catch(() => {
+      toast.error('Error al copiar las tareas');
     });
   };
 
@@ -491,31 +463,23 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
             </Select>
           </div>
 
-          {/* Copiar tareas por fecha */}
+          {/* Botón mejorado para copiar solo tareas filtradas */}
           <div className="flex items-end gap-2">
             <div className="space-y-1">
-              <span className="text-xs font-medium text-gray-500">Exportar</span>
-              <div className="flex gap-1">
-                <Select value={exportDateFilter} onValueChange={v => setExportDateFilter(v as DateFilter)}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue>{DATE_FILTER_LABELS[exportDateFilter]}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(DATE_FILTER_LABELS).map(([val, label]) => (
-                      <SelectItem key={val} value={val}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleCopyTasks}
-                  className="flex items-center gap-1"
-                >
-                  <Copy className="w-3 h-3" />
-                  Copiar
-                </Button>
-              </div>
+              <span className="text-xs font-medium text-gray-500">Exportar filtradas</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleCopyFilteredTasks}
+                className="flex items-center gap-1 min-w-fit"
+                disabled={filteredTasks.length === 0}
+                title={`Copia al portapapeles las ${filteredTasks.length} tareas que se muestran actualmente con todos los filtros aplicados`}
+              >
+                <Copy className="w-3 h-3" />
+                <span className="whitespace-nowrap">
+                  Copiar visibles ({filteredTasks.length})
+                </span>
+              </Button>
             </div>
           </div>
         </div>
