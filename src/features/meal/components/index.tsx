@@ -79,6 +79,9 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
           <Link to="/shopping-list" className="text-sm text-blue-600 underline">
             Lista de Compras
           </Link>
+          <Link to="/recipes" className="text-sm text-blue-600 underline">
+            Recetas
+          </Link>
         </div>
         
         {/* Menú de opciones */}
