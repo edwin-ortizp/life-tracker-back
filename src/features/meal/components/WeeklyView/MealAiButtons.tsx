@@ -35,8 +35,10 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
   const [tokenCount, setTokenCount] = useState(0);
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
-  const basePrompt = mealConfig?.prompt ??
-    'Sugiere comidas en formato JSON según los ingredientes disponibles.';
+  const basePromptMeal = mealConfig?.prompts?.meal ??
+    'Genera una comida en formato JSON utilizando los ingredientes disponibles.';
+  const basePromptDay = mealConfig?.prompts?.day ??
+    'Genera todas las comidas del día en formato JSON.';
   const params = mealConfig?.params;
 
   useEffect(() => {
@@ -51,11 +53,11 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
     const ingredientList = getIngredientList();
     if (type === 'meal') {
       setPrompt(
-        `${basePrompt}\nDia: ${selectedMeal.date}\nTipo: ${MEAL_TYPES[selectedMeal.type].title}\nIngredientes: ${ingredientList}\nDevuelve JSON {"name":"","notes":"","recipe":""}`
+        `${basePromptMeal}\nDia: ${selectedMeal.date}\nTipo: ${selectedMeal.type}\nIngredientes: ${ingredientList}\nDevuelve JSON {"name":"","notes":"","recipe":""}`
       );
     } else {
       setPrompt(
-        `${basePrompt}\nDia completo: ${selectedMeal.date}\nIngredientes: ${ingredientList}\nDevuelve JSON con llaves ${Object.keys(MEAL_TYPES).join(', ')}.`
+        `${basePromptDay}\nDia completo: ${selectedMeal.date}\nIngredientes: ${ingredientList}\nDevuelve JSON con llaves ${Object.keys(MEAL_TYPES).join(', ')}.`
       );
     }
     setPromptDialog(type);

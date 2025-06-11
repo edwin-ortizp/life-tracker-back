@@ -5,7 +5,10 @@ export interface AiParams {
 
 export interface AiModuleConfig {
   model: string;
-  prompt: string;
+  /** Prompt genérico o por defecto */
+  prompt?: string;
+  /** Prompts específicos por acción */
+  prompts?: Record<string, string>;
   params?: AiParams;
 }
 
@@ -22,12 +25,17 @@ export const aiConfig: Record<string, AiModuleConfig> = {
   },
   meal: {
     model: 'gemini-2.5-flash-preview-05-20',
-    prompt: 'Sugiere comidas en formato JSON según los ingredientes disponibles.'
+    prompts: {
+      meal:
+        'Genera una comida usando los ingredientes proporcionados. Devuelve solo JSON {"name":"","notes":"","recipe":""}.',
+      day:
+        'Genera todas las comidas del día. Devuelve JSON con las llaves breakfast, morningSnack, lunch, afternoonSnack y dinner, cada una con {"name":"","notes":"","recipe":""}.'
+    }
   },
   mood: {
     model: 'gemini-2.5-flash-preview-05-20',
     prompt:
-      'Analiza la siguiente entrada del diario y sugiere estados de ánimo con franja horaria (mañana, tarde o noche) en formato JSON: [{"emoji":"","text":"","timeOfDay":"","reason":""}]'
+      'Analiza la siguiente entrada del diario y sugiere estados de ánimo. Solo usa los que están en la lista proporcionada y devuelve el resultado en formato JSON: [{"emoji":"","text":"","time":"HH:mm","reason":""}]'
   }
 };
 

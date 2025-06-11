@@ -6,12 +6,14 @@ import { MoodSelector } from './MoodSelector';
 import { MoodHistory } from './MoodHistory';
 import { ImportMoodButton } from './ImportMoodButton';
 import { MoodAiSuggestion } from './MoodAiSuggestion';
+import { useJournalLock } from '@/features/journal/context/JournalLockContext';
 import { useMoodData } from '../hooks/useMoodData';
 import { getLocalDateString } from '@/utils/dates';
 import type { MoodProps } from '../types';
 
 export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
   const { user } = useAuth();
+  const { isUnlocked } = useJournalLock();
   const {
     moodHistory,
     status,
@@ -39,7 +41,9 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
           <h3 className="font-medium">Estado de ánimo</h3>
           <div className="flex items-center gap-2">
             <ImportMoodButton />
-            <MoodAiSuggestion selectedDate={selectedDate} />
+            {isUnlocked && (
+              <MoodAiSuggestion selectedDate={selectedDate} />
+            )}
             {status === 'saving' && (
               <span className="text-xs text-blue-500">Guardando...</span>
             )}
