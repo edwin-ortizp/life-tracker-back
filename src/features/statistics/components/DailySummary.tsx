@@ -24,6 +24,8 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
     { name: 'Negativos', value: summary.negativeHabitCount }
   ];
 
+  const hasData = Object.values(summary).some(v => v > 0);
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -65,6 +67,11 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
             </ResponsiveContainer>
           )}
         </div>
+        {!loading && !hasData && (
+          <p className="text-center text-sm text-muted-foreground">
+            No hay datos registrados para este día.
+          </p>
+        )}
       </CardContent>
     </Card>
   );

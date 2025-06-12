@@ -24,6 +24,10 @@ export const WeeklySummary: React.FC<Props> = ({ startDate }) => {
     habits: d.summary.habitsCompleted
   }));
 
+  const hasData = summary.daily.some(d =>
+    Object.values(d.summary).some(v => v > 0)
+  );
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -49,6 +53,11 @@ export const WeeklySummary: React.FC<Props> = ({ startDate }) => {
             </ResponsiveContainer>
           )}
         </div>
+        {!loading && !hasData && (
+          <p className="text-center text-sm text-muted-foreground">
+            No hay datos registrados para esta semana.
+          </p>
+        )}
       </CardContent>
     </Card>
   );

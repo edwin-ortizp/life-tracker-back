@@ -18,6 +18,7 @@ export const AiInsightCard: React.FC<Props> = ({ summary }) => {
     : '';
   const basePrompt = aiConfig?.prompt ?? 'Analiza mis registros y dame consejos.';
   const params = aiConfig?.params;
+  const disabled = !summary.trim();
 
   const handleAnalyze = async () => {
     if (!apiKey || !API_URL) return;
@@ -47,11 +48,16 @@ export const AiInsightCard: React.FC<Props> = ({ summary }) => {
         <CardTitle>Asistente IA</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Button onClick={handleAnalyze} disabled={loading || !apiKey} className="flex items-center gap-2">
+        <Button onClick={handleAnalyze} disabled={loading || !apiKey || disabled} className="flex items-center gap-2">
           {loading && <Loader2 className="w-4 h-4 animate-spin" />}
           {loading ? 'Analizando...' : 'Analizar'}
         </Button>
         {analysis && <div className="text-sm whitespace-pre-wrap">{analysis}</div>}
+        {!analysis && disabled && (
+          <p className="text-sm text-muted-foreground">
+            Registra datos para generar un análisis.
+          </p>
+        )}
       </CardContent>
     </Card>
   );
