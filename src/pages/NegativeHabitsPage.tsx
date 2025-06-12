@@ -7,6 +7,7 @@ import { NegativeHabitToggle } from '../features/negative-habits/components/Nega
 import { WeeklyView } from '../features/negative-habits/components/WeeklyView';
 import { YearlyView } from '../features/negative-habits/components/YearlyView';
 import { AddHabitModal } from '../features/negative-habits/components/AddHabitModal';
+import { NegativeHabitAiMenu } from '../features/negative-habits/components/NegativeHabitAiMenu';
 import DateSelector from '@/components/DateSelector';
 import PageLayout from '@/components/PageLayout';
 import { getLocalDateString } from '@/utils/dates';
@@ -62,10 +63,10 @@ const NegativeHabitsPage = () => {
                 Identifica y registra los hábitos que deseas cambiar
               </p>
             </div>
-            <NegativeHabitToggle
-              view={view}
-              onViewChange={setView}
-            />
+            <div className="flex items-center gap-2">
+              <NegativeHabitAiMenu habits={habits} />
+              <NegativeHabitToggle view={view} onViewChange={setView} />
+            </div>
           </div>
 
           {view === 'weekly' ? (
