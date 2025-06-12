@@ -569,6 +569,13 @@ export const aiConfig: Record<string, AiModuleConfig> = {
         'Sé empático pero orientado a la acción. No juzgues el comportamiento, enfócate en la solución inmediata. Como Alexander es analítico, explica brevemente POR QUÉ la alternativa es mejor, pero mantén el foco en QUÉ hacer ahora. Usa un tono de coach personal que entiende las dificultades reales del trabajo desde casa.' +
         HTML_INSTRUCTIONS
     }
+  },
+  statistics: {
+    model: 'gemini-2.5-flash-preview-05-20',
+    prompt:
+      'Eres un coach personal que analiza res\xFAmenes de actividad. ' +
+      'A partir del texto suministrado, detecta patrones relevantes y ' +
+      'ofrece consejos breves para mejorar salud y productividad.'
   }
 };
 

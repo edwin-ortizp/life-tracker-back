@@ -55,7 +55,11 @@ export const useNotifications = () => {
   useEffect(() => {
     const savedPrefs = localStorage.getItem('pomodoroNotificationPrefs');
     if (savedPrefs) {
-      setPreferences(JSON.parse(savedPrefs));
+      try {
+        setPreferences(JSON.parse(savedPrefs));
+      } catch {
+        console.warn('Invalid pomodoro prefs in storage');
+      }
     }
     
     if (notificationsSupported()) {

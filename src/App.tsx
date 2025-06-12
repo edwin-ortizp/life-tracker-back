@@ -13,6 +13,7 @@ import RecipesPage from './pages/RecipesPage';
 import Home from './artifacts/Home';
 import ExercisePage from './pages/ExercisePage';
 import NegativeHabitsPage from './pages/NegativeHabitsPage';
+import StatisticsPage from './pages/StatisticsPage';
 
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
         <Route path="pomodoro" element={<PomodoroPage />} />
         <Route path="exercise" element={<ExercisePage />} />
         <Route path="negative" element={<NegativeHabitsPage />} />
+        <Route path="stats" element={<StatisticsPage />} />
         <Route path="meal" element={<MealPage />} />
         <Route path="shopping-list" element={<ShoppingListPage />} />
         <Route path="recipes" element={<RecipesPage />} />
