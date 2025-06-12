@@ -7,11 +7,14 @@ import { WeeklyView } from './WeeklyView';
 import { YearlyView } from './YearlyView';
 import { useHabitData } from '../hooks/useHabitData';
 import type { HabitProps } from '../types';
+import { HabitAiMenu } from './HabitAiMenu';
 
 // Exports
 export * from './HabitViewToggle';
 export * from './WeeklyView';
 export * from './YearlyView';
+export * from './HabitAiSuggestion';
+export * from './HabitAiMenu';
 
 // Main component
 export const Habit: React.FC<HabitProps> = () => {
@@ -39,10 +42,10 @@ export const Habit: React.FC<HabitProps> = () => {
       <CardContent className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-medium text-lg">Hábitos</h3>
-          <HabitViewToggle
-            view={view}
-            onViewChange={setView}
-          />
+          <div className="flex items-center gap-2">
+            <HabitAiMenu completedHabits={completedHabits} />
+            <HabitViewToggle view={view} onViewChange={setView} />
+          </div>
         </div>
 
         {view === 'weekly' ? (
