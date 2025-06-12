@@ -26,6 +26,8 @@ import { countTokens } from '@/utils/tokens';
 
 interface TaskAiSuggestionProps {
   tasks: Task[];
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const taskConfig = getAiConfig('task');
@@ -33,8 +35,10 @@ const API_URL = taskConfig
   ? `https://generativelanguage.googleapis.com/v1beta/models/${taskConfig.model}:generateContent`
   : '';
 
-export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks }) => {
-  const [open, setOpen] = useState(false);
+export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks, open: openProp, onOpenChange }) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp !== undefined ? openProp : internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | ''>('');
   const [selectedMood, setSelectedMood] = useState<{ emoji: string; text: string } | null>(null);
   const [suggestion, setSuggestion] = useState('');
@@ -96,10 +100,12 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks }) => 
 
   return (
     <Dialog open={open} onOpenChange={o => (o ? setOpen(true) : closeDialog())}>
-      <Button size="sm" variant="outline" onClick={() => setOpen(true)} className="flex items-center gap-2">
-        <Bot className="w-4 h-4" />
-        Sugerir tarea
-      </Button>
+      {openProp === undefined && (
+        <Button size="sm" variant="outline" onClick={() => setOpen(true)} className="flex items-center gap-2">
+          <Bot className="w-4 h-4" />
+          Sugerir tarea
+        </Button>
+      )}
       <DialogContent className="w-full sm:max-w-5xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Sugerencia de tarea</DialogTitle>

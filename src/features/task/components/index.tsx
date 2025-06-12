@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { TaskAiSuggestion } from './TaskAiSuggestion';
+import { TaskAiMenu } from './TaskAiMenu';
 
 // Exports
 export * from './TaskKanban';
@@ -24,6 +24,7 @@ export * from './TaskDetailsModal';
 export * from './PriorityLegend';
 export * from './PrivateTaskSection';
 export * from './TaskAiSuggestion';
+export * from './TaskAiMenu';
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { useTaskData } from '../hooks/useTaskData';
@@ -230,7 +231,7 @@ Campos opcionales:
                 Exportar
               </Button>
 
-              <TaskAiSuggestion tasks={tasks} />
+              <TaskAiMenu tasks={tasks} />
 
               <Button onClick={() => openCreateModal()} size="sm">
                 <Plus className="w-4 h-4 mr-2" />

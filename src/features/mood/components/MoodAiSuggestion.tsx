@@ -22,6 +22,8 @@ import { countTokens } from '@/utils/tokens';
 
 interface MoodAiSuggestionProps {
   selectedDate: Date;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 interface Suggestion {
@@ -37,11 +39,13 @@ const API_URL = moodConfig
   ? `https://generativelanguage.googleapis.com/v1beta/models/${moodConfig.model}:generateContent`
   : '';
 
-export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate }) => {
+export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate, open: openProp, onOpenChange }) => {
   const { user } = useAuth();
   const { entry } = useJournalEntry();
   const { isUnlocked } = useJournalLock();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp !== undefined ? openProp : internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [prompt, setPrompt] = useState('');
@@ -184,10 +188,12 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
 
   return (
     <Dialog open={open} onOpenChange={(o) => (o ? setOpen(true) : closeDialog())}>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)} className="flex items-center gap-2">
-        <Bot className="h-4 w-4" />
-        Analizar Diario
-      </Button>
+      {openProp === undefined && (
+        <Button variant="outline" size="sm" onClick={() => setOpen(true)} className="flex items-center gap-2">
+          <Bot className="h-4 w-4" />
+          Analizar Diario
+        </Button>
+      )}
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Sugerencias de estados de ánimo</DialogTitle>
