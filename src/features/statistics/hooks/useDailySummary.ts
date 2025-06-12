@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { startOfDay, endOfDay } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
 import {
@@ -35,8 +36,8 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
   const habitSnap = await getDoc(doc(db, 'habits', `${uid}_${year}-${month}`));
   const negativeSnap = await getDoc(doc(db, 'negative-habits', `${uid}_${year}-${month}`));
 
-  const start = Timestamp.fromDate(new Date(`${dateStr}T00:00:00`));
-  const end = Timestamp.fromDate(new Date(`${dateStr}T23:59:59`));
+  const start = Timestamp.fromDate(startOfDay(date));
+  const end = Timestamp.fromDate(endOfDay(date));
   const taskQuery = query(
     collection(db, 'tasks'),
     where('userId', '==', uid),
