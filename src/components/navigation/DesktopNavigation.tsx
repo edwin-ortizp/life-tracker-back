@@ -46,7 +46,7 @@ const DesktopNavigation = () => {
   const [isExpanded, setIsExpanded] = useState(() => {
     // Recordar el estado de la navegación en desktop
     const saved = localStorage.getItem('desktop-nav-expanded');
-    return saved ? JSON.parse(saved) : false;
+    return saved === 'true';
   });
 
   // Persistir el estado de expansión
