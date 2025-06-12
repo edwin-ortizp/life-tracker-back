@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
+import { startOfDay, endOfDay } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
+import { db } from '@/firebase';
+import {
+  doc,
+  collection,
+  query,
+  where,
+  onSnapshot,
+  Timestamp
+} from 'firebase/firestore';
 import { getLocalDateString } from '@/utils/dates';
-import { fetchDailySummary, DailySummaryData } from './useDailySummary';
+import { DailySummaryData } from './useDailySummary';
 
 export interface WeeklySummaryData {
   daily: { date: string; summary: DailySummaryData }[];
@@ -27,33 +37,176 @@ export const useWeeklySummary = (startDate: Date) => {
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchData = async () => {
-    if (!user) return;
+  useEffect(() => {
+    if (!user) {
+      console.log('❌ useWeeklySummary - No user authenticated');
+      setLoading(false);
+      return;
+    }
+
+    console.log('🚀 useWeeklySummary - Setting up listeners for user:', user.uid, 'start date:', startDate);
+    
     setLoading(true);
-    try {
+
+    // Generar las 7 fechas de la semana
+    const weekDates: Date[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      weekDates.push(d);
+    }
+
+    // Estado para almacenar los datos de cada día
+    const weeklyData: { [dateStr: string]: DailySummaryData } = {};
+
+    // Función para recalcular el resumen semanal
+    const updateWeeklySummary = () => {
       const daily: { date: string; summary: DailySummaryData }[] = [];
       const totals = { ...emptySummary };
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(startDate);
-        d.setDate(startDate.getDate() + i);
-        const sum = await fetchDailySummary(user.uid, d);
-        daily.push({ date: getLocalDateString(d), summary: sum });
-        (Object.keys(totals) as (keyof DailySummaryData)[]).forEach(key => {
-          totals[key] += sum[key];
-        });
-      }
-      setSummary({ daily, totals });
-    } catch {
-      setSummary({ daily: [], totals: { ...emptySummary } });
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      weekDates.forEach(date => {
+        const dateStr = getLocalDateString(date);
+        const daySummary = weeklyData[dateStr] || { ...emptySummary };
+        daily.push({ date: dateStr, summary: daySummary });
+
+        // Sumar a los totales
+        (Object.keys(totals) as (keyof DailySummaryData)[]).forEach(key => {
+          totals[key] += daySummary[key];
+        });
+      });
+
+      console.log('📊 Updated weekly summary:', { daily: daily.length, totals });
+      setSummary({ daily, totals });
+      setLoading(false);
+    };
+
+    // Función para crear el resumen de un día basado en los datos de documentos
+    const createDaySummary = (
+      journalData: any,
+      moodData: any,
+      waterData: any,
+      exerciseData: any,
+      pomodoroData: any,
+      habitData: any,
+      negativeData: any,
+      taskData: any[],
+      dateStr: string
+    ): DailySummaryData => {
+      return {
+        journalWords: journalData?.text ? journalData.text.split(/\s+/).filter(Boolean).length : 0,
+        moodCount: moodData?.moods ? moodData.moods.length : 0,
+        waterIntake: waterData?.totalWater || 0,
+        exerciseMinutes: exerciseData?.summary?.totalDuration || 0,
+        pomodoroCount: pomodoroData?.count || 0,
+        habitsCompleted: habitData?.habits ? 
+          Object.entries(habitData.habits).filter(([key, val]: [string, any]) =>
+            key.endsWith(`_${dateStr}`) && val
+          ).length : 0,
+        negativeHabitCount: negativeData?.habits?.[dateStr] ? 
+          Object.keys(negativeData.habits[dateStr]).length : 0,
+        tasksCompleted: taskData.length
+      };
+    };
+
+    // Arrays para almacenar todos los unsubscribes
+    const unsubscribes: (() => void)[] = [];
+
+    // Configurar listeners para cada día de la semana
+    weekDates.forEach(date => {
+      const dateStr = getLocalDateString(date);
+      const [year, month] = dateStr.split('-');
+
+      // Estado temporal para este día específico
+      let journalData: any = null;
+      let moodData: any = null;
+      let waterData: any = null;
+      let exerciseData: any = null;
+      let pomodoroData: any = null;
+      let habitData: any = null;
+      let negativeData: any = null;
+      let taskData: any[] = [];
+
+      // Función para actualizar los datos de este día específico
+      const updateDayData = () => {
+        weeklyData[dateStr] = createDaySummary(
+          journalData, moodData, waterData, exerciseData, 
+          pomodoroData, habitData, negativeData, taskData, dateStr
+        );
+        updateWeeklySummary();
+      };
+
+      // Referencias para este día
+      const journalRef = doc(db, 'journal', `${user.uid}_${dateStr}`);
+      const moodRef = doc(db, 'moods', `${user.uid}_${dateStr}`);
+      const waterRef = doc(db, 'water', `${user.uid}_${dateStr}`);
+      const exerciseRef = doc(db, 'exercises', `${user.uid}_${dateStr}`);
+      const pomodoroRef = doc(db, 'pomodoro', `${user.uid}_${dateStr}`);
+      const habitRef = doc(db, 'habits', `${user.uid}_${year}-${month}`);
+      const negativeRef = doc(db, 'negative-habits', `${user.uid}_${year}-${month}`);
+
+      // Listeners para este día
+      unsubscribes.push(onSnapshot(journalRef, (doc) => {
+        journalData = doc.exists() ? doc.data() : null;
+        updateDayData();
+      }, (error) => console.error(`❌ Journal listener error for ${dateStr}:`, error)));
+
+      unsubscribes.push(onSnapshot(moodRef, (doc) => {
+        moodData = doc.exists() ? doc.data() : null;
+        updateDayData();
+      }, (error) => console.error(`❌ Mood listener error for ${dateStr}:`, error)));
+
+      unsubscribes.push(onSnapshot(waterRef, (doc) => {
+        waterData = doc.exists() ? doc.data() : null;
+        updateDayData();
+      }, (error) => console.error(`❌ Water listener error for ${dateStr}:`, error)));
+
+      unsubscribes.push(onSnapshot(exerciseRef, (doc) => {
+        exerciseData = doc.exists() ? doc.data() : null;
+        updateDayData();
+      }, (error) => console.error(`❌ Exercise listener error for ${dateStr}:`, error)));
+
+      unsubscribes.push(onSnapshot(pomodoroRef, (doc) => {
+        pomodoroData = doc.exists() ? doc.data() : null;
+        updateDayData();
+      }, (error) => console.error(`❌ Pomodoro listener error for ${dateStr}:`, error)));
+
+      unsubscribes.push(onSnapshot(habitRef, (doc) => {
+        habitData = doc.exists() ? doc.data() : null;
+        updateDayData();
+      }, (error) => console.error(`❌ Habit listener error for ${dateStr}:`, error)));
+
+      unsubscribes.push(onSnapshot(negativeRef, (doc) => {
+        negativeData = doc.exists() ? doc.data() : null;
+        updateDayData();
+      }, (error) => console.error(`❌ Negative habit listener error for ${dateStr}:`, error)));
+
+      // Task query para este día específico
+      const start = Timestamp.fromDate(startOfDay(date));
+      const end = Timestamp.fromDate(endOfDay(date));
+      const taskQuery = query(
+        collection(db, 'tasks'),
+        where('userId', '==', user.uid),
+        where('completed', '==', true),
+        where('updatedAt', '>=', start),
+        where('updatedAt', '<=', end)
+      );
+
+      unsubscribes.push(onSnapshot(taskQuery, (snapshot) => {
+        taskData = snapshot.docs.map(doc => doc.data());
+        updateDayData();
+      }, (error) => console.error(`❌ Task listener error for ${dateStr}:`, error)));
+    });
+
+    // Cleanup function
+    return () => {
+      console.log('🧹 Cleaning up weekly listeners');
+      unsubscribes.forEach(unsubscribe => unsubscribe());
+    };
   }, [user, startDate]);
 
-  return { summary, loading, refetch: fetchData };
+  const refetch = () => {
+    console.log('🔄 Weekly refetch requested - listeners will automatically update');
+  };
+
+  return { summary, loading, refetch };
 };
