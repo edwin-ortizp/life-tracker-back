@@ -84,14 +84,23 @@ export const useDailySummary = (date: Date) => {
   const [summary, setSummary] = useState<DailySummaryData>(emptySummary);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchData = async () => {
     if (!user) return;
     setLoading(true);
-    fetchDailySummary(user.uid, date)
-      .then(res => setSummary(res))
-      .catch(() => setSummary(emptySummary))
-      .finally(() => setLoading(false));
+    try {
+      const res = await fetchDailySummary(user.uid, date);
+      setSummary(res);
+    } catch {
+      setSummary(emptySummary);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, date]);
 
-  return { summary, loading };
+  return { summary, loading, refetch: fetchData };
 };

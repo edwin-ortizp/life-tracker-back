@@ -27,9 +27,10 @@ export const useWeeklySummary = (startDate: Date) => {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchData = async () => {
     if (!user) return;
-    const fetch = async () => {
+    setLoading(true);
+    try {
       const daily: { date: string; summary: DailySummaryData }[] = [];
       const totals = { ...emptySummary };
       for (let i = 0; i < 7; i++) {
@@ -42,12 +43,17 @@ export const useWeeklySummary = (startDate: Date) => {
         });
       }
       setSummary({ daily, totals });
-    };
-    setLoading(true);
-    fetch()
-      .catch(() => setSummary({ daily: [], totals: { ...emptySummary } }))
-      .finally(() => setLoading(false));
+    } catch {
+      setSummary({ daily: [], totals: { ...emptySummary } });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, startDate]);
 
-  return { summary, loading };
+  return { summary, loading, refetch: fetchData };
 };

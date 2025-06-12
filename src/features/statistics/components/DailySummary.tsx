@@ -1,7 +1,13 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent
+} from '@/components/ui/card';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { useDailySummary } from '../hooks/useDailySummary';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface Props {
@@ -9,7 +15,7 @@ interface Props {
 }
 
 export const DailySummary: React.FC<Props> = ({ date }) => {
-  const { summary, loading } = useDailySummary(date);
+  const { summary, loading, refetch } = useDailySummary(date);
 
   const chartData = [
     { name: 'Pomodoros', value: summary.pomodoroCount },
@@ -20,8 +26,11 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Resumen Diario</CardTitle>
+        <Button size="sm" variant="outline" onClick={refetch} disabled={loading}>
+          Recalcular
+        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4 text-center">

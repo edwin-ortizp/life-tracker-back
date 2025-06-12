@@ -1,7 +1,13 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent
+} from '@/components/ui/card';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
 import { useWeeklySummary } from '../hooks/useWeeklySummary';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface Props {
@@ -9,7 +15,7 @@ interface Props {
 }
 
 export const WeeklySummary: React.FC<Props> = ({ startDate }) => {
-  const { summary, loading } = useWeeklySummary(startDate);
+  const { summary, loading, refetch } = useWeeklySummary(startDate);
 
   const chartData = summary.daily.map(d => ({
     date: d.date.slice(5),
@@ -20,8 +26,11 @@ export const WeeklySummary: React.FC<Props> = ({ startDate }) => {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Resumen Semanal</CardTitle>
+        <Button size="sm" variant="outline" onClick={refetch} disabled={loading}>
+          Recalcular
+        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="h-64">
