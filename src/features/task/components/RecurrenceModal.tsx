@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { TaskTitleInput } from './TaskTitleInput';
 import { TaskDescriptionInput } from './TaskDescriptionInput';
+import TaskAiBreakdown from './TaskAiBreakdown';
 import { TaskDateInput } from './TaskDateInput';
 import { TaskCategorySelect } from './TaskCategorySelect';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -155,6 +156,18 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
               value={formData.description || ''}
               onChange={(description) => setFormData({ ...formData, description })}
             />
+            {mode === 'edit' && (
+              <TaskAiBreakdown
+                title={formData.title}
+                description={formData.description || ''}
+                onInsert={(text) =>
+                  setFormData({
+                    ...formData,
+                    description: (formData.description ? formData.description + '\n' : '') + text
+                  })
+                }
+              />
+            )}
           </div>
 
           <div className="space-y-4">

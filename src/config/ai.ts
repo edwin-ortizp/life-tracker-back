@@ -20,7 +20,11 @@ export const aiConfig: Record<string, AiModuleConfig> = {
     model: 'gemini-2.5-flash-preview-05-20',
     prompt:
       'Eres un asistente de productividad. Basándote en el estado de ánimo y las tareas pendientes sugiere cuál debería abordar primero. ' +
-      HTML_INSTRUCTIONS
+      HTML_INSTRUCTIONS,
+    prompts: {
+      breakdown:
+        'Desglosa la tarea dada en subtareas claras y accionables. ' + HTML_INSTRUCTIONS
+    }
   },
   journal: {
     model: 'gemini-2.5-flash-preview-05-20',
