@@ -50,15 +50,31 @@ export const HabitAiSuggestion: React.FC<HabitAiSuggestionProps> = ({ completedH
   }, [prompt]);
 
   const generateSummary = () => {
-    const counts: Record<number, number> = {};
+    const counts: Record<number, { success: number; fail: number }> = {};
+    let minDate: string | null = null;
+    let maxDate: string | null = null;
+
     Object.entries(completedHabits).forEach(([key, value]) => {
+      const [idStr, date] = key.split('_');
+      const id = parseInt(idStr, 10);
+      const entry = counts[id] || { success: 0, fail: 0 };
       if (value) {
-        const [id] = key.split('_');
-        const num = parseInt(id, 10);
-        counts[num] = (counts[num] || 0) + 1;
+        entry.success += 1;
+      } else {
+        entry.fail += 1;
       }
+      counts[id] = entry;
+      if (!minDate || date < minDate) minDate = date;
+      if (!maxDate || date > maxDate) maxDate = date;
     });
-    return HABITS.map(h => `- ${h.name}: ${counts[h.id] || 0}`).join('\n');
+
+    const dateInfo =
+      minDate && maxDate ? `Datos del ${minDate} al ${maxDate}` : 'Sin registros';
+    const lines = HABITS.map(h => {
+      const c = counts[h.id] || { success: 0, fail: 0 };
+      return `- ${h.name}: completado ${c.success} veces, fallado ${c.fail} veces`;
+    }).join('\n');
+    return `${dateInfo}\n${lines}`;
   };
 
   const getSuggestion = async () => {

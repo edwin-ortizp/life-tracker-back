@@ -51,12 +51,21 @@ export const NegativeHabitAiSuggestion: React.FC<NegativeHabitAiSuggestionProps>
 
   const generateSummary = () => {
     const counts: Record<number, number> = {};
+    let minDate: string | null = null;
+    let maxDate: string | null = null;
+
     Object.keys(habits).forEach(key => {
-      const [id] = key.split('_');
-      const num = parseInt(id, 10);
+      const [idStr, date] = key.split('_');
+      const num = parseInt(idStr, 10);
       counts[num] = (counts[num] || 0) + 1;
+      if (!minDate || date < minDate) minDate = date;
+      if (!maxDate || date > maxDate) maxDate = date;
     });
-    return NEGATIVE_HABITS.map(h => `- ${h.name}: ${counts[h.id] || 0}`).join('\n');
+
+    const dateInfo =
+      minDate && maxDate ? `Datos del ${minDate} al ${maxDate}` : 'Sin registros';
+    const lines = NEGATIVE_HABITS.map(h => `- ${h.name}: ${counts[h.id] || 0}`).join('\n');
+    return `${dateInfo}\n${lines}`;
   };
 
   const getSuggestion = async () => {
