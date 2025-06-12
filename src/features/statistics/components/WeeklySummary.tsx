@@ -25,7 +25,9 @@ export const WeeklySummary: React.FC<Props> = ({ startDate }) => {
   }));
 
   const hasData = summary.daily.some(d =>
-    Object.values(d.summary).some(v => v > 0)
+    Object.entries(d.summary).some(
+      ([key, value]) => key !== 'userId' && key !== 'date' && Number(value) > 0
+    )
   );
 
   return (

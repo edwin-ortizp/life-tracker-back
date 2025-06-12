@@ -24,7 +24,9 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
     { name: 'Negativos', value: summary.negativeHabitCount }
   ];
 
-  const hasData = Object.values(summary).some(v => v > 0);
+  const hasData = Object.entries(summary).some(
+    ([key, value]) => key !== 'userId' && key !== 'date' && Number(value) > 0
+  );
 
   return (
     <Card>
