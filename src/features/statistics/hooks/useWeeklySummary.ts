@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { addDays } from 'date-fns';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
 import { getLocalDateString } from '@/utils/dates';
@@ -36,32 +36,20 @@ export const useWeeklySummary = (startDate: Date) => {
       return;
     }
 
-    const startStr = getLocalDateString(startDate);
-    const endStr = getLocalDateString(addDays(startDate, 6));
-
-    const colRef = collection(db, 'users', user.uid, 'daily-stats');
-    const q = query(
-      colRef,
-      where('date', '>=', startStr),
-      where('date', '<=', endStr),
-      orderBy('date', 'asc')
-    );
-
-    setLoading(true);
-    const unsubscribe = onSnapshot(q, async snap => {
-      const map: Record<string, DailyStats> = {};
-      snap.forEach(doc => {
-        map[doc.data().date] = doc.data() as DailyStats;
-      });
-
+    const fetchData = async () => {
+      setLoading(true);
       const days: { date: string; summary: DailyStats }[] = [];
       const totals: DailyStats = { ...emptyDay, userId: user.uid, date: '' };
 
       for (let i = 0; i < 7; i++) {
         const d = addDays(startDate, i);
         const dateStr = getLocalDateString(d);
-        let dayStats = map[dateStr];
-        if (!dayStats) {
+        const docRef = doc(db, 'daily-stats', `${user.uid}_${dateStr}`);
+        const snap = await getDoc(docRef);
+        let dayStats: DailyStats;
+        if (snap.exists()) {
+          dayStats = snap.data() as DailyStats;
+        } else {
           dayStats = await saveDailyStats(user.uid, d);
         }
         days.push({ date: dateStr, summary: dayStats });
@@ -73,9 +61,10 @@ export const useWeeklySummary = (startDate: Date) => {
 
       setSummary({ daily: days, totals });
       setLoading(false);
-    });
+    };
 
-    return () => unsubscribe();
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, startDate]);
 
   const refetch = async () => {

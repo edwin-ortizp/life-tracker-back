@@ -70,7 +70,7 @@ export const saveDailyStats = async (
   date: Date
 ): Promise<DailyStats> => {
   const stats = await calculateDailyStats(uid, date);
-  const docRef = doc(db, 'users', uid, 'daily-stats', stats.date);
+  const docRef = doc(db, 'daily-stats', `${uid}_${stats.date}`);
   await setDoc(docRef, stats);
   return stats;
 };
