@@ -35,14 +35,18 @@ export const useRecipes = () => {
       snapshot => {
         const list: Recipe[] = snapshot.docs.map(docSnap => {
           const data = docSnap.data();
-          return {
+          const recipe: Recipe = {
             id: docSnap.id,
             name: data.name,
             ingredients: data.ingredients || [],
             instructions: data.instructions || '',
             nutrition: data.nutrition || { calories: 0, protein: 0, carbs: 0, fat: 0 },
-            mealType: data.mealType
-          } as Recipe;
+            mealType: data.mealType,
+            ...(data.description && { description: data.description }),
+            ...(data.difficulty && { difficulty: data.difficulty }),
+            ...(data.prepTime !== undefined && { prepTime: data.prepTime })
+          };
+          return recipe;
         });
         setRecipes(list);
         setStatus('idle');
@@ -66,12 +70,26 @@ export const useRecipes = () => {
     setError(null);
 
     try {
-      await addDoc(collection(db, 'recipes'), {
-        ...recipe,
+      const docData: any = {
+        name: recipe.name,
+        ingredients: recipe.ingredients,
+        instructions: recipe.instructions,
+        nutrition: recipe.nutrition,
+        mealType: recipe.mealType,
         userId: user.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
-      });
+      };
+      if (recipe.description) {
+        docData.description = recipe.description;
+      }
+      if (recipe.difficulty) {
+        docData.difficulty = recipe.difficulty;
+      }
+      if (recipe.prepTime !== undefined) {
+        docData.prepTime = recipe.prepTime;
+      }
+      await addDoc(collection(db, 'recipes'), docData);
       setStatus('idle');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al guardar');
@@ -90,7 +108,18 @@ export const useRecipes = () => {
 
     try {
       const docRef = doc(db, 'recipes', id);
-      await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() });
+      const updateData: any = {
+        updatedAt: serverTimestamp()
+      };
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.ingredients !== undefined) updateData.ingredients = data.ingredients;
+      if (data.instructions !== undefined) updateData.instructions = data.instructions;
+      if (data.nutrition !== undefined) updateData.nutrition = data.nutrition;
+      if (data.mealType !== undefined) updateData.mealType = data.mealType;
+      if (data.description !== undefined) updateData.description = data.description;
+      if (data.difficulty !== undefined) updateData.difficulty = data.difficulty;
+      if (data.prepTime !== undefined) updateData.prepTime = data.prepTime;
+      await updateDoc(docRef, updateData);
       setStatus('idle');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al actualizar');
