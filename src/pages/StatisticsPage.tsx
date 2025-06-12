@@ -2,7 +2,7 @@ import { useState } from 'react';
 import PageLayout from '@/components/PageLayout';
 import DateSelector from '@/components/DateSelector';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { DailySummary, WeeklySummary, AiInsightCard } from '@/features/statistics/components';
+import { DailySummary, WeeklySummary, AiInsightCard, DebugDataCard } from '@/features/statistics/components';
 import { useDailySummary } from '@/features/statistics/hooks/useDailySummary';
 import { useWeeklySummary } from '@/features/statistics/hooks/useWeeklySummary';
 import { format } from 'date-fns';
@@ -56,11 +56,13 @@ const StatisticsPage = () => {
           <DateSelector selectedDate={day} onChange={setDay} />
           <DailySummary date={day} />
           <AiInsightCard summary={dailySummaryText} />
+          <DebugDataCard data={dailyData} />
         </TabsContent>
         <TabsContent value="weekly" className="space-y-4">
           <DateSelector selectedDate={weekStart} onChange={setWeekStart} />
           <WeeklySummary startDate={weekStart} />
           <AiInsightCard summary={weeklySummaryText} />
+          <DebugDataCard data={weeklyData} />
         </TabsContent>
       </Tabs>
     </PageLayout>
