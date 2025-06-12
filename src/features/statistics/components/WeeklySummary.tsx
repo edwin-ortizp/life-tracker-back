@@ -1,0 +1,43 @@
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
+import { useWeeklySummary } from '../hooks/useWeeklySummary';
+
+interface Props {
+  startDate: Date;
+}
+
+export const WeeklySummary: React.FC<Props> = ({ startDate }) => {
+  const data = useWeeklySummary(startDate);
+
+  if (!data) return null;
+
+  const chartData = data.daily.map(d => ({
+    date: d.date.slice(5),
+    pomodoros: d.summary.pomodoroCount,
+    tasks: d.summary.tasksCompleted,
+    habits: d.summary.habitsCompleted
+  }));
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Resumen Semanal</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line dataKey="pomodoros" stroke="#3b82f6" name="Pomodoros" />
+              <Line dataKey="tasks" stroke="#10b981" name="Tareas" />
+              <Line dataKey="habits" stroke="#a855f7" name="Hábitos" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

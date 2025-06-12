@@ -1,0 +1,75 @@
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { db } from '@/firebase';
+import { doc, getDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { getLocalDateString } from '@/utils/dates';
+
+export interface DailySummaryData {
+  journalWords: number;
+  moodCount: number;
+  habitsCompleted: number;
+  negativeHabitCount: number;
+  exerciseMinutes: number;
+  tasksCompleted: number;
+  pomodoroCount: number;
+  waterIntake: number;
+}
+
+export const fetchDailySummary = async (uid: string, date: Date): Promise<DailySummaryData> => {
+  const dateStr = getLocalDateString(date);
+  const [year, month] = dateStr.split('-');
+
+  const journalSnap = await getDoc(doc(db, 'journal', `${uid}_${dateStr}`));
+  const moodSnap = await getDoc(doc(db, 'moods', `${uid}_${dateStr}`));
+  const waterSnap = await getDoc(doc(db, 'water', `${uid}_${dateStr}`));
+  const exerciseSnap = await getDoc(doc(db, 'exercises', `${uid}_${dateStr}`));
+  const pomodoroSnap = await getDoc(doc(db, 'pomodoro', `${uid}_${dateStr}`));
+  const habitSnap = await getDoc(doc(db, 'habits', `${uid}_${year}-${month}`));
+  const negativeSnap = await getDoc(doc(db, 'negative-habits', `${uid}_${year}-${month}`));
+
+  const start = Timestamp.fromDate(new Date(`${dateStr}T00:00:00`));
+  const end = Timestamp.fromDate(new Date(`${dateStr}T23:59:59`));
+  const taskQuery = query(
+    collection(db, 'tasks'),
+    where('userId', '==', uid),
+    where('completed', '==', true),
+    where('updatedAt', '>=', start),
+    where('updatedAt', '<=', end)
+  );
+  const taskDocs = await getDocs(taskQuery);
+
+  return {
+    journalWords: journalSnap.exists()
+      ? (journalSnap.data().text || '').split(/\s+/).filter(Boolean).length
+      : 0,
+    moodCount: moodSnap.exists() ? (moodSnap.data().moods || []).length : 0,
+    waterIntake: waterSnap.exists() ? waterSnap.data().totalWater || 0 : 0,
+    exerciseMinutes: exerciseSnap.exists()
+      ? exerciseSnap.data().summary?.totalDuration || 0
+      : 0,
+    pomodoroCount: pomodoroSnap.exists() ? pomodoroSnap.data().count || 0 : 0,
+    habitsCompleted: habitSnap.exists()
+      ? Object.entries(habitSnap.data().habits || {}).filter(([key, val]) =>
+          key.endsWith(`_${dateStr}`) && val
+        ).length
+      : 0,
+    negativeHabitCount: negativeSnap.exists()
+      ? Object.keys(negativeSnap.data().habits?.[dateStr] || {}).length
+      : 0,
+    tasksCompleted: taskDocs.size
+  };
+};
+
+export const useDailySummary = (date: Date) => {
+  const { user } = useAuth();
+  const [data, setData] = useState<DailySummaryData | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchDailySummary(user.uid, date)
+      .then(setData)
+      .catch(() => setData(null));
+  }, [user, date]);
+
+  return data;
+};
