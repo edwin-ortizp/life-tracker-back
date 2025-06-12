@@ -42,7 +42,9 @@ export const useRecipes = () => {
             instructions: data.instructions || '',
             nutrition: data.nutrition || { calories: 0, protein: 0, carbs: 0, fat: 0 },
             mealType: data.mealType,
-            ...(data.description && { description: data.description })
+            ...(data.description && { description: data.description }),
+            ...(data.difficulty && { difficulty: data.difficulty }),
+            ...(data.prepTime !== undefined && { prepTime: data.prepTime })
           };
           return recipe;
         });
@@ -81,6 +83,12 @@ export const useRecipes = () => {
       if (recipe.description) {
         docData.description = recipe.description;
       }
+      if (recipe.difficulty) {
+        docData.difficulty = recipe.difficulty;
+      }
+      if (recipe.prepTime !== undefined) {
+        docData.prepTime = recipe.prepTime;
+      }
       await addDoc(collection(db, 'recipes'), docData);
       setStatus('idle');
     } catch (e) {
@@ -109,6 +117,8 @@ export const useRecipes = () => {
       if (data.nutrition !== undefined) updateData.nutrition = data.nutrition;
       if (data.mealType !== undefined) updateData.mealType = data.mealType;
       if (data.description !== undefined) updateData.description = data.description;
+      if (data.difficulty !== undefined) updateData.difficulty = data.difficulty;
+      if (data.prepTime !== undefined) updateData.prepTime = data.prepTime;
       await updateDoc(docRef, updateData);
       setStatus('idle');
     } catch (e) {

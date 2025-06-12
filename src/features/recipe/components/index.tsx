@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -98,41 +98,45 @@ export const Recipes: React.FC = () => {
         ) : (
           <div className="space-y-4">
             {filtered.map(recipe => (
-              <div key={recipe.id} className="border rounded-md p-3 space-y-2">
-                <div className="flex justify-between items-center">
+              <Card key={recipe.id}>
+                <CardHeader className="flex flex-row items-start justify-between">
                   <div>
-                    <h4 className="font-semibold">{recipe.name}</h4>
-                    <span className="text-sm text-gray-500">
-                      {MEAL_TYPES[recipe.mealType].title}
-                    </span>
+                    <CardTitle className="text-base">{recipe.name}</CardTitle>
+                    <CardDescription>{MEAL_TYPES[recipe.mealType].title}</CardDescription>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => { setEditing(recipe); setShowModal(true); }}>Editar</Button>
-                </div>
-                {recipe.description && (
-                  <p className="text-sm whitespace-pre-wrap">{recipe.description}</p>
-                )}
-                <div>
-                  <p className="text-sm font-medium">Ingredientes:</p>
-                  <ul className="list-disc pl-4 text-sm">
-                    {recipe.ingredients.map((ing, idx) => (
-                      <li key={idx}>{ing.quantity} {ing.name}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Instrucciones:</p>
-                  <p className="text-sm whitespace-pre-wrap">{recipe.instructions}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Información Nutricional:</p>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {recipe.description && (
+                    <p className="text-sm whitespace-pre-wrap">{recipe.description}</p>
+                  )}
                   <p className="text-sm">
-                    {recipe.nutrition.calories} kcal |
-                    {" "}{recipe.nutrition.protein}g P |
-                    {recipe.nutrition.carbs}g C |
-                    {recipe.nutrition.fat}g G
+                    <span className="font-medium">Dificultad:</span> {recipe.difficulty || 'N/A'} |{' '}
+                    <span className="font-medium">Tiempo:</span> {recipe.prepTime ? `${recipe.prepTime} min` : 'N/A'}
                   </p>
-                </div>
-              </div>
+                  <div>
+                    <p className="text-sm font-medium">Ingredientes:</p>
+                    <ul className="list-disc pl-4 text-sm">
+                      {recipe.ingredients.map((ing, idx) => (
+                        <li key={idx}>{ing.quantity} {ing.name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Instrucciones:</p>
+                    <p className="text-sm whitespace-pre-wrap">{recipe.instructions}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Información Nutricional:</p>
+                    <p className="text-sm">
+                      {recipe.nutrition.calories} kcal |{' '}
+                      {recipe.nutrition.protein}g P |{' '}
+                      {recipe.nutrition.carbs}g C |{' '}
+                      {recipe.nutrition.fat}g G
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
