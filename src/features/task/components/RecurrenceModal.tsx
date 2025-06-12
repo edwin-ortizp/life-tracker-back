@@ -135,14 +135,14 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] h-[80vh] overflow-y-auto sm:max-w-[90vw] sm:w-[90vw] lg:max-w-[85vw] lg:w-[85vw]">
         <DialogHeader>
           <DialogTitle>{getModalTitle()}</DialogTitle>
           {mode === 'complete' && (
             <DialogDescription>{task.title}</DialogDescription>
           )}
         </DialogHeader>
-        <div className="grid gap-4 py-4 md:grid-cols-2">
+        <div className="grid gap-6 py-4 lg:grid-cols-2">
           <div className="space-y-4">
             {mode !== 'complete' && (
               <TaskTitleInput
@@ -170,7 +170,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
             )}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             {mode !== 'complete' && (
               <TaskCategorySelect
                 value={formData.category}

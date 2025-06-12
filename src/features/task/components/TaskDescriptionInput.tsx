@@ -17,7 +17,7 @@ export const TaskDescriptionInput: React.FC<TaskDescriptionInputProps> = ({ valu
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder="Agrega más detalles sobre la tarea..."
-      className="min-h-[100px] resize-none"
+      className="min-h-[250px] resize-y"
     />
   </div>
 );

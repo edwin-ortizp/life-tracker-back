@@ -67,7 +67,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-[70vw]">
+      <DialogContent className="max-w-[90vw] w-[90vw] max-h-[90vh] overflow-y-auto sm:max-w-[90vw] sm:w-[90vw] lg:max-w-[85vw] lg:w-[85vw]">
         <div className="grid gap-6 md:grid-cols-12">
           <div className="md:col-span-8 space-y-4">
             <DialogHeader className="text-left">

@@ -46,7 +46,22 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
   }, [prompt]);
 
   const getIngredientList = () => {
-    return items.map(i => `${i.name} (${i.quantity})`).join(', ');
+    // Filtrar solo ingredientes alimentarios que estén en stock
+    const foodItems = items.filter(item => {
+      // Excluir productos de aseo y limpieza
+      if (item.category) {
+        const category = item.category.toLowerCase();
+        const excludedCategories = ['aseo', 'limpieza', 'cuidado personal', 'otro'];
+        if (excludedCategories.some(excluded => category.includes(excluded))) {
+          return false;
+        }
+      }
+      
+      // Solo incluir items que estén en stock (excluir 'to-buy')
+      return item.status === 'in-stock' || item.status === 'low-stock';
+    });
+    
+    return foodItems.map(i => `${i.name} (${i.quantity})`).join(', ');
   };
 
   const openDialog = (type: 'meal' | 'day') => {
