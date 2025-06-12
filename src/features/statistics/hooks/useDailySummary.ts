@@ -33,7 +33,7 @@ export const useDailySummary = (date: Date) => {
     }
 
     const dateStr = getLocalDateString(date);
-    const statsRef = doc(db, 'daily-stats', `${user.uid}_${dateStr}`);
+    const statsRef = doc(db, 'users', user.uid, 'daily-stats', dateStr);
 
     setLoading(true);
     const unsubscribe = onSnapshot(statsRef, async snap => {

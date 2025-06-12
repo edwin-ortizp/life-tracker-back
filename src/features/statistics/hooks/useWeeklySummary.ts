@@ -39,9 +39,9 @@ export const useWeeklySummary = (startDate: Date) => {
     const startStr = getLocalDateString(startDate);
     const endStr = getLocalDateString(addDays(startDate, 6));
 
+    const colRef = collection(db, 'users', user.uid, 'daily-stats');
     const q = query(
-      collection(db, 'daily-stats'),
-      where('userId', '==', user.uid),
+      colRef,
       where('date', '>=', startStr),
       where('date', '<=', endStr),
       orderBy('date', 'asc')
