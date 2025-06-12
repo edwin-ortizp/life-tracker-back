@@ -15,6 +15,12 @@ export interface NutritionInfo {
 export interface Recipe {
   id: string;
   name: string;
+  /** Breve descripción opcional de la receta */
+  description?: string;
+  /** Nivel de dificultad opcional */
+  difficulty?: 'fácil' | 'media' | 'difícil';
+  /** Tiempo aproximado de preparación en minutos */
+  prepTime?: number;
   ingredients: RecipeIngredient[];
   instructions: string;
   nutrition: NutritionInfo;
