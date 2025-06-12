@@ -17,32 +17,30 @@ const StatisticsPage = () => {
     d.setDate(d.getDate() - d.getDay());
     return d;
   });
-  const dailyData = useDailySummary(day);
-  const weeklyData = useWeeklySummary(weekStart);
+  const { summary: dailyData } = useDailySummary(day);
+  const { summary: weeklyData } = useWeeklySummary(weekStart);
 
-  const dailySummaryText = dailyData
-    ? `Resumen del ${formatDate(day)}\n` +
-      `Palabras diario: ${dailyData.journalWords}\n` +
-      `Ánimos: ${dailyData.moodCount}\n` +
-      `Hábitos completados: ${dailyData.habitsCompleted}\n` +
-      `Hábitos negativos: ${dailyData.negativeHabitCount}\n` +
-      `Min ejercicio: ${dailyData.exerciseMinutes}\n` +
-      `Tareas: ${dailyData.tasksCompleted}\n` +
-      `Pomodoros: ${dailyData.pomodoroCount}\n` +
-      `Agua (ml): ${dailyData.waterIntake}`
-    : '';
+  const dailySummaryText =
+    `Resumen del ${formatDate(day)}\n` +
+    `Palabras diario: ${dailyData.journalWords}\n` +
+    `Ánimos: ${dailyData.moodCount}\n` +
+    `Hábitos completados: ${dailyData.habitsCompleted}\n` +
+    `Hábitos negativos: ${dailyData.negativeHabitCount}\n` +
+    `Min ejercicio: ${dailyData.exerciseMinutes}\n` +
+    `Tareas: ${dailyData.tasksCompleted}\n` +
+    `Pomodoros: ${dailyData.pomodoroCount}\n` +
+    `Agua (ml): ${dailyData.waterIntake}`;
 
-  const weeklySummaryText = weeklyData
-    ? `Resumen semanal ${formatDate(weekStart)}\n` +
-      `Palabras diario: ${weeklyData.totals.journalWords}\n` +
-      `Ánimos: ${weeklyData.totals.moodCount}\n` +
-      `Hábitos completados: ${weeklyData.totals.habitsCompleted}\n` +
-      `Hábitos negativos: ${weeklyData.totals.negativeHabitCount}\n` +
-      `Min ejercicio: ${weeklyData.totals.exerciseMinutes}\n` +
-      `Tareas: ${weeklyData.totals.tasksCompleted}\n` +
-      `Pomodoros: ${weeklyData.totals.pomodoroCount}\n` +
-      `Agua (ml): ${weeklyData.totals.waterIntake}`
-    : '';
+  const weeklySummaryText =
+    `Resumen semanal ${formatDate(weekStart)}\n` +
+    `Palabras diario: ${weeklyData.totals.journalWords}\n` +
+    `Ánimos: ${weeklyData.totals.moodCount}\n` +
+    `Hábitos completados: ${weeklyData.totals.habitsCompleted}\n` +
+    `Hábitos negativos: ${weeklyData.totals.negativeHabitCount}\n` +
+    `Min ejercicio: ${weeklyData.totals.exerciseMinutes}\n` +
+    `Tareas: ${weeklyData.totals.tasksCompleted}\n` +
+    `Pomodoros: ${weeklyData.totals.pomodoroCount}\n` +
+    `Agua (ml): ${weeklyData.totals.waterIntake}`;
 
   return (
     <PageLayout>

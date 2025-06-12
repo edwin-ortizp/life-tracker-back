@@ -21,7 +21,11 @@ const emptySummary: DailySummaryData = {
 
 export const useWeeklySummary = (startDate: Date) => {
   const { user } = useAuth();
-  const [data, setData] = useState<WeeklySummaryData | null>(null);
+  const [summary, setSummary] = useState<WeeklySummaryData>({
+    daily: [],
+    totals: { ...emptySummary }
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
@@ -31,16 +35,19 @@ export const useWeeklySummary = (startDate: Date) => {
       for (let i = 0; i < 7; i++) {
         const d = new Date(startDate);
         d.setDate(startDate.getDate() + i);
-        const summary = await fetchDailySummary(user.uid, d);
-        daily.push({ date: getLocalDateString(d), summary });
+        const sum = await fetchDailySummary(user.uid, d);
+        daily.push({ date: getLocalDateString(d), summary: sum });
         (Object.keys(totals) as (keyof DailySummaryData)[]).forEach(key => {
-          totals[key] += summary[key];
+          totals[key] += sum[key];
         });
       }
-      setData({ daily, totals });
+      setSummary({ daily, totals });
     };
-    fetch().catch(() => setData(null));
+    setLoading(true);
+    fetch()
+      .catch(() => setSummary({ daily: [], totals: { ...emptySummary } }))
+      .finally(() => setLoading(false));
   }, [user, startDate]);
 
-  return data;
+  return { summary, loading };
 };

@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
-import { doc, getDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  Timestamp
+} from 'firebase/firestore';
 import { getLocalDateString } from '@/utils/dates';
 
 export interface DailySummaryData {
@@ -60,16 +68,30 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
   };
 };
 
+const emptySummary: DailySummaryData = {
+  journalWords: 0,
+  moodCount: 0,
+  habitsCompleted: 0,
+  negativeHabitCount: 0,
+  exerciseMinutes: 0,
+  tasksCompleted: 0,
+  pomodoroCount: 0,
+  waterIntake: 0
+};
+
 export const useDailySummary = (date: Date) => {
   const { user } = useAuth();
-  const [data, setData] = useState<DailySummaryData | null>(null);
+  const [summary, setSummary] = useState<DailySummaryData>(emptySummary);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
+    setLoading(true);
     fetchDailySummary(user.uid, date)
-      .then(setData)
-      .catch(() => setData(null));
+      .then(res => setSummary(res))
+      .catch(() => setSummary(emptySummary))
+      .finally(() => setLoading(false));
   }, [user, date]);
 
-  return data;
+  return { summary, loading };
 };
