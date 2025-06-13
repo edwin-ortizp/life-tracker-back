@@ -18,13 +18,15 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
   const { summary, loading, refetch } = useDailySummary(date);
 
   const chartData = [
-    { name: 'Pomodoros', value: summary.pomodoroCount },
-    { name: 'Tareas', value: summary.tasksCompleted },
-    { name: 'Hábitos', value: summary.habitsCompleted },
-    { name: 'Negativos', value: summary.negativeHabitCount }
+    { name: 'Pomodoros', value: summary.pomodoro.count },
+    { name: 'Tareas', value: summary.tasks.completed },
+    { name: 'Hábitos', value: summary.habits.completed },
+    { name: 'Negativos', value: summary.negativeHabits.count }
   ];
 
-  const hasData = Object.values(summary).some(v => v > 0);
+  const hasData = Object.values(summary).some(moduleData =>
+    Object.values(moduleData).some(v => typeof v === 'number' && v > 0)
+  );
 
   return (
     <Card>
@@ -38,19 +40,19 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
         <div className="grid grid-cols-2 gap-4 text-center">
           <div>
             <p className="text-sm text-muted-foreground">Palabras Diario</p>
-            <p className="font-bold">{summary.journalWords}</p>
+            <p className="font-bold">{summary.journal.words}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Ánimos</p>
-            <p className="font-bold">{summary.moodCount}</p>
+            <p className="font-bold">{summary.mood.count}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Min Ejercicio</p>
-            <p className="font-bold">{summary.exerciseMinutes}</p>
+            <p className="font-bold">{summary.exercise.minutes}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Hidratación (ml)</p>
-            <p className="font-bold">{summary.waterIntake}</p>
+            <p className="font-bold">{summary.water.intake}</p>
           </div>
         </div>
         <div className="h-40">

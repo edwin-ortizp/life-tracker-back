@@ -15,14 +15,30 @@ import {
 import { getLocalDateString } from '@/utils/dates';
 
 export interface DailySummaryData {
-  journalWords: number;
-  moodCount: number;
-  habitsCompleted: number;
-  negativeHabitCount: number;
-  exerciseMinutes: number;
-  tasksCompleted: number;
-  pomodoroCount: number;
-  waterIntake: number;
+  journal: {
+    words: number;
+  };
+  mood: {
+    count: number;
+  };
+  habits: {
+    completed: number;
+  };
+  negativeHabits: {
+    count: number;
+  };
+  exercise: {
+    minutes: number;
+  };
+  tasks: {
+    completed: number;
+  };
+  pomodoro: {
+    count: number;
+  };
+  water: {
+    intake: number;
+  };
 }
 
 // Función de prueba para verificar permisos individualmente
@@ -113,25 +129,41 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
     console.log('📝 Task query result:', taskDocs.size, 'completed tasks found');
     console.log('📝 Task query date range:', start.toDate(), 'to', end.toDate());
 
-    const result = {
-      journalWords: journalSnap.exists()
-        ? (journalSnap.data().text || '').split(/\s+/).filter(Boolean).length
-        : 0,
-      moodCount: moodSnap.exists() ? (moodSnap.data().moods || []).length : 0,
-      waterIntake: waterSnap.exists() ? waterSnap.data().totalWater || 0 : 0,
-      exerciseMinutes: exerciseSnap.exists()
-        ? exerciseSnap.data().summary?.totalDuration || 0
-        : 0,
-      pomodoroCount: pomodoroSnap.exists() ? pomodoroSnap.data().count || 0 : 0,
-      habitsCompleted: habitSnap.exists()
-        ? Object.entries(habitSnap.data().habits || {}).filter(([key, val]) =>
-            key.endsWith(`_${dateStr}`) && val
-          ).length
-        : 0,
-      negativeHabitCount: negativeSnap.exists()
-        ? Object.keys(negativeSnap.data().habits?.[dateStr] || {}).length
-        : 0,
-      tasksCompleted: taskDocs.size
+    const result: DailySummaryData = {
+      journal: {
+        words: journalSnap.exists()
+          ? (journalSnap.data().text || '').split(/\s+/).filter(Boolean).length
+          : 0,
+      },
+      mood: {
+        count: moodSnap.exists() ? (moodSnap.data().moods || []).length : 0,
+      },
+      water: {
+        intake: waterSnap.exists() ? waterSnap.data().totalWater || 0 : 0,
+      },
+      exercise: {
+        minutes: exerciseSnap.exists()
+          ? exerciseSnap.data().summary?.totalDuration || 0
+          : 0,
+      },
+      pomodoro: {
+        count: pomodoroSnap.exists() ? pomodoroSnap.data().count || 0 : 0,
+      },
+      habits: {
+        completed: habitSnap.exists()
+          ? Object.entries(habitSnap.data().habits || {}).filter(([key, val]) =>
+              key.endsWith(`_${dateStr}`) && val
+            ).length
+          : 0,
+      },
+      negativeHabits: {
+        count: negativeSnap.exists()
+          ? Object.keys(negativeSnap.data().habits?.[dateStr] || {}).length
+          : 0,
+      },
+      tasks: {
+        completed: taskDocs.size
+      }
     };
 
     console.log('✅ Final result:', result);
@@ -143,14 +175,14 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
 };
 
 const emptySummary: DailySummaryData = {
-  journalWords: 0,
-  moodCount: 0,
-  habitsCompleted: 0,
-  negativeHabitCount: 0,
-  exerciseMinutes: 0,
-  tasksCompleted: 0,
-  pomodoroCount: 0,
-  waterIntake: 0
+  journal: { words: 0 },
+  mood: { count: 0 },
+  habits: { completed: 0 },
+  negativeHabits: { count: 0 },
+  exercise: { minutes: 0 },
+  tasks: { completed: 0 },
+  pomodoro: { count: 0 },
+  water: { intake: 0 }
 };
 
 export const useDailySummary = (date: Date) => {
@@ -194,18 +226,34 @@ export const useDailySummary = (date: Date) => {
     // Función para recalcular el resumen cuando cambien los datos
     const updateSummary = () => {
       const newSummary: DailySummaryData = {
-        journalWords: journalData?.text ? journalData.text.split(/\s+/).filter(Boolean).length : 0,
-        moodCount: moodData?.moods ? moodData.moods.length : 0,
-        waterIntake: waterData?.totalWater || 0,
-        exerciseMinutes: exerciseData?.summary?.totalDuration || 0,
-        pomodoroCount: pomodoroData?.count || 0,
-        habitsCompleted: habitData?.habits ? 
-          Object.entries(habitData.habits).filter(([key, val]: [string, any]) =>
-            key.endsWith(`_${dateStr}`) && val
-          ).length : 0,
-        negativeHabitCount: negativeData?.habits?.[dateStr] ? 
-          Object.keys(negativeData.habits[dateStr]).length : 0,
-        tasksCompleted: taskData.length
+        journal: {
+          words: journalData?.text ? journalData.text.split(/\s+/).filter(Boolean).length : 0,
+        },
+        mood: {
+          count: moodData?.moods ? moodData.moods.length : 0,
+        },
+        water: {
+          intake: waterData?.totalWater || 0,
+        },
+        exercise: {
+          minutes: exerciseData?.summary?.totalDuration || 0,
+        },
+        pomodoro: {
+          count: pomodoroData?.count || 0,
+        },
+        habits: {
+          completed: habitData?.habits ?
+            Object.entries(habitData.habits).filter(([key, val]: [string, any]) =>
+              key.endsWith(`_${dateStr}`) && val
+            ).length : 0,
+        },
+        negativeHabits: {
+          count: negativeData?.habits?.[dateStr] ?
+            Object.keys(negativeData.habits[dateStr]).length : 0,
+        },
+        tasks: {
+          completed: taskData.length
+        }
       };
 
       console.log('📊 Updated summary:', newSummary);

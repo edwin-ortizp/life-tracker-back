@@ -19,13 +19,15 @@ export const WeeklySummary: React.FC<Props> = ({ startDate }) => {
 
   const chartData = summary.daily.map(d => ({
     date: d.date.slice(5),
-    pomodoros: d.summary.pomodoroCount,
-    tasks: d.summary.tasksCompleted,
-    habits: d.summary.habitsCompleted
+    pomodoros: d.summary.pomodoro.count,
+    tasks: d.summary.tasks.completed,
+    habits: d.summary.habits.completed
   }));
 
   const hasData = summary.daily.some(d =>
-    Object.values(d.summary).some(v => v > 0)
+    Object.values(d.summary).some(moduleData => 
+      Object.values(moduleData).some(v => typeof v === 'number' && v > 0)
+    )
   );
 
   return (

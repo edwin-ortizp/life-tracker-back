@@ -19,14 +19,14 @@ export interface WeeklySummaryData {
 }
 
 const emptySummary: DailySummaryData = {
-  journalWords: 0,
-  moodCount: 0,
-  habitsCompleted: 0,
-  negativeHabitCount: 0,
-  exerciseMinutes: 0,
-  tasksCompleted: 0,
-  pomodoroCount: 0,
-  waterIntake: 0
+  journal: { words: 0 },
+  mood: { count: 0 },
+  habits: { completed: 0 },
+  negativeHabits: { count: 0 },
+  exercise: { minutes: 0 },
+  tasks: { completed: 0 },
+  pomodoro: { count: 0 },
+  water: { intake: 0 }
 };
 
 export const useWeeklySummary = (startDate: Date) => {
@@ -62,7 +62,7 @@ export const useWeeklySummary = (startDate: Date) => {
     // Función para recalcular el resumen semanal
     const updateWeeklySummary = () => {
       const daily: { date: string; summary: DailySummaryData }[] = [];
-      const totals = { ...emptySummary };
+      const totals = { ...emptySummary }; // Ensure totals also uses the new structure
 
       weekDates.forEach(date => {
         const dateStr = getLocalDateString(date);
@@ -70,9 +70,14 @@ export const useWeeklySummary = (startDate: Date) => {
         daily.push({ date: dateStr, summary: daySummary });
 
         // Sumar a los totales
-        (Object.keys(totals) as (keyof DailySummaryData)[]).forEach(key => {
-          totals[key] += daySummary[key];
-        });
+        totals.journal.words += daySummary.journal.words;
+        totals.mood.count += daySummary.mood.count;
+        totals.habits.completed += daySummary.habits.completed;
+        totals.negativeHabits.count += daySummary.negativeHabits.count;
+        totals.exercise.minutes += daySummary.exercise.minutes;
+        totals.tasks.completed += daySummary.tasks.completed;
+        totals.pomodoro.count += daySummary.pomodoro.count;
+        totals.water.intake += daySummary.water.intake;
       });
 
       console.log('📊 Updated weekly summary:', { daily: daily.length, totals });
@@ -93,18 +98,34 @@ export const useWeeklySummary = (startDate: Date) => {
       dateStr: string
     ): DailySummaryData => {
       return {
-        journalWords: journalData?.text ? journalData.text.split(/\s+/).filter(Boolean).length : 0,
-        moodCount: moodData?.moods ? moodData.moods.length : 0,
-        waterIntake: waterData?.totalWater || 0,
-        exerciseMinutes: exerciseData?.summary?.totalDuration || 0,
-        pomodoroCount: pomodoroData?.count || 0,
-        habitsCompleted: habitData?.habits ? 
-          Object.entries(habitData.habits).filter(([key, val]: [string, any]) =>
-            key.endsWith(`_${dateStr}`) && val
-          ).length : 0,
-        negativeHabitCount: negativeData?.habits?.[dateStr] ? 
-          Object.keys(negativeData.habits[dateStr]).length : 0,
-        tasksCompleted: taskData.length
+        journal: {
+          words: journalData?.text ? journalData.text.split(/\s+/).filter(Boolean).length : 0,
+        },
+        mood: {
+          count: moodData?.moods ? moodData.moods.length : 0,
+        },
+        water: {
+          intake: waterData?.totalWater || 0,
+        },
+        exercise: {
+          minutes: exerciseData?.summary?.totalDuration || 0,
+        },
+        pomodoro: {
+          count: pomodoroData?.count || 0,
+        },
+        habits: {
+          completed: habitData?.habits ?
+            Object.entries(habitData.habits).filter(([key, val]: [string, any]) =>
+              key.endsWith(`_${dateStr}`) && val
+            ).length : 0,
+        },
+        negativeHabits: {
+          count: negativeData?.habits?.[dateStr] ?
+            Object.keys(negativeData.habits[dateStr]).length : 0,
+        },
+        tasks: {
+          completed: taskData.length
+        }
       };
     };
 
