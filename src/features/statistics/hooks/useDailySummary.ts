@@ -38,6 +38,10 @@ export interface DailySummaryData {
   };
   pomodoro: {
     count: number;
+    expectedMinutes: number;
+    workMinutes: number;
+    completionRate: number; // As a percentage
+    averageSessionLength: number;
   };
   water: {
     intake: number;
@@ -196,10 +200,36 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
         minutes: exerciseSnap.exists()
           ? exerciseSnap.data().summary?.totalDuration || 0
           : 0,
-      },
-      pomodoro: {
-        count: pomodoroSnap.exists() ? pomodoroSnap.data().count || 0 : 0,
-      },
+      },      pomodoro: (() => {
+        const data = pomodoroSnap.exists() ? pomodoroSnap.data() : null;
+        console.log('🍅 fetchDailySummary - Pomodoro data for', dateStr, ':', data);
+        
+        const count = data?.count || 0;
+          // Calcular workMinutes sumando las duraciones de todas las sesiones
+        let workMinutes = 0;
+        if (data?.sessions && Array.isArray(data.sessions)) {
+          workMinutes = data.sessions.reduce((total: number, session: any) => {
+            // duration parece venir en segundos, convertir a minutos
+            const sessionMinutes = session.duration ? Math.round(session.duration / 60) : 0;
+            return total + sessionMinutes;
+          }, 0);
+        }
+        
+        console.log('🍅 fetchDailySummary - extracted count:', count, 'workMinutes:', workMinutes);
+        console.log('🍅 fetchDailySummary - sessions found:', data?.sessions?.length || 0);
+        console.log('🍅 fetchDailySummary - available keys:', data ? Object.keys(data) : 'no data');
+        
+        const expectedMinutes = 300;
+        const completionRate = expectedMinutes > 0 ? Math.min(100, (workMinutes / expectedMinutes) * 100) : 0;
+        const averageSessionLength = count > 0 ? workMinutes / count : 0;
+        return {
+          count,
+          expectedMinutes,
+          workMinutes,
+          completionRate: parseFloat(completionRate.toFixed(1)), // Keep one decimal place
+          averageSessionLength: parseFloat(averageSessionLength.toFixed(1)), // Keep one decimal place
+        };
+      })(),
       habits: {
         completed: habitSnap.exists()
           ? Object.entries(habitSnap.data().habits || {}).filter(([key, val]) =>
@@ -235,8 +265,262 @@ const emptySummary: DailySummaryData = {
   negativeHabits: { count: 0 },
   exercise: { minutes: 0 },
   tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },
-  pomodoro: { count: 0 },
+  pomodoro: { count: 0, expectedMinutes: 0, workMinutes: 0, completionRate: 0, averageSessionLength: 0 },
   water: { intake: 0 }
+};
+
+// Función reutilizable para crear listeners de una fecha específica
+export const createDayListeners = (
+  uid: string,
+  date: Date,
+  onDataUpdate: (data: DailySummaryData) => void
+): (() => void)[] => {
+  const dateStr = getLocalDateString(date);
+  const [year, month] = dateStr.split('-');
+  const todayStartTimestamp = Timestamp.fromDate(startOfDay(date));
+  const todayEndTimestamp = Timestamp.fromDate(endOfDay(date));
+
+  console.log('🔍 createDayListeners - uid:', uid);
+  console.log('🔍 createDayListeners - date:', date);
+  console.log('🔍 createDayListeners - dateStr:', dateStr);
+
+  // Referencias a documentos
+  const journalRef = doc(db, 'journal', `${uid}_${dateStr}`);
+  const moodRef = doc(db, 'moods', `${uid}_${dateStr}`);
+  const waterRef = doc(db, 'water', `${uid}_${dateStr}`);
+  const exerciseRef = doc(db, 'exercises', `${uid}_${dateStr}`);
+  const pomodoroRef = doc(db, 'pomodoro', `${uid}_${dateStr}`);
+  const habitRef = doc(db, 'habits', `${uid}_${year}-${month}`);
+  const negativeRef = doc(db, 'negative-habits', `${uid}_${year}-${month}`);
+
+  console.log('🔍 Pomodoro document ID will be:', `${uid}_${dateStr}`);
+
+  // Estado temporal para almacenar los datos
+  let journalData: any = null;
+  let moodData: any = null;
+  let waterData: any = null;
+  let exerciseData: any = null;
+  let pomodoroData: any = null;
+  let habitData: any = null;
+  let negativeData: any = null;
+  let completedTasksTodayData: any[] = [];
+  let dueTodayTasksData: any[] = [];
+  let incompleteTasksData: any[] = [];
+
+  // Función para recalcular el resumen
+  const updateSummary = () => {
+    const summary = createDailySummaryFromData(
+      date,
+      dateStr,
+      journalData,
+      moodData,
+      waterData,
+      exerciseData,
+      pomodoroData,
+      habitData,
+      negativeData,
+      completedTasksTodayData,
+      dueTodayTasksData,
+      incompleteTasksData
+    );
+    onDataUpdate(summary);
+  };
+
+  const unsubscribes: (() => void)[] = [];
+
+  // Journal listener
+  unsubscribes.push(onSnapshot(journalRef, (doc) => {
+    journalData = doc.exists() ? doc.data() : null;
+    updateSummary();
+  }, (error) => console.error('❌ Journal listener error:', error)));
+
+  // Mood listener
+  unsubscribes.push(onSnapshot(moodRef, (doc) => {
+    moodData = doc.exists() ? doc.data() : null;
+    updateSummary();
+  }, (error) => console.error('❌ Mood listener error:', error)));
+
+  // Water listener
+  unsubscribes.push(onSnapshot(waterRef, (doc) => {
+    waterData = doc.exists() ? doc.data() : null;
+    updateSummary();
+  }, (error) => console.error('❌ Water listener error:', error)));
+
+  // Exercise listener
+  unsubscribes.push(onSnapshot(exerciseRef, (doc) => {
+    exerciseData = doc.exists() ? doc.data() : null;
+    updateSummary();
+  }, (error) => console.error('❌ Exercise listener error:', error)));  // Pomodoro listener
+  unsubscribes.push(onSnapshot(pomodoroRef, (doc) => {
+    console.log('🔍 Pomodoro listener - Document ID:', doc.id);
+    console.log('🔍 Pomodoro listener - Document exists:', doc.exists());
+    console.log('🔍 Pomodoro listener - Full document data:', doc.data());
+    
+    pomodoroData = doc.exists() ? doc.data() : null;
+    console.log('🍅 Pomodoro listener - processed data:', pomodoroData);
+    
+    if (pomodoroData) {
+      console.log('🍅 Pomodoro listener - keys:', Object.keys(pomodoroData));
+      console.log('🍅 Pomodoro listener - count:', pomodoroData.count);
+      console.log('🍅 Pomodoro listener - sessions:', pomodoroData.sessions?.length || 0, 'sessions');
+      console.log('🍅 Pomodoro listener - sessions data:', pomodoroData.sessions);      if (pomodoroData.sessions) {
+        const totalDuration = pomodoroData.sessions.reduce((total: number, session: any) => total + (session.duration || 0), 0);
+        console.log('🍅 Pomodoro listener - total duration (seconds):', totalDuration, 'minutes:', Math.round(totalDuration / 60));
+      }
+    } else {
+      console.log('❌ Pomodoro listener - No data found for document');
+    }
+    updateSummary();
+  }, (error) => console.error('❌ Pomodoro listener error:', error)));
+
+  // Habits listener
+  unsubscribes.push(onSnapshot(habitRef, (doc) => {
+    habitData = doc.exists() ? doc.data() : null;
+    updateSummary();
+  }, (error) => console.error('❌ Habit listener error:', error)));
+
+  // Negative habits listener
+  unsubscribes.push(onSnapshot(negativeRef, (doc) => {
+    negativeData = doc.exists() ? doc.data() : null;
+    updateSummary();
+  }, (error) => console.error('❌ Negative habit listener error:', error)));
+
+  // Listener for tasks completed today
+  const completedTasksQuery = query(
+    collection(db, 'tasks'),
+    where('userId', '==', uid),
+    where('completed', '==', true),
+    where('updatedAt', '>=', todayStartTimestamp),
+    where('updatedAt', '<=', todayEndTimestamp)
+  );
+  unsubscribes.push(onSnapshot(completedTasksQuery, (snapshot) => {
+    completedTasksTodayData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    updateSummary();
+  }, (error) => console.error('❌ Task listener error (completed today):', error)));
+
+  // Listener for tasks due today
+  const dueTodayTasksQuery = query(
+    collection(db, 'tasks'),
+    where('userId', '==', uid),
+    where('dueDate', '>=', todayStartTimestamp),
+    where('dueDate', '<=', todayEndTimestamp)
+  );
+  unsubscribes.push(onSnapshot(dueTodayTasksQuery, (snapshot) => {
+    dueTodayTasksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    updateSummary();
+  }, (error) => console.error('❌ Task listener error (due today):', error)));
+
+  // Listener for all incomplete tasks for the user
+  const incompleteTasksQuery = query(
+    collection(db, 'tasks'),
+    where('userId', '==', uid),
+    where('completed', '==', false)
+  );
+  unsubscribes.push(onSnapshot(incompleteTasksQuery, (snapshot) => {
+    incompleteTasksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    updateSummary();
+  }, (error) => console.error('❌ Task listener error (incomplete):', error)));
+
+  return unsubscribes;
+};
+
+// Función reutilizable para crear un resumen diario a partir de datos
+export const createDailySummaryFromData = (
+  date: Date,
+  dateStr: string,
+  journalData: any,
+  moodData: any,
+  waterData: any,
+  exerciseData: any,
+  pomodoroData: any,
+  habitData: any,
+  negativeData: any,
+  completedTasksTodayData: any[],
+  dueTodayTasksData: any[],
+  incompleteTasksData: any[]
+): DailySummaryData => {
+  const todayStartOfDay = startOfDay(date);
+
+  let pendingCount = 0;
+  let overdueCount = 0;
+  incompleteTasksData.forEach(task => {
+    if (task.dueDate && typeof task.dueDate.toDate === 'function') {
+      const dueDate = startOfDay(task.dueDate.toDate());
+      if (dueDate < todayStartOfDay) {
+        overdueCount++;
+      } else {
+        pendingCount++;
+      }
+    } else {
+      pendingCount++;
+    }
+  });
+
+  return {
+    journal: {
+      words: journalData?.text ? journalData.text.split(/\s+/).filter(Boolean).length : 0,
+    },
+    mood: {
+      count: moodData?.moods ? moodData.moods.length : 0,
+    },
+    water: {
+      intake: waterData?.totalWater || 0,
+    },
+    exercise: {
+      minutes: exerciseData?.summary?.totalDuration || 0,
+    },    pomodoro: (() => {
+      const data = pomodoroData;
+      console.log('🍅 Pomodoro data for', dateStr, ':', data);
+      
+      const count = data?.count || 0;
+      
+      // Calcular workMinutes sumando las duraciones de todas las sesiones
+      let workMinutes = 0;
+      if (data?.sessions && Array.isArray(data.sessions)) {
+        workMinutes = data.sessions.reduce((total: number, session: any) => {
+          // duration parece venir en segundos, convertir a minutos
+          const sessionMinutes = session.duration ? Math.round(session.duration / 60) : 0;
+          console.log('🍅 Session duration:', session.duration, 'seconds =', sessionMinutes, 'minutes');
+          return total + sessionMinutes;
+        }, 0);
+      }
+      
+      console.log('🍅 Pomodoro extracted - count:', count, 'workMinutes:', workMinutes);
+      console.log('🍅 Sessions found:', data?.sessions?.length || 0);
+      console.log('🍅 Available keys in data:', data ? Object.keys(data) : 'no data');
+      
+      const expectedMinutes = 300;
+      const completionRate = expectedMinutes > 0 ? Math.min(100, (workMinutes / expectedMinutes) * 100) : 0;
+      const averageSessionLength = count > 0 ? workMinutes / count : 0;
+      
+      const result = {
+        count,
+        expectedMinutes,
+        workMinutes,
+        completionRate: parseFloat(completionRate.toFixed(1)),
+        averageSessionLength: parseFloat(averageSessionLength.toFixed(1)),
+      };
+      
+      console.log('🍅 Final pomodoro result:', result);
+      return result;
+    })(),
+    habits: {
+      completed: habitData?.habits ?
+        Object.entries(habitData.habits).filter(([key, val]: [string, any]) =>
+          key.endsWith(`_${dateStr}`) && val
+        ).length : 0,
+    },
+    negativeHabits: {
+      count: negativeData?.habits?.[dateStr] ?
+        Object.keys(negativeData.habits[dateStr]).length : 0,
+    },
+    tasks: {
+      completed: completedTasksTodayData.length,
+      todayPlanned: dueTodayTasksData.length,
+      pending: pendingCount,
+      overdue: overdueCount
+    }
+  };
 };
 
 export const useDailySummary = (date: Date) => {
@@ -249,211 +533,18 @@ export const useDailySummary = (date: Date) => {
       console.log('❌ useDailySummary - No user authenticated');
       setLoading(false);
       return;
-    }
-
-    console.log('🚀 useDailySummary - Setting up listeners for user:', user.uid, 'date:', date);
-    
-    const dateStr = getLocalDateString(date);
-    const [year, month] = dateStr.split('-');
-
+    }    console.log('🚀 useDailySummary - Setting up listeners for user:', user.uid, 'date:', date);
     setLoading(true);
 
-    // Referencias a documentos
-    const journalRef = doc(db, 'journal', `${user.uid}_${dateStr}`);
-    const moodRef = doc(db, 'moods', `${user.uid}_${dateStr}`);
-    const waterRef = doc(db, 'water', `${user.uid}_${dateStr}`);
-    const exerciseRef = doc(db, 'exercises', `${user.uid}_${dateStr}`);
-    const pomodoroRef = doc(db, 'pomodoro', `${user.uid}_${dateStr}`);
-    const habitRef = doc(db, 'habits', `${user.uid}_${year}-${month}`);
-    const negativeRef = doc(db, 'negative-habits', `${user.uid}_${year}-${month}`);
+    // Ejecutar test de permisos para debug
+    testFirestorePermissions(user.uid, date);
 
-    // Estado temporal para almacenar los datos de cada documento
-    let journalData: any = null;
-    let moodData: any = null;
-    let waterData: any = null;
-    let exerciseData: any = null;
-    let pomodoroData: any = null;
-    let habitData: any = null;
-    let negativeData: any = null;
-    
-    // Task data states
-    let completedTasksTodayData: any[] = [];
-    let dueTodayTasksData: any[] = [];
-    let incompleteTasksData: any[] = [];
-
-
-    // Función para recalcular el resumen cuando cambien los datos
-    const updateSummary = () => {
-      const todayStartOfDay = startOfDay(date);
-
-      let pendingCount = 0;
-      let overdueCount = 0;
-      incompleteTasksData.forEach(task => {
-        if (task.dueDate && typeof task.dueDate.toDate === 'function') {
-          const dueDate = startOfDay(task.dueDate.toDate());
-          if (dueDate < todayStartOfDay) {
-            overdueCount++;
-          } else {
-            pendingCount++;
-          }
-        } else {
-          pendingCount++; // Default to pending if no due date
-        }
-      });
-      
-      const newSummary: DailySummaryData = {
-        journal: {
-          words: journalData?.text ? journalData.text.split(/\s+/).filter(Boolean).length : 0,
-        },
-        mood: {
-          count: moodData?.moods ? moodData.moods.length : 0,
-        },
-        water: {
-          intake: waterData?.totalWater || 0,
-        },
-        exercise: {
-          minutes: exerciseData?.summary?.totalDuration || 0,
-        },
-        pomodoro: {
-          count: pomodoroData?.count || 0,
-        },
-        habits: {
-          completed: habitData?.habits ?
-            Object.entries(habitData.habits).filter(([key, val]: [string, any]) =>
-              key.endsWith(`_${dateStr}`) && val
-            ).length : 0,
-        },
-        negativeHabits: {
-          count: negativeData?.habits?.[dateStr] ?
-            Object.keys(negativeData.habits[dateStr]).length : 0,
-        },
-        tasks: {
-          completed: completedTasksTodayData.length,
-          todayPlanned: dueTodayTasksData.length,
-          pending: pendingCount,
-          overdue: overdueCount
-        }
-      };
-
-      // console.log('📊 Updated summary:', newSummary);
-      setSummary(newSummary);
+    const handleDataUpdate = (data: DailySummaryData) => {
+      setSummary(data);
       setLoading(false);
     };
 
-    // Listeners para cada documento
-    const unsubscribes: (() => void)[] = [];
-
-    // Journal listener
-    unsubscribes.push(onSnapshot(journalRef, (doc) => {
-      journalData = doc.exists() ? doc.data() : null;
-      console.log('📖 Journal data updated:', journalData ? 'exists' : 'null');
-      updateSummary();
-    }, (error) => {
-      console.error('❌ Journal listener error:', error);
-    }));
-
-    // Mood listener
-    unsubscribes.push(onSnapshot(moodRef, (doc) => {
-      moodData = doc.exists() ? doc.data() : null;
-      console.log('😊 Mood data updated:', moodData ? 'exists' : 'null');
-      updateSummary();
-    }, (error) => {
-      console.error('❌ Mood listener error:', error);
-    }));
-
-    // Water listener
-    unsubscribes.push(onSnapshot(waterRef, (doc) => {
-      waterData = doc.exists() ? doc.data() : null;
-      console.log('💧 Water data updated:', waterData ? 'exists' : 'null');
-      updateSummary();
-    }, (error) => {
-      console.error('❌ Water listener error:', error);
-    }));
-
-    // Exercise listener
-    unsubscribes.push(onSnapshot(exerciseRef, (doc) => {
-      exerciseData = doc.exists() ? doc.data() : null;
-      console.log('🏃 Exercise data updated:', exerciseData ? 'exists' : 'null');
-      updateSummary();
-    }, (error) => {
-      console.error('❌ Exercise listener error:', error);
-    }));
-
-    // Pomodoro listener
-    unsubscribes.push(onSnapshot(pomodoroRef, (doc) => {
-      pomodoroData = doc.exists() ? doc.data() : null;
-      console.log('🍅 Pomodoro data updated:', pomodoroData ? 'exists' : 'null');
-      updateSummary();
-    }, (error) => {
-      console.error('❌ Pomodoro listener error:', error);
-    }));
-
-    // Habits listener
-    unsubscribes.push(onSnapshot(habitRef, (doc) => {
-      habitData = doc.exists() ? doc.data() : null;
-      console.log('✅ Habit data updated:', habitData ? 'exists' : 'null');
-      updateSummary();
-    }, (error) => {
-      console.error('❌ Habit listener error:', error);
-    }));
-
-    // Negative habits listener
-    unsubscribes.push(onSnapshot(negativeRef, (doc) => {
-      negativeData = doc.exists() ? doc.data() : null;
-      console.log('❌ Negative habit data updated:', negativeData ? 'exists' : 'null');
-      updateSummary();
-    }, (error) => {
-      console.error('❌ Negative habit listener error:', error);
-    }));
-
-    // Tasks query listeners
-    const todayStartTimestamp = Timestamp.fromDate(startOfDay(date));
-    const todayEndTimestamp = Timestamp.fromDate(endOfDay(date));
-
-    // Listener for tasks completed today
-    const completedTasksQuery = query(
-      collection(db, 'tasks'),
-      where('userId', '==', user.uid),
-      where('completed', '==', true),
-      where('updatedAt', '>=', todayStartTimestamp),
-      where('updatedAt', '<=', todayEndTimestamp)
-    );
-    unsubscribes.push(onSnapshot(completedTasksQuery, (snapshot) => {
-      completedTasksTodayData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // console.log('📝 Task data updated (completed today):', completedTasksTodayData.length, 'tasks');
-      updateSummary();
-    }, (error) => {
-      console.error('❌ Task listener error (completed today):', error);
-    }));
-
-    // Listener for tasks due today
-    const dueTodayTasksQuery = query(
-      collection(db, 'tasks'),
-      where('userId', '==', user.uid),
-      where('dueDate', '>=', todayStartTimestamp),
-      where('dueDate', '<=', todayEndTimestamp)
-    );
-    unsubscribes.push(onSnapshot(dueTodayTasksQuery, (snapshot) => {
-      dueTodayTasksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // console.log('📝 Task data updated (due today):', dueTodayTasksData.length, 'tasks');
-      updateSummary();
-    }, (error) => {
-      console.error('❌ Task listener error (due today):', error);
-    }));
-
-    // Listener for all incomplete tasks for the user
-    const incompleteTasksQuery = query(
-      collection(db, 'tasks'),
-      where('userId', '==', user.uid),
-      where('completed', '==', false)
-    );
-    unsubscribes.push(onSnapshot(incompleteTasksQuery, (snapshot) => {
-      incompleteTasksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // console.log('📝 Task data updated (incomplete):', incompleteTasksData.length, 'tasks');
-      updateSummary();
-    }, (error) => {
-      console.error('❌ Task listener error (incomplete):', error);
-    }));
+    const unsubscribes = createDayListeners(user.uid, date, handleDataUpdate);
     
     // Cleanup function
     return () => {
