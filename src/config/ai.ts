@@ -56,7 +56,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
         'Soy Alexander, ingeniero de sistemas, y necesito ayuda para estructurar mis tareas de manera efectiva para evitar la procrastinación.\n\n' +
         'Instrucciones:\n' +
         'Realiza las siguientes acciones:\n' +
-        '   • Analiza la tarea principal y desglósala en máximo 10 subtareas específicas\n' +
+        '   • Analiza la tarea principal y desglósala en máximo 5 subtareas específicas\n' +
         '   • Si te doy pasos iniciales, evalúalos críticamente (verifica si son completos, si hay pasos faltantes antes, durante o después)\n' +
         '   • Verifica la coherencia lógica entre los pasos y ordénalos de forma secuencial\n' +
         '   • Considera mi profesión y nivel de experiencia al estimar el tiempo para cada subtarea\n' +
@@ -122,6 +122,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
       '- Va al grano rápido\n\n' +
       '### **{ESTILO}**\n' +
       'El estilo de escritura debe parecer hablado, como si lo estuviera contando en voz alta. Uso palabras comunes, no me complico con adornos o tecnicismos. Prefiero frases naturales, incluso si son largas, pero que fluyan como un pensamiento. No me gusta sonar falso ni muy estructurado. A veces repito conectores como "pues", "entonces" o "como que" y palabras como "básicamente" porque así hablo yo. Cuando explico algo, voy directo al punto, pero sin sonar cortante. Si escribo sobre algo emocional, no filtro mucho: lo digo tal cual lo sentí. Quiero que suene auténtico, claro y sin vueltas raras.'
+      + '{MENSAJE-ORIGINAL}\n',
   },
   meal: {
     model: 'gemini-2.5-flash-preview-05-20',
@@ -164,13 +165,6 @@ export const aiConfig: Record<string, AiModuleConfig> = {
         '- **Sodio**: MAX 1,800mg diarios - _Por condición renal_\n' +
         '- **Agua**: 3.5-4 litros diarios - _CRÍTICO: mejorar hidratación_\n' +
         '- **Azúcares añadidos**: MAX 3% del total calórico\n\n' +
-        '## {ESTRATEGIAS ANTI-GRASA VISCERAL}\n' +
-        '### Alimentos PRIORITARIOS:\n' +
-        '- **Fibra soluble**: Avena, legumbres, manzanas, peras\n' +
-        '- **Proteínas magras**: Pescado graso, pollo sin piel, huevos\n' +
-        '- **Grasas anti-inflamatorias**: Aceite de oliva, aguacate, frutos secos\n' +
-        '- **Vegetales crucíferos**: Brócoli, coliflor, espinacas\n' +
-        '- **Termogénicos**: Té verde, jengibre, canela\n\n' +
         '### Alimentos a EVITAR:\n' +
         '- Carbohidratos refinados y azúcares simples\n' +
         '- Procesados y ultraprocesados\n' +
@@ -252,11 +246,9 @@ export const aiConfig: Record<string, AiModuleConfig> = {
         '- **Métodos saludables**: vapor, horno, plancha, salteado ligero\n\n' +
         '## {INSTRUCCIONES FINALES}\n' +
         'Genera plan completo usando ÚNICAMENTE ingredientes proporcionados:\n' +
-        '- **No repetir comidas idénticas**\n' +
         '- **Priorizar reducción grasa visceral**\n' +
         '- **Incluir estrategias hidratación** en cada comida\n' +
         '- **Recetas conocidas por ser sabrosas**\n' +
-        '- **Opciones meal prep** cuando posible\n\n' +
         'Formato JSON con llaves: breakfast, morningSnack, lunch, afternoonSnack, dinner\n' +
         'Cada comida: {"name":"","notes":"","recipe":""}\n' +
         '- **name**: Incluir bebidas recomendadas\n' +
