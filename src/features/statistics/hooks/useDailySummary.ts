@@ -14,6 +14,36 @@ import {
 } from 'firebase/firestore';
 import { getLocalDateString } from '@/utils/dates';
 
+// Helper function to process drink details
+const processDrinkDetails = (waterData: any) => {
+  if (!waterData?.drinks || !Array.isArray(waterData.drinks)) {
+    return [];
+  }
+
+  const drinkMap = new Map<string, { amount: number; count: number }>();
+  
+  waterData.drinks.forEach((drink: any) => {
+    const type = drink.type;
+    const amount = drink.amount || 0;
+    
+    if (drinkMap.has(type)) {
+      const existing = drinkMap.get(type)!;
+      drinkMap.set(type, {
+        amount: existing.amount + amount,
+        count: existing.count + 1
+      });
+    } else {
+      drinkMap.set(type, { amount, count: 1 });
+    }
+  });
+
+  return Array.from(drinkMap.entries()).map(([type, data]) => ({
+    type,
+    amount: data.amount,
+    count: data.count
+  })).sort((a, b) => b.amount - a.amount); // Sort by amount descending
+};
+
 export interface DailySummaryData {
   journal: {
     words: number;
@@ -42,9 +72,13 @@ export interface DailySummaryData {
     workMinutes: number;
     completionRate: number; // As a percentage
     averageSessionLength: number;
-  };
-  water: {
+  };  water: {
     intake: number;
+    drinkDetails?: Array<{
+      type: string;
+      amount: number;
+      count: number;
+    }>;
   };
 }
 
@@ -192,9 +226,9 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
       },
       mood: {
         count: moodSnap.exists() ? (moodSnap.data().moods || []).length : 0,
-      },
-      water: {
+      },      water: {
         intake: waterSnap.exists() ? waterSnap.data().totalWater || 0 : 0,
+        drinkDetails: waterSnap.exists() ? processDrinkDetails(waterSnap.data()) : [],
       },
       exercise: {
         minutes: exerciseSnap.exists()
@@ -263,10 +297,9 @@ const emptySummary: DailySummaryData = {
   mood: { count: 0 },
   habits: { completed: 0 },
   negativeHabits: { count: 0 },
-  exercise: { minutes: 0 },
-  tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },
+  exercise: { minutes: 0 },  tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },
   pomodoro: { count: 0, expectedMinutes: 0, workMinutes: 0, completionRate: 0, averageSessionLength: 0 },
-  water: { intake: 0 }
+  water: { intake: 0, drinkDetails: [] }
 };
 
 // Función reutilizable para crear listeners de una fecha específica
@@ -462,9 +495,9 @@ export const createDailySummaryFromData = (
     },
     mood: {
       count: moodData?.moods ? moodData.moods.length : 0,
-    },
-    water: {
+    },    water: {
       intake: waterData?.totalWater || 0,
+      drinkDetails: processDrinkDetails(waterData),
     },
     exercise: {
       minutes: exerciseData?.summary?.totalDuration || 0,

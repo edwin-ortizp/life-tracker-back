@@ -19,7 +19,7 @@ const emptySummary: DailySummaryData = {
   exercise: { minutes: 0 },
   tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },
   pomodoro: { count: 0, expectedMinutes: 0, workMinutes: 0, completionRate: 0, averageSessionLength: 0 },
-  water: { intake: 0 }
+  water: { intake: 0, drinkDetails: [] }
 };
 
 export const useWeeklySummary = (startDate: Date) => {
