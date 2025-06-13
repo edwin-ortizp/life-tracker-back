@@ -14,7 +14,7 @@ export interface WeeklySummaryData {
 const emptySummary: DailySummaryData = {
   journal: { words: 0 },
   mood: { count: 0 },
-  habits: { completed: 0 },
+  habits: { completed: 0, total: 18, incompletedByTimeOfDay: [] }, // Total hardcoded to avoid import issue
   negativeHabits: { count: 0 },
   exercise: { minutes: 0 },
   tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },

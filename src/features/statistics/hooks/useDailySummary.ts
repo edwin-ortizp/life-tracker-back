@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { startOfDay, endOfDay } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
+import { HABITS } from '@/features/habit/types';
 import {
   doc,
   getDoc,
@@ -14,7 +15,45 @@ import {
 } from 'firebase/firestore';
 import { getLocalDateString } from '@/utils/dates';
 
-// Helper function to process drink details
+// Helper function to process habit details
+const processHabitDetails = (habitData: any, dateStr: string) => {
+  const totalHabits = HABITS.length;
+  
+  // Get completed habits for the specific date
+  const completedHabits = habitData?.habits ? 
+    Object.entries(habitData.habits).filter(([key, val]: [string, any]) =>
+      key.endsWith(`_${dateStr}`) && val
+    ).map(([key]) => {
+      const habitId = parseInt(key.split('_')[0]);
+      return HABITS.find(h => h.id === habitId);
+    }).filter(Boolean) : [];
+
+  const completedCount = completedHabits.length;
+
+  // Get incompleted habits grouped by time of day
+  const incompletedHabits = HABITS.filter(habit => 
+    !completedHabits.some(completed => completed?.id === habit.id)
+  );
+
+  const incompletedByTimeOfDay = ['morning', 'afternoon', 'night', 'anytime'].map(timeOfDay => {
+    const habitsForTime = incompletedHabits.filter(habit => habit.timeOfDay === timeOfDay);
+    return {
+      timeOfDay: timeOfDay as 'morning' | 'afternoon' | 'night' | 'anytime',
+      habits: habitsForTime.map(habit => ({
+        id: habit.id,
+        name: habit.name,
+        icon: habit.icon,
+        goal: habit.goal
+      }))
+    };
+  }).filter(group => group.habits.length > 0);
+
+  return {
+    completed: completedCount,
+    total: totalHabits,
+    incompletedByTimeOfDay
+  };
+};
 const processDrinkDetails = (waterData: any) => {
   if (!waterData?.drinks || !Array.isArray(waterData.drinks)) {
     return [];
@@ -50,9 +89,18 @@ export interface DailySummaryData {
   };
   mood: {
     count: number;
-  };
-  habits: {
+  };  habits: {
     completed: number;
+    total: number;
+    incompletedByTimeOfDay?: Array<{
+      timeOfDay: 'morning' | 'afternoon' | 'night' | 'anytime';
+      habits: Array<{
+        id: number;
+        name: string;
+        icon: string;
+        goal: string;
+      }>;
+    }>;
   };
   negativeHabits: {
     count: number;
@@ -263,14 +311,7 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
           completionRate: parseFloat(completionRate.toFixed(1)), // Keep one decimal place
           averageSessionLength: parseFloat(averageSessionLength.toFixed(1)), // Keep one decimal place
         };
-      })(),
-      habits: {
-        completed: habitSnap.exists()
-          ? Object.entries(habitSnap.data().habits || {}).filter(([key, val]) =>
-              key.endsWith(`_${dateStr}`) && val
-            ).length
-          : 0,
-      },
+      })(),      habits: processHabitDetails(habitSnap.exists() ? habitSnap.data() : null, dateStr),
       negativeHabits: {
         count: negativeSnap.exists()
           ? Object.keys(negativeSnap.data().habits?.[dateStr] || {}).length
@@ -295,7 +336,7 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
 const emptySummary: DailySummaryData = {
   journal: { words: 0 },
   mood: { count: 0 },
-  habits: { completed: 0 },
+  habits: { completed: 0, total: HABITS.length, incompletedByTimeOfDay: [] },
   negativeHabits: { count: 0 },
   exercise: { minutes: 0 },  tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },
   pomodoro: { count: 0, expectedMinutes: 0, workMinutes: 0, completionRate: 0, averageSessionLength: 0 },
@@ -536,13 +577,7 @@ export const createDailySummaryFromData = (
       
       console.log('🍅 Final pomodoro result:', result);
       return result;
-    })(),
-    habits: {
-      completed: habitData?.habits ?
-        Object.entries(habitData.habits).filter(([key, val]: [string, any]) =>
-          key.endsWith(`_${dateStr}`) && val
-        ).length : 0,
-    },
+    })(),    habits: processHabitDetails(habitData, dateStr),
     negativeHabits: {
       count: negativeData?.habits?.[dateStr] ?
         Object.keys(negativeData.habits[dateStr]).length : 0,

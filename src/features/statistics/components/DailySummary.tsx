@@ -22,7 +22,6 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
   const getDrinkName = (type: string) => {
     return DRINKS[type as keyof typeof DRINKS]?.name || type;
   };
-
   const chartData = [
     { name: 'Pomodoros', value: summary.pomodoro.count },
     { name: 'Tareas', value: summary.tasks.completed },
@@ -47,15 +46,20 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
           <div>
             <p className="text-sm text-muted-foreground">Palabras Diario</p>
             <p className="font-bold">{summary.journal.words}</p>
-          </div>
-          <div>
+          </div>          <div>
+            <p className="text-sm text-muted-foreground">Hábitos</p>
+            <p className="font-bold">{summary.habits.completed}/{summary.habits.total}</p>
+            <p className="text-xs text-muted-foreground">
+              {((summary.habits.completed / summary.habits.total) * 100).toFixed(0)}% completado
+            </p>
+          </div>          <div>
             <p className="text-sm text-muted-foreground">Ánimos</p>
             <p className="font-bold">{summary.mood.count}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Min Ejercicio</p>
             <p className="font-bold">{summary.exercise.minutes}</p>
-          </div>          <div>
+          </div><div>
             <p className="text-sm text-muted-foreground">Hidratación (ml)</p>
             <p className="font-bold">{summary.water.intake}</p>
             {summary.water.drinkDetails && summary.water.drinkDetails.length > 0 && (
@@ -91,6 +95,30 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
                 <div key={drink.type} className="flex justify-between p-2 rounded bg-muted/50">
                   <span className="font-medium">{getDrinkName(drink.type)}</span>
                   <span>{drink.amount}ml ({drink.count}x)</span>
+                </div>
+              ))}
+            </div>
+          </div>        )}
+        {!loading && summary.habits.incompletedByTimeOfDay && summary.habits.incompletedByTimeOfDay.length > 0 && (
+          <div className="mt-4">
+            <h4 className="text-sm font-medium mb-2 text-muted-foreground">Hábitos Pendientes por Momento</h4>
+            <div className="space-y-3">
+              {summary.habits.incompletedByTimeOfDay.map((group) => (
+                <div key={group.timeOfDay} className="border rounded p-2">
+                  <h5 className="text-xs font-medium mb-1 capitalize text-gray-600">
+                    {group.timeOfDay === 'morning' ? 'Mañana' : 
+                     group.timeOfDay === 'afternoon' ? 'Tarde' : 
+                     group.timeOfDay === 'night' ? 'Noche' : 'Cualquier momento'}
+                  </h5>
+                  <div className="grid grid-cols-1 gap-1">
+                    {group.habits.map((habit) => (
+                      <div key={habit.id} className="flex items-center gap-2 text-xs bg-red-50 p-1 rounded">
+                        <span>{habit.icon}</span>
+                        <span className="flex-1">{habit.name}</span>
+                        <span className="text-gray-500 text-[10px]">{habit.goal}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
