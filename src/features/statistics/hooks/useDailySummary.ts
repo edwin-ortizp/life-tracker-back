@@ -31,7 +31,10 @@ export interface DailySummaryData {
     minutes: number;
   };
   tasks: {
-    completed: number;
+    completed: number; // Tasks completed on this specific day
+    todayPlanned: number; // Tasks due today (completed or not)
+    pending: number; // Incomplete tasks due today or in the future
+    overdue: number; // Incomplete tasks due in the past
   };
   pomodoro: {
     count: number;
@@ -71,17 +74,39 @@ export const testFirestorePermissions = async (uid: string, date: Date) => {
   // Test tasks collection with query
   try {
     console.log('🔍 Testing tasks collection with query');
-    const start = Timestamp.fromDate(startOfDay(date));
-    const end = Timestamp.fromDate(endOfDay(date));
-    const taskQuery = query(
+    const todayStart = Timestamp.fromDate(startOfDay(date));
+    const todayEnd = Timestamp.fromDate(endOfDay(date));
+    
+    // Query for completed tasks today
+    const completedTasksQuery = query(
       collection(db, 'tasks'),
       where('userId', '==', uid),
       where('completed', '==', true),
-      where('updatedAt', '>=', start),
-      where('updatedAt', '<=', end)
+      where('updatedAt', '>=', todayStart),
+      where('updatedAt', '<=', todayEnd)
     );
-    const taskDocs = await getDocs(taskQuery);
-    console.log(`✅ tasks: Success - found ${taskDocs.size} documents`);
+    const completedTaskDocs = await getDocs(completedTasksQuery);
+    console.log(`✅ tasks (completed today): Success - found ${completedTaskDocs.size} documents`);
+
+    // Query for tasks due today
+    const dueTodayTasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', uid),
+      where('dueDate', '>=', todayStart),
+      where('dueDate', '<=', todayEnd)
+    );
+    const dueTodayTaskDocs = await getDocs(dueTodayTasksQuery);
+    console.log(`✅ tasks (due today): Success - found ${dueTodayTaskDocs.size} documents`);
+    
+    // Query for incomplete tasks
+    const incompleteTasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', uid),
+      where('completed', '==', false)
+    );
+    const incompleteTaskDocs = await getDocs(incompleteTasksQuery);
+    console.log(`✅ tasks (incomplete): Success - found ${incompleteTaskDocs.size} documents`);
+
   } catch (error) {
     console.error('❌ tasks: Error -', error);
   }
@@ -90,13 +115,15 @@ export const testFirestorePermissions = async (uid: string, date: Date) => {
 export const fetchDailySummary = async (uid: string, date: Date): Promise<DailySummaryData> => {
   const dateStr = getLocalDateString(date);
   const [year, month] = dateStr.split('-');
+  const todayStartTimestamp = Timestamp.fromDate(startOfDay(date));
+  const todayEndTimestamp = Timestamp.fromDate(endOfDay(date));
 
-  console.log('🔍 fetchDailySummary - UID:', uid);
-  console.log('🔍 fetchDailySummary - Date:', dateStr);
-  console.log('🔍 fetchDailySummary - Year/Month:', year, month);
+  // console.log('🔍 fetchDailySummary - UID:', uid);
+  // console.log('🔍 fetchDailySummary - Date:', dateStr);
+  // console.log('🔍 fetchDailySummary - Year/Month:', year, month);
 
-  // Ejecutar pruebas de permisos primero
-  await testFirestorePermissions(uid, date);
+  // No ejecutar testFirestorePermissions aquí para evitar logs excesivos en cada fetch
+  // await testFirestorePermissions(uid, date);
 
   try {
     const journalSnap = await getDoc(doc(db, 'journal', `${uid}_${dateStr}`));
@@ -107,27 +134,51 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
     const habitSnap = await getDoc(doc(db, 'habits', `${uid}_${year}-${month}`));
     const negativeSnap = await getDoc(doc(db, 'negative-habits', `${uid}_${year}-${month}`));
 
-    console.log('📊 Document exists check:');
-    console.log('  - Journal:', journalSnap.exists(), journalSnap.exists() ? journalSnap.data() : 'No data');
-    console.log('  - Mood:', moodSnap.exists(), moodSnap.exists() ? moodSnap.data() : 'No data');
-    console.log('  - Water:', waterSnap.exists(), waterSnap.exists() ? waterSnap.data() : 'No data');
-    console.log('  - Exercise:', exerciseSnap.exists(), exerciseSnap.exists() ? exerciseSnap.data() : 'No data');
-    console.log('  - Pomodoro:', pomodoroSnap.exists(), pomodoroSnap.exists() ? pomodoroSnap.data() : 'No data');
-    console.log('  - Habits:', habitSnap.exists(), habitSnap.exists() ? habitSnap.data() : 'No data');    console.log('  - Negative:', negativeSnap.exists(), negativeSnap.exists() ? negativeSnap.data() : 'No data');
-
-    const start = Timestamp.fromDate(startOfDay(date));
-    const end = Timestamp.fromDate(endOfDay(date));
-    const taskQuery = query(
+    // Tasks: Completed Today
+    const completedTasksQuery = query(
       collection(db, 'tasks'),
       where('userId', '==', uid),
       where('completed', '==', true),
-      where('updatedAt', '>=', start),
-      where('updatedAt', '<=', end)
+      where('updatedAt', '>=', todayStartTimestamp),
+      where('updatedAt', '<=', todayEndTimestamp)
     );
-    const taskDocs = await getDocs(taskQuery);
+    const completedTaskDocs = await getDocs(completedTasksQuery);
+    const tasksCompletedCount = completedTaskDocs.size;
 
-    console.log('📝 Task query result:', taskDocs.size, 'completed tasks found');
-    console.log('📝 Task query date range:', start.toDate(), 'to', end.toDate());
+    // Tasks: Today Planned
+    const dueTodayTasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', uid),
+      // Assuming dueDate is a Timestamp. Adjust if it's a string.
+      where('dueDate', '>=', todayStartTimestamp),
+      where('dueDate', '<=', todayEndTimestamp)
+    );
+    const dueTodayTaskDocs = await getDocs(dueTodayTasksQuery);
+    const tasksTodayPlannedCount = dueTodayTaskDocs.size;
+    
+    // Tasks: Pending and Overdue (from all incomplete tasks for the user)
+    let tasksPendingCount = 0;
+    let tasksOverdueCount = 0;
+    const incompleteTasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', uid),
+      where('completed', '==', false)
+    );
+    const incompleteTaskDocs = await getDocs(incompleteTasksQuery);
+    incompleteTaskDocs.forEach(taskDoc => {
+      const task = taskDoc.data();
+      if (task.dueDate && typeof task.dueDate.toDate === 'function') {
+        const dueDate = startOfDay(task.dueDate.toDate()); // Normalize to compare dates only
+        if (dueDate < startOfDay(date)) {
+          tasksOverdueCount++;
+        } else { // Due today or in the future
+          tasksPendingCount++;
+        }
+      } else {
+        // If no due date, consider it pending (or handle as per your logic)
+        tasksPendingCount++;
+      }
+    });
 
     const result: DailySummaryData = {
       journal: {
@@ -162,11 +213,14 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
           : 0,
       },
       tasks: {
-        completed: taskDocs.size
+        completed: tasksCompletedCount,
+        todayPlanned: tasksTodayPlannedCount,
+        pending: tasksPendingCount,
+        overdue: tasksOverdueCount
       }
     };
 
-    console.log('✅ Final result:', result);
+    // console.log('✅ Final result:', result);
     return result;
   } catch (error) {
     console.error('❌ fetchDailySummary - Error in try block:', error);
@@ -180,7 +234,7 @@ const emptySummary: DailySummaryData = {
   habits: { completed: 0 },
   negativeHabits: { count: 0 },
   exercise: { minutes: 0 },
-  tasks: { completed: 0 },
+  tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },
   pomodoro: { count: 0 },
   water: { intake: 0 }
 };
@@ -221,10 +275,32 @@ export const useDailySummary = (date: Date) => {
     let pomodoroData: any = null;
     let habitData: any = null;
     let negativeData: any = null;
-    let taskData: any[] = [];
+    
+    // Task data states
+    let completedTasksTodayData: any[] = [];
+    let dueTodayTasksData: any[] = [];
+    let incompleteTasksData: any[] = [];
+
 
     // Función para recalcular el resumen cuando cambien los datos
     const updateSummary = () => {
+      const todayStartOfDay = startOfDay(date);
+
+      let pendingCount = 0;
+      let overdueCount = 0;
+      incompleteTasksData.forEach(task => {
+        if (task.dueDate && typeof task.dueDate.toDate === 'function') {
+          const dueDate = startOfDay(task.dueDate.toDate());
+          if (dueDate < todayStartOfDay) {
+            overdueCount++;
+          } else {
+            pendingCount++;
+          }
+        } else {
+          pendingCount++; // Default to pending if no due date
+        }
+      });
+      
       const newSummary: DailySummaryData = {
         journal: {
           words: journalData?.text ? journalData.text.split(/\s+/).filter(Boolean).length : 0,
@@ -252,11 +328,14 @@ export const useDailySummary = (date: Date) => {
             Object.keys(negativeData.habits[dateStr]).length : 0,
         },
         tasks: {
-          completed: taskData.length
+          completed: completedTasksTodayData.length,
+          todayPlanned: dueTodayTasksData.length,
+          pending: pendingCount,
+          overdue: overdueCount
         }
       };
 
-      console.log('📊 Updated summary:', newSummary);
+      // console.log('📊 Updated summary:', newSummary);
       setSummary(newSummary);
       setLoading(false);
     };
@@ -327,25 +406,55 @@ export const useDailySummary = (date: Date) => {
       console.error('❌ Negative habit listener error:', error);
     }));
 
-    // Tasks query listener
-    const start = Timestamp.fromDate(startOfDay(date));
-    const end = Timestamp.fromDate(endOfDay(date));
-    const taskQuery = query(
+    // Tasks query listeners
+    const todayStartTimestamp = Timestamp.fromDate(startOfDay(date));
+    const todayEndTimestamp = Timestamp.fromDate(endOfDay(date));
+
+    // Listener for tasks completed today
+    const completedTasksQuery = query(
       collection(db, 'tasks'),
       where('userId', '==', user.uid),
       where('completed', '==', true),
-      where('updatedAt', '>=', start),
-      where('updatedAt', '<=', end)
+      where('updatedAt', '>=', todayStartTimestamp),
+      where('updatedAt', '<=', todayEndTimestamp)
     );
-
-    unsubscribes.push(onSnapshot(taskQuery, (snapshot) => {
-      taskData = snapshot.docs.map(doc => doc.data());
-      console.log('📝 Task data updated:', taskData.length, 'tasks');
+    unsubscribes.push(onSnapshot(completedTasksQuery, (snapshot) => {
+      completedTasksTodayData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // console.log('📝 Task data updated (completed today):', completedTasksTodayData.length, 'tasks');
       updateSummary();
     }, (error) => {
-      console.error('❌ Task listener error:', error);
+      console.error('❌ Task listener error (completed today):', error);
     }));
 
+    // Listener for tasks due today
+    const dueTodayTasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', user.uid),
+      where('dueDate', '>=', todayStartTimestamp),
+      where('dueDate', '<=', todayEndTimestamp)
+    );
+    unsubscribes.push(onSnapshot(dueTodayTasksQuery, (snapshot) => {
+      dueTodayTasksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // console.log('📝 Task data updated (due today):', dueTodayTasksData.length, 'tasks');
+      updateSummary();
+    }, (error) => {
+      console.error('❌ Task listener error (due today):', error);
+    }));
+
+    // Listener for all incomplete tasks for the user
+    const incompleteTasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', user.uid),
+      where('completed', '==', false)
+    );
+    unsubscribes.push(onSnapshot(incompleteTasksQuery, (snapshot) => {
+      incompleteTasksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // console.log('📝 Task data updated (incomplete):', incompleteTasksData.length, 'tasks');
+      updateSummary();
+    }, (error) => {
+      console.error('❌ Task listener error (incomplete):', error);
+    }));
+    
     // Cleanup function
     return () => {
       console.log('🧹 Cleaning up listeners');

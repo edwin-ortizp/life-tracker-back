@@ -24,7 +24,7 @@ const emptySummary: DailySummaryData = {
   habits: { completed: 0 },
   negativeHabits: { count: 0 },
   exercise: { minutes: 0 },
-  tasks: { completed: 0 },
+  tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },
   pomodoro: { count: 0 },
   water: { intake: 0 }
 };
@@ -62,7 +62,7 @@ export const useWeeklySummary = (startDate: Date) => {
     // Función para recalcular el resumen semanal
     const updateWeeklySummary = () => {
       const daily: { date: string; summary: DailySummaryData }[] = [];
-      const totals = { ...emptySummary }; // Ensure totals also uses the new structure
+      const totals = { ...emptySummary }; 
 
       weekDates.forEach(date => {
         const dateStr = getLocalDateString(date);
@@ -75,9 +75,14 @@ export const useWeeklySummary = (startDate: Date) => {
         totals.habits.completed += daySummary.habits.completed;
         totals.negativeHabits.count += daySummary.negativeHabits.count;
         totals.exercise.minutes += daySummary.exercise.minutes;
-        totals.tasks.completed += daySummary.tasks.completed;
         totals.pomodoro.count += daySummary.pomodoro.count;
         totals.water.intake += daySummary.water.intake;
+        
+        // Sumar totales de tareas
+        totals.tasks.completed += daySummary.tasks.completed;
+        totals.tasks.todayPlanned += daySummary.tasks.todayPlanned;
+        totals.tasks.pending += daySummary.tasks.pending;
+        totals.tasks.overdue += daySummary.tasks.overdue;
       });
 
       console.log('📊 Updated weekly summary:', { daily: daily.length, totals });
@@ -94,9 +99,32 @@ export const useWeeklySummary = (startDate: Date) => {
       pomodoroData: any,
       habitData: any,
       negativeData: any,
-      taskData: any[],
+      completedTasksForDay: any[],
+      dueTodayTasksForDay: any[],
+      allIncompleteTasksForUser: any[],
+      currentProcessingDate: Date,
       dateStr: string
     ): DailySummaryData => {
+      const tasksCompletedCount = completedTasksForDay.length;
+      const tasksTodayPlannedCount = dueTodayTasksForDay.length;
+
+      let tasksPendingCount = 0;
+      let tasksOverdueCount = 0;
+      const currentDayStart = startOfDay(currentProcessingDate);
+
+      allIncompleteTasksForUser.forEach(task => {
+        if (task.dueDate && typeof task.dueDate.toDate === 'function') {
+          const dueDateStart = startOfDay(task.dueDate.toDate());
+          if (dueDateStart < currentDayStart) {
+            tasksOverdueCount++;
+          } else {
+            tasksPendingCount++;
+          }
+        } else {
+          tasksPendingCount++;
+        }
+      });
+      
       return {
         journal: {
           words: journalData?.text ? journalData.text.split(/\s+/).filter(Boolean).length : 0,
@@ -124,7 +152,10 @@ export const useWeeklySummary = (startDate: Date) => {
             Object.keys(negativeData.habits[dateStr]).length : 0,
         },
         tasks: {
-          completed: taskData.length
+          completed: tasksCompletedCount,
+          todayPlanned: tasksTodayPlannedCount,
+          pending: tasksPendingCount,
+          overdue: tasksOverdueCount,
         }
       };
     };
@@ -145,13 +176,20 @@ export const useWeeklySummary = (startDate: Date) => {
       let pomodoroData: any = null;
       let habitData: any = null;
       let negativeData: any = null;
-      let taskData: any[] = [];
+      let completedTasksForDayData: any[] = [];
+      let dueTodayTasksForDayData: any[] = [];
+      let incompleteTasksForUserData: any[] = [];
 
       // Función para actualizar los datos de este día específico
       const updateDayData = () => {
         weeklyData[dateStr] = createDaySummary(
-          journalData, moodData, waterData, exerciseData, 
-          pomodoroData, habitData, negativeData, taskData, dateStr
+          journalData, moodData, waterData, exerciseData,
+          pomodoroData, habitData, negativeData,
+          completedTasksForDayData,
+          dueTodayTasksForDayData,
+          incompleteTasksForUserData,
+          date,
+          dateStr
         );
         updateWeeklySummary();
       };
@@ -201,21 +239,45 @@ export const useWeeklySummary = (startDate: Date) => {
         updateDayData();
       }, (error) => console.error(`❌ Negative habit listener error for ${dateStr}:`, error)));
 
-      // Task query para este día específico
-      const start = Timestamp.fromDate(startOfDay(date));
-      const end = Timestamp.fromDate(endOfDay(date));
-      const taskQuery = query(
+      // Task query listeners for this specific day
+      const dayStartTimestamp = Timestamp.fromDate(startOfDay(date));
+      const dayEndTimestamp = Timestamp.fromDate(endOfDay(date));
+
+      // Listener for tasks completed on this specific day
+      const completedTasksQuery = query(
         collection(db, 'tasks'),
         where('userId', '==', user.uid),
         where('completed', '==', true),
-        where('updatedAt', '>=', start),
-        where('updatedAt', '<=', end)
+        where('updatedAt', '>=', dayStartTimestamp),
+        where('updatedAt', '<=', dayEndTimestamp)
       );
-
-      unsubscribes.push(onSnapshot(taskQuery, (snapshot) => {
-        taskData = snapshot.docs.map(doc => doc.data());
+      unsubscribes.push(onSnapshot(completedTasksQuery, (snapshot) => {
+        completedTasksForDayData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         updateDayData();
-      }, (error) => console.error(`❌ Task listener error for ${dateStr}:`, error)));
+      }, (error) => console.error(`❌ Task listener (completed for ${dateStr}):`, error)));
+
+      // Listener for tasks due on this specific day
+      const dueTodayTasksQuery = query(
+        collection(db, 'tasks'),
+        where('userId', '==', user.uid),
+        where('dueDate', '>=', dayStartTimestamp),
+        where('dueDate', '<=', dayEndTimestamp)
+      );
+      unsubscribes.push(onSnapshot(dueTodayTasksQuery, (snapshot) => {
+        dueTodayTasksForDayData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        updateDayData();
+      }, (error) => console.error(`❌ Task listener (due today for ${dateStr}):`, error)));
+      
+      // Listener for all incomplete tasks for the user
+      const incompleteTasksQuery = query(
+        collection(db, 'tasks'),
+        where('userId', '==', user.uid),
+        where('completed', '==', false)
+      );
+      unsubscribes.push(onSnapshot(incompleteTasksQuery, (snapshot) => {
+        incompleteTasksForUserData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        updateDayData();
+      }, (error) => console.error(`❌ Task listener (incomplete for user, affecting ${dateStr}):`, error)));
     });
 
     // Cleanup function
