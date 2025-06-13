@@ -3,6 +3,7 @@ import { startOfDay, endOfDay } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
 import { HABITS } from '@/features/habit/types';
+import { getMoodValue, calculateMoodAverage } from '@/features/mood/types';
 import {
   doc,
   getDoc,
@@ -83,13 +84,71 @@ const processDrinkDetails = (waterData: any) => {
   })).sort((a, b) => b.amount - a.amount); // Sort by amount descending
 };
 
+// Helper function to process mood details
+const processMoodDetails = (moodData: any) => {
+  if (!moodData?.moods || !Array.isArray(moodData.moods)) {
+    return {
+      count: 0,
+      average: 0,
+      highest: 0,
+      lowest: 0,
+      details: []
+    };
+  }
+
+  const moods = moodData.moods;
+  const count = moods.length;
+  
+  if (count === 0) {
+    return {
+      count: 0,
+      average: 0,
+      highest: 0,
+      lowest: 0,
+      details: []
+    };
+  }
+
+  // Calcular valores numéricos usando el helper existente
+  const average = calculateMoodAverage(moods);
+  
+  // Obtener valores para highest y lowest
+  const values = moods.map((mood: any) => mood.value ?? getMoodValue(mood.text));
+  const highest = Math.max(...values);
+  const lowest = Math.min(...values);
+  
+  // Crear detalles con valores numéricos
+  const details = moods.map((mood: any) => ({
+    emoji: mood.emoji,
+    text: mood.text,
+    value: mood.value ?? getMoodValue(mood.text),
+    time: mood.time
+  }));
+
+  return {
+    count,
+    average,
+    highest,
+    lowest,
+    details
+  };
+};
+
 export interface DailySummaryData {
   journal: {
     words: number;
-  };
-  mood: {
+  };  mood: {
     count: number;
-  };  habits: {
+    average: number; // Promedio de valores numéricos (1-10)
+    highest: number; // Valor más alto del día
+    lowest: number; // Valor más bajo del día
+    details?: Array<{
+      emoji: string;
+      text: string;
+      value: number;
+      time: string;
+    }>;
+  };habits: {
     completed: number;
     total: number;
     incompletedByTimeOfDay?: Array<{
@@ -272,9 +331,8 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
           ? (journalSnap.data().text || '').split(/\s+/).filter(Boolean).length
           : 0,
       },
-      mood: {
-        count: moodSnap.exists() ? (moodSnap.data().moods || []).length : 0,
-      },      water: {
+      mood: processMoodDetails(moodSnap.exists() ? moodSnap.data() : null),
+      water: {
         intake: waterSnap.exists() ? waterSnap.data().totalWater || 0 : 0,
         drinkDetails: waterSnap.exists() ? processDrinkDetails(waterSnap.data()) : [],
       },
@@ -335,7 +393,7 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
 
 const emptySummary: DailySummaryData = {
   journal: { words: 0 },
-  mood: { count: 0 },
+  mood: { count: 0, average: 0, highest: 0, lowest: 0, details: [] },
   habits: { completed: 0, total: HABITS.length, incompletedByTimeOfDay: [] },
   negativeHabits: { count: 0 },
   exercise: { minutes: 0 },  tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },
@@ -533,10 +591,7 @@ export const createDailySummaryFromData = (
   return {
     journal: {
       words: journalData?.text ? journalData.text.split(/\s+/).filter(Boolean).length : 0,
-    },
-    mood: {
-      count: moodData?.moods ? moodData.moods.length : 0,
-    },    water: {
+    },    mood: processMoodDetails(moodData),water: {
       intake: waterData?.totalWater || 0,
       drinkDetails: processDrinkDetails(waterData),
     },

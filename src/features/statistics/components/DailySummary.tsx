@@ -55,6 +55,12 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
           </div>          <div>
             <p className="text-sm text-muted-foreground">Ánimos</p>
             <p className="font-bold">{summary.mood.count}</p>
+            {summary.mood.count > 0 && (
+              <div className="text-xs text-muted-foreground">
+                <div>Promedio: {summary.mood.average}/10</div>
+                <div>Rango: {summary.mood.lowest}-{summary.mood.highest}</div>
+              </div>
+            )}
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Min Ejercicio</p>
@@ -128,6 +134,26 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
           <p className="text-center text-sm text-muted-foreground">
             No hay datos registrados para este día.
           </p>
+        )}
+
+        {/* Detalles de Estados de Ánimo */}
+        {summary.mood.details && summary.mood.details.length > 0 && (
+          <div className="border rounded p-3">
+            <h4 className="text-sm font-medium mb-2 text-muted-foreground">Estados de Ánimo del Día</h4>
+            <div className="grid grid-cols-1 gap-2">
+              {summary.mood.details.map((mood, index) => (
+                <div key={index} className="flex items-center gap-2 text-xs bg-blue-50 p-2 rounded">
+                  <span className="text-lg">{mood.emoji}</span>
+                  <span className="flex-1">{mood.text}</span>
+                  <span className="text-sm font-medium text-blue-600">{mood.value}/10</span>
+                  <span className="text-gray-500 text-[10px]">{mood.time}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground text-center">
+              Promedio del día: {summary.mood.average}/10
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>

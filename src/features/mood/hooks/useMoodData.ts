@@ -12,6 +12,7 @@ import {
   deleteDoc
 } from 'firebase/firestore';
 import type { MoodEntry, DailyMood } from '../types';
+import { getMoodValue } from '../types';
 
 export const useMoodData = (selectedDate: Date) => {
   const [dailyMood, setDailyMood] = useState<DailyMood | null>(null);
@@ -81,7 +82,8 @@ export const useMoodData = (selectedDate: Date) => {
         time: now.toLocaleTimeString('es-ES', { 
           hour: '2-digit', 
           minute: '2-digit' 
-        })
+        }),
+        value: getMoodValue(mood.text) // <-- Aquí se agrega el valor numérico del mood
       };
 
       const docSnap = await getDoc(moodRef);
