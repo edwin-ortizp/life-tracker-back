@@ -6,7 +6,6 @@ import {
   DailySummary,
   WeeklySummary,
   AiInsightCard,
-  DebugDataCard,
   DailyDashboard,
   WeeklyDashboard
 } from '@/features/statistics/components';
@@ -41,14 +40,12 @@ const StatisticsPage = () => {
           <DailyDashboard date={day} />
           <DailySummary date={day} />
           <AiInsightCard data={dailyData} date={formatDate(day)} />
-          <DebugDataCard data={dailyData} />
         </TabsContent>
         <TabsContent value="weekly" className="space-y-4">
           <DateSelector selectedDate={weekStart} onChange={setWeekStart} />
           <WeeklyDashboard startDate={weekStart} />
           <WeeklySummary startDate={weekStart} />
           <AiInsightCard data={weeklyData} date={`Semana del ${formatDate(weekStart)}`} />
-          <DebugDataCard data={weeklyData} />
         </TabsContent>
       </Tabs>
     </PageLayout>

@@ -5,7 +5,7 @@ import {
   CardTitle,
   CardContent
 } from '@/components/ui/card';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
+import { MoodChart } from './MoodChart';
 import { useDailySummary } from '../hooks/useDailySummary';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,12 +22,9 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
   const getDrinkName = (type: string) => {
     return DRINKS[type as keyof typeof DRINKS]?.name || type;
   };
-  const chartData = [
-    { name: 'Pomodoros', value: summary.pomodoro.count },
-    { name: 'Tareas', value: summary.tasks.completed },
-    { name: 'Hábitos', value: summary.habits.completed },
-    { name: 'Negativos', value: summary.negativeHabits.count }
-  ];
+  const moodData = summary.mood.details
+    ? summary.mood.details.map(m => ({ label: m.time, value: m.value }))
+    : [];
 
   const hasData = Object.values(summary).some(moduleData =>
     Object.values(moduleData).some(v => typeof v === 'number' && v > 0)
@@ -81,19 +78,13 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
             )}
           </div>
         </div>
-        <div className="h-40">
+        <div className="h-32">
           {loading ? (
             <Skeleton className="w-full h-full" />
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#4f46e5" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}        </div>
+            moodData.length > 0 && <MoodChart data={moodData} className="h-full" />
+          )}
+        </div>
         {!loading && summary.water.drinkDetails && summary.water.drinkDetails.length > 0 && (
           <div className="mt-4">
             <h4 className="text-sm font-medium mb-2 text-muted-foreground">Detalle de Bebidas</h4>

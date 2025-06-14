@@ -2,6 +2,15 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import {
+  Gauge,
+  CheckCircle2,
+  Droplet,
+  Timer,
+  ListChecks,
+  Smile
+} from 'lucide-react';
+import { MoodChart } from './MoodChart';
 import { useWeeklySummary } from '../hooks/useWeeklySummary';
 
 interface Props {
@@ -32,57 +41,75 @@ export const WeeklyDashboard: React.FC<Props> = ({ startDate }) => {
 
   const COLORS = ['#10b981', '#f97316'];
 
+  const moodData = summary.daily.map(d => ({
+    label: d.date.slice(5),
+    value: d.summary.mood.average
+  }));
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Score General</CardTitle>
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+      <Card className="p-2">
+        <CardHeader className="flex items-center gap-2 p-2 pb-1">
+          <span className="p-1 rounded bg-purple-500 text-white">
+            <Gauge className="w-4 h-4" />
+          </span>
+          <CardTitle className="text-sm">Score General</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-center mb-2">
-            {overall.toFixed(0)}%
-          </div>
-          <Progress value={overall} />
+        <CardContent className="p-2 space-y-1">
+          <div className="text-xl font-bold text-center">{overall.toFixed(0)}%</div>
+          <Progress value={overall} className="h-2" />
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Hábitos</CardTitle>
+      <Card className="p-2">
+        <CardHeader className="flex items-center gap-2 p-2 pb-1">
+          <span className="p-1 rounded bg-green-600 text-white">
+            <CheckCircle2 className="w-4 h-4" />
+          </span>
+          <CardTitle className="text-sm">Hábitos</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-center mb-2">
-            {summary.totals.habits.completed}
-          </div>
-          <Progress value={habitPct} />
+        <CardContent className="p-2 space-y-1">
+          <div className="text-xl font-bold text-center">{summary.totals.habits.completed}</div>
+          <Progress value={habitPct} className="h-2" />
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Hidratación</CardTitle>
+      <Card className="p-2">
+        <CardHeader className="flex items-center gap-2 p-2 pb-1">
+          <span className="p-1 rounded bg-blue-600 text-white">
+            <Droplet className="w-4 h-4" />
+          </span>
+          <CardTitle className="text-sm">Hidratación</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-center mb-2">
-            {summary.totals.water.intake}ml
-          </div>
-          <Progress value={Math.min(waterPct, 100)} />
+        <CardContent className="p-2 space-y-1">
+          <div className="text-xl font-bold text-center">{summary.totals.water.intake}ml</div>
+          <Progress value={Math.min(waterPct, 100)} className="h-2" />
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Tareas</CardTitle>
+      <Card className="p-2">
+        <CardHeader className="flex items-center gap-2 p-2 pb-1">
+          <span className="p-1 rounded bg-red-600 text-white">
+            <Timer className="w-4 h-4" />
+          </span>
+          <CardTitle className="text-sm">Pomodoros</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-32">
+        <CardContent className="p-2 space-y-1">
+          <div className="text-xl font-bold text-center">
+            {summary.totals.pomodoro.workMinutes} / {summary.totals.pomodoro.expectedMinutes} min
+          </div>
+          <Progress value={pomodoroPct} className="h-2" />
+        </CardContent>
+      </Card>
+      <Card className="p-2">
+        <CardHeader className="flex items-center gap-2 p-2 pb-1">
+          <span className="p-1 rounded bg-orange-500 text-white">
+            <ListChecks className="w-4 h-4" />
+          </span>
+          <CardTitle className="text-sm">Tareas</CardTitle>
+        </CardHeader>
+        <CardContent className="p-2">
+          <div className="h-20">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie
-                  data={taskData}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius={30}
-                  outerRadius={60}
-                  label
-                >
+                <Pie data={taskData} dataKey="value" nameKey="name" innerRadius={20} outerRadius={40}>
                   {taskData.map((_, idx) => (
                     <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
                   ))}
@@ -93,6 +120,19 @@ export const WeeklyDashboard: React.FC<Props> = ({ startDate }) => {
           </div>
         </CardContent>
       </Card>
+      {moodData.length > 0 && (
+        <Card className="p-2 col-span-full sm:col-auto">
+          <CardHeader className="flex items-center gap-2 p-2 pb-1">
+            <span className="p-1 rounded bg-yellow-600 text-white">
+              <Smile className="w-4 h-4" />
+            </span>
+            <CardTitle className="text-sm">Ánimo</CardTitle>
+          </CardHeader>
+          <CardContent className="p-2">
+            <MoodChart data={moodData} />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
