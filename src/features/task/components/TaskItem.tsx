@@ -51,12 +51,13 @@ const PRIORITY_CONFIG = {
   none: { label: '', color: '', text: '' }
 } as const;
 
-const PRIORITY_NUMBERS = {
-  do: 1,
-  decide: 2,
-  delegate: 3,
-  delete: 4,
-  none: 4
+
+const PRIORITY_BADGES = {
+  do: { icon: '🔥', num: 1, style: 'bg-red-600 text-white' },
+  decide: { icon: '🤔', num: 2, style: 'bg-orange-500 text-white' },
+  delegate: { icon: '📬', num: 3, style: 'bg-blue-500 text-white' },
+  delete: { icon: '🗑️', num: 4, style: 'bg-gray-500 text-white' },
+  none: { icon: '🗑️', num: 4, style: 'bg-gray-500 text-white' }
 } as const;
 
 // Types
@@ -182,11 +183,27 @@ const TaskBadges = memo<{
         </Badge>
       )}
 
-      {/* Priority number for kanban */}
+      {/* Priority badge for kanban */}
       {variant === 'kanban' && (
-        <Badge variant="outline" className={cn(badgeSize, 'text-gray-600')}>
-          {PRIORITY_NUMBERS[(task.priority || 'none') as keyof typeof PRIORITY_NUMBERS]}
-        </Badge>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                className={cn(
+                  badgeSize,
+                  'gap-0.5',
+                  PRIORITY_BADGES[(task.priority || 'none') as keyof typeof PRIORITY_BADGES].style
+                )}
+              >
+                <span className="mr-0.5">
+                  {PRIORITY_BADGES[(task.priority || 'none') as keyof typeof PRIORITY_BADGES].icon}
+                </span>
+                {PRIORITY_BADGES[(task.priority || 'none') as keyof typeof PRIORITY_BADGES].num}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>{pInfo.text}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
 
       {/* Estimated time */}
