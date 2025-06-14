@@ -83,11 +83,18 @@ const TIME_LABELS: Record<TimeFilter, string> = {
   none: 'Sin estimación'
 };
 
-type SortBy = 'default' | 'priority' | 'duration';
+type SortBy =
+  | 'default'
+  | 'priorityAsc'
+  | 'priorityDesc'
+  | 'durationAsc'
+  | 'durationDesc';
 const SORT_LABELS: Record<SortBy, string> = {
   default: 'Predeterminado',
-  priority: 'Prioridad',
-  duration: 'Duración'
+  priorityAsc: 'Prioridad ↓',
+  priorityDesc: 'Prioridad ↑',
+  durationAsc: 'Duración ↓',
+  durationDesc: 'Duración ↑'
 };
 
 export const TaskKanban: React.FC<TaskKanbanProps> = ({
@@ -267,18 +274,26 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       });
 
     const sortFn = (a: Task, b: Task) => {
-      if (sortBy === 'priority') {
-        const pa = priorityOrder[a.priority || 'none'] ?? 4;
-        const pb = priorityOrder[b.priority || 'none'] ?? 4;
-        if (pa !== pb) return pa - pb;
-      } else if (sortBy === 'duration') {
-        const ea = a.estimatedTime ?? Infinity;
-        const eb = b.estimatedTime ?? Infinity;
-        if (ea !== eb) return ea - eb;
-      } else {
-        const pa = priorityOrder[a.priority || 'none'] ?? 4;
-        const pb = priorityOrder[b.priority || 'none'] ?? 4;
-        if (pa !== pb) return pa - pb;
+      const pa = priorityOrder[a.priority || 'none'] ?? 4;
+      const pb = priorityOrder[b.priority || 'none'] ?? 4;
+      const ea = a.estimatedTime ?? Infinity;
+      const eb = b.estimatedTime ?? Infinity;
+
+      switch (sortBy) {
+        case 'priorityAsc':
+          if (pa !== pb) return pb - pa;
+          break;
+        case 'priorityDesc':
+          if (pa !== pb) return pa - pb;
+          break;
+        case 'durationAsc':
+          if (ea !== eb) return ea - eb;
+          break;
+        case 'durationDesc':
+          if (ea !== eb) return eb - ea;
+          break;
+        default:
+          if (pa !== pb) return pa - pb;
       }
 
       if (a.dueDate && b.dueDate) {
