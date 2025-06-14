@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { TaskTitleInput } from './TaskTitleInput';
 import { TaskDescriptionInput } from './TaskDescriptionInput';
 import TaskAiBreakdown from './TaskAiBreakdown';
+import TaskAiImproveDescription from './TaskAiImproveDescription';
+import TaskAiIdeas from './TaskAiIdeas';
 import { TaskDateInput } from './TaskDateInput';
 import { TaskCategorySelect } from './TaskCategorySelect';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -157,16 +159,38 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
               onChange={(description) => setFormData({ ...formData, description })}
             />
             {mode === 'edit' && (
-              <TaskAiBreakdown
-                title={formData.title}
-                description={formData.description || ''}
-                onInsert={(text) =>
-                  setFormData({
-                    ...formData,
-                    description: (formData.description ? formData.description + '\n' : '') + text
-                  })
-                }
-              />
+              <>
+                <TaskAiBreakdown
+                  title={formData.title}
+                  description={formData.description || ''}
+                  onInsert={(text) =>
+                    setFormData({
+                      ...formData,
+                      description: (formData.description ? formData.description + '\n' : '') + text
+                    })
+                  }
+                />
+                <TaskAiImproveDescription
+                  title={formData.title}
+                  description={formData.description || ''}
+                  onInsert={(text) =>
+                    setFormData({
+                      ...formData,
+                      description: text
+                    })
+                  }
+                />
+                <TaskAiIdeas
+                  title={formData.title}
+                  description={formData.description || ''}
+                  onInsert={(text) =>
+                    setFormData({
+                      ...formData,
+                      description: (formData.description ? formData.description + '\n' : '') + text
+                    })
+                  }
+                />
+              </>
             )}
           </div>
 

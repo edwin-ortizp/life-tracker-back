@@ -71,7 +71,11 @@ export const aiConfig: Record<string, AiModuleConfig> = {
         '• NO incluyas explicaciones tuyas, solo las subtareas y sus tiempos\n' +
         '• Cada subtarea debe estar en una sola línea con emoji, descripción y tiempo\n' +
         '• Mantén las respuestas breves y claras, evitando explicaciones innecesarias\n' +
-        '• Las estimaciones de tiempo deben ser realistas basadas en mi perfil profesional'
+        '• Las estimaciones de tiempo deben ser realistas basadas en mi perfil profesional',
+      improveDescription:
+        'Eres un asistente experto en redacción de tareas. Basándote en el título y la descripción actual, mejora el texto sin cambiar su intención. Si la descripción está vacía, genera una de máximo 150 palabras que defina claramente el objetivo de la tarea.',
+      ideas:
+        'Sugiere ideas o ejemplos concretos para abordar la tarea. Entrega consejos breves, prácticos y de máximo 150 palabras que ayuden a iniciarla o completarla.'
     }
   },
   journal: {
