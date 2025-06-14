@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import DOMPurify from 'dompurify';
 import { getAiConfig } from '@/config/ai';
+import { fetchAiResponse } from '@/utils/ai';
 import { Textarea } from '@/components/ui/textarea';
 import { countTokens } from '@/utils/tokens';
 import { db } from '@/firebase';
@@ -26,9 +27,10 @@ interface JournalAiFeedbackProps {
 }
 
 const journalConfig = getAiConfig('journal');
-const API_URL = journalConfig
-  ? `https://generativelanguage.googleapis.com/v1beta/models/${journalConfig.model}:generateContent`
-  : '';
+const provider = journalConfig?.provider ?? 'gemini';
+const hasKey = provider === 'groq'
+  ? Boolean(import.meta.env.VITE_GROQ_API_KEY)
+  : Boolean(import.meta.env.VITE_GEMINI_API_KEY);
 
 export const JournalAiFeedback: React.FC<JournalAiFeedbackProps> = ({ entry, selectedDate, open: openProp, onOpenChange }) => {
   const { user } = useAuth();
@@ -39,10 +41,8 @@ export const JournalAiFeedback: React.FC<JournalAiFeedbackProps> = ({ entry, sel
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [tokenCount, setTokenCount] = useState(0);
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   const basePrompt =
     'Analiza la siguiente entrada del diario y los estados de ánimo del día. Da una breve opinión sobre cómo fue y sugiere mejoras para mañana.';
-  const params = journalConfig?.params;
 
   useEffect(() => {
     if (open) {
@@ -68,20 +68,11 @@ export const JournalAiFeedback: React.FC<JournalAiFeedbackProps> = ({ entry, sel
   }, [prompt]);
 
   const getFeedback = async () => {
-    if (!apiKey || !prompt) return;
+    if (!hasKey || !prompt) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          ...params
-        })
-      });
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      setFeedback(text || 'No se pudo obtener respuesta');
+      const text = await fetchAiResponse('journal', prompt);
+      setFeedback(text);
     } catch (e) {
       setFeedback('Error al consultar la API');
     } finally {
@@ -117,7 +108,7 @@ export const JournalAiFeedback: React.FC<JournalAiFeedbackProps> = ({ entry, sel
               <span className="text-red-500">¡Prompt demasiado largo!</span>
             )}
           </p>
-          <Button onClick={getFeedback} disabled={loading || !apiKey} className="w-full flex items-center justify-center gap-2">
+          <Button onClick={getFeedback} disabled={loading || !hasKey} className="w-full flex items-center justify-center gap-2">
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? 'Consultando...' : 'Analizar día'}
           </Button>

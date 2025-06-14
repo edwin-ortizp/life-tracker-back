@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import { Bot, Loader2 } from 'lucide-react';
 import { getAiConfig } from '@/config/ai';
+import { fetchAiResponse } from '@/utils/ai';
 import { countTokens } from '@/utils/tokens';
 
 interface TaskAiBreakdownProps {
@@ -13,9 +14,10 @@ interface TaskAiBreakdownProps {
 }
 
 const taskConfig = getAiConfig('task');
-const API_URL = taskConfig
-  ? `https://generativelanguage.googleapis.com/v1beta/models/${taskConfig.model}:generateContent`
-  : '';
+const provider = taskConfig?.provider ?? 'gemini';
+const hasKey = provider === 'groq'
+  ? Boolean(import.meta.env.VITE_GROQ_API_KEY)
+  : Boolean(import.meta.env.VITE_GEMINI_API_KEY);
 
 export const TaskAiBreakdown: React.FC<TaskAiBreakdownProps> = ({ title, description, onInsert }) => {
   const [open, setOpen] = useState(false);
@@ -24,10 +26,8 @@ export const TaskAiBreakdown: React.FC<TaskAiBreakdownProps> = ({ title, descrip
   const [loading, setLoading] = useState(false);
   const [tokenCount, setTokenCount] = useState(0);
 
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   const basePrompt = taskConfig?.prompts?.breakdown ??
     'Desglosa la siguiente tarea en subtareas concretas y accionables:';
-  const params = taskConfig?.params;
 
   useEffect(() => {
     if (open) {
@@ -40,20 +40,11 @@ export const TaskAiBreakdown: React.FC<TaskAiBreakdownProps> = ({ title, descrip
   }, [prompt]);
 
   const getBreakdown = async () => {
-    if (!apiKey || !title) return;
+    if (!hasKey || !title) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          ...params
-        })
-      });
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      setSuggestion(text || 'No se pudo obtener sugerencia');
+      const text = await fetchAiResponse('task', prompt);
+      setSuggestion(text);
     } catch (e) {
       setSuggestion('Error al consultar la API');
     } finally {
@@ -91,7 +82,7 @@ export const TaskAiBreakdown: React.FC<TaskAiBreakdownProps> = ({ title, descrip
                 <span className="text-red-500">¡Prompt demasiado largo!</span>
               )}
             </p>
-            <Button onClick={getBreakdown} disabled={loading || !apiKey} className="w-full flex items-center justify-center gap-2">
+            <Button onClick={getBreakdown} disabled={loading || !hasKey} className="w-full flex items-center justify-center gap-2">
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {loading ? 'Consultando...' : 'Obtener subtareas'}
             </Button>

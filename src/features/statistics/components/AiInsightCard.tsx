@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { getAiConfig } from '@/config/ai';
+import { fetchAiResponse } from '@/utils/ai';
 import { DailySummaryData } from '../hooks/useDailySummary';
 import { WeeklySummaryData } from '../hooks/useWeeklySummary';
 
@@ -21,11 +22,11 @@ export const AiInsightCard: React.FC<Props> = ({ data, date }) => {
   const [analysis, setAnalysis] = useState('');
   const [showDebug, setShowDebug] = useState(false);
   
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   const aiConfig = getAiConfig('statistics');
-  const API_URL = aiConfig?.model
-    ? `https://generativelanguage.googleapis.com/v1beta/models/${aiConfig.model}:generateContent`
-    : '';
+  const provider = aiConfig?.provider ?? 'gemini';
+  const hasKey = provider === 'groq'
+    ? Boolean(import.meta.env.VITE_GROQ_API_KEY)
+    : Boolean(import.meta.env.VITE_GEMINI_API_KEY);
   const basePrompt = aiConfig?.prompt ?? 'Analiza mis registros y dame consejos.';
   const params = aiConfig?.params;
   // Crear el summary a partir del objeto data
@@ -42,9 +43,8 @@ export const AiInsightCard: React.FC<Props> = ({ data, date }) => {
   const disabled = !data;
   const fullPrompt = `${basePrompt}\n\n${summary}`;
   const handleAnalyze = async () => {
-    if (!apiKey || !API_URL || !data) return;
+    if (!hasKey || !data) return;
     setLoading(true);
-    
     const requestBody = {
       contents: [{ parts: [{ text: fullPrompt }] }],
       ...params
@@ -58,21 +58,12 @@ export const AiInsightCard: React.FC<Props> = ({ data, date }) => {
     });
     
     try {
-      const res = await fetch(`${API_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      });
-      
-      const responseData = await res.json();
-      console.log('🤖 AI Response:', responseData);
-      
-      const text = responseData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const text = await fetchAiResponse('statistics', fullPrompt);
+      console.log('🤖 AI Response:', text);
       if (text) {
         setAnalysis(text);
         console.log('🤖 Analysis generated successfully');
       } else {
-        console.warn('🤖 No text in AI response:', responseData);
         setAnalysis('No se pudo generar análisis');
       }
     } catch (error) {
@@ -89,7 +80,7 @@ export const AiInsightCard: React.FC<Props> = ({ data, date }) => {
         <CardTitle>Asistente IA</CardTitle>
       </CardHeader>      <CardContent className="space-y-4">
         <div className="flex items-center gap-2">
-          <Button onClick={handleAnalyze} disabled={loading || !apiKey || disabled} className="flex items-center gap-2">
+          <Button onClick={handleAnalyze} disabled={loading || !hasKey || disabled} className="flex items-center gap-2">
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? 'Analizando...' : 'Analizar'}
           </Button>
@@ -106,7 +97,7 @@ export const AiInsightCard: React.FC<Props> = ({ data, date }) => {
           <div className="bg-gray-100 p-3 rounded text-xs space-y-2">
             <div><strong>Config:</strong> {aiConfig ? 'Encontrado' : 'No encontrado'}</div>
             <div><strong>Model:</strong> {aiConfig?.model || 'N/A'}</div>
-            <div><strong>API Key:</strong> {apiKey ? `${apiKey.substring(0, 10)}...` : 'No configurado'}</div>
+            <div><strong>API Key:</strong> {hasKey ? '✓' : 'No configurado'}</div>
             <div><strong>Params:</strong> {JSON.stringify(params, null, 2)}</div>
             <div><strong>Prompt base:</strong></div>
             <div className="bg-white p-2 rounded max-h-32 overflow-y-auto">{basePrompt}</div>

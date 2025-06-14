@@ -14,6 +14,7 @@ import { useJournalData } from '../hooks/useJournalData';
 import { useJournalEntry } from '../context/JournalEntryContext';
 import { useJournalLock } from '../context/JournalLockContext';
 import type { JournalProps } from '../types';
+import JournalVoiceInput from './JournalVoiceInput';
 
 export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
   const { user } = useAuth();
@@ -71,6 +72,14 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
               setEntry(value);
             }}
           />
+          <div className="mt-2">
+            <JournalVoiceInput
+              onTranscription={(text) => {
+                setSharedEntry((prev) => prev + text);
+                setEntry((prev) => prev + text);
+              }}
+            />
+          </div>
           {error && (
             <p className="mt-2 text-sm text-red-500">
               {error}
@@ -108,4 +117,5 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
 export * from "./MarkdownJournal";
 export * from "./ExportRangeButton";
 export * from "./JournalAiMenu";
+export * from "./JournalVoiceInput";
 export default Journal;

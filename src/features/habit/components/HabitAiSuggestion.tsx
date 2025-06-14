@@ -5,6 +5,7 @@ import { Bot, Loader2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import { getAiConfig } from '@/config/ai';
+import { fetchAiResponse } from '@/utils/ai';
 import { HABITS } from '../types';
 import { Textarea } from '@/components/ui/textarea';
 import { countTokens } from '@/utils/tokens';
@@ -16,9 +17,10 @@ interface HabitAiSuggestionProps {
 }
 
 const habitConfig = getAiConfig('habit');
-const API_URL = habitConfig
-  ? `https://generativelanguage.googleapis.com/v1beta/models/${habitConfig.model}:generateContent`
-  : '';
+const provider = habitConfig?.provider ?? 'gemini';
+const hasKey = provider === 'groq'
+  ? Boolean(import.meta.env.VITE_GROQ_API_KEY)
+  : Boolean(import.meta.env.VITE_GEMINI_API_KEY);
 
 // Configurar marked para un renderizado seguro
 marked.setOptions({
@@ -34,13 +36,10 @@ export const HabitAiSuggestion: React.FC<HabitAiSuggestionProps> = ({ completedH
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [tokenCount, setTokenCount] = useState(0);
-
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   const basePredict = habitConfig?.prompts?.predict ??
     'Analiza mis hábitos recientes y predice cuáles pueden fallar. Dame consejos para cumplirlos.';
   const baseSuggest = habitConfig?.prompts?.suggest ??
     'Sugiere nuevos hábitos basados en mis intereses y actividades.';
-  const params = habitConfig?.params;
 
   useEffect(() => {
     if (open) {
@@ -117,20 +116,11 @@ export const HabitAiSuggestion: React.FC<HabitAiSuggestionProps> = ({ completedH
   };
 
   const getSuggestion = async () => {
-    if (!apiKey) return;
+    if (!hasKey) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          ...params
-        })
-      });
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      setSuggestion(text || 'No se pudo obtener sugerencia');
+      const text = await fetchAiResponse('habit', prompt);
+      setSuggestion(text);
     } catch (e) {
       setSuggestion('Error al consultar la API');
     } finally {
@@ -172,7 +162,7 @@ export const HabitAiSuggestion: React.FC<HabitAiSuggestionProps> = ({ completedH
               <span className="text-red-500">¡Prompt demasiado largo!</span>
             )}
           </p>
-          <Button onClick={getSuggestion} disabled={loading || !apiKey} className="w-full flex items-center justify-center gap-2">
+          <Button onClick={getSuggestion} disabled={loading || !hasKey} className="w-full flex items-center justify-center gap-2">
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? 'Consultando...' : 'Obtener sugerencia'}
           </Button>          {suggestion && (

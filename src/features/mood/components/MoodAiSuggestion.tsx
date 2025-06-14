@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Bot, Loader2 } from 'lucide-react';
 import { getAiConfig } from '@/config/ai';
+import { fetchAiResponse } from '@/utils/ai';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
 import { doc, getDoc, setDoc, collection } from 'firebase/firestore';
@@ -35,9 +36,10 @@ interface Suggestion {
 }
 
 const moodConfig = getAiConfig('mood');
-const API_URL = moodConfig
-  ? `https://generativelanguage.googleapis.com/v1beta/models/${moodConfig.model}:generateContent`
-  : '';
+const provider = moodConfig?.provider ?? 'gemini';
+const hasKey = provider === 'groq'
+  ? Boolean(import.meta.env.VITE_GROQ_API_KEY)
+  : Boolean(import.meta.env.VITE_GEMINI_API_KEY);
 
 export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate, open: openProp, onOpenChange }) => {
   const { user } = useAuth();
@@ -50,12 +52,10 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [prompt, setPrompt] = useState('');
   const [tokenCount, setTokenCount] = useState(0);
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   const moodList = MOODS.map(m => m.text).join(', ');
   const basePrompt =
     moodConfig?.prompt ??
     'Analiza la siguiente entrada del diario y sugiere estados de ánimo en formato JSON: [{"emoji":"","text":"","time":"HH:mm","reason":""}]';
-  const params = moodConfig?.params;
 
   if (!isUnlocked) {
     return null;
@@ -113,23 +113,14 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
   };
 
   const getSuggestions = async (p: string) => {
-    if (!apiKey) return;
+    if (!hasKey) return;
     setLoading(true);
     try {
       if (!p.trim()) {
         setSuggestions([]);
         return;
       }
-      const res = await fetch(`${API_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: p }] }],
-          ...params
-        })
-      });
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const text = await fetchAiResponse('mood', p);
       const parsed = parseSuggestions(text);
       setSuggestions(parsed);
     } catch (e) {
@@ -212,7 +203,7 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
           </p>
           <Button
             onClick={() => getSuggestions(prompt)}
-            disabled={loading || !apiKey}
+            disabled={loading || !hasKey}
             className="w-full flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}

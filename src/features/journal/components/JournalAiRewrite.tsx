@@ -10,6 +10,7 @@ import {
 import { Bot, Loader2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { getAiConfig } from '@/config/ai';
+import { fetchAiResponse } from '@/utils/ai';
 import { Textarea } from '@/components/ui/textarea';
 import { countTokens } from '@/utils/tokens';
 
@@ -20,9 +21,10 @@ interface JournalAiRewriteProps {
 }
 
 const journalConfig = getAiConfig('journal');
-const API_URL = journalConfig
-  ? `https://generativelanguage.googleapis.com/v1beta/models/${journalConfig.model}:generateContent`
-  : '';
+const provider = journalConfig?.provider ?? 'gemini';
+const hasKey = provider === 'groq'
+  ? Boolean(import.meta.env.VITE_GROQ_API_KEY)
+  : Boolean(import.meta.env.VITE_GEMINI_API_KEY);
 
 export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry, open: openProp, onOpenChange }) => {
   const [internalOpen, setInternalOpen] = useState(false);
@@ -33,10 +35,8 @@ export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry, open:
   const [prompt, setPrompt] = useState('');
   const [tokenCount, setTokenCount] = useState(0);
 
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   const basePrompt = journalConfig?.prompt ??
     'Reescribe el siguiente texto del diario de forma clara y natural:';
-  const params = journalConfig?.params;
 
   useEffect(() => {
     if (open) {
@@ -49,20 +49,11 @@ export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry, open:
   }, [prompt]);
 
   const getRewrite = async () => {
-    if (!apiKey || !entry) return;
+    if (!hasKey || !entry) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          ...params
-        })
-      });
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      setRewrite(text || 'No se pudo obtener respuesta');
+      const text = await fetchAiResponse('journal', prompt);
+      setRewrite(text);
     } catch (e) {
       setRewrite('Error al consultar la API');
     } finally {
@@ -106,7 +97,7 @@ export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry, open:
               <span className="text-red-500">¡Prompt demasiado largo!</span>
             )}
           </p>
-          <Button onClick={getRewrite} disabled={loading || !apiKey} className="w-full flex items-center justify-center gap-2">
+          <Button onClick={getRewrite} disabled={loading || !hasKey} className="w-full flex items-center justify-center gap-2">
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? 'Consultando...' : 'Generar versión mejorada'}
           </Button>

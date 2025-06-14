@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Bot, Loader2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { getAiConfig } from '@/config/ai';
+import { fetchAiResponse } from '@/utils/ai';
 import { NEGATIVE_HABITS, NegativeHabitLog } from '../types';
 import { Textarea } from '@/components/ui/textarea';
 import { countTokens } from '@/utils/tokens';
@@ -15,9 +16,10 @@ interface NegativeHabitAiSuggestionProps {
 }
 
 const nhConfig = getAiConfig('negativeHabit');
-const API_URL = nhConfig
-  ? `https://generativelanguage.googleapis.com/v1beta/models/${nhConfig.model}:generateContent`
-  : '';
+const provider = nhConfig?.provider ?? 'gemini';
+const hasKey = provider === 'groq'
+  ? Boolean(import.meta.env.VITE_GROQ_API_KEY)
+  : Boolean(import.meta.env.VITE_GEMINI_API_KEY);
 
 export const NegativeHabitAiSuggestion: React.FC<NegativeHabitAiSuggestionProps> = ({ habits, open: openProp, onOpenChange }) => {
   const [internalOpen, setInternalOpen] = useState(false);
@@ -27,13 +29,10 @@ export const NegativeHabitAiSuggestion: React.FC<NegativeHabitAiSuggestionProps>
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [tokenCount, setTokenCount] = useState(0);
-
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   const baseImpact = nhConfig?.prompts?.impact ??
     'Explica el impacto de mis hábitos negativos de acuerdo con mis registros.';
   const baseAction = nhConfig?.prompts?.action ??
     'Recomienda acciones para reducirlos cada vez que los registro.';
-  const params = nhConfig?.params;
 
   useEffect(() => {
     if (open) {
@@ -69,20 +68,11 @@ export const NegativeHabitAiSuggestion: React.FC<NegativeHabitAiSuggestionProps>
   };
 
   const getSuggestion = async () => {
-    if (!apiKey) return;
+    if (!hasKey) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          ...params
-        })
-      });
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      setSuggestion(text || 'No se pudo obtener sugerencia');
+      const text = await fetchAiResponse('negativeHabit', prompt);
+      setSuggestion(text);
     } catch (e) {
       setSuggestion('Error al consultar la API');
     } finally {
@@ -124,7 +114,7 @@ export const NegativeHabitAiSuggestion: React.FC<NegativeHabitAiSuggestionProps>
               <span className="text-red-500">¡Prompt demasiado largo!</span>
             )}
           </p>
-          <Button onClick={getSuggestion} disabled={loading || !apiKey} className="w-full flex items-center justify-center gap-2">
+          <Button onClick={getSuggestion} disabled={loading || !hasKey} className="w-full flex items-center justify-center gap-2">
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? 'Consultando...' : 'Obtener sugerencia'}
           </Button>

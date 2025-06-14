@@ -134,11 +134,16 @@ Crea un archivo `.env` en la raíz del proyecto basado en `.env.example` y defin
 
 ```
 VITE_GEMINI_API_KEY=tu_clave
+VITE_GROQ_API_KEY=tu_clave_groq
+VITE_WHISPER_API_KEY=tu_clave_whisper
 ```
 
-Esta clave permite conectar con la API de Gemini. El modelo y el mensaje base
-para cada módulo se configuran ahora en `src/config/ai.ts`, donde también puedes
-añadir parámetros extra como `temperature` o `top_p`.
+Define las claves según el proveedor que utilices. El modelo, proveedor y
+parámetros de cada módulo se configuran en `src/config/ai.ts`. Allí puedes
+seleccionar `provider: 'gemini'` o `provider: 'groq'` y ajustar opciones como
+`temperature` o `top_p`.
+
+Si agregas la clave de Whisper podrás dictar entradas de diario usando voz.
 
 ## Módulo de Lista de Compras
 

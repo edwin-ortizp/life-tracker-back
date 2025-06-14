@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Sparkles, RefreshCw, Loader2 } from 'lucide-react';
 import { getAiConfig } from '@/config/ai';
+import { fetchAiResponse } from '@/utils/ai';
 import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList';
 import type { MealModalState, MealFormData } from './types';
 import { MEAL_TYPES, Meal } from '../../types';
@@ -22,9 +23,10 @@ interface MealAiButtonsProps {
 }
 
 const mealConfig = getAiConfig('meal');
-const API_URL = mealConfig
-  ? `https://generativelanguage.googleapis.com/v1beta/models/${mealConfig.model}:generateContent`
-  : '';
+const provider = mealConfig?.provider ?? 'gemini';
+const hasKey = provider === 'groq'
+  ? Boolean(import.meta.env.VITE_GROQ_API_KEY)
+  : Boolean(import.meta.env.VITE_GEMINI_API_KEY);
 
 export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFormChange, onOverwriteDay }) => {
   const { items } = useShoppingList();
@@ -33,13 +35,10 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
   const [promptDialog, setPromptDialog] = useState<'meal' | 'day' | null>(null);
   const [prompt, setPrompt] = useState('');
   const [tokenCount, setTokenCount] = useState(0);
-
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   const basePromptMeal = mealConfig?.prompts?.meal ??
     'Genera una comida en formato JSON utilizando los ingredientes disponibles.';
   const basePromptDay = mealConfig?.prompts?.day ??
     'Genera todas las comidas del día en formato JSON.';
-  const params = mealConfig?.params;
 
   useEffect(() => {
     setTokenCount(countTokens(prompt));
@@ -94,20 +93,11 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
   };
 
   const regenerateMeal = async (p: string) => {
-    if (!apiKey) return;
+    if (!hasKey) return;
     setLoadingMeal(true);
     try {
       const prompt = p;
-      const res = await fetch(`${API_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          ...params
-        })
-      });
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const text = await fetchAiResponse('meal', prompt);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         const json = JSON.parse(match[0]);
@@ -123,20 +113,11 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
   };
 
   const regenerateDay = async (p: string) => {
-    if (!apiKey) return;
+    if (!hasKey) return;
     setLoadingDay(true);
     try {
       const prompt = p;
-      const res = await fetch(`${API_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          ...params
-        })
-      });
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const text = await fetchAiResponse('meal', prompt);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         const json = JSON.parse(match[0]);
@@ -166,7 +147,7 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
         <Button
           type="button"
           onClick={() => openDialog('meal')}
-          disabled={loadingMeal || !apiKey}
+          disabled={loadingMeal || !hasKey}
           variant="secondary"
           className="w-full flex items-center gap-2"
         >
@@ -175,7 +156,7 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
         <Button
           type="button"
           onClick={() => openDialog('day')}
-          disabled={loadingDay || !apiKey}
+          disabled={loadingDay || !hasKey}
           variant="ghost"
           className="w-full flex items-center gap-2"
         >

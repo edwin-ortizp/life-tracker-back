@@ -4,6 +4,8 @@ export interface AiParams {
 }
 
 export interface AiModuleConfig {
+  /** Proveedor de la API */
+  provider?: 'gemini' | 'groq';
   model: string;
   /** Prompt genérico o por defecto */
   prompt?: string;
@@ -75,6 +77,8 @@ export const aiConfig: Record<string, AiModuleConfig> = {
     }
   },
   journal: {
+    // Cambia a 'groq' para usar la API de Groq
+    provider: 'gemini',
     model: 'gemini-2.5-flash-preview-05-20',
     prompt:
       '### **{ROL}**\n' +

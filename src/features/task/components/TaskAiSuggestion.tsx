@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { Bot, Loader2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { getAiConfig } from '@/config/ai';
+import { fetchAiResponse } from '@/utils/ai';
 import { Textarea } from '@/components/ui/textarea';
 import { countTokens } from '@/utils/tokens';
 
@@ -31,9 +32,10 @@ interface TaskAiSuggestionProps {
 }
 
 const taskConfig = getAiConfig('task');
-const API_URL = taskConfig
-  ? `https://generativelanguage.googleapis.com/v1beta/models/${taskConfig.model}:generateContent`
-  : '';
+const provider = taskConfig?.provider ?? 'gemini';
+const hasKey = provider === 'groq'
+  ? Boolean(import.meta.env.VITE_GROQ_API_KEY)
+  : Boolean(import.meta.env.VITE_GEMINI_API_KEY);
 
 export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks, open: openProp, onOpenChange }) => {
   const [internalOpen, setInternalOpen] = useState(false);
@@ -46,10 +48,8 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks, open:
   const [prompt, setPrompt] = useState('');
   const [tokenCount, setTokenCount] = useState(0);
 
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   const basePrompt = taskConfig?.prompt ??
     'Eres un asistente de productividad. Basándote en el estado de ánimo y las tareas pendientes sugiere cuál debería abordar primero.';
-  const params = taskConfig?.params;
 
   useEffect(() => {
     if (selectedCategory && selectedMood) {
@@ -70,20 +70,11 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks, open:
   }, [prompt]);
 
   const getSuggestion = async () => {
-    if (!apiKey || !selectedMood || !selectedCategory) return;
+    if (!hasKey || !selectedMood || !selectedCategory) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          ...params
-        })
-      });
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      setSuggestion(text || 'No se pudo obtener sugerencia');
+      const text = await fetchAiResponse('task', prompt);
+      setSuggestion(text);
     } catch (e) {
       setSuggestion('Error al consultar la API');
     } finally {
@@ -147,7 +138,7 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks, open:
                   <span className="text-red-500">¡Prompt demasiado largo!</span>
                 )}
               </p>
-              <Button onClick={getSuggestion} disabled={loading || !apiKey} className="w-full flex items-center justify-center gap-2">
+              <Button onClick={getSuggestion} disabled={loading || !hasKey} className="w-full flex items-center justify-center gap-2">
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {loading ? 'Consultando...' : 'Obtener sugerencia'}
               </Button>
