@@ -10,6 +10,8 @@ import { useDailySummary } from '../hooks/useDailySummary';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DRINKS } from '@/features/water/types';
+import { Gauge, CheckCircle, Droplet, ListChecks } from 'lucide-react';
+import StatCard from './StatCard';
 
 interface Props {
   date: Date;
@@ -29,6 +31,18 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
     { name: 'Negativos', value: summary.negativeHabits.count }
   ];
 
+  const habitsPercent = summary.habits.total
+    ? (summary.habits.completed / summary.habits.total) * 100
+    : 0;
+  const tasksPercent = summary.tasks.todayPlanned
+    ? (summary.tasks.completed / summary.tasks.todayPlanned) * 100
+    : 0;
+  const hydrationGoal = 2000;
+  const hydrationPercent = Math.min(100, (summary.water.intake / hydrationGoal) * 100);
+  const generalScore = Math.round(
+    (habitsPercent + tasksPercent + summary.pomodoro.completionRate) / 3
+  );
+
   const hasData = Object.values(summary).some(moduleData =>
     Object.values(moduleData).some(v => typeof v === 'number' && v > 0)
   );
@@ -42,44 +56,31 @@ export const DailySummary: React.FC<Props> = ({ date }) => {
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4 text-center">
-          <div>
-            <p className="text-sm text-muted-foreground">Palabras Diario</p>
-            <p className="font-bold">{summary.journal.words}</p>
-          </div>          <div>
-            <p className="text-sm text-muted-foreground">Hábitos</p>
-            <p className="font-bold">{summary.habits.completed}/{summary.habits.total}</p>
-            <p className="text-xs text-muted-foreground">
-              {((summary.habits.completed / summary.habits.total) * 100).toFixed(0)}% completado
-            </p>
-          </div>          <div>
-            <p className="text-sm text-muted-foreground">Ánimos</p>
-            <p className="font-bold">{summary.mood.count}</p>
-            {summary.mood.count > 0 && (
-              <div className="text-xs text-muted-foreground">
-                <div>Promedio: {summary.mood.average}/10</div>
-                <div>Rango: {summary.mood.lowest}-{summary.mood.highest}</div>
-              </div>
-            )}
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Min Ejercicio</p>
-            <p className="font-bold">{summary.exercise.minutes}</p>
-          </div><div>
-            <p className="text-sm text-muted-foreground">Hidratación (ml)</p>
-            <p className="font-bold">{summary.water.intake}</p>
-            {summary.water.drinkDetails && summary.water.drinkDetails.length > 0 && (
-              <div className="mt-1 text-xs text-muted-foreground">                {summary.water.drinkDetails.slice(0, 2).map((drink) => (
-                  <div key={drink.type}>
-                    {getDrinkName(drink.type)}: {drink.amount}ml ({drink.count}x)
-                  </div>
-                ))}
-                {summary.water.drinkDetails.length > 2 && (
-                  <div>+{summary.water.drinkDetails.length - 2} más</div>
-                )}
-              </div>
-            )}
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard
+            title="Score General"
+            value={`${generalScore}%`}
+            progress={generalScore}
+            icon={<Gauge className="w-5 h-5" />}
+          />
+          <StatCard
+            title="Hábitos"
+            value={`${summary.habits.completed}/${summary.habits.total}`}
+            progress={habitsPercent}
+            icon={<CheckCircle className="w-5 h-5" />}
+          />
+          <StatCard
+            title="Tareas Hoy"
+            value={`${summary.tasks.completed}/${summary.tasks.todayPlanned}`}
+            progress={tasksPercent}
+            icon={<ListChecks className="w-5 h-5" />}
+          />
+          <StatCard
+            title="Hidratación"
+            value={`${summary.water.intake} ml`}
+            progress={hydrationPercent}
+            icon={<Droplet className="w-5 h-5" />}
+          />
         </div>
         <div className="h-40">
           {loading ? (

@@ -28,17 +28,22 @@ const StatisticsPage = () => {
         <TabsList>
           <TabsTrigger value="daily">Diario</TabsTrigger>
           <TabsTrigger value="weekly">Semanal</TabsTrigger>
-        </TabsList>        <TabsContent value="daily" className="space-y-4">
+        </TabsList>
+        <TabsContent value="daily" className="space-y-4">
           <DateSelector selectedDate={day} onChange={setDay} />
-          <DailySummary date={day} />
-          <AiInsightCard data={dailyData} date={formatDate(day)} />
-          <DebugDataCard data={dailyData} />
+          <div className="grid lg:grid-cols-2 gap-4">
+            <DailySummary date={day} />
+            <AiInsightCard data={dailyData} date={formatDate(day)} />
+            <DebugDataCard data={dailyData} />
+          </div>
         </TabsContent>
         <TabsContent value="weekly" className="space-y-4">
           <DateSelector selectedDate={weekStart} onChange={setWeekStart} />
-          <WeeklySummary startDate={weekStart} />
-          <AiInsightCard data={weeklyData} date={`Semana del ${formatDate(weekStart)}`} />
-          <DebugDataCard data={weeklyData} />
+          <div className="grid lg:grid-cols-2 gap-4">
+            <WeeklySummary startDate={weekStart} />
+            <AiInsightCard data={weeklyData} date={`Semana del ${formatDate(weekStart)}`} />
+            <DebugDataCard data={weeklyData} />
+          </div>
         </TabsContent>
       </Tabs>
     </PageLayout>
