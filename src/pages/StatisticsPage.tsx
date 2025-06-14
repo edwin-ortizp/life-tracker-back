@@ -2,7 +2,13 @@ import { useState } from 'react';
 import PageLayout from '@/components/PageLayout';
 import DateSelector from '@/components/DateSelector';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { DailySummary, WeeklySummary, AiInsightCard, DebugDataCard } from '@/features/statistics/components';
+import {
+  DailySummary,
+  WeeklySummary,
+  AiInsightCard,
+  DailyDashboard,
+  WeeklyDashboard
+} from '@/features/statistics/components';
 import { useDailySummary } from '@/features/statistics/hooks/useDailySummary';
 import { useWeeklySummary } from '@/features/statistics/hooks/useWeeklySummary';
 import { format } from 'date-fns';
@@ -28,17 +34,18 @@ const StatisticsPage = () => {
         <TabsList>
           <TabsTrigger value="daily">Diario</TabsTrigger>
           <TabsTrigger value="weekly">Semanal</TabsTrigger>
-        </TabsList>        <TabsContent value="daily" className="space-y-4">
+        </TabsList>
+        <TabsContent value="daily" className="space-y-4">
           <DateSelector selectedDate={day} onChange={setDay} />
+          <DailyDashboard date={day} />
           <DailySummary date={day} />
           <AiInsightCard data={dailyData} date={formatDate(day)} />
-          <DebugDataCard data={dailyData} />
         </TabsContent>
         <TabsContent value="weekly" className="space-y-4">
           <DateSelector selectedDate={weekStart} onChange={setWeekStart} />
+          <WeeklyDashboard startDate={weekStart} />
           <WeeklySummary startDate={weekStart} />
           <AiInsightCard data={weeklyData} date={`Semana del ${formatDate(weekStart)}`} />
-          <DebugDataCard data={weeklyData} />
         </TabsContent>
       </Tabs>
     </PageLayout>
