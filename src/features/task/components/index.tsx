@@ -28,6 +28,8 @@ export * from './TaskAiMenu';
 export * from './TaskAiBreakdown';
 export * from './TaskAiImproveDescription';
 export * from './TaskAiIdeas';
+export * from './TaskAiReprioritize';
+export * from './AiLoadingBar';
 export * from './TaskEstimatedTimeInput';
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';

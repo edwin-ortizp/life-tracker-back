@@ -75,9 +75,11 @@ export const aiConfig: Record<string, AiModuleConfig> = {
       improveDescription:
         'Eres un asistente experto en redacción de tareas. Basándote en el título y la descripción actual, mejora el texto sin cambiar su intención. Si la descripción está vacía, genera una de máximo 150 palabras que defina claramente el objetivo de la tarea.',
       ideas:
-        'Sugiere ideas o ejemplos concretos para abordar la tarea. Entrega consejos breves, prácticos y de máximo 150 palabras que ayuden a iniciarla o completarla.'
-    }
-  },
+        'Sugiere ideas o ejemplos concretos para abordar la tarea. Entrega consejos breves, prácticos y de máximo 150 palabras que ayuden a iniciarla o completarla.',
+      reprioritize:
+        'Analiza las tareas listadas y sugiere la prioridad (do, decide, delegate, delete), el tamaño (pequeña, mediana, grande) y el tiempo estimado en minutos. Devuelve solo un JSON con un array de objetos {"id":"1","priority":"do","size":"mediana","estimatedTime":60}',
+      }
+    },
   journal: {
     model: 'gemini-2.5-flash-preview-05-20',
     prompt:

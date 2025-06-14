@@ -4,7 +4,7 @@ import PageLayout from '@/components/PageLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TaskKanban, TaskDetailsModal, TaskAiMenu } from '@/features/task/components';
+import { TaskKanban, TaskDetailsModal, TaskAiMenu, TaskAiReprioritize } from '@/features/task/components';
 import { PriorityLegend } from '@/features/task/components/PriorityLegend';
 import { RecurrenceModal } from '@/features/task/components/RecurrenceModal';
 import { useTaskData } from '@/features/task/hooks/useTaskData';
@@ -55,6 +55,7 @@ const KanbanPage = () => {
                 <span className="text-xs text-blue-500">Guardando...</span>
               )}              <div className="flex items-center gap-2">
                 <TaskAiMenu tasks={tasks} />
+                <TaskAiReprioritize tasks={tasks} onUpdate={(id, u) => editTask(id, u)} />
                 <Button onClick={() => openCreateModal()} size="sm">
                   <Plus className="w-4 h-4 mr-2" />
                   Nueva Tarea
