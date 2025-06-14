@@ -13,6 +13,7 @@ import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList'
 import type { MealModalState, MealFormData } from './types';
 import { MEAL_TYPES, Meal } from '../../types';
 import { Textarea } from '@/components/ui/textarea';
+import { AiLoadingBar } from '@/features/task/components';
 import { countTokens } from '@/utils/tokens';
 
 interface MealAiButtonsProps {
@@ -32,6 +33,7 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
   const [loadingDay, setLoadingDay] = useState(false);
   const [promptDialog, setPromptDialog] = useState<'meal' | 'day' | null>(null);
   const [prompt, setPrompt] = useState('');
+  const [preference, setPreference] = useState('');
   const [tokenCount, setTokenCount] = useState(0);
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
@@ -66,14 +68,21 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
 
   const openDialog = (type: 'meal' | 'day') => {
     const ingredientList = getIngredientList();
+    const pref = preference.trim();
     if (type === 'meal') {
-      setPrompt(
-        `${basePromptMeal}\nDia: ${selectedMeal.date}\nTipo: ${selectedMeal.type}\nIngredientes: ${ingredientList}\nDevuelve JSON {"name":"","notes":"","recipe":""}`
-      );
+      let p = `${basePromptMeal}\nDia: ${selectedMeal.date}\nTipo: ${selectedMeal.type}\nIngredientes: ${ingredientList}`;
+      if (pref) {
+        p += `\nPreferencias: ${pref}`;
+      }
+      p += '\nDevuelve JSON {"name":"","notes":"","recipe":""}';
+      setPrompt(p);
     } else {
-      setPrompt(
-        `${basePromptDay}\nDia completo: ${selectedMeal.date}\nIngredientes: ${ingredientList}\nDevuelve JSON con llaves ${Object.keys(MEAL_TYPES).join(', ')}.`
-      );
+      let p = `${basePromptDay}\nDia completo: ${selectedMeal.date}\nIngredientes: ${ingredientList}`;
+      if (pref) {
+        p += `\nPreferencias: ${pref}`;
+      }
+      p += `\nDevuelve JSON con llaves ${Object.keys(MEAL_TYPES).join(', ')}.`;
+      setPrompt(p);
     }
     setPromptDialog(type);
   };
@@ -163,6 +172,12 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
   return (
     <>
       <div className="flex flex-col gap-2">
+        <Textarea
+          placeholder="Preferencias (opcional)"
+          value={preference}
+          onChange={(e) => setPreference(e.target.value)}
+          className="h-20"
+        />
         <Button
           type="button"
           onClick={() => openDialog('meal')}
@@ -181,6 +196,7 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
         >
           {loadingDay && <Loader2 className="w-4 h-4 animate-spin" />}<RefreshCw className="w-4 h-4" /> Regenerar día
         </Button>
+        {(loadingMeal || loadingDay) && <AiLoadingBar className="mt-2" />}
       </div>
       <Dialog open={promptDialog !== null} onOpenChange={(o) => (o ? null : closeDialog())}>
         <DialogContent className="sm:max-w-xl">
