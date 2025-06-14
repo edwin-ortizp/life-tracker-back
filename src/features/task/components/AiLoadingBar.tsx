@@ -10,7 +10,14 @@ export const AiLoadingBar: React.FC<AiLoadingBarProps> = ({ className }) => {
 
   useEffect(() => {
     const id = setInterval(() => {
-      setValue(v => (v >= 100 ? 0 : v + 10));
+      setValue(v => {
+        const next = v + 5;
+        if (next >= 100) {
+          clearInterval(id);
+          return 100;
+        }
+        return next;
+      });
     }, 300);
     return () => clearInterval(id);
   }, []);

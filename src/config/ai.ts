@@ -77,7 +77,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
       ideas:
         'Sugiere ideas o ejemplos concretos para abordar la tarea. Entrega consejos breves, prácticos y de máximo 150 palabras que ayuden a iniciarla o completarla.',
       reprioritize:
-        'Analiza las tareas listadas y sugiere la prioridad (do, decide, delegate, delete), el tamaño (pequeña, mediana, grande) y el tiempo estimado en minutos. Devuelve solo un JSON con un array de objetos {"id":"1","priority":"do","size":"mediana","estimatedTime":60}',
+        'Analiza las tareas listadas y determina si cada una es urgente y/o importante. Además indica el tamaño (pequeña, mediana, grande) y el tiempo estimado en minutos. Devuelve únicamente un JSON con un array de objetos {"id":"1","urgent":true,"important":false,"size":"mediana","estimatedTime":60}',
       }
     },
   journal: {
