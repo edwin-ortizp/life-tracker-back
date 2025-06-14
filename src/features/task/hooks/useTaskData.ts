@@ -65,6 +65,7 @@ export const useTaskData = () => {
               category: data.category || 'other',
               priority: data.priority || 'delete',
               size: data.size || 'peque\u00f1a',
+              estimatedTime: data.estimatedTime,
               recurrence: data.recurrence ? {
                 frequency: data.recurrence.frequency,
                 pattern: data.recurrence.pattern,
@@ -112,7 +113,8 @@ export const useTaskData = () => {
         createdAt: serverTimestamp(),
         category: formData.category || 'other',
         priority: formData.priority || 'delete',
-        size: formData.size || 'peque\u00f1a'
+        size: formData.size || 'peque\u00f1a',
+        ...(formData.estimatedTime !== undefined && { estimatedTime: formData.estimatedTime })
       };
 
       if (formData.description?.trim()) {
@@ -173,6 +175,9 @@ export const useTaskData = () => {
         updateData.priority = updates.priority;
       }      if (updates.size) {
         updateData.size = updates.size;
+      }
+      if (updates.estimatedTime !== undefined) {
+        updateData.estimatedTime = updates.estimatedTime;
       }
       if (updates.isPrivate !== undefined) {
         updateData.isPrivate = updates.isPrivate;

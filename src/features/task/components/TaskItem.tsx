@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useState, forwardRef } from 'react';
 import { isBefore, startOfDay, format, addDays } from 'date-fns';
 import { toNoon } from '@/utils/dates';
-import { CheckCircle2, Circle, X, Repeat, Calendar, Edit, Tag, AlignLeft } from 'lucide-react';
+import { CheckCircle2, Circle, X, Repeat, Calendar, Edit, Tag, AlignLeft, Clock } from 'lucide-react';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +49,15 @@ const PRIORITY_CONFIG = {
   delegate: { label: 'DELEGAR', color: 'bg-blue-500', text: 'Urgente, no importante' },
   delete: { label: 'ELIMINAR', color: 'bg-gray-500', text: 'Ni urgente ni importante' },
   none: { label: '', color: '', text: '' }
+} as const;
+
+
+const PRIORITY_BADGES = {
+  do: { icon: '🔥', num: 1, style: 'bg-red-600 text-white' },
+  decide: { icon: '🤔', num: 2, style: 'bg-orange-500 text-white' },
+  delegate: { icon: '📬', num: 3, style: 'bg-blue-500 text-white' },
+  delete: { icon: '🗑️', num: 4, style: 'bg-gray-500 text-white' },
+  none: { icon: '🗑️', num: 4, style: 'bg-gray-500 text-white' }
 } as const;
 
 // Types
@@ -144,8 +153,8 @@ const TaskBadges = memo<{
         </Badge>
       )}
 
-      {/* Priority when category is hidden */}
-      {!showCategoryLabel && pInfo.label && (
+      {/* Priority label when category hidden in list view */}
+      {variant === 'list' && !showCategoryLabel && pInfo.label && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -171,6 +180,37 @@ const TaskBadges = memo<{
           <Calendar className={cn(iconSize, 'mr-1')} />
           {formatDateToSpanish(task.dueDate)}
           {overdue && " (vencida)"}
+        </Badge>
+      )}
+
+      {/* Priority badge for kanban */}
+      {variant === 'kanban' && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                className={cn(
+                  badgeSize,
+                  'gap-0.5',
+                  PRIORITY_BADGES[(task.priority || 'none') as keyof typeof PRIORITY_BADGES].style
+                )}
+              >
+                <span className="mr-0.5">
+                  {PRIORITY_BADGES[(task.priority || 'none') as keyof typeof PRIORITY_BADGES].icon}
+                </span>
+                {PRIORITY_BADGES[(task.priority || 'none') as keyof typeof PRIORITY_BADGES].num}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>{pInfo.text}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+
+      {/* Estimated time */}
+      {variant === 'kanban' && task.estimatedTime !== undefined && (
+        <Badge variant="outline" className={badgeSize}>
+          <Clock className={cn(iconSize, 'mr-1')} />
+          {task.estimatedTime}m
         </Badge>
       )}
 

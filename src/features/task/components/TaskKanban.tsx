@@ -16,6 +16,8 @@ import {
 import { toNoon } from '@/utils/dates';
 import { Button } from '@/components/ui/button';
 import { Plus, Filter, Search, X, Copy } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { formatDuration } from '@/features/pomodoro/utils/formatTime';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -72,6 +74,29 @@ const BOOLEAN_LABELS: Record<BooleanFilter, string> = {
   no: 'No'
 };
 
+type TimeFilter = 'all' | 't60' | 't120' | 't180' | 'none';
+const TIME_LABELS: Record<TimeFilter, string> = {
+  all: 'Todas',
+  t60: '≤1h',
+  t120: '≤2h',
+  t180: '≤3h',
+  none: 'Sin estimación'
+};
+
+type SortBy =
+  | 'default'
+  | 'priorityAsc'
+  | 'priorityDesc'
+  | 'durationAsc'
+  | 'durationDesc';
+const SORT_LABELS: Record<SortBy, string> = {
+  default: 'Predeterminado',
+  priorityAsc: 'Prioridad ↓',
+  priorityDesc: 'Prioridad ↑',
+  durationAsc: 'Duración ↓',
+  durationDesc: 'Duración ↑'
+};
+
 export const TaskKanban: React.FC<TaskKanbanProps> = ({
   tasks,
   onToggle,
@@ -88,6 +113,8 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
   const [selectedSize, setSelectedSize] = useState<SizeFilter>('all');
   const [selectedUrgent, setSelectedUrgent] = useState<'all' | 'yes' | 'no'>('all');
   const [selectedImportant, setSelectedImportant] = useState<'all' | 'yes' | 'no'>('all');
+  const [selectedTime, setSelectedTime] = useState<TimeFilter>('all');
+  const [sortBy, setSortBy] = useState<SortBy>('default');
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -116,6 +143,16 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
         filtered = filtered.filter(t => !t.size);
       } else {
         filtered = filtered.filter(t => t.size === selectedSize);
+      }
+    }
+
+    if (selectedTime !== 'all') {
+      if (selectedTime === 'none') {
+        filtered = filtered.filter(t => t.estimatedTime === undefined);
+      } else {
+        const limits: Record<TimeFilter, number> = { t60: 60, t120: 120, t180: 180, all: Infinity, none: 0 };
+        const limit = limits[selectedTime];
+        filtered = filtered.filter(t => (t.estimatedTime ?? Infinity) <= limit);
       }
     }
 
@@ -167,7 +204,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       default:
         return filtered;
     }
-  }, [tasks, selectedCategory, selectedPriority, selectedSize, selectedUrgent, selectedImportant, selectedDateFilter, searchQuery]);
+  }, [tasks, selectedCategory, selectedPriority, selectedSize, selectedUrgent, selectedImportant, selectedTime, selectedDateFilter, searchQuery]);
 
   // Función para determinar si hay filtros activos
   const hasActiveFilters = useMemo(() => {
@@ -178,9 +215,10 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       selectedPriority !== 'all' ||
       selectedSize !== 'all' ||
       selectedUrgent !== 'all' ||
-      selectedImportant !== 'all'
+      selectedImportant !== 'all' ||
+      selectedTime !== 'all'
     );
-  }, [searchQuery, selectedCategory, selectedDateFilter, selectedPriority, selectedSize, selectedUrgent, selectedImportant]);
+  }, [searchQuery, selectedCategory, selectedDateFilter, selectedPriority, selectedSize, selectedUrgent, selectedImportant, selectedTime]);
 
   // Función para limpiar todos los filtros
   const clearAllFilters = () => {
@@ -191,6 +229,8 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     setSelectedSize('all');
     setSelectedUrgent('all');
     setSelectedImportant('all');
+    setSelectedTime('all');
+    setSortBy('default');
   };
 
   const groups = useMemo(() => {
@@ -233,23 +273,64 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
         noDate: [] as Task[],
       });
 
+    const sortFn = (a: Task, b: Task) => {
+      const pa = priorityOrder[a.priority || 'none'] ?? 4;
+      const pb = priorityOrder[b.priority || 'none'] ?? 4;
+      const ea = a.estimatedTime ?? Infinity;
+      const eb = b.estimatedTime ?? Infinity;
+
+      switch (sortBy) {
+        case 'priorityAsc':
+          if (pa !== pb) return pb - pa;
+          break;
+        case 'priorityDesc':
+          if (pa !== pb) return pa - pb;
+          break;
+        case 'durationAsc':
+          if (ea !== eb) return ea - eb;
+          break;
+        case 'durationDesc':
+          if (ea !== eb) return eb - ea;
+          break;
+        default:
+          if (pa !== pb) return pa - pb;
+      }
+
+      if (a.dueDate && b.dueDate) {
+        return a.dueDate.getTime() - b.dueDate.getTime();
+      }
+      if (!a.dueDate && !b.dueDate) {
+        return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+      }
+      return a.dueDate ? -1 : 1;
+    };
+
     Object.values(grouped).forEach(list => {
-      list.sort((a, b) => {
-        const pa = priorityOrder[a.priority || 'none'] ?? 4;
-        const pb = priorityOrder[b.priority || 'none'] ?? 4;
-        if (pa !== pb) return pa - pb;
-        if (a.dueDate && b.dueDate) {
-          return a.dueDate.getTime() - b.dueDate.getTime();
-        }
-        if (!a.dueDate && !b.dueDate) {
-          return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
-        }
-        return a.dueDate ? -1 : 1;
-      });
+      list.sort(sortFn);
     });
 
     return grouped;
-  }, [filteredTasks]);
+  }, [filteredTasks, sortBy]);
+
+  const columnTotals = useMemo(() => {
+    const totals: Record<ColumnKey, number> = {
+      overdue: 0,
+      today: 0,
+      tomorrow: 0,
+      thisWeek: 0,
+      future: 0,
+      noDate: 0
+    };
+    (Object.keys(groups) as ColumnKey[]).forEach(key => {
+      totals[key] = groups[key].reduce((sum, t) => sum + (t.estimatedTime || 0), 0);
+    });
+    return totals;
+  }, [groups]);
+
+  const totalVisibleTime = useMemo(
+    () => Object.values(columnTotals).reduce((s, n) => s + n, 0),
+    [columnTotals]
+  );
 
   const columns = [
     { key: 'overdue', title: 'Vencidas' },
@@ -311,6 +392,10 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
 
   return (
     <div className="space-y-3">
+      <div className="flex justify-end items-center text-xs text-gray-500 gap-1">
+        <Clock className="w-3 h-3" />
+        {formatDuration(totalVisibleTime)}
+      </div>
       {/* Buscador y botón de filtros para móvil */}
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center">
         {/* Buscador */}
@@ -463,6 +548,34 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
             </Select>
           </div>
 
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-gray-500">Estimado</span>
+            <Select value={selectedTime} onValueChange={v => setSelectedTime(v as TimeFilter)}>
+              <SelectTrigger className={`w-24 ${selectedTime !== 'all' ? 'border-blue-500 bg-blue-50' : ''}`}>
+                <SelectValue>{TIME_LABELS[selectedTime]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(TIME_LABELS).map(([val, label]) => (
+                  <SelectItem key={val} value={val}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-gray-500">Ordenar</span>
+            <Select value={sortBy} onValueChange={v => setSortBy(v as SortBy)}>
+              <SelectTrigger className="w-28">
+                <SelectValue>{SORT_LABELS[sortBy]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(SORT_LABELS).map(([val, label]) => (
+                  <SelectItem key={val} value={val}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Botón mejorado para copiar solo tareas filtradas */}
           <div className="flex items-end gap-2">
             <div className="space-y-1">
@@ -495,8 +608,14 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
             onDrop={() => handleDrop(col.key)}
           >
             <div className="flex items-center justify-between pt-2">
-              <h3 className="font-medium text-xs lg:text-sm text-gray-500 uppercase tracking-wider">
+              <h3 className="font-medium text-xs lg:text-sm text-gray-500 uppercase tracking-wider flex items-center gap-1">
                 {col.title}
+                {columnTotals[col.key] > 0 && (
+                  <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {formatDuration(columnTotals[col.key])}
+                  </span>
+                )}
               </h3>
               <div className="flex gap-1">
                 <Button size="icon" variant="ghost" onClick={() => onAdd(getDateForColumn(col.key))} className="h-6 w-6 lg:h-8 lg:w-8">

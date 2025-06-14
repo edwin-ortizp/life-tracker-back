@@ -28,6 +28,7 @@ export * from './TaskAiMenu';
 export * from './TaskAiBreakdown';
 export * from './TaskAiImproveDescription';
 export * from './TaskAiIdeas';
+export * from './TaskEstimatedTimeInput';
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { useTaskData } from '../hooks/useTaskData';
