@@ -83,6 +83,13 @@ const TIME_LABELS: Record<TimeFilter, string> = {
   none: 'Sin estimación'
 };
 
+type SortBy = 'default' | 'priority' | 'duration';
+const SORT_LABELS: Record<SortBy, string> = {
+  default: 'Predeterminado',
+  priority: 'Prioridad',
+  duration: 'Duración'
+};
+
 export const TaskKanban: React.FC<TaskKanbanProps> = ({
   tasks,
   onToggle,
@@ -100,6 +107,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
   const [selectedUrgent, setSelectedUrgent] = useState<'all' | 'yes' | 'no'>('all');
   const [selectedImportant, setSelectedImportant] = useState<'all' | 'yes' | 'no'>('all');
   const [selectedTime, setSelectedTime] = useState<TimeFilter>('all');
+  const [sortBy, setSortBy] = useState<SortBy>('default');
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -215,6 +223,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     setSelectedUrgent('all');
     setSelectedImportant('all');
     setSelectedTime('all');
+    setSortBy('default');
   };
 
   const groups = useMemo(() => {
@@ -257,23 +266,36 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
         noDate: [] as Task[],
       });
 
-    Object.values(grouped).forEach(list => {
-      list.sort((a, b) => {
+    const sortFn = (a: Task, b: Task) => {
+      if (sortBy === 'priority') {
         const pa = priorityOrder[a.priority || 'none'] ?? 4;
         const pb = priorityOrder[b.priority || 'none'] ?? 4;
         if (pa !== pb) return pa - pb;
-        if (a.dueDate && b.dueDate) {
-          return a.dueDate.getTime() - b.dueDate.getTime();
-        }
-        if (!a.dueDate && !b.dueDate) {
-          return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
-        }
-        return a.dueDate ? -1 : 1;
-      });
+      } else if (sortBy === 'duration') {
+        const ea = a.estimatedTime ?? Infinity;
+        const eb = b.estimatedTime ?? Infinity;
+        if (ea !== eb) return ea - eb;
+      } else {
+        const pa = priorityOrder[a.priority || 'none'] ?? 4;
+        const pb = priorityOrder[b.priority || 'none'] ?? 4;
+        if (pa !== pb) return pa - pb;
+      }
+
+      if (a.dueDate && b.dueDate) {
+        return a.dueDate.getTime() - b.dueDate.getTime();
+      }
+      if (!a.dueDate && !b.dueDate) {
+        return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+      }
+      return a.dueDate ? -1 : 1;
+    };
+
+    Object.values(grouped).forEach(list => {
+      list.sort(sortFn);
     });
 
     return grouped;
-  }, [filteredTasks]);
+  }, [filteredTasks, sortBy]);
 
   const columnTotals = useMemo(() => {
     const totals: Record<ColumnKey, number> = {
@@ -519,6 +541,20 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(TIME_LABELS).map(([val, label]) => (
+                  <SelectItem key={val} value={val}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-gray-500">Ordenar</span>
+            <Select value={sortBy} onValueChange={v => setSortBy(v as SortBy)}>
+              <SelectTrigger className="w-28">
+                <SelectValue>{SORT_LABELS[sortBy]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(SORT_LABELS).map(([val, label]) => (
                   <SelectItem key={val} value={val}>{label}</SelectItem>
                 ))}
               </SelectContent>

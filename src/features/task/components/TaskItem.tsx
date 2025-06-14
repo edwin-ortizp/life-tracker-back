@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useState, forwardRef } from 'react';
 import { isBefore, startOfDay, format, addDays } from 'date-fns';
 import { toNoon } from '@/utils/dates';
-import { CheckCircle2, Circle, X, Repeat, Calendar, Edit, Tag, AlignLeft } from 'lucide-react';
+import { CheckCircle2, Circle, X, Repeat, Calendar, Edit, Tag, AlignLeft, Clock } from 'lucide-react';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +49,14 @@ const PRIORITY_CONFIG = {
   delegate: { label: 'DELEGAR', color: 'bg-blue-500', text: 'Urgente, no importante' },
   delete: { label: 'ELIMINAR', color: 'bg-gray-500', text: 'Ni urgente ni importante' },
   none: { label: '', color: '', text: '' }
+} as const;
+
+const PRIORITY_NUMBERS = {
+  do: 1,
+  decide: 2,
+  delegate: 3,
+  delete: 4,
+  none: 4
 } as const;
 
 // Types
@@ -144,8 +152,8 @@ const TaskBadges = memo<{
         </Badge>
       )}
 
-      {/* Priority when category is hidden */}
-      {!showCategoryLabel && pInfo.label && (
+      {/* Priority label when category hidden in list view */}
+      {variant === 'list' && !showCategoryLabel && pInfo.label && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -171,6 +179,21 @@ const TaskBadges = memo<{
           <Calendar className={cn(iconSize, 'mr-1')} />
           {formatDateToSpanish(task.dueDate)}
           {overdue && " (vencida)"}
+        </Badge>
+      )}
+
+      {/* Priority number for kanban */}
+      {variant === 'kanban' && (
+        <Badge variant="outline" className={cn(badgeSize, 'text-gray-600')}>
+          {PRIORITY_NUMBERS[(task.priority || 'none') as keyof typeof PRIORITY_NUMBERS]}
+        </Badge>
+      )}
+
+      {/* Estimated time */}
+      {variant === 'kanban' && task.estimatedTime !== undefined && (
+        <Badge variant="outline" className={badgeSize}>
+          <Clock className={cn(iconSize, 'mr-1')} />
+          {task.estimatedTime}m
         </Badge>
       )}
 
