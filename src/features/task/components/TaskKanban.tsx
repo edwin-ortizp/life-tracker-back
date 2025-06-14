@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Task, TASK_CATEGORIES, CATEGORY_LABELS } from '../types';
 import { TaskItem } from './TaskItem';
 import {
@@ -36,6 +36,7 @@ interface TaskKanbanProps {
   onView?: (task: Task) => void;
   onMove: (taskId: string, dueDate: Date | null) => void;
   onAdd: (dueDate?: Date | null) => void;
+  onFilteredTasksChange?: (tasks: Task[]) => void;
 }
 
 type DateFilter = 'all' | 'today' | 'tomorrow' | 'week' | 'month' | 'overdue' | 'noDate';
@@ -104,7 +105,8 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
   onEdit,
   onView,
   onMove,
-  onAdd
+  onAdd,
+  onFilteredTasksChange
 }) => {
   const [dragging, setDragging] = useState<Task | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Task['category'] | 'all'>('all');
@@ -205,6 +207,10 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
         return filtered;
     }
   }, [tasks, selectedCategory, selectedPriority, selectedSize, selectedUrgent, selectedImportant, selectedTime, selectedDateFilter, searchQuery]);
+
+  useEffect(() => {
+    onFilteredTasksChange?.(filteredTasks);
+  }, [filteredTasks, onFilteredTasksChange]);
 
   // Función para determinar si hay filtros activos
   const hasActiveFilters = useMemo(() => {
