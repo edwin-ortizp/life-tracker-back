@@ -15,6 +15,7 @@ import TaskAiImproveDescription from './TaskAiImproveDescription';
 import TaskAiIdeas from './TaskAiIdeas';
 import { TaskDateInput } from './TaskDateInput';
 import { TaskCategorySelect } from './TaskCategorySelect';
+import TaskEstimatedTimeInput from './TaskEstimatedTimeInput';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { TaskRecurrenceConfig } from './TaskRecurrenceConfig';
@@ -41,7 +42,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
         isRecurrent: false,
         isPrivate: task.isPrivate || false,
         priority: 'delete',
-        size: 'peque\u00f1a'
+        size: 'peque\u00f1a',
+        estimatedTime: undefined
       };
     }
     
@@ -54,7 +56,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
       category: task.category || 'personal',
       recurrence: task.recurrence,
       priority: task.priority || 'delete',
-      size: task.size || 'peque\u00f1a'
+      size: task.size || 'peque\u00f1a',
+      estimatedTime: task.estimatedTime
     };
   });
 
@@ -68,29 +71,33 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      if (mode === 'create') {        setFormData({
-          title: '',
-          description: '',
-          category: 'personal',
-          isRecurrent: false,
-          isPrivate: task.isPrivate || false,
-          priority: 'delete',
-          size: 'peque\u00f1a'
-        });
+        if (mode === 'create') {
+        setFormData({
+            title: '',
+            description: '',
+            category: 'personal',
+            isRecurrent: false,
+            isPrivate: task.isPrivate || false,
+            priority: 'delete',
+            size: 'peque\u00f1a',
+            estimatedTime: undefined
+          });
         setUrgent(false);
         setImportant(false);
         setSizeState('peque\u00f1a');
-      } else {        setFormData({
-          title: task.title || '',
-          description: task.description || '',
-          dueDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.dueDate || undefined),
-          isRecurrent: task.isRecurrent || false,
-          isPrivate: task.isPrivate || false,
-          category: task.category || 'personal',
-          recurrence: task.recurrence,
-          priority: task.priority || 'delete',
-          size: task.size || 'peque\u00f1a'
-        });
+        } else {
+        setFormData({
+            title: task.title || '',
+            description: task.description || '',
+            dueDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.dueDate || undefined),
+            isRecurrent: task.isRecurrent || false,
+            isPrivate: task.isPrivate || false,
+            category: task.category || 'personal',
+            recurrence: task.recurrence,
+            priority: task.priority || 'delete',
+            size: task.size || 'peque\u00f1a',
+            estimatedTime: task.estimatedTime
+          });
         setUrgent(task.priority === 'do' || task.priority === 'delegate');
         setImportant(task.priority === 'do' || task.priority === 'decide');
         setSizeState(task.size || 'peque\u00f1a');
@@ -241,7 +248,14 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                   recurrence
                 })}
               />
-            )}            {mode !== 'complete' && (
+            )}
+            {mode !== 'complete' && (
+              <TaskEstimatedTimeInput
+                value={formData.estimatedTime}
+                onChange={(value) => setFormData({ ...formData, estimatedTime: value })}
+              />
+            )}
+            {mode !== 'complete' && (
               <div className="flex flex-wrap items-center gap-4">
                 <label className="flex items-center gap-2 text-sm">
                   <Checkbox checked={urgent} onCheckedChange={(v) => setUrgent(Boolean(v))} />
