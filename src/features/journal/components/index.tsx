@@ -96,7 +96,14 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
                 </span>
               )}
             </Button>
-            <JournalAiMenu entry={sharedEntry} selectedDate={selectedDate} />
+            <JournalAiMenu
+              entry={sharedEntry}
+              selectedDate={selectedDate}
+              onInsert={(text) => {
+                setSharedEntry(prev => prev + (prev ? '\n' : '') + text);
+                setEntry(prev => prev + (prev ? '\n' : '') + text);
+              }}
+            />
             <ExportRangeButton />
           </div>
         </CardFooter>
