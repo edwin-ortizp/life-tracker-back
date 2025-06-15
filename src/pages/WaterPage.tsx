@@ -57,12 +57,12 @@ const WaterPage: React.FC = () => {
             onChange={setSelectedDate}
           />
 
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="md:col-span-2 space-y-6">
+          <div className="grid gap-6 md:grid-cols-[1fr_260px]">
+            <div className="space-y-6">
               <Water selectedDate={selectedDate} />
               <WeeklyStats selectedDate={selectedDate} />
             </div>
-            <div className="md:col-span-1">
+            <div>
               <WaterCalendar selectedDate={selectedDate} />
             </div>
           </div>

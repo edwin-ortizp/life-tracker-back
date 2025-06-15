@@ -72,7 +72,7 @@ export const WaterCalendar: React.FC<WaterCalendarProps> = ({ selectedDate, goal
   };
 
   return (
-    <Card className="w-full md:max-w-sm mx-auto">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Historial Mensual</CardTitle>
       </CardHeader>
