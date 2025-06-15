@@ -183,7 +183,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                   onInsert={(text) =>
                     setFormData({
                       ...formData,
-                      description: text
+                      description: (formData.description ? formData.description + '\n' : '') + text
                     })
                   }
                 />

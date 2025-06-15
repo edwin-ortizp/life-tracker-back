@@ -18,7 +18,8 @@ import { MoodSelector } from '@/features/mood/components';
 import type { Task, TaskCategory } from '../types';
 import { TASK_CATEGORIES, CATEGORY_LABELS } from '../types';
 import { format } from 'date-fns';
-import { Bot, Loader2 } from 'lucide-react';
+import { Bot } from 'lucide-react';
+import { AiLoadingBar } from './AiLoadingBar';
 import DOMPurify from 'dompurify';
 import { getAiConfig } from '@/config/ai';
 import { Textarea } from '@/components/ui/textarea';
@@ -147,10 +148,10 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks, open:
                   <span className="text-red-500">¡Prompt demasiado largo!</span>
                 )}
               </p>
-              <Button onClick={getSuggestion} disabled={loading || !apiKey} className="w-full flex items-center justify-center gap-2">
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              <Button onClick={getSuggestion} disabled={loading || !apiKey} className="w-full">
                 {loading ? 'Consultando...' : 'Obtener sugerencia'}
               </Button>
+              {loading && <AiLoadingBar className="mt-2" />}
               {suggestion && (
                 <div className="p-4 bg-muted rounded-md prose max-w-none">
                   <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(suggestion) }} />

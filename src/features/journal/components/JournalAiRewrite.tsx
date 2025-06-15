@@ -7,8 +7,9 @@ import {
   DialogTitle,
   DialogDescription
 } from '@/components/ui/dialog';
-import { Bot, Loader2 } from 'lucide-react';
-import DOMPurify from 'dompurify';
+import { Bot, Loader2, Copy } from 'lucide-react';
+import { toast } from 'sonner';
+import { AiLoadingBar } from '@/features/task/components';
 import { getAiConfig } from '@/config/ai';
 import { Textarea } from '@/components/ui/textarea';
 import { countTokens } from '@/utils/tokens';
@@ -17,6 +18,7 @@ interface JournalAiRewriteProps {
   entry: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onInsert?: (text: string) => void;
 }
 
 const journalConfig = getAiConfig('journal');
@@ -24,7 +26,7 @@ const API_URL = journalConfig
   ? `https://generativelanguage.googleapis.com/v1beta/models/${journalConfig.model}:generateContent`
   : '';
 
-export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry, open: openProp, onOpenChange }) => {
+export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry, open: openProp, onOpenChange, onInsert }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = openProp !== undefined ? openProp : internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
@@ -77,8 +79,6 @@ export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry, open:
     setTokenCount(0);
   };
 
-  const sanitized = DOMPurify.sanitize(rewrite);
-
   return (
     <Dialog open={open} onOpenChange={o => (o ? setOpen(true) : closeDialog())}>
       {openProp === undefined && (
@@ -110,9 +110,23 @@ export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry, open:
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? 'Consultando...' : 'Generar versión mejorada'}
           </Button>
+          {loading && <AiLoadingBar className="mt-2" />}
           {rewrite && (
-            <div className="p-4 bg-muted rounded-md prose max-w-none">
-              <div dangerouslySetInnerHTML={{ __html: sanitized }} />
+            <div className="space-y-2">
+              <div className="flex justify-end">
+                <Button type="button" size="icon" variant="ghost" onClick={() => {
+                  navigator.clipboard.writeText(rewrite);
+                  toast.success('Texto copiado');
+                }}>
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+              <Textarea readOnly value={rewrite} className="max-h-[300px]" />
+              {onInsert && (
+                <Button type="button" className="w-full" onClick={() => onInsert(rewrite)}>
+                  Insertar en entrada
+                </Button>
+              )}
             </div>
           )}
         </div>

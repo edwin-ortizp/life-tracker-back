@@ -7,7 +7,7 @@ import {
   DialogDescription
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import DOMPurify from 'dompurify';
+import { toast } from 'sonner';
 import { getAiConfig } from '@/config/ai';
 import { Textarea } from '@/components/ui/textarea';
 import { countTokens } from '@/utils/tokens';
@@ -16,7 +16,8 @@ import { doc, getDoc, collection } from 'firebase/firestore';
 import { useAuth } from '@/hooks/useAuth';
 import { getLocalDateString } from '@/utils/dates';
 import type { MoodEntry } from '@/features/mood/types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Copy } from 'lucide-react';
+import { AiLoadingBar } from '@/features/task/components';
 
 interface JournalAiFeedbackProps {
   entry: string;
@@ -121,9 +122,18 @@ export const JournalAiFeedback: React.FC<JournalAiFeedbackProps> = ({ entry, sel
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? 'Consultando...' : 'Analizar día'}
           </Button>
+          {loading && <AiLoadingBar className="mt-2" />}
           {feedback && (
-            <div className="p-4 bg-muted rounded-md prose max-w-none">
-              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(feedback) }} />
+            <div className="space-y-2">
+              <div className="flex justify-end">
+                <Button type="button" size="icon" variant="ghost" onClick={() => {
+                  navigator.clipboard.writeText(feedback);
+                  toast.success('Texto copiado');
+                }}>
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+              <Textarea readOnly value={feedback} className="max-h-[300px]" />
             </div>
           )}
         </div>

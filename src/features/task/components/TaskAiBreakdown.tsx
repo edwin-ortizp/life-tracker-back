@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Bot, Loader2 } from 'lucide-react';
+import { Bot } from 'lucide-react';
+import { AiLoadingBar } from './AiLoadingBar';
 import { getAiConfig } from '@/config/ai';
 import { countTokens } from '@/utils/tokens';
 
@@ -91,10 +92,10 @@ export const TaskAiBreakdown: React.FC<TaskAiBreakdownProps> = ({ title, descrip
                 <span className="text-red-500">¡Prompt demasiado largo!</span>
               )}
             </p>
-            <Button onClick={getBreakdown} disabled={loading || !apiKey} className="w-full flex items-center justify-center gap-2">
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            <Button onClick={getBreakdown} disabled={loading || !apiKey} className="w-full">
               {loading ? 'Consultando...' : 'Obtener subtareas'}
             </Button>
+            {loading && <AiLoadingBar className="mt-2" />}
             {suggestion && (
               <div className="space-y-2">
                 <Textarea readOnly value={suggestion} className="max-h-[300px]" />

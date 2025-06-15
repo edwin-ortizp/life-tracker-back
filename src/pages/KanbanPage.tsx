@@ -31,6 +31,7 @@ const KanbanPage = () => {
 
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [visibleTasks, setVisibleTasks] = useState<Task[]>([]);
 
   if (!user) {
     return (
@@ -54,7 +55,7 @@ const KanbanPage = () => {
               {status === 'saving' && (
                 <span className="text-xs text-blue-500">Guardando...</span>
               )}              <div className="flex items-center gap-2">
-                <TaskAiMenu tasks={tasks} />
+                <TaskAiMenu tasks={visibleTasks} onUpdate={(id, u) => editTask(id, u)} />
                 <Button onClick={() => openCreateModal()} size="sm">
                   <Plus className="w-4 h-4 mr-2" />
                   Nueva Tarea
@@ -72,6 +73,7 @@ const KanbanPage = () => {
             onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
             onMove={(id, due) => editTask(id, { dueDate: due ?? undefined })}
             onAdd={(due) => openCreateModal(due ?? undefined)}
+            onFilteredTasksChange={setVisibleTasks}
           />
           {error && (
             <p className="text-sm text-red-500 mt-4">

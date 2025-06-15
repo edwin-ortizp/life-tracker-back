@@ -28,6 +28,8 @@ export * from './TaskAiMenu';
 export * from './TaskAiBreakdown';
 export * from './TaskAiImproveDescription';
 export * from './TaskAiIdeas';
+export * from './TaskAiReprioritize';
+export * from './AiLoadingBar';
 export * from './TaskEstimatedTimeInput';
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
@@ -235,7 +237,7 @@ Campos opcionales:
                 Exportar
               </Button>
 
-              <TaskAiMenu tasks={tasks} />
+              <TaskAiMenu tasks={tasks} onUpdate={(id, u) => editTask(id, u)} />
 
               <Button onClick={() => openCreateModal()} size="sm">
                 <Plus className="w-4 h-4 mr-2" />
