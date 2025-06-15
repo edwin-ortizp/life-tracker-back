@@ -1,18 +1,17 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Droplet } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { startOfMonth, endOfMonth } from 'date-fns';
-import { useWaterStatsRange } from '../hooks/useWaterStatsRange';
+import { useExerciseStatsRange } from '../hooks/useExerciseStatsRange';
 import { getLocalDateString } from '@/utils/dates';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Flame } from 'lucide-react';
 
-interface WaterCalendarProps {
+interface ExerciseCalendarProps {
   selectedDate: Date;
   goal?: number;
 }
 
-export const WaterCalendar: React.FC<WaterCalendarProps> = ({ selectedDate, goal = 2500 }) => {
+export const ExerciseCalendar: React.FC<ExerciseCalendarProps> = ({ selectedDate, goal = 500 }) => {
   const [month, setMonth] = useState(startOfMonth(selectedDate));
 
   useEffect(() => {
@@ -22,26 +21,26 @@ export const WaterCalendar: React.FC<WaterCalendarProps> = ({ selectedDate, goal
   const monthStart = useMemo(() => startOfMonth(month), [month]);
   const monthEnd = useMemo(() => endOfMonth(month), [month]);
 
-  const { stats, loading } = useWaterStatsRange(monthStart, monthEnd);
+  const { stats, loading } = useExerciseStatsRange(monthStart, monthEnd);
 
-  const intakeMap = useMemo(() => {
+  const calorieMap = useMemo(() => {
     const map: Record<string, number> = {};
-    stats?.dailyStats.forEach(({ date, intake }) => {
-      map[date] = intake;
+    stats?.dailyStats.forEach(({ date, calories }) => {
+      map[date] = calories;
     });
     return map;
   }, [stats]);
 
   const DayContent = (props: { date: Date; displayMonth: Date; activeModifiers: Record<string, boolean> }) => {
     const dateStr = getLocalDateString(props.date);
-    const intake = intakeMap[dateStr] || 0;
-    const percentage = Math.min(intake / goal, 1);
+    const calories = calorieMap[dateStr] || 0;
+    const percentage = Math.min(calories / goal, 1);
     const size = 28;
     const stroke = 3;
     const radius = (size - stroke) / 2;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - percentage * circumference;
-    const reached = intake >= goal;
+    const reached = calories >= goal;
 
     return (
       <div className="relative flex items-center justify-center w-7 h-7">
@@ -50,7 +49,7 @@ export const WaterCalendar: React.FC<WaterCalendarProps> = ({ selectedDate, goal
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={reached ? '#bfdbfe' : '#e5e7eb'}
+            stroke={reached ? '#fed7aa' : '#e5e7eb'}
             strokeWidth={stroke}
             fill="none"
           />
@@ -58,7 +57,7 @@ export const WaterCalendar: React.FC<WaterCalendarProps> = ({ selectedDate, goal
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={reached ? '#3b82f6' : '#9ca3af'}
+            stroke={reached ? '#f97316' : '#9ca3af'}
             strokeWidth={stroke}
             fill="none"
             strokeDasharray={circumference}
@@ -75,7 +74,7 @@ export const WaterCalendar: React.FC<WaterCalendarProps> = ({ selectedDate, goal
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-col items-center gap-2">
-        <Droplet className="w-5 h-5 text-blue-600" />
+        <Flame className="w-5 h-5 text-orange-600" />
         <CardTitle className="text-center">Historial Mensual</CardTitle>
       </CardHeader>
       <CardContent className="relative p-4">
@@ -96,4 +95,4 @@ export const WaterCalendar: React.FC<WaterCalendarProps> = ({ selectedDate, goal
   );
 };
 
-export default WaterCalendar;
+export default ExerciseCalendar;
