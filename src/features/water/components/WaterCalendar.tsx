@@ -18,7 +18,10 @@ export const WaterCalendar: React.FC<WaterCalendarProps> = ({ selectedDate, goal
     setMonth(startOfMonth(selectedDate));
   }, [selectedDate]);
 
-  const { stats, loading } = useWaterStatsRange(startOfMonth(month), endOfMonth(month));
+  const monthStart = useMemo(() => startOfMonth(month), [month]);
+  const monthEnd = useMemo(() => endOfMonth(month), [month]);
+
+  const { stats, loading } = useWaterStatsRange(monthStart, monthEnd);
 
   const intakeMap = useMemo(() => {
     const map: Record<string, number> = {};
@@ -69,11 +72,11 @@ export const WaterCalendar: React.FC<WaterCalendarProps> = ({ selectedDate, goal
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full md:max-w-sm mx-auto">
       <CardHeader>
         <CardTitle>Historial Mensual</CardTitle>
       </CardHeader>
-      <CardContent className="relative">
+      <CardContent className="relative p-4">
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
             <Loader2 className="w-6 h-6 animate-spin" />
@@ -84,7 +87,7 @@ export const WaterCalendar: React.FC<WaterCalendarProps> = ({ selectedDate, goal
           onMonthChange={setMonth}
           showOutsideDays
           components={{ DayContent }}
-          className="p-0"
+          className="p-0 w-full"
         />
       </CardContent>
     </Card>
