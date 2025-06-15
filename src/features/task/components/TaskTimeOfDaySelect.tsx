@@ -8,6 +8,8 @@ interface TaskTimeOfDaySelectProps {
   onChange: (value?: TimeOfDay) => void;
 }
 
+const UNASSIGNED_VALUE = 'none';
+
 export const TaskTimeOfDaySelect: React.FC<TaskTimeOfDaySelectProps> = ({ value, onChange }) => {
   return (
     <div className="space-y-2">
@@ -15,7 +17,10 @@ export const TaskTimeOfDaySelect: React.FC<TaskTimeOfDaySelectProps> = ({ value,
         <Clock className="w-4 h-4" />
         Momento del día
       </label>
-      <Select value={value || ''} onValueChange={(v) => onChange(v as TimeOfDay)}>
+      <Select
+        value={value || UNASSIGNED_VALUE}
+        onValueChange={(v) => onChange(v === UNASSIGNED_VALUE ? undefined : (v as TimeOfDay))}
+      >
         <SelectTrigger>
           <SelectValue placeholder="Sin asignar">
             {value ? TIME_OF_DAY_LABELS[value] : 'Sin asignar'}
@@ -27,7 +32,7 @@ export const TaskTimeOfDaySelect: React.FC<TaskTimeOfDaySelectProps> = ({ value,
               {TIME_OF_DAY_LABELS[t as TimeOfDay]}
             </SelectItem>
           ))}
-          <SelectItem value="">Sin asignar</SelectItem>
+          <SelectItem value={UNASSIGNED_VALUE}>Sin asignar</SelectItem>
         </SelectContent>
       </Select>
     </div>
