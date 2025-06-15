@@ -60,6 +60,7 @@ export const useTaskData = () => {
               completed: data.completed,
               createdAt: data.createdAt,
               dueDate: data.dueDate?.toDate(),
+              calendarEventId: data.calendarEventId,
               isRecurrent: data.isRecurrent || false,
               isPrivate: data.isPrivate || false,
               category: data.category || 'other',
@@ -125,6 +126,10 @@ export const useTaskData = () => {
         taskData.dueDate = Timestamp.fromDate(formData.dueDate);
       }
 
+      if (formData.calendarEventId) {
+        taskData.calendarEventId = formData.calendarEventId;
+      }
+
       if (formData.isPrivate) {
         taskData.isPrivate = true;
       }
@@ -167,6 +172,9 @@ export const useTaskData = () => {
       }
       if (updates.dueDate !== undefined) {
         updateData.dueDate = updates.dueDate ? Timestamp.fromDate(updates.dueDate) : null;
+      }
+      if (updates.calendarEventId !== undefined) {
+        updateData.calendarEventId = updates.calendarEventId || null;
       }
       if (updates.category) {
         updateData.category = updates.category;

@@ -9,15 +9,17 @@ interface TaskGroupProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
+  onExport?: (task: Task) => void;
 }
 
-export const TaskGroup: React.FC<TaskGroupProps> = ({ 
-  title, 
-  tasks, 
+export const TaskGroup: React.FC<TaskGroupProps> = ({
+  title,
+  tasks,
   onToggle,
   onDelete,
   onEdit,
-  onView
+  onView,
+  onExport
 }) => {
   if (tasks.length === 0) return null;
 
@@ -55,6 +57,7 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}
+          onExport={onExport}
           variant="list"
         />
       ))}

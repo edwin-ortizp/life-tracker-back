@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { TaskAiMenu } from './TaskAiMenu';
+import { createEventFromTask } from '@/utils/googleCalendar';
 
 // Exports
 export * from './TaskKanban';
@@ -144,6 +145,17 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
     });
   };
 
+  const handleExportToCalendar = async (task: TaskType) => {
+    try {
+      const event = await createEventFromTask(task);
+      await editTask(task.id, { calendarEventId: event.id });
+      toast.success('Tarea exportada a Google Calendar');
+    } catch (err) {
+      console.error('Calendar export error', err);
+      toast.error('Error al exportar a Google Calendar');
+    }
+  };
+
   if (!user) {
     return (
       <Card>
@@ -261,6 +273,7 @@ Campos opcionales:
               onDelete={deleteTask}
               onEdit={openEditModal}
               onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
+              onExport={handleExportToCalendar}
             />
 
             {error && (

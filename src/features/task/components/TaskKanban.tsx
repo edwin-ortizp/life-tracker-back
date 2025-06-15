@@ -37,6 +37,7 @@ interface TaskKanbanProps {
   onMove: (taskId: string, dueDate: Date | null) => void;
   onAdd: (dueDate?: Date | null) => void;
   onFilteredTasksChange?: (tasks: Task[]) => void;
+  onExport?: (task: Task) => void;
 }
 
 type DateFilter = 'all' | 'today' | 'tomorrow' | 'week' | 'month' | 'overdue' | 'noDate';
@@ -106,7 +107,8 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
   onView,
   onMove,
   onAdd,
-  onFilteredTasksChange
+  onFilteredTasksChange,
+  onExport
 }) => {
   const [dragging, setDragging] = useState<Task | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Task['category'] | 'all'>('all');
@@ -643,6 +645,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
                   onEdit={onEdit}
                   onView={onView}
                   onMove={onMove}
+                  onExport={onExport}
                   variant="kanban"
                   showCategoryLabel={selectedCategory === 'all'}
                 />

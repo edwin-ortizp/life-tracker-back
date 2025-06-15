@@ -9,6 +9,7 @@ import { PriorityLegend } from '@/features/task/components/PriorityLegend';
 import { RecurrenceModal } from '@/features/task/components/RecurrenceModal';
 import { useTaskData } from '@/features/task/hooks/useTaskData';
 import type { Task } from '@/features/task/types';
+import { createEventFromTask } from '@/utils/googleCalendar';
 
 const KanbanPage = () => {
   const { user } = useAuth();
@@ -32,6 +33,15 @@ const KanbanPage = () => {
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [visibleTasks, setVisibleTasks] = useState<Task[]>([]);
+
+  const handleExportToCalendar = async (task: Task) => {
+    try {
+      const event = await createEventFromTask(task);
+      await editTask(task.id, { calendarEventId: event.id });
+    } catch (err) {
+      console.error('Calendar export error', err);
+    }
+  };
 
   if (!user) {
     return (
@@ -74,6 +84,7 @@ const KanbanPage = () => {
             onMove={(id, due) => editTask(id, { dueDate: due ?? undefined })}
             onAdd={(due) => openCreateModal(due ?? undefined)}
             onFilteredTasksChange={setVisibleTasks}
+            onExport={handleExportToCalendar}
           />
           {error && (
             <p className="text-sm text-red-500 mt-4">

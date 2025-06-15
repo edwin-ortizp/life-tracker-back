@@ -71,6 +71,7 @@ interface TaskItemProps {
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
   onMove?: (taskId: string, dueDate: Date | null) => void;
+  onExport?: (task: Task) => void;
   variant?: 'list' | 'kanban';
   showCategoryLabel?: boolean;
 }
@@ -258,8 +259,9 @@ const TaskActions = memo<{
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
   onMove?: (taskId: string, dueDate: Date | null) => void;
+  onExport?: (task: Task) => void;
   variant: 'list' | 'kanban';
-}>(({ task, onEdit, onDelete, onMove, variant }) => {
+}>(({ task, onEdit, onDelete, onMove, onExport, variant }) => {
   const handleSetToday = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onMove?.(task.id, toNoon(new Date()));
@@ -283,6 +285,11 @@ const TaskActions = memo<{
   const handleDelete = useCallback(() => {
     onDelete(task.id);
   }, [onDelete, task.id]);
+
+  const handleExport = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onExport?.(task);
+  }, [onExport, task]);
 
   const buttonClassName = cn(
     BUTTON_SIZES.medium,
@@ -337,6 +344,17 @@ const TaskActions = memo<{
         >
           <Edit className={cn(ICON_SIZES.medium, 'md:w-3 md:h-3 text-muted-foreground')} />
         </ActionButton>
+        {onExport && (
+          <ActionButton
+            variant="ghost"
+            size="icon"
+            className={buttonClassName}
+            title="Enviar a Google Calendar"
+            onClick={handleExport}
+          >
+            <Calendar className={cn(ICON_SIZES.medium, 'md:w-3 md:h-3')} />
+          </ActionButton>
+        )}
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <ActionButton

@@ -44,6 +44,8 @@ export interface Task {
     seconds: number;
   };
   dueDate?: Date;
+  /** ID del evento asociado en Google Calendar */
+  calendarEventId?: string;
   isRecurrent?: boolean;
   isPrivate?: boolean;
   category: TaskCategory;
@@ -75,6 +77,8 @@ export interface TaskFormData {
   title: string;
   description?: string;
   dueDate?: Date;
+  /** Permite vincular con un evento existente */
+  calendarEventId?: string;
   isRecurrent?: boolean;
   isPrivate?: boolean;
   category: TaskCategory;

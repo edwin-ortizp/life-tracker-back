@@ -10,6 +10,7 @@ import { RecurrenceModal } from './RecurrenceModal';
 import { useTaskData } from '../hooks/useTaskData';
 import type { Task } from '../types';
 import { isSameDay } from 'date-fns';
+import { createEventFromTask } from '@/utils/googleCalendar';
 import {
   Dialog,
   DialogContent,
@@ -145,6 +146,17 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
     });
   };
 
+  const handleExportToCalendar = async (task: Task) => {
+    try {
+      const event = await createEventFromTask(task);
+      await editTask(task.id, { calendarEventId: event.id });
+      toast.success('Tarea exportada a Google Calendar');
+    } catch (err) {
+      console.error('Calendar export error', err);
+      toast.error('Error al exportar a Google Calendar');
+    }
+  };
+
   return (
     <Card className="w-full mt-4">
       <CardHeader>
@@ -173,6 +185,7 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
                   onDelete={deleteTask}
                   onEdit={openEditModal}
                   onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
+                  onExport={handleExportToCalendar}
                   variant="list"
                 />
               ))}
@@ -195,6 +208,7 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
                   onDelete={deleteTask}
                   onEdit={openEditModal}
                   onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
+                  onExport={handleExportToCalendar}
                   variant="list"
                 />
               ))}
