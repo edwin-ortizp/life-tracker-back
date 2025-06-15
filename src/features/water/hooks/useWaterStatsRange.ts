@@ -43,6 +43,7 @@ export const useWaterStatsRange = (startDate: Date, endDate: Date) => {
 
   useEffect(() => {
     const fetchRangeStats = async () => {
+      setStats(null);
       if (!user) return;
 
       setLoading(true);

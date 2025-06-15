@@ -73,21 +73,19 @@ export const WaterCalendar: React.FC<WaterCalendarProps> = ({ selectedDate, goal
       <CardHeader>
         <CardTitle>Historial Mensual</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative">
         {loading && (
-          <div className="flex justify-center p-6">
+          <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
             <Loader2 className="w-6 h-6 animate-spin" />
           </div>
         )}
-        {!loading && (
-          <Calendar
-            month={month}
-            onMonthChange={setMonth}
-            showOutsideDays
-            components={{ DayContent }}
-            className="p-0"
-          />
-        )}
+        <Calendar
+          month={month}
+          onMonthChange={setMonth}
+          showOutsideDays
+          components={{ DayContent }}
+          className="p-0"
+        />
       </CardContent>
     </Card>
   );
