@@ -17,7 +17,9 @@ import { TaskDateInput } from './TaskDateInput';
 import { TaskCategorySelect } from './TaskCategorySelect';
 import TaskEstimatedTimeInput from './TaskEstimatedTimeInput';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Link as LinkIcon } from 'lucide-react';
 import { TaskRecurrenceConfig } from './TaskRecurrenceConfig';
 import { useRecurrenceLogic } from '../hooks/useRecurrenceLogic';
 import type { RecurrenceModalProps, TaskFormData } from '../types';
@@ -43,7 +45,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
         isPrivate: task.isPrivate || false,
         priority: 'delete',
         size: 'peque\u00f1a',
-        estimatedTime: undefined
+        estimatedTime: undefined,
+        calendarEventId: undefined
       };
     }
     
@@ -57,8 +60,9 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
       recurrence: task.recurrence,
       priority: task.priority || 'delete',
       size: task.size || 'peque\u00f1a',
-      estimatedTime: task.estimatedTime
-    };
+      estimatedTime: task.estimatedTime,
+      calendarEventId: task.calendarEventId
+      };
   });
 
   const [urgent, setUrgent] = useState<boolean>(() => {
@@ -229,6 +233,20 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                   label="Próxima fecha"
                 />
               )
+            )}
+
+            {mode !== 'complete' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <LinkIcon className="w-4 h-4" />
+                  ID de evento de Calendar
+                </label>
+                <Input
+                  value={formData.calendarEventId || ''}
+                  onChange={(e) => setFormData({ ...formData, calendarEventId: e.target.value })}
+                  placeholder="Opcional"
+                />
+              </div>
             )}
 
             {mode !== 'complete' && (

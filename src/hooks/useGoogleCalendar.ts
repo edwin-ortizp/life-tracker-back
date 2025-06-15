@@ -11,10 +11,11 @@ const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 export function useGoogleCalendar() {
   const [ready, setReady] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const available = Boolean(apiKey && clientId);
 
   useEffect(() => {
-    if (!apiKey || !clientId) return;
-    initGoogleClient(apiKey, clientId)
+    if (!available) return;
+    initGoogleClient(apiKey!, clientId!)
       .then(() => {
         const gapi = (window as any).gapi;
         const auth = gapi.auth2.getAuthInstance();
@@ -31,5 +32,5 @@ export function useGoogleCalendar() {
   const signIn = () => signInCalendar();
   const signOut = () => signOutCalendar();
 
-  return { ready, signedIn, signIn, signOut };
+  return { ready, signedIn, signIn, signOut, available };
 }

@@ -145,6 +145,10 @@ añadir parámetros extra como `temperature` o `top_p`.
 Los eventos enviados a Google Calendar usan el campo `dueDate` de cada tarea
 como hora de inicio y fin.
 
+Al definir `VITE_GOOGLE_API_KEY` y `VITE_GOOGLE_CLIENT_ID` podrás ver un botón
+**Conectar Calendar** en la sección de tareas. Tras iniciar sesión se habilita
+el botón **Importar desde Calendar** para crear tareas a partir de eventos.
+
 ## Módulo de Lista de Compras
 
 El módulo de compras permite gestionar elementos en vistas de tipo Kanban o lista. Los datos se guardan en **Firestore** dentro de la colección `shopping-list` mediante el hook `useShoppingList`.

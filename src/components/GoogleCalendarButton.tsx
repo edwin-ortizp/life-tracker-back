@@ -3,9 +3,23 @@ import { Button } from '@/components/ui/button';
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 
 const GoogleCalendarButton: React.FC = () => {
-  const { ready, signedIn, signIn, signOut } = useGoogleCalendar();
+  const { ready, signedIn, signIn, signOut, available } = useGoogleCalendar();
 
-  if (!ready) return null;
+  if (!available) {
+    return (
+      <Button size="sm" variant="outline" disabled title="Configura las variables de Google Calendar">
+        Calendar no disponible
+      </Button>
+    );
+  }
+
+  if (!ready) {
+    return (
+      <Button size="sm" variant="outline" disabled>
+        Cargando...
+      </Button>
+    );
+  }
 
   return signedIn ? (
     <Button size="sm" variant="outline" onClick={signOut}>

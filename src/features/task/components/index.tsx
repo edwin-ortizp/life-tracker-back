@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { TaskAiMenu } from './TaskAiMenu';
 import { createEventFromTask } from '@/utils/googleCalendar';
 import GoogleCalendarButton from '@/components/GoogleCalendarButton';
+import CalendarImportDialog from './CalendarImportDialog';
 
 // Exports
 export * from './TaskKanban';
@@ -146,6 +147,26 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
     });
   };
 
+  const handleImportEvents = (events: { id: string; title: string; description?: string; dueDate?: Date }[]) => {
+    let imported = 0;
+    events.forEach(evt => {
+      if (tasks.some(t => t.calendarEventId === evt.id)) return;
+      addTask({
+        title: evt.title,
+        description: evt.description,
+        dueDate: evt.dueDate,
+        calendarEventId: evt.id,
+        category: 'personal'
+      });
+      imported++;
+    });
+    if (imported > 0) {
+      toast.success(`${imported} eventos importados`);
+    } else {
+      toast.message('No se importaron eventos nuevos');
+    }
+  };
+
   const handleExportToCalendar = async (task: TaskType) => {
     try {
       const event = await createEventFromTask(task);
@@ -251,6 +272,7 @@ Campos opcionales:
               </Button>
 
               <GoogleCalendarButton />
+              <CalendarImportDialog onImport={handleImportEvents} />
 
               <TaskAiMenu tasks={tasks} onUpdate={(id, u) => editTask(id, u)} />
 
