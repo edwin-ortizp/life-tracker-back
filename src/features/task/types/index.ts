@@ -35,6 +35,20 @@ export const CATEGORY_COLORS: Record<TaskCategory, { bg: string, text: string }>
   other: { bg: 'bg-gray-100', text: 'text-gray-700' }
 };
 
+export const TIME_OF_DAY = {
+  MORNING: 'morning',
+  AFTERNOON: 'afternoon',
+  EVENING: 'evening'
+} as const;
+
+export type TimeOfDay = typeof TIME_OF_DAY[keyof typeof TIME_OF_DAY];
+
+export const TIME_OF_DAY_LABELS: Record<TimeOfDay, string> = {
+  morning: 'Mañana',
+  afternoon: 'Tarde',
+  evening: 'Noche'
+};
+
 export interface Task {
   id: string;
   title: string;
@@ -56,6 +70,7 @@ export interface Task {
   priority?: 'do' | 'decide' | 'delegate' | 'delete';
   size?: 'pequeña' | 'mediana' | 'grande';
   estimatedTime?: number;
+  timeOfDay?: TimeOfDay;
 }
 
 export interface TaskProps {
@@ -87,4 +102,5 @@ export interface TaskFormData {
   priority?: 'do' | 'decide' | 'delegate' | 'delete';
   size?: 'peque\u00f1a' | 'mediana' | 'grande';
   estimatedTime?: number;
+  timeOfDay?: TimeOfDay;
 }

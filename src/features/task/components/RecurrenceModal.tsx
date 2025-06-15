@@ -16,6 +16,7 @@ import TaskAiIdeas from './TaskAiIdeas';
 import { TaskDateInput } from './TaskDateInput';
 import { TaskCategorySelect } from './TaskCategorySelect';
 import TaskEstimatedTimeInput from './TaskEstimatedTimeInput';
+import TaskTimeOfDaySelect from './TaskTimeOfDaySelect';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { TaskRecurrenceConfig } from './TaskRecurrenceConfig';
@@ -43,7 +44,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
         isPrivate: task.isPrivate || false,
         priority: 'delete',
         size: 'peque\u00f1a',
-        estimatedTime: undefined
+        estimatedTime: undefined,
+        timeOfDay: undefined
       };
     }
     
@@ -57,7 +59,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
       recurrence: task.recurrence,
       priority: task.priority || 'delete',
       size: task.size || 'peque\u00f1a',
-      estimatedTime: task.estimatedTime
+      estimatedTime: task.estimatedTime,
+      timeOfDay: task.timeOfDay
     };
   });
 
@@ -80,7 +83,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
             isPrivate: task.isPrivate || false,
             priority: 'delete',
             size: 'peque\u00f1a',
-            estimatedTime: undefined
+            estimatedTime: undefined,
+            timeOfDay: undefined
           });
         setUrgent(false);
         setImportant(false);
@@ -96,7 +100,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
             recurrence: task.recurrence,
             priority: task.priority || 'delete',
             size: task.size || 'peque\u00f1a',
-            estimatedTime: task.estimatedTime
+            estimatedTime: task.estimatedTime,
+            timeOfDay: task.timeOfDay
           });
         setUrgent(task.priority === 'do' || task.priority === 'delegate');
         setImportant(task.priority === 'do' || task.priority === 'decide');
@@ -229,6 +234,13 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                   label="Próxima fecha"
                 />
               )
+            )}
+
+            {mode !== 'complete' && (
+              <TaskTimeOfDaySelect
+                value={formData.timeOfDay}
+                onChange={(v) => setFormData({ ...formData, timeOfDay: v })}
+              />
             )}
 
             {mode !== 'complete' && (

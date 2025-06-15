@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Task } from '@/features/task/components';
-import DateSelector from '@/components/DateSelector';
+import { Task, TaskWeekView } from '@/features/task/components';
 import PageLayout from '@/components/PageLayout';
+import DateSelector from '@/components/DateSelector';
 import {
   LineChart,
   Line,
@@ -98,12 +98,17 @@ const TaskPage = () => {
         <TabsList>
           <TabsTrigger value="list">Lista de Tareas</TabsTrigger>
           <TabsTrigger value="analytics">Análisis</TabsTrigger>
+          <TabsTrigger value="week">Calendario</TabsTrigger>
           <TabsTrigger value="settings">Configuración</TabsTrigger>
         </TabsList>
 
         <TabsContent value="list" className="space-y-4">
           <Task selectedDate={selectedDate} />
-        </TabsContent>        <TabsContent value="analytics" className="space-y-4">
+        </TabsContent>
+        <TabsContent value="week" className="space-y-4">
+          <TaskWeekView />
+        </TabsContent>
+        <TabsContent value="analytics" className="space-y-4">
           <div className="grid md:grid-cols-2 xl:grid-cols-2 gap-4 lg:gap-6 xl:gap-8 desktop-grid-responsive">
             <Card className="desktop-card-enhanced">
               <CardContent className="pt-6">

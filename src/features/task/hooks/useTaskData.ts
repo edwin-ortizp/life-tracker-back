@@ -66,6 +66,7 @@ export const useTaskData = () => {
               priority: data.priority || 'delete',
               size: data.size || 'peque\u00f1a',
               estimatedTime: data.estimatedTime,
+              timeOfDay: data.timeOfDay,
               recurrence: data.recurrence ? {
                 frequency: data.recurrence.frequency,
                 pattern: data.recurrence.pattern,
@@ -114,7 +115,8 @@ export const useTaskData = () => {
         category: formData.category || 'other',
         priority: formData.priority || 'delete',
         size: formData.size || 'peque\u00f1a',
-        ...(formData.estimatedTime !== undefined && { estimatedTime: formData.estimatedTime })
+        ...(formData.timeOfDay && { timeOfDay: formData.timeOfDay }),
+        ...(formData.estimatedTime !== undefined && { estimatedTime: formData.estimatedTime }),
       };
 
       if (formData.description?.trim()) {
@@ -178,6 +180,9 @@ export const useTaskData = () => {
       }
       if (updates.estimatedTime !== undefined) {
         updateData.estimatedTime = updates.estimatedTime;
+      }
+      if (updates.timeOfDay) {
+        updateData.timeOfDay = updates.timeOfDay;
       }
       if (updates.isPrivate !== undefined) {
         updateData.isPrivate = updates.isPrivate;
@@ -276,6 +281,7 @@ export const useTaskData = () => {
         category: currentTask.category,
         priority: currentTask.priority || 'delete',
         size: currentTask.size || 'peque\u00f1a',
+        ...(data.timeOfDay && { timeOfDay: data.timeOfDay }),
         recurrence: {
           pattern: currentTask.recurrence?.pattern || 'daily',
           frequency: currentTask.recurrence?.frequency || 1,
@@ -309,7 +315,8 @@ export const useTaskData = () => {
       size: 'peque\u00f1a',
       createdAt: { seconds: Date.now() / 1000 },
       ...(dueDate ? { dueDate } : {}),
-      ...(isPrivate ? { isPrivate: true } : {})
+      ...(isPrivate ? { isPrivate: true } : {}),
+      timeOfDay: undefined
     });
     setShowRecurrenceModal(true);
   }, []);
