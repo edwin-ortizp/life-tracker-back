@@ -140,6 +140,14 @@ Esta clave permite conectar con la API de Gemini. El modelo y el mensaje base
 para cada módulo se configuran ahora en `src/config/ai.ts`, donde también puedes
 añadir parámetros extra como `temperature` o `top_p`.
 
+## Integración con Google Calendar
+
+El sistema de tareas puede sincronizarse manualmente con Google Calendar. Al iniciar
+sesión se solicita permiso para gestionar eventos. Luego, mediante el hook
+`useGoogleCalendar`, es posible exportar una tarea como evento o importar eventos
+seleccionados para convertirlos en tareas. Cada tarea puede almacenar el ID del
+evento asociado para evitar duplicados y mantener el vínculo con el calendario.
+
 ## Módulo de Lista de Compras
 
 El módulo de compras permite gestionar elementos en vistas de tipo Kanban o lista. Los datos se guardan en **Firestore** dentro de la colección `shopping-list` mediante el hook `useShoppingList`.

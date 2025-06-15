@@ -53,7 +53,8 @@ export const useTaskData = () => {
       (snapshot) => {
         const taskList = snapshot.docs
           .map(doc => {
-            const data = doc.data();            return {
+            const data = doc.data();
+            return {
               id: doc.id,
               title: data.title,
               description: data.description || '',
@@ -66,6 +67,7 @@ export const useTaskData = () => {
               priority: data.priority || 'delete',
               size: data.size || 'peque\u00f1a',
               estimatedTime: data.estimatedTime,
+              calendarEventId: data.calendarEventId,
               recurrence: data.recurrence ? {
                 frequency: data.recurrence.frequency,
                 pattern: data.recurrence.pattern,
@@ -106,7 +108,7 @@ export const useTaskData = () => {
     setStatus('saving');
     setError(null);
 
-    try {      const taskData: any = {
+      try {      const taskData: any = {
         userId: user.uid,
         title: formData.title.trim(),
         completed: false,
@@ -127,6 +129,10 @@ export const useTaskData = () => {
 
       if (formData.isPrivate) {
         taskData.isPrivate = true;
+      }
+
+      if (formData.calendarEventId) {
+        taskData.calendarEventId = formData.calendarEventId;
       }
 
       if (formData.isRecurrent && formData.recurrence) {
@@ -178,6 +184,9 @@ export const useTaskData = () => {
       }
       if (updates.estimatedTime !== undefined) {
         updateData.estimatedTime = updates.estimatedTime;
+      }
+      if (updates.calendarEventId !== undefined) {
+        updateData.calendarEventId = updates.calendarEventId;
       }
       if (updates.isPrivate !== undefined) {
         updateData.isPrivate = updates.isPrivate;

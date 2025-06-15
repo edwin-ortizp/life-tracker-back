@@ -56,6 +56,7 @@ export interface Task {
   priority?: 'do' | 'decide' | 'delegate' | 'delete';
   size?: 'pequeña' | 'mediana' | 'grande';
   estimatedTime?: number;
+  calendarEventId?: string;
 }
 
 export interface TaskProps {
@@ -87,4 +88,5 @@ export interface TaskFormData {
   priority?: 'do' | 'decide' | 'delegate' | 'delete';
   size?: 'peque\u00f1a' | 'mediana' | 'grande';
   estimatedTime?: number;
+  calendarEventId?: string;
 }
