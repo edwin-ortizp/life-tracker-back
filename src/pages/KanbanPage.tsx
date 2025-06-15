@@ -10,6 +10,7 @@ import { RecurrenceModal } from '@/features/task/components/RecurrenceModal';
 import { useTaskData } from '@/features/task/hooks/useTaskData';
 import type { Task } from '@/features/task/types';
 import { createEventFromTask } from '@/utils/googleCalendar';
+import GoogleCalendarButton from '@/components/GoogleCalendarButton';
 
 const KanbanPage = () => {
   const { user } = useAuth();
@@ -64,7 +65,9 @@ const KanbanPage = () => {
             <CardTitle>Tareas</CardTitle>            <div className="flex items-center gap-4">
               {status === 'saving' && (
                 <span className="text-xs text-blue-500">Guardando...</span>
-              )}              <div className="flex items-center gap-2">
+              )}
+              <GoogleCalendarButton />
+              <div className="flex items-center gap-2">
                 <TaskAiMenu tasks={visibleTasks} onUpdate={(id, u) => editTask(id, u)} />
                 <Button onClick={() => openCreateModal()} size="sm">
                   <Plus className="w-4 h-4 mr-2" />

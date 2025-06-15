@@ -134,11 +134,16 @@ Crea un archivo `.env` en la raíz del proyecto basado en `.env.example` y defin
 
 ```
 VITE_GEMINI_API_KEY=tu_clave
+VITE_GOOGLE_API_KEY=tu_api_key
+VITE_GOOGLE_CLIENT_ID=tu_client_id
 ```
 
 Esta clave permite conectar con la API de Gemini. El modelo y el mensaje base
 para cada módulo se configuran ahora en `src/config/ai.ts`, donde también puedes
 añadir parámetros extra como `temperature` o `top_p`.
+
+Los eventos enviados a Google Calendar usan el campo `dueDate` de cada tarea
+como hora de inicio y fin.
 
 ## Módulo de Lista de Compras
 

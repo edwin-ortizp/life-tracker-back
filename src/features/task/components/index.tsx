@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner';
 import { TaskAiMenu } from './TaskAiMenu';
 import { createEventFromTask } from '@/utils/googleCalendar';
+import GoogleCalendarButton from '@/components/GoogleCalendarButton';
 
 // Exports
 export * from './TaskKanban';
@@ -248,6 +249,8 @@ Campos opcionales:
                 <Download className="w-4 h-4 mr-2" />
                 Exportar
               </Button>
+
+              <GoogleCalendarButton />
 
               <TaskAiMenu tasks={tasks} onUpdate={(id, u) => editTask(id, u)} />
 
