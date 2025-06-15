@@ -18,7 +18,7 @@ export const AiLoadingBar: React.FC<AiLoadingBarProps> = ({ className }) => {
         }
         return next;
       });
-    }, 300);
+    }, 500);
     return () => clearInterval(id);
   }, []);
 
