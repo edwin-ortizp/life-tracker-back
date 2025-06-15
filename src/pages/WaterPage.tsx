@@ -3,6 +3,7 @@ import DateSelector from '@/components/DateSelector';
 import { StatsPeriodSelector } from '@/features/water/components/StatsPeriodSelector';
 import { RangeStats } from '@/features/water/components/RangeStats';
 import Water from '@/features/water/components';
+import { WaterCalendar } from '@/features/water/components/WaterCalendar';
 import { WeeklyStats } from '@/features/water/components/WeeklyStats';
 import PageLayout from '@/components/PageLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -55,10 +56,15 @@ const WaterPage: React.FC = () => {
             selectedDate={selectedDate}
             onChange={setSelectedDate}
           />
-          
-          <div className="grid gap-6">
-            <Water selectedDate={selectedDate} />
-            <WeeklyStats selectedDate={selectedDate} />
+
+          <div className="grid gap-6 md:grid-cols-[1fr_300px]">
+            <div className="space-y-6">
+              <Water selectedDate={selectedDate} />
+              <WeeklyStats selectedDate={selectedDate} />
+            </div>
+            <div>
+              <WaterCalendar selectedDate={selectedDate} />
+            </div>
           </div>
         </TabsContent>
 

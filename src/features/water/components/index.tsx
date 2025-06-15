@@ -91,6 +91,7 @@ export const Water: React.FC<WaterProps> = ({ selectedDate }) => {
 export * from './WaterProgress';
 export * from './DrinkSelector';
 export * from './DrinkHistory';
+export * from './WaterCalendar';
 
 // Default export for the main component
 export default Water;

@@ -1,6 +1,6 @@
 // src/pages/ExercisePage.tsx
 import React, { useState, useRef } from 'react';
-import Exercise from '@/features/exercise/components';
+import Exercise, { ExerciseCalendar } from '@/features/exercise/components';
 
 import DateSelector from '@/components/DateSelector';
 import { Card, CardContent } from '@/components/ui/card';
@@ -37,7 +37,7 @@ const ExercisePage: React.FC = () => {
   }
 
   return (
-    <PageLayout 
+    <PageLayout
       showFloatingButton={true}
       onFloatingButtonClick={handleFloatingButtonClick}
       floatingButtonLabel="Agregar ejercicio"
@@ -51,8 +51,11 @@ const ExercisePage: React.FC = () => {
         selectedDate={selectedDate}
         onChange={setSelectedDate}
       />
-      
-      <Exercise ref={exerciseRef} selectedDate={selectedDate} />
+
+      <div className="grid gap-6 md:grid-cols-[1fr_300px]">
+        <Exercise ref={exerciseRef} selectedDate={selectedDate} />
+        <ExerciseCalendar selectedDate={selectedDate} />
+      </div>
     </PageLayout>
   );
 };
