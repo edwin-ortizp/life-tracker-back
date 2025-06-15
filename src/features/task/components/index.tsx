@@ -34,6 +34,7 @@ export * from './TaskEstimatedTimeInput';
 export * from "./TaskTimeOfDaySelect";
 export * from "./TaskWeeklyCalendar";
 export * from "./TaskWeekView";
+export * from "./TaskKanbanView";
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { useTaskData } from '../hooks/useTaskData';

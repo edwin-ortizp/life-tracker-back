@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Task, TaskWeekView } from '@/features/task/components';
+import { Task, TaskWeekView, TaskKanbanView } from '@/features/task/components';
 import PageLayout from '@/components/PageLayout';
 import DateSelector from '@/components/DateSelector';
 import {
@@ -24,7 +24,11 @@ import { collection, query, where, getDocs, orderBy, limit } from 'firebase/fire
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-const TaskPage = () => {
+interface TaskPageProps {
+  defaultTab?: 'list' | 'kanban' | 'analytics' | 'week' | 'settings';
+}
+
+const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [taskStats, setTaskStats] = useState<any[]>([]);
   const [completionStats, setCompletionStats] = useState<any[]>([]);
@@ -94,9 +98,10 @@ const TaskPage = () => {
         onChange={setSelectedDate}
       />
 
-      <Tabs defaultValue="list" className="space-y-4">
+      <Tabs defaultValue={defaultTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="list">Lista de Tareas</TabsTrigger>
+          <TabsTrigger value="kanban">Kanban</TabsTrigger>
           <TabsTrigger value="analytics">Análisis</TabsTrigger>
           <TabsTrigger value="week">Calendario</TabsTrigger>
           <TabsTrigger value="settings">Configuración</TabsTrigger>
@@ -104,6 +109,9 @@ const TaskPage = () => {
 
         <TabsContent value="list" className="space-y-4">
           <Task selectedDate={selectedDate} />
+        </TabsContent>
+        <TabsContent value="kanban" className="space-y-4">
+          <TaskKanbanView />
         </TabsContent>
         <TabsContent value="week" className="space-y-4">
           <TaskWeekView />
