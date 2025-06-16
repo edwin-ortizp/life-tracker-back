@@ -7,6 +7,7 @@ import {
 } from 'date-fns';
 import { Task, TimeOfDay, TIME_OF_DAY_LABELS } from '../types';
 import { TaskItem } from './TaskItem';
+import { UnassignedTaskItem } from './UnassignedTaskItem';
 
 interface TaskWeeklyCalendarProps {
   tasks: Task[];
@@ -14,11 +15,12 @@ interface TaskWeeklyCalendarProps {
   onDelete: (id: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
+  onAssignTimeOfDay: (id: string, slot: TimeOfDay) => void;
 }
 
 const slots: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
 
-export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, onToggle, onDelete, onEdit, onView }) => {
+export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, onToggle, onDelete, onEdit, onView, onAssignTimeOfDay }) => {
   const today = startOfDay(new Date());
   const endToday = endOfDay(today);
   const tomorrow = addDays(today, 1);
@@ -88,14 +90,11 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, o
         <div className="w-56 space-y-2">
           <h3 className="text-sm font-medium">Sin asignar</h3>
           {unassigned.map((task) => (
-            <TaskItem
+            <UnassignedTaskItem
               key={task.id}
               task={task}
-              onToggle={onToggle}
-              onDelete={onDelete}
-              onEdit={onEdit}
               onView={onView}
-              variant="list"
+              onAssign={onAssignTimeOfDay}
             />
           ))}
         </div>
