@@ -188,7 +188,7 @@ const TaskBadges = memo<{
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Badge
+              <BadgeWithRef
                 className={cn(
                   badgeSize,
                   'gap-0.5',
@@ -199,7 +199,7 @@ const TaskBadges = memo<{
                   {PRIORITY_BADGES[(task.priority || 'none') as keyof typeof PRIORITY_BADGES].icon}
                 </span>
                 {PRIORITY_BADGES[(task.priority || 'none') as keyof typeof PRIORITY_BADGES].num}
-              </Badge>
+              </BadgeWithRef>
             </TooltipTrigger>
             <TooltipContent>{pInfo.text}</TooltipContent>
           </Tooltip>

@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Task } from '@/features/task/components';
-import DateSelector from '@/components/DateSelector';
+import { Task, TaskWeekView, TaskKanbanView } from '@/features/task/components';
 import PageLayout from '@/components/PageLayout';
 import {
   LineChart,
@@ -24,8 +23,11 @@ import { collection, query, where, getDocs, orderBy, limit } from 'firebase/fire
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-const TaskPage = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+interface TaskPageProps {
+  defaultTab?: 'list' | 'kanban' | 'analytics' | 'week' | 'settings';
+}
+
+const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
   const [taskStats, setTaskStats] = useState<any[]>([]);
   const [completionStats, setCompletionStats] = useState<any[]>([]);
   const { user } = useAuth();
@@ -89,21 +91,25 @@ const TaskPage = () => {
         <p className="text-gray-500">Organiza y gestiona tus tareas pendientes y completadas</p>
       </div>
 
-      <DateSelector 
-        selectedDate={selectedDate}
-        onChange={setSelectedDate}
-      />
-
-      <Tabs defaultValue="list" className="space-y-4">
+      <Tabs defaultValue={defaultTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="list">Lista de Tareas</TabsTrigger>
+          <TabsTrigger value="kanban">Kanban</TabsTrigger>
           <TabsTrigger value="analytics">Análisis</TabsTrigger>
+          <TabsTrigger value="week">Calendario</TabsTrigger>
           <TabsTrigger value="settings">Configuración</TabsTrigger>
         </TabsList>
 
         <TabsContent value="list" className="space-y-4">
-          <Task selectedDate={selectedDate} />
-        </TabsContent>        <TabsContent value="analytics" className="space-y-4">
+          <Task />
+        </TabsContent>
+        <TabsContent value="kanban" className="space-y-4">
+          <TaskKanbanView />
+        </TabsContent>
+        <TabsContent value="week" className="space-y-4">
+          <TaskWeekView />
+        </TabsContent>
+        <TabsContent value="analytics" className="space-y-4">
           <div className="grid md:grid-cols-2 xl:grid-cols-2 gap-4 lg:gap-6 xl:gap-8 desktop-grid-responsive">
             <Card className="desktop-card-enhanced">
               <CardContent className="pt-6">

@@ -254,30 +254,29 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       delete: 3,
     };
 
-    const grouped = filteredTasks
-      .reduce((acc, task) => {
-        if (task.dueDate && isBefore(task.dueDate, today)) {
-          acc.overdue.push(task);
-        } else if (!task.dueDate) {
-          acc.noDate.push(task);
-        } else if (isBefore(task.dueDate, endToday)) {
-          acc.today.push(task);
-        } else if (isBefore(task.dueDate, endTomorrow)) {
-          acc.tomorrow.push(task);
-        } else if (isBefore(task.dueDate, endWeek)) {
-          acc.thisWeek.push(task);
-        } else {
-          acc.future.push(task);
-        }
-        return acc;
-      }, {
-        overdue: [] as Task[],
-        today: [] as Task[],
-        tomorrow: [] as Task[],
-        thisWeek: [] as Task[],
-        future: [] as Task[],
-        noDate: [] as Task[],
-      });
+    const grouped = filteredTasks.reduce((acc, task) => {
+      if (task.dueDate && isBefore(task.dueDate, today)) {
+        acc.overdue.push(task);
+      } else if (!task.dueDate) {
+        acc.noDate.push(task);
+      } else if (isBefore(task.dueDate, endToday)) {
+        acc.today.push(task);
+      } else if (isBefore(task.dueDate, endTomorrow)) {
+        acc.tomorrow.push(task);
+      } else if (isBefore(task.dueDate, endWeek)) {
+        acc.thisWeek.push(task);
+      } else {
+        acc.future.push(task);
+      }
+      return acc;
+    }, {
+      overdue: [] as Task[],
+      today: [] as Task[],
+      tomorrow: [] as Task[],
+      thisWeek: [] as Task[],
+      future: [] as Task[],
+      noDate: [] as Task[],
+    });
 
     const sortFn = (a: Task, b: Task) => {
       const pa = priorityOrder[a.priority || 'none'] ?? 4;
