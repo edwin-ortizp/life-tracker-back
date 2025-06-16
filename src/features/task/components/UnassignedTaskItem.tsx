@@ -26,8 +26,8 @@ export const UnassignedTaskItem: React.FC<UnassignedTaskItemProps> = ({ task, on
       onClick={() => onView?.(task)}
       className="bg-white hover:shadow p-2 cursor-pointer space-y-2"
     >
-      <CardContent className="p-0 flex justify-between items-center gap-2">
-        <span className="text-sm font-medium break-words line-clamp-2 flex-1">
+      <CardContent className="p-0 space-y-2">
+        <span className="text-sm font-medium break-words line-clamp-2 block">
           {task.title}
         </span>
         <div className="flex gap-1">
