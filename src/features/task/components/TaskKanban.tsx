@@ -10,7 +10,8 @@ import {
   startOfMonth,
   endOfMonth,
   isWithinInterval,
-  addDays
+  addDays,
+  addWeeks
 } from 'date-fns';
 import { toNoon } from '@/utils/dates';
 import { Button } from '@/components/ui/button';
@@ -244,7 +245,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     const endToday = endOfDay(now);
     const tomorrow = addDays(startOfDay(now), 1);
     const endTomorrow = endOfDay(tomorrow);
-    // limite hasta mañana, no consideramos otras fechas
+    const endWeek = endOfWeek(now);
 
     const priorityOrder: Record<string, number> = {
       do: 0,
@@ -262,13 +263,18 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
         acc.today.push(task);
       } else if (isBefore(task.dueDate, endTomorrow)) {
         acc.tomorrow.push(task);
+      } else if (isBefore(task.dueDate, endWeek)) {
+        acc.thisWeek.push(task);
+      } else {
+        acc.future.push(task);
       }
-      // Tareas más lejanas no se muestran
       return acc;
     }, {
       overdue: [] as Task[],
       today: [] as Task[],
       tomorrow: [] as Task[],
+      thisWeek: [] as Task[],
+      future: [] as Task[],
       noDate: [] as Task[],
     });
 
@@ -311,11 +317,13 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     return grouped;
   }, [filteredTasks, sortBy]);
 
-    const columnTotals = useMemo(() => {
+  const columnTotals = useMemo(() => {
     const totals: Record<ColumnKey, number> = {
       overdue: 0,
       today: 0,
       tomorrow: 0,
+      thisWeek: 0,
+      future: 0,
       noDate: 0
     };
     (Object.keys(groups) as ColumnKey[]).forEach(key => {
@@ -333,6 +341,8 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     { key: 'overdue', title: 'Vencidas' },
     { key: 'today', title: 'Para Hoy' },
     { key: 'tomorrow', title: 'Mañana' },
+    { key: 'thisWeek', title: 'Esta Semana' },
+    { key: 'future', title: 'Próximamente' },
     { key: 'noDate', title: 'Sin Fecha' },
   ] as const;
 
@@ -347,6 +357,10 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
         return toNoon(now);
       case 'tomorrow':
         return toNoon(addDays(startOfDay(now), 1));
+      case 'thisWeek':
+        return toNoon(endOfWeek(now));
+      case 'future':
+        return toNoon(addWeeks(now, 1));
       case 'noDate':
       default:
         return null;
