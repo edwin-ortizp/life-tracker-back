@@ -99,7 +99,12 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
       <Card className="w-full">
         <CardContent className="p-4">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">Nivel de energía</h3>
+            <h3 className="font-medium">
+              Nivel de energía
+              {latestEnergy && (
+                <span className={`ml-2 ${ENERGY_TEXT_COLORS[latestEnergy.level - 1]}`}>({latestEnergy.level})</span>
+              )}
+            </h3>
             <div className="flex items-center gap-2">
               {energyStatus === 'saving' && (
                 <span className="text-xs text-blue-500">Guardando...</span>
@@ -110,14 +115,13 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
             </div>
           </div>
 
-          {latestEnergy && (
-            <p className={`text-sm mb-2 ${ENERGY_TEXT_COLORS[latestEnergy.level - 1]}`}>
-              Nivel actual: {latestEnergy.level}
-            </p>
-          )}
-
           {isCurrentDate && (
-            <EnergySelector onSelect={addEntry} disabled={energyStatus === 'saving'} />
+            <div className="mb-4">
+              <EnergySelector
+                onSelect={addEntry}
+                disabled={energyStatus === 'saving'}
+              />
+            </div>
           )}
 
           <EnergyHistory
