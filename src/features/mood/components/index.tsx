@@ -4,10 +4,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { MoodSelector } from './MoodSelector';
 import { MoodHistory } from './MoodHistory';
+import { EnergySelector } from './EnergySelector';
+import { EnergyHistory } from './EnergyHistory';
 import { ImportMoodButton } from './ImportMoodButton';
 import { MoodAiMenu } from './MoodAiMenu';
 import { useJournalLock } from '@/features/journal/context/JournalLockContext';
 import { useMoodData } from '../hooks/useMoodData';
+import { useEnergyData } from '../hooks/useEnergyData';
 import { getLocalDateString } from '@/utils/dates';
 import type { MoodProps } from '../types';
 
@@ -22,6 +25,14 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
     updateMood,
     deleteMood
   } = useMoodData(selectedDate);
+  const {
+    energyHistory,
+    status: energyStatus,
+    error: energyError,
+    addEntry,
+    updateEntry,
+    deleteEntry
+  } = useEnergyData(selectedDate);
 
   if (!user) {
     return (
@@ -54,21 +65,36 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
         </div>
         
         {isCurrentDate && (
-          <MoodSelector
-            onSelect={addMood}
-            disabled={status === 'saving'}
-          />
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <MoodSelector onSelect={addMood} disabled={status === 'saving'} />
+            </div>
+            <div className="flex-1">
+              <EnergySelector onSelect={addEntry} disabled={energyStatus === 'saving'} />
+            </div>
+          </div>
         )}
 
-        <MoodHistory 
+        <MoodHistory
           moods={moodHistory}
           onUpdateMood={updateMood}
           onDeleteMood={deleteMood}
         />
 
+        <EnergyHistory
+          entries={energyHistory}
+          onUpdate={updateEntry}
+          onDelete={deleteEntry}
+        />
+
         {error && (
           <p className="mt-2 text-sm text-red-500">
             {error}
+          </p>
+        )}
+        {energyError && (
+          <p className="mt-2 text-sm text-red-500">
+            {energyError}
           </p>
         )}
       </CardContent>
@@ -80,5 +106,7 @@ export * from './MoodSelector';
 export * from './MoodHistory';
 export * from './ImportMoodButton';
 export * from './MoodAiMenu';
+export * from './EnergySelector';
+export * from './EnergyHistory';
 
 export default Mood;

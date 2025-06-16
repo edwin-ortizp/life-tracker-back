@@ -76,3 +76,28 @@ export interface EditMoodModalProps {
   onSave: (entry: MoodEntry) => Promise<void>;
   onDelete?: () => Promise<void>;
 }
+export interface EnergyEntry {
+  level: number; // 1-5
+  time: string;
+  timestamp: number;
+  comment?: string;
+}
+
+export interface DailyEnergy {
+  id: string;
+  userId: string;
+  date: string;
+  entries: EnergyEntry[];
+}
+
+export interface EnergyProps {
+  selectedDate: Date;
+}
+
+export interface EditEnergyModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  energyEntry: EnergyEntry | null;
+  onSave: (entry: EnergyEntry) => Promise<void>;
+  onDelete?: () => Promise<void>;
+}
