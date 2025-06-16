@@ -16,6 +16,7 @@ export interface DailyMood {
 
 export interface MoodProps {
   selectedDate: Date;
+  energyFirst?: boolean;
 }
 
 export interface MoodOption {

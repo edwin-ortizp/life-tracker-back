@@ -14,7 +14,7 @@ import { useEnergyData } from '../hooks/useEnergyData';
 import { getLocalDateString } from '@/utils/dates';
 import type { MoodProps } from '../types';
 
-export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
+export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false }) => {
   const { user } = useAuth();
   const { isUnlocked } = useJournalLock();
   const {
@@ -58,13 +58,12 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
 
   const isCurrentDate = getLocalDateString(selectedDate) === getLocalDateString(new Date());
 
-  return (
-    <div className="space-y-4">
-      <Card className="w-full">
-        <CardContent className="p-4">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">Estado de ánimo</h3>
-            <div className="flex items-center gap-2">
+  const moodCard = (
+    <Card className="w-full">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-medium">Estado de ánimo</h3>
+          <div className="flex items-center gap-2">
               <ImportMoodButton />
               {isUnlocked && (
                 <MoodAiMenu selectedDate={selectedDate} />
@@ -95,12 +94,14 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
           )}
         </CardContent>
       </Card>
+  );
 
-      <Card className="w-full">
-        <CardContent className="p-4">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">
-              Nivel de energía
+  const energyCard = (
+    <Card className="w-full">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-medium">
+            Nivel de energía
               {latestEnergy && (
                 <span className={`ml-2 ${ENERGY_TEXT_COLORS[latestEnergy.level - 1]}`}>({latestEnergy.level})</span>
               )}
@@ -137,6 +138,12 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
           )}
         </CardContent>
       </Card>
+  );
+
+  return (
+    <div className="space-y-4">
+      {energyFirst ? energyCard : moodCard}
+      {energyFirst ? moodCard : energyCard}
     </div>
   );
 };

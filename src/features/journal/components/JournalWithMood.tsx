@@ -23,8 +23,8 @@ export const JournalWithMood: React.FC<JournalWithMoodProps> = ({ selectedDate }
 
           {/* Panel lateral - Estados de ánimo */}
           <div className="md:col-span-1 space-y-4">
-            <Mood selectedDate={selectedDate} />
-
+            <Mood selectedDate={selectedDate} energyFirst />
+            
             <Alert>
               <Smile className="h-4 w-4" />
               <AlertDescription>
