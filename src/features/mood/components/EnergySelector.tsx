@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  BatteryLow,
-  BatteryMedium,
-  Battery,
-  BatteryFull,
-  BatteryCharging
-} from 'lucide-react';
 
 interface EnergySelectorProps {
   onSelect: (level: number, comment?: string) => void;
   disabled?: boolean;
 }
 
-const ICONS = [BatteryLow, BatteryMedium, Battery, BatteryFull, BatteryCharging];
+const LEVEL_COLORS = [
+  'bg-red-500 text-white',
+  'bg-orange-500 text-white',
+  'bg-yellow-400 text-black',
+  'bg-lime-500 text-black',
+  'bg-green-600 text-white'
+];
 
 export const EnergySelector: React.FC<EnergySelectorProps> = ({ onSelect, disabled }) => {
   const [comment, setComment] = useState('');
@@ -33,16 +32,15 @@ export const EnergySelector: React.FC<EnergySelectorProps> = ({ onSelect, disabl
         className="w-full border rounded p-2 text-sm"
       />
       <div className="grid grid-cols-5 gap-2">
-        {ICONS.map((Icon, idx) => (
+        {[1, 2, 3, 4, 5].map((level) => (
           <Button
-            key={idx}
-            variant="outline"
-            className="h-12 w-full"
-            onClick={() => handleSelect(idx + 1)}
+            key={level}
+            variant="default"
+            className={`h-12 w-full ${LEVEL_COLORS[level - 1]}`}
+            onClick={() => handleSelect(level)}
             disabled={disabled}
           >
-            <Icon className="w-5 h-5" />
-            <span className="sr-only">{idx + 1}</span>
+            {level}
           </Button>
         ))}
       </div>

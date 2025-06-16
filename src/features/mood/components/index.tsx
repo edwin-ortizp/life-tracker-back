@@ -34,6 +34,18 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
     deleteEntry
   } = useEnergyData(selectedDate);
 
+  const latestEnergy = energyHistory
+    .slice()
+    .sort((a, b) => b.timestamp - a.timestamp)[0];
+
+  const ENERGY_TEXT_COLORS = [
+    'text-red-500',
+    'text-orange-500',
+    'text-yellow-500',
+    'text-lime-600',
+    'text-green-600'
+  ];
+
   if (!user) {
     return (
       <Card className="w-full">
@@ -97,6 +109,12 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
               )}
             </div>
           </div>
+
+          {latestEnergy && (
+            <p className={`text-sm mb-2 ${ENERGY_TEXT_COLORS[latestEnergy.level - 1]}`}>
+              Nivel actual: {latestEnergy.level}
+            </p>
+          )}
 
           {isCurrentDate && (
             <EnergySelector onSelect={addEntry} disabled={energyStatus === 'saving'} />
