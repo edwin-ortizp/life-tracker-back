@@ -1,13 +1,12 @@
 // src/features/exercise/components/ExerciseFormModal.tsx
 import React, { useEffect } from 'react';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +45,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
     duration: initialData?.duration?.toString() || '',
     distance: initialData?.distance?.toString() || '',
     steps: initialData?.steps?.toString() || '',
+    calories: initialData?.calories?.toString() || '',
     notes: initialData?.notes || ''
   });
 
@@ -58,7 +58,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
       const steps = Math.round(distance * selectedExercise.stepsPerKm);
       setFormData(prev => ({ ...prev, steps: steps.toString() }));
     }
-  }, [formData.distance, formData.duration, selectedExercise]);
+  }, [formData.distance, formData.duration, formData.weight, selectedExercise]);
 
   const calculateCalories = () => {
     if (!selectedExercise?.caloriesPerHour) return;
@@ -76,7 +76,9 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
       calories *= (1 + weightFactor * 0.1);
     }
 
-    setCalculatedCalories(Math.round(calories));
+    const total = Math.round(calories);
+    setCalculatedCalories(total);
+    setFormData(prev => ({ ...prev, calories: total.toString() }));
   };
 
   const handleSelectExercise = (exercise: typeof EXERCISES[number]) => {
@@ -88,6 +90,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
       duration: exercise.defaultDuration?.toString() || '',
       distance: exercise.defaultDistance ? (exercise.defaultDistance / 1000).toString() : '',
       steps: '',
+      calories: '',
       notes: ''
     });
   };
@@ -98,7 +101,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
 
     const exerciseLog: ExerciseLog = {
       exerciseId: selectedExercise.id,
-      calories: calculatedCalories,
+      calories: formData.calories ? parseInt(formData.calories) : calculatedCalories,
       ...(formData.sets && { sets: parseInt(formData.sets) }),
       ...(formData.reps && { reps: parseInt(formData.reps) }),
       ...(formData.weight && { weight: parseFloat(formData.weight) }),
@@ -114,7 +117,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] sm:h-auto overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] sm:h-auto overflow-y-auto">
         <DialogHeader className="sticky top-0 bg-background z-10 pb-4 mb-4 border-b">
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2 text-xl">
@@ -131,11 +134,6 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
               )}
               {initialData ? 'Editar ejercicio' : 'Agregar ejercicio'}
             </DialogTitle>
-            <DialogClose asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <X className="h-5 w-5" />
-              </Button>
-            </DialogClose>
           </div>
         </DialogHeader>
 
@@ -273,6 +271,17 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
                   <p className="text-sm font-medium text-muted-foreground">Calorías estimadas: {calculatedCalories} kcal</p>
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label htmlFor="calories">Calorías</Label>
+                <Input
+                  id="calories"
+                  type="number"
+                  min="0"
+                  value={formData.calories}
+                  onChange={e => setFormData(prev => ({ ...prev, calories: e.target.value }))}
+                />
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="notes">Notas</Label>
