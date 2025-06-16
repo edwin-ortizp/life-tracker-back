@@ -1,6 +1,10 @@
 import React from 'react';
-import { getWeekDays } from '@/features/meal/utils/dateUtils';
-import { getLocalDateString } from '@/utils/dates';
+import {
+  startOfDay,
+  endOfDay,
+  addDays,
+  isBefore
+} from 'date-fns';
 import { Task, TimeOfDay, TIME_OF_DAY_LABELS } from '../types';
 import { TaskItem } from './TaskItem';
 
@@ -15,20 +19,31 @@ interface TaskWeeklyCalendarProps {
 const slots: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
 
 export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, onToggle, onDelete, onEdit, onView }) => {
-  const week = getWeekDays(new Date());
-  const byDay: Record<string, Record<TimeOfDay, Task[]>> = {};
-  week.forEach(d => {
-    byDay[d.fullDate] = { morning: [], afternoon: [], evening: [] };
-  });
+  const today = startOfDay(new Date());
+  const endToday = endOfDay(today);
+  const tomorrow = addDays(today, 1);
+  const endTomorrow = endOfDay(tomorrow);
+
+  const byColumn: Record<'overdue' | 'today' | 'tomorrow', Record<TimeOfDay, Task[]>> = {
+    overdue: { morning: [], afternoon: [], evening: [] },
+    today: { morning: [], afternoon: [], evening: [] },
+    tomorrow: { morning: [], afternoon: [], evening: [] }
+  };
+
   const unassigned: Task[] = [];
+
   tasks.forEach(t => {
     if (!t.dueDate || !t.timeOfDay) {
       unassigned.push(t);
       return;
     }
-    const dateStr = getLocalDateString(t.dueDate);
-    if (byDay[dateStr]) {
-      byDay[dateStr][t.timeOfDay].push(t);
+
+    if (isBefore(t.dueDate, today)) {
+      byColumn.overdue[t.timeOfDay].push(t);
+    } else if (isBefore(t.dueDate, endToday)) {
+      byColumn.today[t.timeOfDay].push(t);
+    } else if (isBefore(t.dueDate, endTomorrow)) {
+      byColumn.tomorrow[t.timeOfDay].push(t);
     } else {
       unassigned.push(t);
     }
@@ -37,16 +52,22 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, o
   return (
     <div className="flex gap-4">
       <div className="flex-1 overflow-x-auto">
-        <div className="min-w-[700px] grid grid-cols-7 gap-2">
-          {week.map(day => (
-            <div key={day.fullDate} className="space-y-2">
-              <div className="text-center text-sm font-medium">{day.dayName} {day.fullDate.slice(5)}</div>
-              {slots.map(slot => (
+        <div className="min-w-[700px] grid grid-cols-3 gap-2">
+          {(
+            [
+              { key: 'overdue', label: 'Vencidas' },
+              { key: 'today', label: 'Hoy' },
+              { key: 'tomorrow', label: 'Mañana' }
+            ] as const
+          ).map(({ key, label }) => (
+            <div key={key} className="space-y-2">
+              <div className="text-center text-sm font-medium">{label}</div>
+              {slots.map((slot) => (
                 <div key={slot} className="min-h-[6rem] border rounded p-1 space-y-1">
                   <div className="text-xs font-semibold text-gray-500">
                     {TIME_OF_DAY_LABELS[slot]}
                   </div>
-                  {byDay[day.fullDate][slot].map(task => (
+                  {byColumn[key][slot].map((task) => (
                     <TaskItem
                       key={task.id}
                       task={task}
@@ -66,7 +87,7 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, o
       {unassigned.length > 0 && (
         <div className="w-56 space-y-2">
           <h3 className="text-sm font-medium">Sin asignar</h3>
-          {unassigned.map(task => (
+          {unassigned.map((task) => (
             <TaskItem
               key={task.id}
               task={task}

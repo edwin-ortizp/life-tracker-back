@@ -34,7 +34,7 @@ export const TaskWeekView: React.FC = () => {
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Calendario Semanal</CardTitle>
+            <CardTitle>Calendario</CardTitle>
             <div className="flex items-center gap-4">
               {status === 'saving' && (
                 <span className="text-xs text-blue-500">Guardando...</span>
