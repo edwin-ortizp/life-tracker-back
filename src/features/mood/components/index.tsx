@@ -47,58 +47,75 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate }) => {
   const isCurrentDate = getLocalDateString(selectedDate) === getLocalDateString(new Date());
 
   return (
-    <Card className="w-full">
-      <CardContent className="p-4">        <div className="flex justify-between items-center mb-2">
-          <h3 className="font-medium">Estado de ánimo</h3>
-          <div className="flex items-center gap-2">
-            <ImportMoodButton />
-            {isUnlocked && (
-              <MoodAiMenu selectedDate={selectedDate} />
-            )}
-            {status === 'saving' && (
-              <span className="text-xs text-blue-500">Guardando...</span>
-            )}
-            {status === 'error' && (
-              <span className="text-xs text-red-500">Error al guardar</span>
-            )}
-          </div>
-        </div>
-        
-        {isCurrentDate && (
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <MoodSelector onSelect={addMood} disabled={status === 'saving'} />
-            </div>
-            <div className="flex-1">
-              <EnergySelector onSelect={addEntry} disabled={energyStatus === 'saving'} />
+    <div className="space-y-4">
+      <Card className="w-full">
+        <CardContent className="p-4">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="font-medium">Estado de ánimo</h3>
+            <div className="flex items-center gap-2">
+              <ImportMoodButton />
+              {isUnlocked && (
+                <MoodAiMenu selectedDate={selectedDate} />
+              )}
+              {status === 'saving' && (
+                <span className="text-xs text-blue-500">Guardando...</span>
+              )}
+              {status === 'error' && (
+                <span className="text-xs text-red-500">Error al guardar</span>
+              )}
             </div>
           </div>
-        )}
 
-        <MoodHistory
-          moods={moodHistory}
-          onUpdateMood={updateMood}
-          onDeleteMood={deleteMood}
-        />
+          {isCurrentDate && (
+            <MoodSelector onSelect={addMood} disabled={status === 'saving'} />
+          )}
 
-        <EnergyHistory
-          entries={energyHistory}
-          onUpdate={updateEntry}
-          onDelete={deleteEntry}
-        />
+          <MoodHistory
+            moods={moodHistory}
+            onUpdateMood={updateMood}
+            onDeleteMood={deleteMood}
+          />
 
-        {error && (
-          <p className="mt-2 text-sm text-red-500">
-            {error}
-          </p>
-        )}
-        {energyError && (
-          <p className="mt-2 text-sm text-red-500">
-            {energyError}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+          {error && (
+            <p className="mt-2 text-sm text-red-500">
+              {error}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="w-full">
+        <CardContent className="p-4">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="font-medium">Nivel de energía</h3>
+            <div className="flex items-center gap-2">
+              {energyStatus === 'saving' && (
+                <span className="text-xs text-blue-500">Guardando...</span>
+              )}
+              {energyStatus === 'error' && (
+                <span className="text-xs text-red-500">Error al guardar</span>
+              )}
+            </div>
+          </div>
+
+          {isCurrentDate && (
+            <EnergySelector onSelect={addEntry} disabled={energyStatus === 'saving'} />
+          )}
+
+          <EnergyHistory
+            entries={energyHistory}
+            onUpdate={updateEntry}
+            onDelete={deleteEntry}
+          />
+
+          {energyError && (
+            <p className="mt-2 text-sm text-red-500">
+              {energyError}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
