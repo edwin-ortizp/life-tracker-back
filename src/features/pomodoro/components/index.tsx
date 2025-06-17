@@ -7,3 +7,4 @@ export { PomodoroTimer } from './PomodoroTimer';
 export { PomodoroStats } from './PomodoroStats';
 export { DailyStats } from './DailyStats';
 export { DailyProgress } from './DailyProgress';
+export { PomodoroCalendar } from './PomodoroCalendar';
