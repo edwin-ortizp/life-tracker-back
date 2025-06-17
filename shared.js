@@ -29,6 +29,7 @@ export const shared = {
         process.chdir(config.destinationPath);
 
         const gitCommands = [
+            'git reset --hard orig/main',
             'git pull',
             'git add .',
             `git commit -m "${commitMessage}"`,
