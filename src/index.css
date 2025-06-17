@@ -337,12 +337,14 @@
     .grid-desktop-optimize {
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 32px; /* Mayor espaciado en desktop */
+      justify-content: center;
     }
     
     /* Mejor aprovechamiento del espacio horizontal */
     .desktop-grid-responsive {
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 28px;
+      justify-content: center;
     }
     
     /* Cards más grandes en desktop */
@@ -361,12 +363,14 @@
     .grid-desktop-optimize {
       grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
       gap: 40px;
+      justify-content: center;
     }
     
     /* Aprovechar mejor el espacio en pantallas muy amplias */
     .ultra-wide-grid {
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 36px;
+      justify-content: center;
     }
   }
 
@@ -375,6 +379,7 @@
     .ultra-wide-grid {
       grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
       gap: 40px;
+      justify-content: center;
     }
     
     .ultra-wide-card {
@@ -450,6 +455,7 @@
     .stats-grid-wide {
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 28px;
+      justify-content: center;
     }
   }
 
