@@ -1,5 +1,5 @@
 // src/features/pomodoro/hooks/useNotifications.ts
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { NotificationPreferences } from '../types';
 
 export const useNotifications = () => {
@@ -9,6 +9,9 @@ export const useNotifications = () => {
     sound: true,
     vibration: true
   });
+
+  const activeNotificationRef = useRef<Notification | null>(null);
+  const intervalRef = useRef<number>();
 
   // Verificar soporte de notificaciones
   const notificationsSupported = useCallback(() => {
@@ -51,6 +54,52 @@ export const useNotifications = () => {
     }
   }, [permission, preferences]);
 
+  const showPersistentNotification = useCallback((title: string, body: string) => {
+    if (!notificationsSupported() || permission !== 'granted') return;
+
+    try {
+      activeNotificationRef.current?.close();
+      const notification = new Notification(title, {
+        body,
+        icon: '/icon-192x192.png',
+        silent: !preferences.sound,
+        requireInteraction: true
+      });
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+
+      activeNotificationRef.current = notification;
+    } catch (error) {
+      console.error('Error sending persistent notification:', error);
+    }
+  }, [permission, preferences, notificationsSupported]);
+
+  const startPersistentNotification = useCallback(
+    (title: string, getBody: () => string, intervalMs = 60000) => {
+      showPersistentNotification(title, getBody());
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = window.setInterval(() => {
+        showPersistentNotification(title, getBody());
+      }, intervalMs);
+    },
+    [showPersistentNotification]
+  );
+
+  const stopPersistentNotification = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = undefined;
+    }
+
+    if (activeNotificationRef.current) {
+      activeNotificationRef.current.close();
+      activeNotificationRef.current = null;
+    }
+  }, []);
+
   // Cargar preferencias al inicio
   useEffect(() => {
     const savedPrefs = localStorage.getItem('pomodoroNotificationPrefs');
@@ -82,6 +131,8 @@ export const useNotifications = () => {
     preferences,
     requestPermission,
     sendNotification,
-    updatePreferences
+    updatePreferences,
+    startPersistentNotification,
+    stopPersistentNotification
   };
 };
