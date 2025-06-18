@@ -12,7 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { isBefore, startOfDay } from 'date-fns';
 import { formatDateToSpanish, getRecurrenceText } from '@/utils/dates';
-import { renderMarkdown, getCheckboxProgress } from '@/utils/markdown';
+import { renderMarkdown, getCheckboxStats } from '@/utils/markdown';
 
 interface TaskDetailsModalProps {
   task: Task | null;
@@ -57,10 +57,9 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   const overdue =
     task.dueDate &&
     isBefore(startOfDay(task.dueDate), startOfDay(new Date()));
-  const hasCheckboxes = /- \[(?: |x|X)\]/.test(task.description || '');
-  const progress = hasCheckboxes
-    ? getCheckboxProgress(task.description || '')
-    : 0;
+  const { total, checked } = getCheckboxStats(task.description || '');
+  const hasCheckboxes = total > 0;
+  const progress = hasCheckboxes ? task.progress ?? (checked / total) * 100 : 0;
   const descriptionHtml = renderMarkdown(task.description || '');
 
   return (
@@ -74,9 +73,11 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                 <div className="space-y-2">
                   <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
                   {hasCheckboxes && (
-                    <div className="mt-1">
+                    <div className="mt-1 space-y-0.5">
                       <Progress value={progress} />
-                      <p className="text-xs text-right mt-1">{Math.round(progress)}%</p>
+                      <p className="text-xs text-right text-muted-foreground">
+                        {checked} de {total}
+                      </p>
                     </div>
                   )}
                 </div>

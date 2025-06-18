@@ -71,6 +71,7 @@ export interface Task {
   size?: 'pequeña' | 'mediana' | 'grande';
   estimatedTime?: number;
   timeOfDay?: TimeOfDay;
+  progress?: number;
 }
 
 export interface TaskProps {
