@@ -1,5 +1,5 @@
 // src/features/pomodoro/components/Pomodoro.tsx
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Bell, BellOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -37,13 +37,15 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
   const [showNotificationDialog, setShowNotificationDialog] = useState(false);
   const [selectedSession, setSelectedSession] = useState<PomodoroSession | null>(null);
   
-  const { 
+  const {
     supported: notificationsSupported,
     permission: notificationPermission,
     preferences: notificationPrefs,
     requestPermission,
     sendNotification,
-    updatePreferences
+    updatePreferences,
+    startPersistentNotification,
+    stopPersistentNotification
   } = useNotifications();
 
   const { 
@@ -124,6 +126,29 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
     await editSession(oldSession, updatedSession);
     setSelectedSession(null);
   };
+
+  const timeRef = useRef(time);
+  useEffect(() => {
+    timeRef.current = time;
+  }, [time]);
+
+  useEffect(() => {
+    if (!notificationsSupported || !notificationPrefs.enabled || notificationPermission !== 'granted') {
+      return;
+    }
+
+    if (isActive) {
+      startPersistentNotification('Pomodoro en progreso', () => `Tiempo restante: ${formatTime(Math.ceil(timeRef.current))}`);
+    } else {
+      stopPersistentNotification();
+    }
+  }, [isActive, notificationsSupported, notificationPrefs.enabled, notificationPermission, startPersistentNotification, stopPersistentNotification]);
+
+  useEffect(() => {
+    return () => {
+      stopPersistentNotification();
+    };
+  }, [stopPersistentNotification]);
 
   if (!user) {
     return (
