@@ -37,19 +37,13 @@ async function buildWithEnv() {
         console.warn('⚠️  Variables de entorno faltantes:', missingVars.map(([k]) => k).join(', '));
     }
 
-    // Crear string de variables de entorno para Windows
-    const envString = Object.entries(envVars)
-        .filter(([, value]) => value !== undefined)
-        .map(([k, value]) => `$env:${k}="${value}"`)
-        .join('; ');
-
     try {
-        // Ejecutar build con variables de entorno
-        const buildCommand = `${envString}; npm run build`;
-        execSync(buildCommand, { 
+        // Ejecutar build directamente (las variables ya están en process.env)
+        execSync('npm run build', { 
             stdio: 'inherit', 
             shell: 'powershell.exe',
-            cwd: __dirname
+            cwd: __dirname,
+            env: { ...process.env, ...envVars }
         });
         console.log('✅ Build completado con variables de entorno');
     } catch (error) {

@@ -7,9 +7,25 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
+    chunkSizeWarningLimit: 1500, // Aumentar a 1.5MB para chart-vendor
     rollupOptions: {
       output: {
-        chunkFileNames: 'chunks/[name]-[hash].js'
+        chunkFileNames: 'chunks/[name]-[hash].js',        manualChunks: {
+          // Separar las dependencias de React
+          'react-vendor': ['react', 'react-dom'],
+          
+          // Separar Firebase
+          'firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          
+          // Separar librerías de UI pesadas
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-accordion'],
+          
+          // Separar librerías de gráficos
+          'chart-vendor': ['recharts', 'lucide-react'],
+          
+          // Separar otras dependencias pesadas
+          'utils-vendor': ['date-fns', 'clsx', 'class-variance-authority']
+        }
       }
     }
   },
