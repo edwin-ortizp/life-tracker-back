@@ -84,6 +84,9 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   const handleExportIngredients = () => {
     const grouped = items.reduce(
       (acc, item) => {
+        if (item.category === 'Aseo y Limpieza') {
+          return acc;
+        }
         if (item.status === 'in-stock') {
           acc.inStock.push({ name: item.name, quantity: item.quantity });
         } else if (item.status === 'low-stock') {
@@ -91,14 +94,20 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
         }
         return acc;
       },
-      { inStock: [] as { name: string; quantity: number }[], lowStock: [] as { name: string; quantity: number }[] }
+      {
+        inStock: [] as { name: string; quantity: number }[],
+        lowStock: [] as { name: string; quantity: number }[]
+      }
     );
 
     const prepared = preparedMeals.map(m => ({ name: m.name, ...(m.portions !== undefined && { portions: m.portions }) }));
 
     const favRecipes = recipes
-      .filter(r => r.favorite)
-      .map(r => ({ name: r.name, ...(r.description && { description: r.description }) }));
+      .filter(r => r.favorite === true)
+      .map(r => ({
+        name: r.name,
+        ...(r.description && { description: r.description })
+      }));
 
     const exportData = {
       shoppingList: grouped,

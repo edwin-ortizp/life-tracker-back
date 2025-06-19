@@ -28,7 +28,7 @@ export const usePreparedMeals = () => {
 
     setStatus('loading');
 
-    const q = query(collection(db, 'preparedMeals'), where('userId', '==', user.uid));
+    const q = query(collection(db, 'prepared-meals'), where('userId', '==', user.uid));
 
     const unsubscribe = onSnapshot(
       q,
@@ -73,7 +73,7 @@ export const usePreparedMeals = () => {
       if (meal.portions !== undefined) {
         docData.portions = meal.portions;
       }
-      await addDoc(collection(db, 'preparedMeals'), docData);
+      await addDoc(collection(db, 'prepared-meals'), docData);
       setStatus('idle');
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'Error al guardar';
@@ -92,7 +92,7 @@ export const usePreparedMeals = () => {
     setError(null);
 
     try {
-      const docRef = doc(db, 'preparedMeals', id);
+      const docRef = doc(db, 'prepared-meals', id);
       const updateData: any = {
         updatedAt: serverTimestamp()
       };
@@ -117,7 +117,7 @@ export const usePreparedMeals = () => {
     setError(null);
 
     try {
-      await deleteDoc(doc(db, 'preparedMeals', id));
+      await deleteDoc(doc(db, 'prepared-meals', id));
       setStatus('idle');
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'Error al eliminar';
