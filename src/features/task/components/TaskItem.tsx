@@ -6,6 +6,7 @@ import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import {
   Tooltip,
   TooltipContent,
@@ -13,6 +14,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { getCheckboxStats } from '@/utils/markdown';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -413,6 +415,8 @@ export const TaskItem = memo<TaskItemProps>(({
 }) => {
   const [confirmComplete, setConfirmComplete] = useState(false);
   const overdue = isTaskOverdue(task.dueDate ?? null);
+  const { total, checked } = getCheckboxStats(task.description || '');
+  const checkboxProgress = total ? (task.progress ?? (checked / total) * 100) : 0;
 
   const handleToggleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -475,6 +479,14 @@ export const TaskItem = memo<TaskItemProps>(({
                     variant="kanban"
                   />
                 </div>
+                {total > 0 && (
+                  <div className="pt-1 space-y-0.5">
+                    <Progress value={checkboxProgress} className="h-1" />
+                    <p className="text-[10px] text-right text-muted-foreground">
+                      {checked} de {total}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

@@ -499,3 +499,17 @@
       overflow: auto;
     }
   }
+
+  /* Markdown checklist styling */
+  .prose ul li {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+  .prose ul li p {
+    margin: 0;
+    display: inline;
+  }
+  .prose input[type='checkbox'] {
+    margin-right: 0.35em;
+    accent-color: hsl(var(--primary));
+  }

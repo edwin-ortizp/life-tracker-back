@@ -14,6 +14,7 @@ import {
   Timestamp 
 } from 'firebase/firestore';
 import type { Task, TaskFormData } from '../types';
+import { getCheckboxProgress } from '@/utils/markdown';
 
 type ModalMode = 'create' | 'edit' | 'complete';
 
@@ -67,6 +68,10 @@ export const useTaskData = () => {
               size: data.size || 'peque\u00f1a',
               estimatedTime: data.estimatedTime,
               timeOfDay: data.timeOfDay,
+              progress:
+                typeof data.progress === 'number'
+                  ? data.progress
+                  : getCheckboxProgress(data.description || ''),
               recurrence: data.recurrence ? {
                 frequency: data.recurrence.frequency,
                 pattern: data.recurrence.pattern,
@@ -107,7 +112,8 @@ export const useTaskData = () => {
     setStatus('saving');
     setError(null);
 
-    try {      const taskData: any = {
+    try {
+      const taskData: any = {
         userId: user.uid,
         title: formData.title.trim(),
         completed: false,
@@ -118,6 +124,7 @@ export const useTaskData = () => {
         ...(formData.timeOfDay && { timeOfDay: formData.timeOfDay }),
         ...(formData.estimatedTime !== undefined && { estimatedTime: formData.estimatedTime }),
       };
+      taskData.progress = getCheckboxProgress(formData.description || '');
 
       if (formData.description?.trim()) {
         taskData.description = formData.description.trim();
@@ -158,9 +165,9 @@ export const useTaskData = () => {
     setStatus('saving');
     try {
       const taskRef = doc(db, 'tasks', taskId);
-      
-      const updateData: any = { 
-        updatedAt: serverTimestamp() 
+
+      const updateData: any = {
+        updatedAt: serverTimestamp()
       };
       
       if (updates.title?.trim()) updateData.title = updates.title.trim();
@@ -202,6 +209,13 @@ export const useTaskData = () => {
           updateData.recurrence.customDays = updates.recurrence.customDays;
         }
       }
+
+      const existing = tasks.find(t => t.id === taskId);
+      updateData.progress = getCheckboxProgress(
+        typeof updates.description === 'string'
+          ? updates.description
+          : existing?.description || ''
+      );
 
       await updateDoc(taskRef, updateData);
       handleCloseModal(); // Cerrar el modal después de guardar exitosamente
@@ -295,6 +309,8 @@ export const useTaskData = () => {
         nextTaskData.description = (data.description?.trim() || currentTask.description);
       }
 
+      nextTaskData.progress = getCheckboxProgress(nextTaskData.description || '');
+
       await addDoc(collection(db, 'tasks'), nextTaskData);
 
       handleCloseModal(); // Usar el nuevo manejador de cierre
@@ -316,7 +332,8 @@ export const useTaskData = () => {
       createdAt: { seconds: Date.now() / 1000 },
       ...(dueDate ? { dueDate } : {}),
       ...(isPrivate ? { isPrivate: true } : {}),
-      timeOfDay: undefined
+      timeOfDay: undefined,
+      progress: 0
     });
     setShowRecurrenceModal(true);
   }, []);

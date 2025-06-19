@@ -5,13 +5,14 @@ import {
   DialogHeader,
   DialogFooter,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { isBefore, startOfDay } from 'date-fns';
 import { formatDateToSpanish, getRecurrenceText } from '@/utils/dates';
+import { renderMarkdown, getCheckboxStats } from '@/utils/markdown';
 
 interface TaskDetailsModalProps {
   task: Task | null;
@@ -33,14 +34,6 @@ const getPriorityInfo = (priority?: string) => {
   
   return priorityMap[priority as keyof typeof priorityMap] || priorityMap.none;
 };
-
-interface TaskDetailsModalProps {
-  task: Task | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onEdit: (task: Task) => void;
-  onToggle?: (taskId: string, completed: boolean) => void;
-}
 
 export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   task,
@@ -64,6 +57,10 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   const overdue =
     task.dueDate &&
     isBefore(startOfDay(task.dueDate), startOfDay(new Date()));
+  const { total, checked } = getCheckboxStats(task.description || '');
+  const hasCheckboxes = total > 0;
+  const progress = hasCheckboxes ? task.progress ?? (checked / total) * 100 : 0;
+  const descriptionHtml = renderMarkdown(task.description || '');
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
@@ -73,9 +70,17 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             <DialogHeader className="text-left">
               <DialogTitle>{task.title}</DialogTitle>
               {task.description && (
-                <DialogDescription className="whitespace-pre-line">
-                  {task.description}
-                </DialogDescription>
+                <div className="space-y-2">
+                  <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
+                  {hasCheckboxes && (
+                    <div className="mt-1 space-y-0.5">
+                      <Progress value={progress} />
+                      <p className="text-xs text-right text-muted-foreground">
+                        {checked} de {total}
+                      </p>
+                    </div>
+                  )}
+                </div>
               )}
             </DialogHeader>
           </div>          <div className="md:col-span-4 space-y-4 text-sm">
