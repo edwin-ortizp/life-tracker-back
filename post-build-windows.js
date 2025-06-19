@@ -94,7 +94,7 @@ const config = {
         // Primero construir con variables de entorno
         await buildWithEnv();
         
-        // Luego copiar archivos
+        // Luego copiar archivos (incluye limpieza automática del directorio)
         await shared.copyDistFiles(config);
         
         if (config.copyEnv) {
