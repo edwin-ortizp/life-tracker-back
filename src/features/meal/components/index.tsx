@@ -74,16 +74,41 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
     }
   };
 
-  const handleExportData = () => {
+  const handleExportPlan = () => {
+    const jsonString = JSON.stringify(mealPlan, null, 2);
+    navigator.clipboard.writeText(jsonString).then(() => {
+      toast({ title: 'Plan de comidas copiado al portapapeles' });
+    });
+  };
+
+  const handleExportIngredients = () => {
+    const grouped = items.reduce(
+      (acc, item) => {
+        if (item.status === 'in-stock') {
+          acc.inStock.push({ name: item.name, quantity: item.quantity });
+        } else if (item.status === 'low-stock') {
+          acc.lowStock.push({ name: item.name, quantity: item.quantity });
+        }
+        return acc;
+      },
+      { inStock: [] as { name: string; quantity: number }[], lowStock: [] as { name: string; quantity: number }[] }
+    );
+
+    const prepared = preparedMeals.map(m => ({ name: m.name, ...(m.portions !== undefined && { portions: m.portions }) }));
+
+    const favRecipes = recipes
+      .filter(r => r.favorite)
+      .map(r => ({ name: r.name, ...(r.description && { description: r.description }) }));
+
     const exportData = {
-      mealPlan,
-      ingredients: items,
-      recipes,
-      preparedMeals
+      shoppingList: grouped,
+      preparedMeals: prepared,
+      recipes: favRecipes
     };
+
     const jsonString = JSON.stringify(exportData, null, 2);
     navigator.clipboard.writeText(jsonString).then(() => {
-      toast({ title: 'Datos de comida copiados al portapapeles' });
+      toast({ title: 'Ingredientes y recetas copiados al portapapeles' });
     });
   };
 
@@ -102,6 +127,9 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
           <Link to="/recipes" className="text-sm text-blue-600 underline">
             Recetas
           </Link>
+          <Link to="/prepared-meals" className="text-sm text-blue-600 underline">
+            Comidas Preparadas
+          </Link>
         </div>
         
         {/* Menú de opciones */}
@@ -117,9 +145,13 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
               <Settings className="mr-2 h-4 w-4" />
               Importar Plan
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleExportData}>
+            <DropdownMenuItem onClick={handleExportPlan}>
               <Download className="mr-2 h-4 w-4" />
-              Exportar Datos
+              Exportar Plan
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportIngredients}>
+              <Download className="mr-2 h-4 w-4" />
+              Exportar ingredientes y recetas
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

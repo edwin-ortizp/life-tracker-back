@@ -44,7 +44,8 @@ export const useRecipes = () => {
             mealType: data.mealType,
             ...(data.description && { description: data.description }),
             ...(data.difficulty && { difficulty: data.difficulty }),
-            ...(data.prepTime !== undefined && { prepTime: data.prepTime })
+            ...(data.prepTime !== undefined && { prepTime: data.prepTime }),
+            ...(data.favorite !== undefined && { favorite: data.favorite })
           };
           return recipe;
         });
@@ -89,6 +90,9 @@ export const useRecipes = () => {
       if (recipe.prepTime !== undefined) {
         docData.prepTime = recipe.prepTime;
       }
+      if (recipe.favorite !== undefined) {
+        docData.favorite = recipe.favorite;
+      }
       await addDoc(collection(db, 'recipes'), docData);
       setStatus('idle');
     } catch (e) {
@@ -119,6 +123,7 @@ export const useRecipes = () => {
       if (data.description !== undefined) updateData.description = data.description;
       if (data.difficulty !== undefined) updateData.difficulty = data.difficulty;
       if (data.prepTime !== undefined) updateData.prepTime = data.prepTime;
+      if (data.favorite !== undefined) updateData.favorite = data.favorite;
       await updateDoc(docRef, updateData);
       setStatus('idle');
     } catch (e) {
