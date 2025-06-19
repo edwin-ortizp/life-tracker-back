@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
-import { Calendar, AlertCircle, MoreVertical, Settings } from 'lucide-react';
+import { Calendar, AlertCircle, MoreVertical, Settings, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,9 @@ import { PasteMealPlan } from './PasteMealPlan';
 import { useMealPlan } from '../hooks/useMealPlan';
 import type { MealProps } from '../types';
 import { useToast } from '@/components/ui/use-toast';
+import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList';
+import { useRecipes } from '@/features/recipe/hooks/useRecipes';
+import { usePreparedMeals } from '@/features/prepared-meals/hooks/usePreparedMeals';
 
 export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   const { user } = useAuth();
@@ -28,6 +31,10 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
     removeMeal,
     importMealPlan
   } = useMealPlan();
+
+  const { items } = useShoppingList();
+  const { recipes } = useRecipes();
+  const { meals: preparedMeals } = usePreparedMeals();
 
   if (!user) {
     return (
@@ -67,6 +74,53 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
     }
   };
 
+  const handleExportPlan = () => {
+    const jsonString = JSON.stringify(mealPlan, null, 2);
+    navigator.clipboard.writeText(jsonString).then(() => {
+      toast({ title: 'Plan de comidas copiado al portapapeles' });
+    });
+  };
+
+  const handleExportIngredients = () => {
+    const grouped = items.reduce(
+      (acc, item) => {
+        if (item.category === 'Aseo y Limpieza') {
+          return acc;
+        }
+        if (item.status === 'in-stock') {
+          acc.inStock.push({ name: item.name, quantity: item.quantity });
+        } else if (item.status === 'low-stock') {
+          acc.lowStock.push({ name: item.name, quantity: item.quantity });
+        }
+        return acc;
+      },
+      {
+        inStock: [] as { name: string; quantity: number }[],
+        lowStock: [] as { name: string; quantity: number }[]
+      }
+    );
+
+    const prepared = preparedMeals.map(m => ({ name: m.name, ...(m.portions !== undefined && { portions: m.portions }) }));
+
+    const favRecipes = recipes
+      .filter(r => r.favorite === true)
+      .map(r => ({
+        name: r.name,
+        ...(r.description && { description: r.description })
+      }));
+
+    const exportData = {
+      shoppingList: grouped,
+      preparedMeals: prepared,
+      recipes: favRecipes
+    };
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+    navigator.clipboard.writeText(jsonString).then(() => {
+      toast({ title: 'Ingredientes y recetas copiados al portapapeles' });
+    });
+  };
+
   return (
     <div className="w-full h-full flex flex-col">      {/* Header con menú de opciones */}
       <div className="flex items-center justify-between p-4 bg-white border-b sticky top-0 z-10">
@@ -82,6 +136,9 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
           <Link to="/recipes" className="text-sm text-blue-600 underline">
             Recetas
           </Link>
+          <Link to="/prepared-meals" className="text-sm text-blue-600 underline">
+            Comidas Preparadas
+          </Link>
         </div>
         
         {/* Menú de opciones */}
@@ -95,7 +152,15 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setShowImportDialog(true)}>
               <Settings className="mr-2 h-4 w-4" />
-              Importar/Exportar
+              Importar Plan
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportPlan}>
+              <Download className="mr-2 h-4 w-4" />
+              Exportar Plan
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportIngredients}>
+              <Download className="mr-2 h-4 w-4" />
+              Exportar ingredientes y recetas
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

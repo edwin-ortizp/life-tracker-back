@@ -25,6 +25,8 @@ export interface Recipe {
   instructions: string;
   nutrition: NutritionInfo;
   mealType: keyof typeof MEAL_TYPES;
+  /** Marca si es una receta favorita */
+  favorite?: boolean;
 }
 
 export interface RecipeProps {}
