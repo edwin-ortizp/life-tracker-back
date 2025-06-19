@@ -17,7 +17,7 @@ const HTML_INSTRUCTIONS =
 
 export const aiConfig: Record<string, AiModuleConfig> = {
   task: {
-    model: 'gemini-2.5-flash-preview-05-20',
+    model: 'gemini-2.5-flash-preview-06-17',
     prompt:
       'Asistente Inteligente de Productividad y Gestión de Estado de Ánimo\n' +
       'Eres un experto en productividad personal que entiende cómo el estado emocional afecta el rendimiento y la motivación para completar tareas.\n\n' +
@@ -62,9 +62,9 @@ export const aiConfig: Record<string, AiModuleConfig> = {
         '   • Considera mi profesión y nivel de experiencia al estimar el tiempo para cada subtarea\n' +
         '   • Usa emojis relevantes al inicio de cada subtarea para hacerlas más atractivas\n\n' +
         'Formato de respuesta:\n' +
-        '1. [Emoji] [Descripción clara de la subtarea] (X min)\n' +
-        '2. [Emoji] [Descripción clara de la subtarea] (X min)\n' +
-        '3. [Emoji] [Descripción clara de la subtarea] (X min)\n' +
+        '- [ ] [Emoji] [Descripción clara de la subtarea] (X min)\n' +
+        '- [ ] [Emoji] [Descripción clara de la subtarea] (X min)\n' +
+        '- [ ] [Emoji] [Descripción clara de la subtarea] (X min)\n' +
         '⏱️ Total de tiempo estimado: [X] minutos\n\n' +
         '...\n\n' +
         'Reglas importantes:\n' +
@@ -84,20 +84,39 @@ export const aiConfig: Record<string, AiModuleConfig> = {
         'Entrega las ideas como una lista simple, sin explicaciones adicionales. No excedas las 150 palabras en total.\\n' +
         'Ejemplo:\\n' +
         '- Idea 1: [Descripción breve y accionable]\\n' +
-        '- Idea 2: [Descripción breve y accionable]\\n',
-      reprioritize:
-        'Eres un sistema experto en priorización de tareas para profesionales ocupados como Alexander (ingeniero de sistemas, 31 años, trabaja desde casa, además de optimizar su productividad y bienestar).\\n\\n' +
-        'Analiza las tareas listadas y determina si cada una es urgente y/o importante. Además indica el tamaño (pequeña, mediana, grande) y el tiempo estimado en minutos.'+
-        '1.  **urgent**: `true` si requiere atención inmediata (hoy o mañana), `false` si puede esperar.\\n' +
-        '2.  **important**: `true` si contribuye significativamente a un objetivo clave, `false` si no.\\n' +
-        '3.  **size**: Estima el tamaño relativo de la tarea: "pequeña" (menos de 1 hora), "mediana" (1-3 horas), "grande" (más de 3 horas).\\n' +
-        '4.  **estimatedTime**: Proporciona una estimación del tiempo necesario en minutos para completar la tarea. Sé realista considerando el perfil de Alexander.\\n\\n' +
+        '- Idea 2: [Descripción breve y accionable]\\n',      reprioritize:
+        'Eres un sistema experto en priorización de tareas diseñado para ser ESTRICTO y evitar que todo parezca prioritario.\\n\\n' +
+        '### **{PERFIL DE USUARIO}**\\n' +
+        'Alexander: ingeniero de sistemas, 31 años, trabaja desde casa, busca optimizar productividad y bienestar.\\n\\n' +
+        '### **{CRITERIOS ESTRICTOS DE PRIORIZACIÓN}**\\n' +
+        '**URGENTE = `true` SOLO SI:**\\n' +
+        '- Tiene fecha límite en las próximas 24-48 horas\\n' +
+        '- Su retraso causa consecuencias inmediatas graves\\n' +
+        '- Bloquea el trabajo de otras personas\\n' +
+        '- Es requerido para funciones críticas del día\\n' +
+        '**⚠️ MÁXIMO 20-30% de tareas pueden ser urgentes**\\n\\n' +
+        '**IMPORTANTE = `true` SOLO SI:**\\n' +
+        '- Contribuye directamente a objetivos principales (salud, productividad, ingresos)\\n' +
+        '- Su no realización afecta metas a largo plazo\\n' +
+        '- Es fundamental para el crecimiento profesional/personal\\n' +
+        '**⚠️ MÁXIMO 40-50% de tareas pueden ser importantes**\\n\\n' +
+        '### **{DISTRIBUCIÓN OBJETIVO}**\\n' +
+        '- **Urgente + Importante**: 10-15% (hacer YA)\\n' +
+        '- **Importante (no urgente)**: 25-35% (planificar)\\n' +
+        '- **Urgente (no importante)**: 10-15% (delegar/minimizar)\\n' +
+        '- **Ni urgente ni importante**: 35-55% (eliminar/posponer)\\n\\n' +
+        '### **{INSTRUCCIONES}**\\n' +
+        '1. **urgent**: `true` solo si cumple criterios estrictos de urgencia\\n' +
+        '2. **important**: `true` solo si impacta objetivos clave de Alexander\\n' +
+        '3. **size**: "pequeña" (<1h), "mediana" (1-3h), "grande" (>3h)\\n' +
+        '4. **estimatedTime**: Minutos realistas considerando el perfil técnico\\n\\n' +
+        '**REGLA CRÍTICA**: Si más del 50% resultan urgent/important, REVISA y sé más estricto.\\n\\n' +
         '### **{FORMATO DE RESPUESTA OBLIGATORIO}**\\n' +
-        'Devuelve únicamente un JSON con un array de objetos {"id":"1","urgent":true,"important":false,"size":"mediana","estimatedTime":60}',
+        'Devuelve únicamente un JSON con un array de objetos {"id":"1","urgent":false,"important":true,"size":"mediana","estimatedTime":90}',
       }
     },
   journal: {
-    model: 'gemini-2.5-flash-preview-05-20',
+    model: 'gemini-2.5-flash-preview-06-17',
     prompt:
       '### **{ROL}**\n' +
       'Eres un experto en redacción y comunicación clara. Tu especialidad es mejorar textos manteniendo su esencia.\n\n' +
@@ -147,7 +166,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
       + '{MENSAJE-ORIGINAL}\n',
   },
   meal: {
-    model: 'gemini-2.5-flash-preview-05-20',
+    model: 'gemini-2.5-flash-preview-06-17',
     prompts: {
       meal:
         '## {ROL}\n' +
@@ -279,7 +298,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
     }
   },
   mood: {
-    model: 'gemini-2.5-flash-preview-05-20',
+    model: 'gemini-2.5-flash-preview-06-17',
     prompt:
       '### **{ROL}**\n' +
       'Eres un psicólogo especializado en análisis emocional y bienestar mental con experiencia en:\n' +
@@ -336,7 +355,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
       'Analiza de forma natural y humana, como si fueras un psicólogo empático que entiende los matices emocionales. No te quedes solo en lo obvio: busca las emociones que están entre líneas, pero siempre respaldándote en lo que realmente dice el texto. Si hay emociones mixtas o que cambian durante el día, refléjalo con múltiples entradas en horarios diferentes.'
   },
   habit: {
-    model: 'gemini-2.5-flash-preview-05-20',
+    model: 'gemini-2.5-flash-preview-06-17',
     prompts: {
       predict:
         '### **{ROL}**\n' +
@@ -460,7 +479,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
     }
   },
   negativeHabit: {
-    model: 'gemini-2.5-flash-preview-05-20',
+    model: 'gemini-2.5-flash-preview-06-17',
     prompts: {
       impact:
         '### **{ROL}**\n' +
@@ -585,7 +604,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
     }
   },
   statistics: {
-    model: 'gemini-2.5-flash-preview-05-20',
+    model: 'gemini-2.5-flash-preview-06-17',
     prompt:
       'Eres un coach personal experto en análisis de comportamiento y bienestar, con conocimientos en Terapia Cognitivo-Conductual (TCC) y Terapia de Aceptación y Compromiso (ACT). Analiza el siguiente resumen de actividad diaria. \\n' +
       'Tu objetivo es: \\n' +
