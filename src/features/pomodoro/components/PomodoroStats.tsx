@@ -81,10 +81,6 @@ export const PomodoroStats = ({ dateRange }: PomodoroStatsProps) => {
             <p className="text-lg font-semibold">{stats.totalSessions}</p>
           </div>
           <div className="space-y-0.5">
-            <p className="text-muted-foreground text-xs">Completadas</p>
-            <p className="text-lg font-semibold">{stats.completedSessions}</p>
-          </div>
-          <div className="space-y-0.5">
             <p className="text-muted-foreground text-xs">Tiempo Total</p>
             <p className="text-lg font-semibold">
               {formatDuration(Math.floor(stats.totalTime / 60))}
@@ -114,7 +110,9 @@ export const PomodoroStats = ({ dateRange }: PomodoroStatsProps) => {
           {stats.bestDay && (
             <div className="space-y-0.5 col-span-2">
               <p className="text-muted-foreground text-xs">Mejor Día</p>
-              <p className="text-lg font-semibold">{stats.bestDay.sessions}</p>
+              <p className="text-lg font-semibold">
+                {formatDuration(Math.floor(stats.bestDay.minutes))}
+              </p>
               <p className="text-xs text-gray-400">{stats.bestDay.date}</p>
             </div>
           )}

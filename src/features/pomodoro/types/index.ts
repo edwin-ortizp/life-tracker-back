@@ -23,7 +23,6 @@ export interface PomodoroData {
 
 export interface PomodoroStats {
   totalSessions: number;
-  completedSessions: number;
   totalTime: number; // en segundos
   averageSessionTime: number; // en segundos
   completionRate: number; // porcentaje
@@ -31,7 +30,8 @@ export interface PomodoroStats {
   averageWeekdayHours?: number;
   bestDay?: {
     date: string; // formato dd/MM/yyyy
-    sessions: number;
+    /** Minutos trabajados en el mejor día */
+    minutes: number;
   };
 }
 

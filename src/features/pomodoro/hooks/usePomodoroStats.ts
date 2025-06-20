@@ -35,7 +35,6 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
         
         // Obtener documentos para cada fecha
         const allSessions: PomodoroSession[] = [];
-        const sessionsByDay: Record<string, number> = {};
         const minutesByDay: Record<string, number> = {};
 
         const results = await Promise.allSettled(
@@ -61,10 +60,6 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
             allSessions.push(...data.sessions);
 
             const completedSessions = data.sessions.filter(s => s.completed);
-            const count = completedSessions.length;
-            if (count > 0) {
-              sessionsByDay[dateStr] = count;
-            }
             const minutes = completedSessions.reduce((acc, s) => acc + s.duration, 0) / 60;
             minutesByDay[dateStr] = minutes;
           }
@@ -74,7 +69,6 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
         if (allSessions.length === 0) {
           setStats({
             totalSessions: 0,
-            completedSessions: 0,
             totalTime: 0,
             averageSessionTime: 0,
             completionRate: 0,
@@ -85,9 +79,9 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
         }
 
         // Encontrar el mejor día
-        const bestDayEntry = Object.entries(sessionsByDay).reduce(
-          (max, [date, count]) => 
-            count > max[1] ? [date, count] : max,
+        const bestDayEntry = Object.entries(minutesByDay).reduce(
+          (max, [date, minutes]) =>
+            minutes > max[1] ? [date, minutes] : max,
           ['', 0]
         );
 
@@ -108,7 +102,6 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
 
         const stats: PomodoroStats = {
           totalSessions: allSessions.length,
-          completedSessions: completedSessions.length,
           totalTime,
           averageSessionTime: totalTime / allSessions.length,
           completionRate: (completedSessions.length / allSessions.length) * 100,
@@ -116,7 +109,7 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
           ...(bestDayEntry[1] > 0 && {
             bestDay: {
               date: format(new Date(bestDayEntry[0]), 'dd/MM/yyyy'),
-              sessions: bestDayEntry[1]
+              minutes: bestDayEntry[1]
             }
           })
         };
