@@ -195,35 +195,8 @@ export const aiConfig: Record<string, AiModuleConfig> = {
         '  3. Mantener masa muscular (59.27kg)\n' +
         '  4. Energía constante durante jornada laboral sedentaria\n' +
         '  5. Pérdida de peso gradual y sostenible\n\n' +
-        '## {PARÁMETROS NUTRICIONALES ESPECÍFICOS}\n' +
-        '### Distribución Calórica: 1,900-2,100 kcal _(Déficit moderado basado en metabolismo basal)_\n' +
-        '### Macronutrientes Optimizados:\n' +
-        '- **Proteínas**: 25% (120-130g) - _Preservar masa muscular_\n' +
-        '- **Carbohidratos**: 40% (190-210g) - _Complejos para controlar grasa visceral_\n' +
-        '- **Grasas saludables**: 35% (75-80g) - _Anti-inflamatorias_\n\n' +
-        '### Micronutrientes CRÍTICOS:\n' +
-        '- **Fibra**: 30-35g diarios - _Esencial para reducir grasa visceral_\n' +
-        '- **Sodio**: MAX 1,800mg diarios - _Por condición renal_\n' +
-        '- **Agua**: 3.5-4 litros diarios - _CRÍTICO: mejorar hidratación_\n' +
-        '- **Azúcares añadidos**: MAX 3% del total calórico\n\n' +
-        '### Alimentos a EVITAR:\n' +
-        '- Carbohidratos refinados y azúcares simples\n' +
-        '- Procesados y ultraprocesados\n' +
-        '- Grasas trans en exceso\n' +
-        '- Bebidas azucaradas\n\n' +
-        '## {CONSIDERACIONES RENALES}\n' +
-        '- Proteína moderada (1.5g/kg peso)\n' +
-        '- Control estricto de sodio (<1,800mg)\n' +
-        '- Hidratación controlada (3.5L)\n' +
-        '- Evitar procesados altos en fósforo\n\n' +
         '## {INSTRUCCIONES}\n' +
-        'Genera una comida usando ÚNICAMENTE los ingredientes proporcionados que:\n' +
-        '- Sea efectiva contra grasa visceral\n' +
-        '- Respete limitaciones renales\n' +
-        '- Sea **sabrosa y práctica** (receta popular)\n' +
-        '- Incluya fibra (mínimo 6-8g)\n' +
-        '- Combine proteína + fibra\n' +
-        '- Use métodos saludables (vapor, horno, plancha)\n' +
+        'Genera una comida usando ÚNICAMENTE los ingredientes proporcionados\n' +
         '- Sea meal prep friendly cuando posible\n\n' +
         'Devuelve solo JSON: {"name":"","notes":"","recipe":""}\n' +
         '- **name**: Incluir bebidas recomendadas\n' +
@@ -239,56 +212,24 @@ export const aiConfig: Record<string, AiModuleConfig> = {
         '## {CONTEXTO PERSONAL DETALLADO}\n' +
         '**Perfil del Usuario: Alexander**\n' +
         '- **Edad**: 31 años, **Peso**: 84.70 kg, **IMC**: 26.7\n' +
-        '- **CRÍTICO**: Grasa visceral nivel 11 (ALTA - requiere intervención urgente)\n' +
+        '- **CRÍTICO**: Grasa visceral nivel 11 (Alta)\n' +
         '- **CRÍTICO**: Hidratación 50.6% (insuficiente)\n' +
         '- **Condición médica**: Un riñón y medio\n' +
         '- **Estilo de vida**: Trabajo sedentario desde casa\n' +
-        '- **Objetivos**: Reducir grasa visceral (11→<6), mejorar hidratación (50.6%→>55%), mantener masa muscular\n\n' +
         '## {DISTRIBUCIÓN DIARIA}\n' +
         '**5 comidas específicas:**\n' +
-        '1. **Desayuno** - Energético sin picos de azúcar\n' +
+        '1. **Desayuno** - Energético sin picos de azúcar, pero saciante\n' +
         '2. **Snack mañana** - Ligero, hidratante\n' +
         '3. **Almuerzo** - Comida principal, anti-inflamatoria\n' +
         '4. **Snack tarde** - Saciante, pre-entrenamiento\n' +
         '5. **Cena** - Ligera, recuperación nocturna\n\n' +
-        '**Total diario**: 1,900-2,100 kcal\n' +
-        '- Proteínas: 25% (120-130g)\n' +
-        '- Carbohidratos: 40% (190-210g) - complejos\n' +
-        '- Grasas: 35% (75-80g) - anti-inflamatorias\n' +
-        '- Fibra: 30-35g\n' +
-        '- Sodio: <1,800mg\n' +
-        '- Agua: 3.5-4L\n\n' +
-        '## {ESTRATEGIAS ESPECÍFICAS}\n' +
-        '### Anti-grasa visceral:\n' +
-        '- Cada comida DEBE incluir fibra (6-8g mínimo principales)\n' +
-        '- Combinar SIEMPRE proteína + fibra\n' +
-        '- Priorizar omega-3 y termogénicos\n' +
-        '- Evitar picos de insulina\n\n' +
-        '### Hidratación estratégica:\n' +
-        '- Incluir bebidas en desayuno, almuerzo y cena\n' +
-        '- Sugerir infusiones entre comidas\n' +
-        '- Alimentos hidratantes (pepino, apio, melón)\n\n' +
-        '### Timing nutricional:\n' +
-        '- **Desayuno**: Proteína + fibra + carbohidratos complejos\n' +
-        '- **Media mañana**: Hidratante y saciante\n' +
-        '- **Almuerzo**: Mayor aporte calórico del día\n' +
-        '- **Tarde**: Preparación para actividad física\n' +
-        '- **Cena**: Ligera, promotora de sueño\n\n' +
-        '## {CONSIDERACIONES CRÍTICAS}\n' +
-        '### Renales (riñón y medio):\n' +
-        '- Proteína moderada pero suficiente\n' +
-        '- Sodio estrictamente controlado\n' +
-        '- Evitar procesados altos en fósforo\n\n' +
         '### Practicidad (ESENCIAL):\n' +
-        '- **Recetas populares y probadas** disponibles en internet\n' +
-        '- **Preparaciones fáciles** (máximo 30 minutos)\n' +
+        '- **Recetas populares y probadas** disponibles en internet (siempre busca en internet para cumplir la tarea)\n' +
+        '- **Preparaciones fáciles**\n' +
         '- **Meal prep friendly**: que se puedan preparar en lotes\n' +
         '- **Sabores atractivos**: especias, hierbas, combinaciones apetitosas\n' +
-        '- **Métodos saludables**: vapor, horno, plancha, salteado ligero\n\n' +
         '## {INSTRUCCIONES FINALES}\n' +
-        'Genera plan completo usando ÚNICAMENTE ingredientes proporcionados:\n' +
-        '- **Priorizar reducción grasa visceral**\n' +
-        '- **Incluir estrategias hidratación** en cada comida\n' +
+        'Genera plan completo usando ÚNICAMENTE ingredientes:\n' +
         '- **Recetas conocidas por ser sabrosas**\n' +
         'Formato JSON con llaves: breakfast, morningSnack, lunch, afternoonSnack, dinner\n' +
         'Cada comida: {"name":"","notes":"","recipe":""}\n' +
