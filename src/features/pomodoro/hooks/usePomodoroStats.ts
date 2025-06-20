@@ -36,6 +36,7 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
         // Obtener documentos para cada fecha
         const allSessions: PomodoroSession[] = [];
         const sessionsByDay: Record<string, number> = {};
+        const minutesByDay: Record<string, number> = {};
 
         const results = await Promise.allSettled(
           dateArray.map(async date => {
@@ -59,10 +60,13 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
             const { dateStr, data } = res.value;
             allSessions.push(...data.sessions);
 
-            const completedSessions = data.sessions.filter(s => s.completed).length;
-            if (completedSessions > 0) {
-              sessionsByDay[dateStr] = completedSessions;
+            const completedSessions = data.sessions.filter(s => s.completed);
+            const count = completedSessions.length;
+            if (count > 0) {
+              sessionsByDay[dateStr] = count;
             }
+            const minutes = completedSessions.reduce((acc, s) => acc + s.duration, 0) / 60;
+            minutesByDay[dateStr] = minutes;
           }
         });
 
@@ -73,7 +77,8 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
             completedSessions: 0,
             totalTime: 0,
             averageSessionTime: 0,
-            completionRate: 0
+            completionRate: 0,
+            ...(dateRange === 'week' && { averageWeekdayHours: 0 })
           });
           setLoading(false);
           return;
@@ -90,12 +95,24 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
         const completedSessions = allSessions.filter(s => s.completed);
         const totalTime = allSessions.reduce((acc, s) => acc + s.duration, 0);
 
+        let averageWeekdayHours: number | undefined;
+        if (dateRange === 'week') {
+          const weekdayEntries = Object.entries(minutesByDay).filter(([d]) => {
+            const day = new Date(d).getDay();
+            return day !== 0 && day !== 6;
+          });
+          const totalMinutes = weekdayEntries.reduce((acc, [, m]) => acc + m, 0);
+          const daysCount = weekdayEntries.length;
+          averageWeekdayHours = daysCount > 0 ? totalMinutes / 60 / daysCount : 0;
+        }
+
         const stats: PomodoroStats = {
           totalSessions: allSessions.length,
           completedSessions: completedSessions.length,
           totalTime,
           averageSessionTime: totalTime / allSessions.length,
           completionRate: (completedSessions.length / allSessions.length) * 100,
+          ...(averageWeekdayHours !== undefined && { averageWeekdayHours }),
           ...(bestDayEntry[1] > 0 && {
             bestDay: {
               date: format(new Date(bestDayEntry[0]), 'dd/MM/yyyy'),

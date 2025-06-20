@@ -27,6 +27,8 @@ export interface PomodoroStats {
   totalTime: number; // en segundos
   averageSessionTime: number; // en segundos
   completionRate: number; // porcentaje
+  /** Horas promedio trabajadas por día de lunes a viernes */
+  averageWeekdayHours?: number;
   bestDay?: {
     date: string; // formato dd/MM/yyyy
     sessions: number;
