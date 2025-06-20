@@ -37,22 +37,34 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
         const allSessions: PomodoroSession[] = [];
         const sessionsByDay: Record<string, number> = {};
 
-        for (const date of dateArray) {
-          const dateStr = getLocalDateString(date);
-          const docRef = doc(db, 'pomodoro', `${user.uid}_${dateStr}`);
-          const docSnap = await getDoc(docRef);
+        const results = await Promise.allSettled(
+          dateArray.map(async date => {
+            const dateStr = getLocalDateString(date);
+            const docRef = doc(db, 'pomodoro', `${user.uid}_${dateStr}`);
+            try {
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                const data = docSnap.data() as PomodoroData;
+                return { dateStr, data };
+              }
+            } catch (e) {
+              console.error('PomodoroStats - Error fetching doc:', e);
+            }
+            return null;
+          })
+        );
 
-          if (docSnap.exists()) {
-            const data = docSnap.data() as PomodoroData;
+        results.forEach(res => {
+          if (res.status === 'fulfilled' && res.value) {
+            const { dateStr, data } = res.value;
             allSessions.push(...data.sessions);
-            
-            // Contar sesiones completadas por día
+
             const completedSessions = data.sessions.filter(s => s.completed).length;
             if (completedSessions > 0) {
               sessionsByDay[dateStr] = completedSessions;
             }
           }
-        }
+        });
 
         // Si no hay sesiones, establecer estadísticas iniciales
         if (allSessions.length === 0) {
