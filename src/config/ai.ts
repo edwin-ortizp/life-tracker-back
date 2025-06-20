@@ -17,7 +17,7 @@ const HTML_INSTRUCTIONS =
 
 export const aiConfig: Record<string, AiModuleConfig> = {
   task: {
-    model: 'gemini-2.5-flash-preview-06-17',
+    model: 'gemini-2.5-flash',
     prompt:
       'Asistente Inteligente de Productividad y Gestión de Estado de Ánimo\n' +
       'Eres un experto en productividad personal que entiende cómo el estado emocional afecta el rendimiento y la motivación para completar tareas.\n\n' +
@@ -116,7 +116,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
       }
     },
   journal: {
-    model: 'gemini-2.5-flash-preview-06-17',
+    model: 'gemini-2.5-flash',
     prompt:
       '### **{ROL}**\n' +
       'Eres un experto en redacción y comunicación clara. Tu especialidad es mejorar textos manteniendo su esencia.\n\n' +
@@ -166,7 +166,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
       + '{MENSAJE-ORIGINAL}\n',
   },
   meal: {
-    model: 'gemini-2.5-flash-preview-06-17',
+    model: 'gemini-2.5-flash',
     prompts: {
       meal:
         '## {ROL}\n' +
@@ -239,7 +239,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
     }
   },
   mood: {
-    model: 'gemini-2.5-flash-preview-06-17',
+    model: 'gemini-2.5-flash',
     prompt:
       '### **{ROL}**\n' +
       'Eres un psicólogo especializado en análisis emocional y bienestar mental con experiencia en:\n' +
@@ -296,7 +296,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
       'Analiza de forma natural y humana, como si fueras un psicólogo empático que entiende los matices emocionales. No te quedes solo en lo obvio: busca las emociones que están entre líneas, pero siempre respaldándote en lo que realmente dice el texto. Si hay emociones mixtas o que cambian durante el día, refléjalo con múltiples entradas en horarios diferentes.'
   },
   habit: {
-    model: 'gemini-2.5-flash-preview-06-17',
+    model: 'gemini-2.5-flash',
     prompts: {
       predict:
         '### **{ROL}**\n' +
@@ -420,7 +420,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
     }
   },
   negativeHabit: {
-    model: 'gemini-2.5-flash-preview-06-17',
+    model: 'gemini-2.5-flash',
     prompts: {
       impact:
         '### **{ROL}**\n' +
@@ -545,7 +545,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
     }
   },
   statistics: {
-    model: 'gemini-2.5-flash-preview-06-17',
+    model: 'gemini-2.5-flash',
     prompt:
       'Eres un coach personal experto en análisis de comportamiento y bienestar, con conocimientos en Terapia Cognitivo-Conductual (TCC) y Terapia de Aceptación y Compromiso (ACT). Analiza el siguiente resumen de actividad diaria. \\n' +
       'Tu objetivo es: \\n' +
