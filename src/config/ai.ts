@@ -221,7 +221,7 @@ export const aiConfig: Record<string, AiModuleConfig> = {
         '1. **Desayuno** - Energético sin picos de azúcar, pero saciante\n' +
         '2. **Snack mañana** - Ligero, hidratante\n' +
         '3. **Almuerzo** - Comida principal, anti-inflamatoria\n' +
-        '4. **Snack tarde** - Saciante, pre-entrenamiento\n' +
+        '4. **Snack tarde** - Saciante\n' +
         '5. **Cena** - Ligera, recuperación nocturna\n\n' +
         '### Practicidad (ESENCIAL):\n' +
         '- **Recetas populares y probadas** disponibles en internet (siempre busca en internet para cumplir la tarea)\n' +
