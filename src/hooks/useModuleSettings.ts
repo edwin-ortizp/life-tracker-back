@@ -38,7 +38,7 @@ export function useModuleSettings<T>(module: string, defaults: T) {
           ([, v]) => v !== undefined && !(typeof v === 'number' && isNaN(v))
         )
       );
-      await setDoc(docRef, sanitized, { merge: true });
+      await setDoc(docRef, { userId: user.uid, ...sanitized }, { merge: true });
       setStatus('saved');
     } catch (e: any) {
       setError(e.message);
