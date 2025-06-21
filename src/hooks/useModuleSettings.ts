@@ -33,7 +33,12 @@ export function useModuleSettings<T>(module: string, defaults: T) {
     setError(null);
     try {
       const docRef = doc(db, 'settings', `${user.uid}_${module}`);
-      await setDoc(docRef, updates, { merge: true });
+      const sanitized = Object.fromEntries(
+        Object.entries(updates).filter(
+          ([, v]) => v !== undefined && !(typeof v === 'number' && isNaN(v))
+        )
+      );
+      await setDoc(docRef, sanitized, { merge: true });
       setStatus('saved');
     } catch (e: any) {
       setError(e.message);
