@@ -34,6 +34,23 @@ const getPriorityInfo = (priority?: string) => {
   return priorityMap[priority as keyof typeof priorityMap] || priorityMap.none;
 };
 
+// Función para formatear tiempo estimado
+const formatEstimatedTime = (minutes?: number) => {
+  if (!minutes) return '';
+  
+  if (minutes < 60) {
+    return `${minutes} min`;
+  } else {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    if (remainingMinutes === 0) {
+      return `${hours}h`;
+    } else {
+      return `${hours}h ${remainingMinutes}min`;
+    }
+  }
+};
+
 export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   task,
   isOpen,
@@ -233,6 +250,17 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
                     <span>📏</span>
                     {task.size}
+                  </div>
+                </div>
+              )}
+
+              {/* Tiempo estimado */}
+              {task.estimatedTime && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-600">Tiempo estimado</p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800">
+                    <span>⏱️</span>
+                    {formatEstimatedTime(task.estimatedTime)}
                   </div>
                 </div>
               )}
