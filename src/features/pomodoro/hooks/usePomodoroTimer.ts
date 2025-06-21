@@ -162,10 +162,16 @@ export const usePomodoroTimer = ({
 
     try {
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
-      await setDoc(docRef, { 
-        activePomodoro: newPomodoro,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      await setDoc(
+        docRef,
+        {
+          userId: user.uid,
+          date,
+          activePomodoro: newPomodoro,
+          updatedAt: serverTimestamp()
+        },
+        { merge: true }
+      );
       
     } catch (error) {
       console.error('Error starting timer:', error);

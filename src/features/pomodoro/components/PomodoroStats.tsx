@@ -75,37 +75,44 @@ export const PomodoroStats = ({ dateRange }: PomodoroStatsProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">Sesiones Totales</p>
-            <p className="text-2xl font-bold">{stats.totalSessions}</p>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-center text-sm">
+          <div className="space-y-0.5">
+            <p className="text-muted-foreground text-xs">Sesiones</p>
+            <p className="text-lg font-semibold">{stats.totalSessions}</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">Completadas</p>
-            <p className="text-2xl font-bold">{stats.completedSessions}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">Tiempo Total</p>
-            <p className="text-2xl font-bold">
+          <div className="space-y-0.5">
+            <p className="text-muted-foreground text-xs">Tiempo Total</p>
+            <p className="text-lg font-semibold">
               {formatDuration(Math.floor(stats.totalTime / 60))}
             </p>
           </div>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">Promedio/Sesión</p>
-            <p className="text-2xl font-bold">
+          <div className="space-y-0.5">
+            <p className="text-muted-foreground text-xs">Promedio/Sesión</p>
+            <p className="text-lg font-semibold">
               {formatDuration(Math.floor(stats.averageSessionTime / 60))}
             </p>
           </div>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">Completitud</p>
-            <p className="text-2xl font-bold">
-              {stats.completionRate.toFixed(1)}%
-            </p>
-          </div>
+          {dateRange === 'week' ? (
+            <div className="space-y-0.5 col-span-2">
+              <p className="text-muted-foreground text-xs">Promedio diario</p>
+              <p className="text-lg font-semibold">
+                {stats.averageWeekdayHours?.toFixed(1)}h/día
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-0.5">
+              <p className="text-muted-foreground text-xs">Completitud</p>
+              <p className="text-lg font-semibold">
+                {stats.completionRate.toFixed(1)}%
+              </p>
+            </div>
+          )}
           {stats.bestDay && (
-            <div className="space-y-1">
-              <p className="text-sm text-gray-500">Mejor Día</p>
-              <p className="text-2xl font-bold">{stats.bestDay.sessions}</p>
+            <div className="space-y-0.5 col-span-2">
+              <p className="text-muted-foreground text-xs">Mejor Día</p>
+              <p className="text-lg font-semibold">
+                {formatDuration(Math.floor(stats.bestDay.minutes))}
+              </p>
               <p className="text-xs text-gray-400">{stats.bestDay.date}</p>
             </div>
           )}

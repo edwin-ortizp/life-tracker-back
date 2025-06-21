@@ -35,42 +35,53 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
         
         // Obtener documentos para cada fecha
         const allSessions: PomodoroSession[] = [];
-        const sessionsByDay: Record<string, number> = {};
+        const minutesByDay: Record<string, number> = {};
 
-        for (const date of dateArray) {
-          const dateStr = getLocalDateString(date);
-          const docRef = doc(db, 'pomodoro', `${user.uid}_${dateStr}`);
-          const docSnap = await getDoc(docRef);
-
-          if (docSnap.exists()) {
-            const data = docSnap.data() as PomodoroData;
-            allSessions.push(...data.sessions);
-            
-            // Contar sesiones completadas por día
-            const completedSessions = data.sessions.filter(s => s.completed).length;
-            if (completedSessions > 0) {
-              sessionsByDay[dateStr] = completedSessions;
+        const results = await Promise.allSettled(
+          dateArray.map(async date => {
+            const dateStr = getLocalDateString(date);
+            const docRef = doc(db, 'pomodoro', `${user.uid}_${dateStr}`);
+            try {
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                const data = docSnap.data() as PomodoroData;
+                return { dateStr, data };
+              }
+            } catch (e) {
+              console.error('PomodoroStats - Error fetching doc:', e);
             }
+            return null;
+          })
+        );
+
+        results.forEach(res => {
+          if (res.status === 'fulfilled' && res.value) {
+            const { dateStr, data } = res.value;
+            allSessions.push(...data.sessions);
+
+            const completedSessions = data.sessions.filter(s => s.completed);
+            const minutes = completedSessions.reduce((acc, s) => acc + s.duration, 0) / 60;
+            minutesByDay[dateStr] = minutes;
           }
-        }
+        });
 
         // Si no hay sesiones, establecer estadísticas iniciales
         if (allSessions.length === 0) {
           setStats({
             totalSessions: 0,
-            completedSessions: 0,
             totalTime: 0,
             averageSessionTime: 0,
-            completionRate: 0
+            completionRate: 0,
+            ...(dateRange === 'week' && { averageWeekdayHours: 0 })
           });
           setLoading(false);
           return;
         }
 
         // Encontrar el mejor día
-        const bestDayEntry = Object.entries(sessionsByDay).reduce(
-          (max, [date, count]) => 
-            count > max[1] ? [date, count] : max,
+        const bestDayEntry = Object.entries(minutesByDay).reduce(
+          (max, [date, minutes]) =>
+            minutes > max[1] ? [date, minutes] : max,
           ['', 0]
         );
 
@@ -78,16 +89,27 @@ export const usePomodoroStats = (dateRange: 'week' | 'month' = 'week') => {
         const completedSessions = allSessions.filter(s => s.completed);
         const totalTime = allSessions.reduce((acc, s) => acc + s.duration, 0);
 
+        let averageWeekdayHours: number | undefined;
+        if (dateRange === 'week') {
+          const weekdayEntries = Object.entries(minutesByDay).filter(([d]) => {
+            const day = new Date(d).getDay();
+            return day !== 0 && day !== 6;
+          });
+          const totalMinutes = weekdayEntries.reduce((acc, [, m]) => acc + m, 0);
+          const daysCount = weekdayEntries.length;
+          averageWeekdayHours = daysCount > 0 ? totalMinutes / 60 / daysCount : 0;
+        }
+
         const stats: PomodoroStats = {
           totalSessions: allSessions.length,
-          completedSessions: completedSessions.length,
           totalTime,
           averageSessionTime: totalTime / allSessions.length,
           completionRate: (completedSessions.length / allSessions.length) * 100,
+          ...(averageWeekdayHours !== undefined && { averageWeekdayHours }),
           ...(bestDayEntry[1] > 0 && {
             bestDay: {
               date: format(new Date(bestDayEntry[0]), 'dd/MM/yyyy'),
-              sessions: bestDayEntry[1]
+              minutes: bestDayEntry[1]
             }
           })
         };

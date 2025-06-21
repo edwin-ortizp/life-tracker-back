@@ -34,11 +34,11 @@ export default function PomodoroPage() {
       <div className="grid gap-6 md:grid-cols-[1fr_300px]">
         <div className="space-y-6">
           <Pomodoro selectedDate={selectedDate} />
-          <PomodoroStats dateRange="week" />
-          <PomodoroStats dateRange="month" />
         </div>
         <div className="space-y-6">
           <PomodoroCalendar selectedDate={selectedDate} />
+          <PomodoroStats dateRange="week" />
+          <PomodoroStats dateRange="month" />
         </div>
       </div>
     </PageLayout>

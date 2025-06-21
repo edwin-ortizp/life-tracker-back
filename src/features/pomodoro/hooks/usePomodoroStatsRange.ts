@@ -30,17 +30,22 @@ export const usePomodoroStatsRange = (startDate: Date, endDate: Date) => {
           cur.setDate(cur.getDate() + 1);
         }
 
-        const snapshots = await Promise.all(
+        const results = await Promise.allSettled(
           dates.map(d => getDoc(doc(db, 'pomodoro', `${user.uid}_${d}`)))
         );
 
-        const dailyStats = snapshots.map((snap, idx) => {
-          const sessions = snap.exists() ? snap.data().sessions || [] : [];
-          const minutes =
-            sessions
-              .filter((s: any) => s.completed)
-              .reduce((acc: number, s: any) => acc + (s.duration || 0), 0) / 60;
-          return { date: dates[idx], minutes };
+        const dailyStats = results.map((res, idx) => {
+          if (res.status === 'fulfilled') {
+            const snap = res.value;
+            const sessions = snap.exists() ? snap.data().sessions || [] : [];
+            const minutes =
+              sessions
+                .filter((s: any) => s.completed)
+                .reduce((acc: number, s: any) => acc + (s.duration || 0), 0) / 60;
+            return { date: dates[idx], minutes };
+          }
+          console.error('PomodoroStatsRange - Error fetching doc:', res.reason);
+          return { date: dates[idx], minutes: 0 };
         });
 
         setStats({ dailyStats });
