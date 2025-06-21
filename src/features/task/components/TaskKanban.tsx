@@ -30,7 +30,6 @@ import { toast } from 'sonner';
 
 interface TaskKanbanProps {
   tasks: Task[];
-  onToggle: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
@@ -100,7 +99,6 @@ const SORT_LABELS: Record<SortBy, string> = {
 
 export const TaskKanban: React.FC<TaskKanbanProps> = ({
   tasks,
-  onToggle,
   onDelete,
   onEdit,
   onView,
@@ -637,7 +635,6 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
               >
                 <TaskItem
                   task={task}
-                  onToggle={onToggle}
                   onDelete={onDelete}
                   onEdit={onEdit}
                   onView={onView}

@@ -5,7 +5,6 @@ import { TaskItem } from './TaskItem';
 interface TaskGroupProps {
   title: string;
   tasks: Task[];
-  onToggle: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
@@ -14,7 +13,6 @@ interface TaskGroupProps {
 export const TaskGroup: React.FC<TaskGroupProps> = ({ 
   title, 
   tasks, 
-  onToggle,
   onDelete,
   onEdit,
   onView
@@ -51,7 +49,6 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
         <TaskItem
           key={task.id}
           task={task}
-          onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}

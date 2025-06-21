@@ -18,7 +18,6 @@ export const TaskWeekView: React.FC = () => {
     modalMode,
     addTask,
     editTask,
-    toggleTask,
     deleteTask,
     completeRecurrentTask,
     setShowRecurrenceModal,
@@ -49,7 +48,6 @@ export const TaskWeekView: React.FC = () => {
         <CardContent>
           <TaskWeeklyCalendar
             tasks={tasks}
-            onToggle={toggleTask}
             onDelete={deleteTask}
             onEdit={openEditModal}
             onAssignTimeOfDay={(id, slot) => editTask(id, { timeOfDay: slot })}

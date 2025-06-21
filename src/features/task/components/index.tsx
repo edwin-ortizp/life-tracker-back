@@ -52,7 +52,6 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
     modalMode,
     addTask,
     editTask,
-    toggleTask,
     deleteTask,
     completeRecurrentTask,
     setShowRecurrenceModal,
@@ -262,7 +261,6 @@ Campos opcionales:
           <div className="space-y-6">
             <TaskList
               tasks={tasks}
-              onToggle={toggleTask}
               onDelete={deleteTask}
               onEdit={openEditModal}
               onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}

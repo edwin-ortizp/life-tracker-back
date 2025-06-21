@@ -35,7 +35,6 @@ const DATE_FILTER_LABELS: Record<DateFilter, string> = {
 
 interface TaskListProps {
   tasks: Task[];
-  onToggle: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
@@ -43,7 +42,6 @@ interface TaskListProps {
 
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
-  onToggle,
   onDelete,
   onEdit,
   onView
@@ -256,7 +254,6 @@ export const TaskList: React.FC<TaskListProps> = ({
         <TaskGroup
           title="Tareas Vencidas"
           tasks={groupedTasks.overdue}
-          onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}
@@ -264,7 +261,6 @@ export const TaskList: React.FC<TaskListProps> = ({
         <TaskGroup
           title="Para Hoy"
           tasks={groupedTasks.today}
-          onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}
@@ -272,7 +268,6 @@ export const TaskList: React.FC<TaskListProps> = ({
         <TaskGroup
           title="Esta Semana"
           tasks={groupedTasks.thisWeek}
-          onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}
@@ -280,7 +275,6 @@ export const TaskList: React.FC<TaskListProps> = ({
         <TaskGroup
           title="Próximamente"
           tasks={groupedTasks.future}
-          onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}
@@ -288,7 +282,6 @@ export const TaskList: React.FC<TaskListProps> = ({
         <TaskGroup
           title="Sin Fecha"
           tasks={groupedTasks.noDate}
-          onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}

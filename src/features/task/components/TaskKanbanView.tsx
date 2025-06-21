@@ -18,7 +18,6 @@ export const TaskKanbanView: React.FC = () => {
     modalMode,
     addTask,
     editTask,
-    toggleTask,
     deleteTask,
     completeRecurrentTask,
     setShowRecurrenceModal,
@@ -53,7 +52,6 @@ export const TaskKanbanView: React.FC = () => {
         <CardContent className="overflow-x-auto">
           <TaskKanban
             tasks={tasks}
-            onToggle={toggleTask}
             onDelete={deleteTask}
             onEdit={openEditModal}
             onView={(task) => {
@@ -98,7 +96,6 @@ export const TaskKanbanView: React.FC = () => {
           setShowDetailModal(false);
           openEditModal(t);
         }}
-        onToggle={(id, c) => toggleTask(id, c)}
       />
       <PriorityLegend />
     </div>

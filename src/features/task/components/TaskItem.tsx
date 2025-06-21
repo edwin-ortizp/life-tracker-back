@@ -1,7 +1,7 @@
-import React, { memo, useCallback, useState, forwardRef } from 'react';
+import React, { memo, useCallback, forwardRef } from 'react';
 import { isBefore, startOfDay, format, addDays } from 'date-fns';
 import { toNoon } from '@/utils/dates';
-import { CheckCircle2, Circle, X, Repeat, Calendar, Edit, Tag, AlignLeft, Clock } from 'lucide-react';
+import { X, Repeat, Calendar, Edit, Tag, AlignLeft, Clock } from 'lucide-react';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -68,7 +68,6 @@ type RecurrenceType = keyof typeof RECURRENCE_LABELS;
 
 interface TaskItemProps {
   task: Task;
-  onToggle: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
@@ -94,29 +93,6 @@ const isTaskOverdue = (dueDate: Date | null): boolean => {
 };
 
 // Sub-components with forwardRef support
-const TaskToggleButton = memo(forwardRef<
-  HTMLButtonElement,
-  {
-    completed: boolean;
-    onToggle: () => void;
-  }
->(({ completed, onToggle }, ref) => (
-  <Button
-    ref={ref}
-    variant="ghost"
-    size="icon"
-    className={cn(BUTTON_SIZES.medium, 'p-0 rounded-full shrink-0 hover:bg-transparent')}
-    onClick={onToggle}
-  >
-    {completed ? (
-      <CheckCircle2 className={cn(ICON_SIZES.large, 'text-green-600')} />
-    ) : (
-      <Circle className={cn(ICON_SIZES.large, 'text-gray-400 hover:text-gray-600 transition-colors')} />
-    )}
-  </Button>
-)));
-
-TaskToggleButton.displayName = 'TaskToggleButton';
 
 // Badge with forwardRef for tooltip usage
 const BadgeWithRef = forwardRef<
@@ -376,36 +352,9 @@ const TaskActions = memo<{
 
 TaskActions.displayName = 'TaskActions';
 
-const ConfirmCompleteDialog = memo<{
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-  taskTitle: string;
-}>(({ open, onOpenChange, onConfirm, taskTitle }) => (
-  <AlertDialog open={open} onOpenChange={onOpenChange}>
-    <AlertDialogContent>
-      <AlertDialogHeader>
-        <AlertDialogTitle>¿Marcar tarea como completada?</AlertDialogTitle>
-        <AlertDialogDescription>
-          La tarea "{taskTitle}" se marcará como completada.
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-      <AlertDialogFooter>
-        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-        <AlertDialogAction onClick={onConfirm}>
-          Completar
-        </AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialogContent>
-  </AlertDialog>
-));
-
-ConfirmCompleteDialog.displayName = 'ConfirmCompleteDialog';
-
 // Main component
 export const TaskItem = memo<TaskItemProps>(({
   task,
-  onToggle,
   onDelete,
   onEdit,
   onView,
@@ -413,24 +362,9 @@ export const TaskItem = memo<TaskItemProps>(({
   variant = 'list',
   showCategoryLabel = true
 }) => {
-  const [confirmComplete, setConfirmComplete] = useState(false);
   const overdue = isTaskOverdue(task.dueDate ?? null);
   const { total, checked } = getCheckboxStats(task.description || '');
   const checkboxProgress = total ? (task.progress ?? (checked / total) * 100) : 0;
-
-  const handleToggleClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!task.completed) {
-      setConfirmComplete(true);
-    } else {
-      onToggle(task.id, false);
-    }
-  }, [task.completed, task.id, onToggle]);
-
-  const handleConfirmComplete = useCallback(() => {
-    onToggle(task.id, true);
-    setConfirmComplete(false);
-  }, [task.id, onToggle]);
 
   const handleCardClick = useCallback(() => {
     onView?.(task);
@@ -503,73 +437,55 @@ export const TaskItem = memo<TaskItemProps>(({
             </div>
           </CardFooter>
         </Card>
-        
-        <ConfirmCompleteDialog
-          open={confirmComplete}
-          onOpenChange={setConfirmComplete}
-          onConfirm={handleConfirmComplete}
-          taskTitle={task.title}
-        />
       </>
     );
   }
 
   // List variant
   return (
-    <>
-      <Card onClick={handleCardClick} className={cardClassName}>
-        <CardContent className="flex items-center gap-2.5 py-2 px-3 md:py-2 md:px-3">
-          <TaskToggleButton completed={task.completed} onToggle={() => handleToggleClick} />
-          
-          <div className="flex-1 min-w-0 space-y-0.5">
-            <div className="space-y-0">
-              <div className="flex items-center gap-2">
-                {task.isPrivate && <span className="text-xs opacity-70">🔒</span>}
-                <span className={cn(
-                  'text-sm break-words line-clamp-1 leading-tight font-medium',
-                  task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                )}>
-                  {task.title}
-                </span>
-                {task.description && (
-                  <AlignLeft className="w-3 h-3 text-muted-foreground shrink-0 opacity-50" />
-                )}
-              </div>
-              
+    <Card onClick={handleCardClick} className={cardClassName}>
+      <CardContent className="flex items-center gap-2.5 py-2 px-3 md:py-2 md:px-3">        
+        <div className="flex-1 min-w-0 space-y-0.5">
+          <div className="space-y-0">
+            <div className="flex items-center gap-2">
+              {task.isPrivate && <span className="text-xs opacity-70">🔒</span>}
+              <span className={cn(
+                'text-sm break-words line-clamp-1 leading-tight font-medium',
+                task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+              )}>
+                {task.title}
+              </span>
               {task.description && (
-                <p className={cn(
-                  'text-xs text-muted-foreground line-clamp-1 break-words leading-tight',
-                  task.completed && 'line-through'
-                )}>
-                  {task.description}
-                </p>
+                <AlignLeft className="w-3 h-3 text-muted-foreground shrink-0 opacity-50" />
               )}
             </div>
-
-            <TaskBadges
-              task={task}
-              showCategoryLabel={showCategoryLabel}
-              overdue={overdue}
-              variant="list"
-            />
+            
+            {task.description && (
+              <p className={cn(
+                'text-xs text-muted-foreground line-clamp-1 break-words leading-tight',
+                task.completed && 'line-through'
+              )}>
+                {task.description}
+              </p>
+            )}
           </div>
 
-          <TaskActions
+          <TaskBadges
             task={task}
-            onEdit={onEdit}
-            onDelete={onDelete}
+            showCategoryLabel={showCategoryLabel}
+            overdue={overdue}
             variant="list"
           />
-        </CardContent>
-      </Card>
-      
-      <ConfirmCompleteDialog
-        open={confirmComplete}
-        onOpenChange={setConfirmComplete}
-        onConfirm={handleConfirmComplete}
-        taskTitle={task.title}
-      />
-    </>
+        </div>
+
+        <TaskActions
+          task={task}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          variant="list"
+        />
+      </CardContent>
+    </Card>
   );
 });
 

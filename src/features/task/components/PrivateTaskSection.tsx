@@ -34,7 +34,6 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
     modalMode,
     addTask,
     editTask,
-    toggleTask,
     deleteTask,
     completeRecurrentTask,
     setShowRecurrenceModal,
@@ -169,7 +168,6 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
                 <TaskItem
                   key={task.id}
                   task={task}
-                  onToggle={toggleTask}
                   onDelete={deleteTask}
                   onEdit={openEditModal}
                   onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
@@ -191,7 +189,6 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
                 <TaskItem
                   key={task.id}
                   task={task}
-                  onToggle={toggleTask}
                   onDelete={deleteTask}
                   onEdit={openEditModal}
                   onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
@@ -323,7 +320,6 @@ Formatos de fecha soportados:
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
         onEdit={(t) => { setShowDetailModal(false); openEditModal(t); }}
-        onToggle={(id, c) => toggleTask(id, c)}
       />
     </Card>
   );

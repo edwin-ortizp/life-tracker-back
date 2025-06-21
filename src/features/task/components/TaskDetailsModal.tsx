@@ -7,7 +7,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { isBefore, startOfDay } from 'date-fns';
@@ -19,7 +18,6 @@ interface TaskDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit: (task: Task) => void;
-  onToggle?: (taskId: string, completed: boolean) => void;
 }
 
 // Función para obtener información de prioridad
@@ -39,8 +37,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   task,
   isOpen,
   onClose,
-  onEdit,
-  onToggle
+  onEdit
 }) => {
   if (!task) return null;
 
@@ -64,119 +61,108 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-[90vw] w-[90vw] max-h-[90vh] overflow-y-auto sm:max-w-[90vw] sm:w-[90vw] lg:max-w-[85vw] lg:w-[85vw]">
-        <div className="grid gap-6 md:grid-cols-12">
-          <div className="md:col-span-8 space-y-4">
-            <DialogHeader className="text-left">
-              <DialogTitle>{task.title}</DialogTitle>
-              {task.description && (
-                <div className="space-y-2">
-                  <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
-                  {hasCheckboxes && (
-                    <div className="mt-1 space-y-0.5">
-                      <Progress value={progress} />
-                      <p className="text-xs text-right text-muted-foreground">
-                        {checked} de {total}
-                      </p>
-                    </div>
-                  )}
-                </div>
+      <DialogContent className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="space-y-6">
+          {/* Header Section */}
+          <DialogHeader className="space-y-4">
+            <div className="flex items-start gap-3">
+              {task.isPrivate && (
+                <span className="text-lg mt-1">🔒</span>
               )}
-            </DialogHeader>
-          </div>          <div className="md:col-span-4 space-y-4 text-sm">
-            {task.dueDate && (
-              <p className="flex items-center gap-2">
-                <span className="font-medium">Fecha límite:</span>
-                <Badge
-                  variant={overdue ? 'destructive' : 'secondary'}
-                  className="text-xs font-normal px-2 py-0.5"
-                >
-                  {formatDateToSpanish(task.dueDate)}
-                  {overdue ? ' (vencida)' : ''}
-                </Badge>
-              </p>
-            )}
-            
-            <p className="flex items-center gap-2">
-              <span className="font-medium">Categoría:</span>
-              <span className={
-                `${categoryStyle.bg} ${categoryStyle.text} px-2 py-0.5 rounded-md text-xs flex items-center`
-              }>
-                {CATEGORY_LABELS[task.category]}
-              </span>
-            </p>
+              <div className="flex-1 min-w-0">
+                <DialogTitle className="text-xl font-semibold leading-tight break-words">
+                  {task.title}
+                </DialogTitle>
+                {task.description && (
+                  <div className="mt-3 space-y-3">
+                    <div className="prose prose-sm max-w-none text-muted-foreground" 
+                         dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
+                    {hasCheckboxes && (
+                      <div className="space-y-2">
+                        <Progress value={progress} className="h-2" />
+                        <p className="text-sm text-right text-muted-foreground font-medium">
+                          {checked} de {total} completadas
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogHeader>
 
-            {/* Prioridad */}
+          {/* Badges Section */}
+          <div className="flex flex-wrap gap-2">
+            {/* Category Badge */}
+            <div className={`${categoryStyle.bg} ${categoryStyle.text} px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2`}>
+              <span>📂</span>
+              {CATEGORY_LABELS[task.category]}
+            </div>
+
+            {/* Priority Badge */}
             {priorityInfo.label && (
-              <p className="flex items-center gap-2">
-                <span className="font-medium">Prioridad:</span>
-                <Badge className={`text-xs text-white ${priorityInfo.color}`}>
-                  {priorityInfo.label}
-                </Badge>
-                <span className="text-xs text-gray-500">({priorityInfo.text})</span>
-              </p>
-            )}
-
-            {/* Tamaño */}
-            {task.size && (
-              <p className="flex items-center gap-2">
-                <span className="font-medium">Tamaño:</span>
-                <Badge variant="outline" className="text-xs">
-                  {task.size}
-                </Badge>
-              </p>
-            )}            {/* Urgente/Importante */}
-            {task.priority && (
-              <div className="space-y-2">
-                <p className="flex items-center gap-2">
-                  <span className="font-medium">Urgente:</span>
-                  <Badge variant={priorityInfo.urgent ? "default" : "secondary"} className="text-xs">
-                    {priorityInfo.urgent ? "Sí" : "No"}
-                  </Badge>
-                </p>
-                <p className="flex items-center gap-2">
-                  <span className="font-medium">Importante:</span>
-                  <Badge variant={priorityInfo.important ? "default" : "secondary"} className="text-xs">
-                    {priorityInfo.important ? "Sí" : "No"}
-                  </Badge>
-                </p>
+              <div className={`${priorityInfo.color} text-white px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2`}>
+                <span>⚡</span>
+                {priorityInfo.label}
               </div>
             )}
 
-            {/* Tarea privada */}
-            {task.isPrivate && (
-              <p className="flex items-center gap-2">
-                <span className="font-medium">Privada:</span>
-                <Badge variant="outline" className="text-xs">
-                  🔒 Sí
-                </Badge>
-              </p>
+            {/* Due Date Badge */}
+            {task.dueDate && (
+              <div className={`${overdue ? 'bg-red-100 text-red-800 border-red-200' : 'bg-blue-100 text-blue-800 border-blue-200'} px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 border`}>
+                <span>📅</span>
+                {formatDateToSpanish(task.dueDate)}
+                {overdue && ' (Vencida)'}
+              </div>
             )}
-            
-            {task.isRecurrent && task.recurrence && (
-              <p className="flex items-center gap-2">
-                <span className="font-medium">Recurrencia:</span>
-                <Badge variant="outline" className="text-xs font-normal px-2 py-0.5 text-accent-foreground border-accent">
-                  {recurrenceDescription}
-                </Badge>
-              </p>
+
+            {/* Size Badge */}
+            {task.size && (
+              <div className="bg-gray-100 text-gray-800 border-gray-200 px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 border">
+                <span>📏</span>
+                {task.size}
+              </div>
+            )}
+
+            {/* Recurrence Badge */}
+            {task.isRecurrent && recurrenceDescription && (
+              <div className="bg-purple-100 text-purple-800 border-purple-200 px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 border">
+                <span>🔄</span>
+                {recurrenceDescription}
+              </div>
             )}
           </div>
+
+          {/* Priority Details */}
+          {task.priority && priorityInfo.text && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="font-medium text-gray-900 mb-2">Matriz de Eisenhower</h3>
+              <p className="text-sm text-gray-600">{priorityInfo.text}</p>
+              <div className="mt-3 flex gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Urgente:</span>
+                  <span className={`px-2 py-1 rounded-full text-xs ${priorityInfo.urgent ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600'}`}>
+                    {priorityInfo.urgent ? 'Sí' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Importante:</span>
+                  <span className={`px-2 py-1 rounded-full text-xs ${priorityInfo.important ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}`}>
+                    {priorityInfo.important ? 'Sí' : 'No'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        <DialogFooter className="mt-6">
+        <DialogFooter className="mt-8 gap-2">
           <Button variant="outline" onClick={onClose}>
             Cerrar
           </Button>
-          {onToggle && (
-            <Button
-              variant="secondary"
-              onClick={() => onToggle(task.id, !task.completed)}
-            >
-              {task.completed ? 'Marcar incompleta' : 'Completar'}
-            </Button>
-          )}
-          <Button onClick={() => onEdit(task)}>Editar</Button>
+          <Button onClick={() => onEdit(task)} className="bg-blue-600 hover:bg-blue-700 text-white">
+            Editar Tarea
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
