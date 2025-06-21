@@ -37,6 +37,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
   const [place, setPlace] = useState('');
+  const [consumeBy, setConsumeBy] = useState('');
   const [status, setStatus] = useState<ItemStatus>('to-buy');
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
       setPrice(item.price ? String(item.price) : '');
       setCategory(item.category || '');
       setPlace(item.place || '');
+      setConsumeBy(item.consumeBy || '');
       setStatus(item.status);
     } else {
       setNames('');
@@ -53,6 +55,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
       setPrice('');
       setCategory('');
       setPlace('');
+      setConsumeBy('');
       setStatus('to-buy');
     }
   }, [item, open]);
@@ -73,6 +76,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
 
     if (place && place.trim() !== '') {
       baseData.place = place;
+    }
+
+    if (consumeBy && consumeBy.trim() !== '') {
+      baseData.consumeBy = consumeBy;
     }
 
     if (item) {
@@ -145,6 +152,15 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="consumeBy">Consumir antes de</Label>
+            <Input
+              id="consumeBy"
+              type="date"
+              value={consumeBy}
+              onChange={e => setConsumeBy(e.target.value)}
+            />
           </div>
           <div className="space-y-1">
             <Label htmlFor="status">Estado</Label>

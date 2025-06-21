@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { addDays, isBefore } from 'date-fns';
 import { ShoppingItem, ItemStatus } from '../types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
   const [categoryFilter, setCategoryFilter] = useState('');
   const [onlyToBuy, setOnlyToBuy] = useState(false);
   const [noPriceOnly, setNoPriceOnly] = useState(false);
+  const [expireSoonOnly, setExpireSoonOnly] = useState(false);
 
   const places = useMemo(() => {
     return Array.from(new Set(items.map(i => i.place).filter(Boolean))) as string[];
@@ -64,6 +66,15 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
       list = list.filter(i => i.status === 'to-buy');
     }
 
+    if (expireSoonOnly) {
+      const limit = addDays(new Date(), 3);
+      list = list.filter(i => {
+        if (!i.consumeBy) return false;
+        const d = new Date(i.consumeBy);
+        return isBefore(d, limit) && !isBefore(d, new Date());
+      });
+    }
+
     let sorted = [...list];
     switch (sort) {
       case 'az':
@@ -78,7 +89,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
     }
 
     return sorted;
-  }, [items, query, placeFilter, statusFilter, categoryFilter, noPriceOnly, onlyToBuy, sort]);
+  }, [items, query, placeFilter, statusFilter, categoryFilter, noPriceOnly, onlyToBuy, expireSoonOnly, sort]);
 
   const totalPending = useMemo(() => {
     return filtered.reduce((sum, item) => {
@@ -172,6 +183,10 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
             <ShoppingCart className="w-4 h-4" />
             Lista activa
           </label>
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox checked={expireSoonOnly} onCheckedChange={v => setExpireSoonOnly(Boolean(v))} />
+            Próximos a vencer
+          </label>
         </div>
       </div>
 
@@ -188,6 +203,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
                 Cantidad: {item.quantity}
                 {item.category && ` • ${formatCategory(item.category)}`}
                 {item.place && ` • ${item.place}`}
+                {item.consumeBy && ` • Consumir antes de ${item.consumeBy}`}
               </div>
               <div className="text-sm">
                 <span className={`inline-block px-2 py-1 rounded-full text-xs ${

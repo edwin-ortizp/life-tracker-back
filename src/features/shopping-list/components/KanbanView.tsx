@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { addDays, isBefore } from 'date-fns';
 import { ShoppingItem, ItemStatus } from '../types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatCategory } from '../utils/categories';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
   Tooltip,
   TooltipContent,
@@ -49,6 +51,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
   const [statusFilter, setStatusFilter] = useState<ItemStatus | ''>('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [onlyToBuy, setOnlyToBuy] = useState(false);
+  const [expireSoonOnly, setExpireSoonOnly] = useState(false);
 
   const places = useMemo(() => {
     return Array.from(new Set(items.map(i => i.place).filter(Boolean))) as string[];
@@ -77,6 +80,15 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
       list = list.filter(i => i.status === 'to-buy');
     }
 
+    if (expireSoonOnly) {
+      const limit = addDays(new Date(), 3);
+      list = list.filter(i => {
+        if (!i.consumeBy) return false;
+        const d = new Date(i.consumeBy);
+        return isBefore(d, limit) && !isBefore(d, new Date());
+      });
+    }
+
     let sorted = [...list];
     switch (sort) {
       case 'az':
@@ -91,7 +103,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
     }
 
     return sorted;
-  }, [items, query, placeFilter, statusFilter, categoryFilter, onlyToBuy, sort]);
+  }, [items, query, placeFilter, statusFilter, categoryFilter, onlyToBuy, expireSoonOnly, sort]);
   return (
     <TooltipProvider>
       <div className="space-y-4">
@@ -168,6 +180,10 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
               <ShoppingCart className="w-4 h-4" />
               Lista activa
             </label>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={expireSoonOnly} onCheckedChange={v => setExpireSoonOnly(Boolean(v))} />
+              Próximos a vencer
+            </label>
           </div>
         </div>
 
@@ -177,55 +193,66 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
             <h3 className="font-medium text-sm text-gray-500 uppercase tracking-wider">
               {col.title}
             </h3>
-            {filtered.filter(it => it.status === col.key).map(item => (
-              <div
-                key={item.id}
-                className="bg-white shadow-sm border rounded-lg p-2 space-y-1 cursor-pointer"
-                onClick={() => onView(item)}
-              >
-                <div className="font-medium">{item.name}</div>
-                <div className="text-sm text-gray-500">
-                  {item.quantity} - {item.category && formatCategory(item.category)}
-                </div>
-                <div className="flex justify-end gap-2 text-xs">
-                  {columns.filter(c => c.key !== col.key).map(c => {
-                    const Icon = statusIcons[c.key];
-                    return (
-                      <Tooltip key={c.key}>
+            {filtered.filter(it => it.status === col.key).map(item => {
+              const limit = addDays(new Date(), 3);
+              const isSoon = item.consumeBy ? isBefore(new Date(item.consumeBy), limit) && !isBefore(new Date(item.consumeBy), new Date()) : false;
+              return (
+                <Card
+                  key={item.id}
+                  className={`cursor-pointer ${isSoon ? 'border-red-500' : ''}`}
+                  onClick={() => onView(item)}
+                >
+                  <CardContent className="p-2 space-y-1">
+                    <div className="font-medium">{item.name}</div>
+                    <div className="text-sm text-gray-500">
+                      {item.quantity} - {item.category && formatCategory(item.category)}
+                    </div>
+                    {item.consumeBy && (
+                      <div className="text-xs text-gray-500">Consumir antes de {item.consumeBy}</div>
+                    )}
+                  </CardContent>
+                  <CardFooter className="px-2 py-1.5 bg-gray-50/50 border-t border-gray-100">
+                    <div className="flex justify-end gap-2 text-xs w-full">
+                      {columns.filter(c => c.key !== col.key).map(c => {
+                        const Icon = statusIcons[c.key];
+                        return (
+                          <Tooltip key={c.key}>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  onMove(item.id, c.key);
+                                }}
+                              >
+                                <Icon className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Mover a {c.title}</TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                      <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={e => {
                               e.stopPropagation();
-                              onMove(item.id, c.key);
+                              onView(item);
                             }}
                           >
-                            <Icon className="w-4 h-4" />
+                            <Eye className="w-4 h-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Mover a {c.title}</TooltipContent>
+                        <TooltipContent>Ver detalles</TooltipContent>
                       </Tooltip>
-                    );
-                  })}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={e => {
-                          e.stopPropagation();
-                          onView(item);
-                        }}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Ver detalles</TooltipContent>
-                  </Tooltip>
-                </div>
-              </div>
-            ))}
+                    </div>
+                  </CardFooter>
+                </Card>
+              );
+            })}
           </div>
         ))}
       </div>
