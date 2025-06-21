@@ -28,9 +28,11 @@ export const usePomodoroData = (selectedDate?: Date) => {
       (doc) => {
         if (doc.exists()) {
           const pomodoroData = doc.data() as PomodoroData;
-          const completedCount = pomodoroData.sessions.filter(s => s.completed).length;
+          const sessions = Array.isArray(pomodoroData.sessions) ? pomodoroData.sessions : [];
+          const completedCount = sessions.filter((s) => s.completed).length;
           setData({
             ...pomodoroData,
+            sessions,
             count: completedCount
           });
           setStatus('saved');
