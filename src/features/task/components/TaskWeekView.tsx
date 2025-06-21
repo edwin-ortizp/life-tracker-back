@@ -18,6 +18,7 @@ export const TaskWeekView: React.FC = () => {
     modalMode,
     addTask,
     editTask,
+    toggleTask,
     deleteTask,
     completeRecurrentTask,
     setShowRecurrenceModal,
@@ -84,6 +85,7 @@ export const TaskWeekView: React.FC = () => {
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
         onEdit={(t) => { setShowDetailModal(false); openEditModal(t); }}
+        onToggle={toggleTask}
       />
     </div>
   );

@@ -18,6 +18,7 @@ export const TaskKanbanView: React.FC = () => {
     modalMode,
     addTask,
     editTask,
+    toggleTask,
     deleteTask,
     completeRecurrentTask,
     setShowRecurrenceModal,
@@ -96,6 +97,7 @@ export const TaskKanbanView: React.FC = () => {
           setShowDetailModal(false);
           openEditModal(t);
         }}
+        onToggle={toggleTask}
       />
       <PriorityLegend />
     </div>
