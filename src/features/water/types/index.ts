@@ -9,6 +9,7 @@ export interface Drink {
 
 export interface WaterProps {
   selectedDate: Date;
+  goal: number;
 }
 
 export const DRINK_CATEGORIES = {

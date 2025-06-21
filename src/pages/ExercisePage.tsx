@@ -1,11 +1,16 @@
 // src/pages/ExercisePage.tsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Exercise, { ExerciseCalendar } from '@/features/exercise/components';
 
 import DateSelector from '@/components/DateSelector';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import PageLayout from '@/components/PageLayout';
+import { useModuleSettings } from '@/hooks/useModuleSettings';
 
 // Define the ExerciseRef type with the openAddExercise method
 type ExerciseRef = {
@@ -16,6 +21,12 @@ const ExercisePage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { user } = useAuth();
   const exerciseRef = useRef<ExerciseRef>(null);
+  const { settings, saveSettings } = useModuleSettings('exercise', { dailyCalories: 500 });
+  const [caloriesInput, setCaloriesInput] = useState(settings.dailyCalories);
+
+  useEffect(() => {
+    setCaloriesInput(settings.dailyCalories);
+  }, [settings.dailyCalories]);
 
   const handleFloatingButtonClick = () => {
     exerciseRef.current?.openAddExercise();
@@ -47,15 +58,39 @@ const ExercisePage: React.FC = () => {
         <p className="text-gray-500">Registra y monitorea tus actividades físicas diarias</p>
       </div>
 
-      <DateSelector
-        selectedDate={selectedDate}
-        onChange={setSelectedDate}
-      />
+      <Tabs defaultValue="daily" className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="daily">Registro Diario</TabsTrigger>
+          <TabsTrigger value="settings">Configuración</TabsTrigger>
+        </TabsList>
 
-      <div className="grid gap-6 md:grid-cols-[1fr_300px]">
-        <Exercise ref={exerciseRef} selectedDate={selectedDate} />
-        <ExerciseCalendar selectedDate={selectedDate} />
-      </div>
+        <TabsContent value="daily">
+          <DateSelector selectedDate={selectedDate} onChange={setSelectedDate} />
+          <div className="grid gap-6 md:grid-cols-[1fr_300px] mt-4">
+            <Exercise ref={exerciseRef} selectedDate={selectedDate} />
+            <ExerciseCalendar selectedDate={selectedDate} goal={settings.dailyCalories} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-4">
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div>
+                <Label htmlFor="calGoal">Calorías diarias objetivo</Label>
+                <Input
+                  id="calGoal"
+                  type="number"
+                  value={caloriesInput}
+                  onChange={(e) => setCaloriesInput(Number(e.target.value))}
+                />
+              </div>
+              <Button onClick={() => saveSettings({ dailyCalories: caloriesInput })}>
+                Guardar
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </PageLayout>
   );
 };

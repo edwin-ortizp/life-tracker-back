@@ -9,9 +9,11 @@ import Auth from '../components/Auth';
 import DateSelector from '../components/DateSelector';
 import PageLayout from '@/components/PageLayout';
 import { ModernCard } from '@/components/ui/modern-card';
+import { useModuleSettings } from '@/hooks/useModuleSettings';
 
 const DailyTrackerApp = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const { settings } = useModuleSettings('water', { dailyGoal: 2000 });
 
   return (
     <PageLayout>
@@ -37,7 +39,7 @@ const DailyTrackerApp = () => {
               <Pomodoro selectedDate={selectedDate} />
             </ModernCard>
             <ModernCard variant="elevated" className="bg-card">
-              <Water selectedDate={selectedDate} />
+              <Water selectedDate={selectedDate} goal={settings.dailyGoal} />
             </ModernCard>
           </div>
         </div>
