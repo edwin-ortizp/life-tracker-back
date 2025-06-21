@@ -8,6 +8,7 @@ export interface ShoppingItem {
   price?: number;
   category?: string;
   place?: string;
+  consumeBy?: string; // Fecha de consumo preferente en formato ISO
   status: ItemStatus;
 }
 

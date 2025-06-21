@@ -37,6 +37,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
   const [place, setPlace] = useState('');
+  const [consumeBy, setConsumeBy] = useState('');
   const [status, setStatus] = useState<ItemStatus>('to-buy');
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
       setPrice(item.price ? String(item.price) : '');
       setCategory(item.category || '');
       setPlace(item.place || '');
+      setConsumeBy(item.consumeBy || '');
       setStatus(item.status);
     } else {
       setNames('');
@@ -53,6 +55,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
       setPrice('');
       setCategory('');
       setPlace('');
+      setConsumeBy('');
       setStatus('to-buy');
     }
   }, [item, open]);
@@ -73,6 +76,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
 
     if (place && place.trim() !== '') {
       baseData.place = place;
+    }
+
+    if (consumeBy && consumeBy.trim() !== '') {
+      baseData.consumeBy = consumeBy;
     }
 
     if (item) {
@@ -147,6 +154,15 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
             </Select>
           </div>
           <div className="space-y-1">
+            <Label htmlFor="consumeBy">Consumir antes de</Label>
+            <Input
+              id="consumeBy"
+              type="date"
+              value={consumeBy}
+              onChange={e => setConsumeBy(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
             <Label htmlFor="status">Estado</Label>
             <Select value={status} onValueChange={v => setStatus(v as ItemStatus)}>
               <SelectTrigger id="status">
@@ -162,12 +178,24 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
         </div>
         <DialogFooter className="flex justify-between">
           {item && onDelete ? (
-            <Button variant="destructive" onClick={() => {
-              onDelete(item.id);
-              onOpenChange(false);
-            }}>Eliminar</Button>
-          ) : <span />}
-          <Button onClick={handleSave}>Guardar</Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                onDelete(item.id);
+                onOpenChange(false);
+              }}
+            >
+              Eliminar
+            </Button>
+          ) : (
+            <span />
+          )}
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSave}>Guardar</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

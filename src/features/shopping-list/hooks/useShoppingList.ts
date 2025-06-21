@@ -53,7 +53,8 @@ export const useShoppingList = () => {
             // Campos opcionales
             ...(data.price !== undefined && { price: data.price }),
             ...(data.category && { category: data.category }),
-            ...(data.place && { place: data.place })
+            ...(data.place && { place: data.place }),
+            ...(data.consumeBy && { consumeBy: data.consumeBy })
           };
           
           return item;
@@ -132,7 +133,11 @@ export const useShoppingList = () => {
       
       if (item.place && typeof item.place === 'string' && item.place.trim() !== '') {
         docData.place = item.place.trim();
-      }      
+      }
+
+      if (item.consumeBy && typeof item.consumeBy === 'string' && item.consumeBy.trim() !== '') {
+        docData.consumeBy = item.consumeBy.trim();
+      }
       await addDoc(collection(db, 'shopping-list'), docData);
       setStatus('idle');
     } catch (e) {
@@ -172,6 +177,10 @@ export const useShoppingList = () => {
       
       if (data.place !== undefined && typeof data.place === 'string' && data.place.trim() !== '') {
         updateData.place = data.place.trim();
+      }
+
+      if (data.consumeBy !== undefined && typeof data.consumeBy === 'string' && data.consumeBy.trim() !== '') {
+        updateData.consumeBy = data.consumeBy.trim();
       }
       
       await updateDoc(docRef, updateData);
