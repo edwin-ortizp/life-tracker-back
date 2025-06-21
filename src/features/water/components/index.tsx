@@ -9,11 +9,10 @@ import { useWaterData } from '../hooks/useWaterData';
 import { getLocalDateString } from '@/utils/dates';
 import type { WaterProps } from '../types';
 
-export const Water: React.FC<WaterProps> = ({ selectedDate }) => {
+export const Water: React.FC<WaterProps> = ({ selectedDate, goal }) => {
   const [selectedDrink, setSelectedDrink] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const { user } = useAuth();
-  const goal = 2000;
 
   const {
     intake,
