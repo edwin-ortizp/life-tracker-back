@@ -71,7 +71,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
       list = list.filter(i => {
         if (!i.consumeBy) return false;
         const d = new Date(i.consumeBy);
-        return isBefore(d, limit) && !isBefore(d, new Date());
+        return isBefore(d, limit);
       });
     }
 

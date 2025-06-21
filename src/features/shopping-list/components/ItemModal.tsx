@@ -178,12 +178,24 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
         </div>
         <DialogFooter className="flex justify-between">
           {item && onDelete ? (
-            <Button variant="destructive" onClick={() => {
-              onDelete(item.id);
-              onOpenChange(false);
-            }}>Eliminar</Button>
-          ) : <span />}
-          <Button onClick={handleSave}>Guardar</Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                onDelete(item.id);
+                onOpenChange(false);
+              }}
+            >
+              Eliminar
+            </Button>
+          ) : (
+            <span />
+          )}
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSave}>Guardar</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

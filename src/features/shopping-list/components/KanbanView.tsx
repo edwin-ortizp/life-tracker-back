@@ -85,7 +85,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
       list = list.filter(i => {
         if (!i.consumeBy) return false;
         const d = new Date(i.consumeBy);
-        return isBefore(d, limit) && !isBefore(d, new Date());
+        return isBefore(d, limit);
       });
     }
 
@@ -195,11 +195,13 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
             </h3>
             {filtered.filter(it => it.status === col.key).map(item => {
               const limit = addDays(new Date(), 3);
-              const isSoon = item.consumeBy ? isBefore(new Date(item.consumeBy), limit) && !isBefore(new Date(item.consumeBy), new Date()) : false;
+              const consumeDate = item.consumeBy ? new Date(item.consumeBy) : null;
+              const isExpired = consumeDate ? isBefore(consumeDate, new Date()) : false;
+              const isSoon = consumeDate ? isBefore(consumeDate, limit) : false;
               return (
                 <Card
                   key={item.id}
-                  className={`cursor-pointer ${isSoon ? 'border-red-500' : ''}`}
+                  className={`cursor-pointer ${isSoon || isExpired ? 'border-red-500' : ''} ${isExpired ? 'bg-red-50/50' : ''}`}
                   onClick={() => onView(item)}
                 >
                   <CardContent className="p-2 space-y-1">
@@ -211,16 +213,23 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
                       <div className="text-xs text-gray-500">Consumir antes de {item.consumeBy}</div>
                     )}
                   </CardContent>
-                  <CardFooter className="px-2 py-1.5 bg-gray-50/50 border-t border-gray-100">
-                    <div className="flex justify-end gap-2 text-xs w-full">
+                  <CardFooter className="bg-gray-50/50 border-t border-gray-100 p-0">
+                    <div className="flex justify-end gap-1 text-xs w-full px-2 py-1">
                       {columns.filter(c => c.key !== col.key).map(c => {
                         const Icon = statusIcons[c.key];
+                        const color =
+                          c.key === 'in-stock'
+                            ? 'text-green-600 hover:bg-green-50'
+                            : c.key === 'low-stock'
+                            ? 'text-yellow-600 hover:bg-yellow-50'
+                            : 'text-blue-600 hover:bg-blue-50';
                         return (
                           <Tooltip key={c.key}>
                             <TooltipTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                className={color}
                                 onClick={e => {
                                   e.stopPropagation();
                                   onMove(item.id, c.key);
@@ -238,6 +247,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="text-gray-600 hover:bg-gray-50"
                             onClick={e => {
                               e.stopPropagation();
                               onView(item);
