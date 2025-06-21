@@ -33,18 +33,28 @@ export const useNotifications = () => {
   }, []);
 
   // Enviar notificación
-  const sendNotification = useCallback((title: string, options?: NotificationOptions) => {
+  const sendNotification = useCallback(async (title: string, options?: NotificationOptions) => {
     if (!notificationsSupported() || permission !== 'granted') return;
 
     try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          await reg.showNotification(title, {
+            icon: '/icon-192x192.png',
+            silent: !preferences.sound,
+            ...options
+          });
+          return;
+        }
+      }
+
       const notification = new Notification(title, {
-        icon: '/icon-192x192.png', // Asegúrate de tener este ícono
+        icon: '/icon-192x192.png',
         silent: !preferences.sound,
-        // 'vibrate' is not a valid property for NotificationOptions in browsers
         ...options
       });
 
-      // Manejar clic en la notificación
       notification.onclick = () => {
         window.focus();
         notification.close();
@@ -52,18 +62,33 @@ export const useNotifications = () => {
     } catch (error) {
       console.error('Error sending notification:', error);
     }
-  }, [permission, preferences]);
+  }, [permission, preferences, notificationsSupported]);
 
-  const showPersistentNotification = useCallback((title: string, body: string) => {
+  const showPersistentNotification = useCallback(async (title: string, body: string) => {
     if (!notificationsSupported() || permission !== 'granted') return;
 
     try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          await reg.showNotification(title, {
+            body,
+            icon: '/icon-192x192.png',
+            silent: !preferences.sound,
+            requireInteraction: true,
+            tag: 'pomodoro-active'
+          });
+          return;
+        }
+      }
+
       activeNotificationRef.current?.close();
       const notification = new Notification(title, {
         body,
         icon: '/icon-192x192.png',
         silent: !preferences.sound,
-        requireInteraction: true
+        requireInteraction: true,
+        tag: 'pomodoro-active'
       });
 
       notification.onclick = () => {
@@ -88,7 +113,7 @@ export const useNotifications = () => {
     [showPersistentNotification]
   );
 
-  const stopPersistentNotification = useCallback(() => {
+  const stopPersistentNotification = useCallback(async () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = undefined;
@@ -97,6 +122,18 @@ export const useNotifications = () => {
     if (activeNotificationRef.current) {
       activeNotificationRef.current.close();
       activeNotificationRef.current = null;
+    }
+
+    if ('serviceWorker' in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          const notifs = await reg.getNotifications({ tag: 'pomodoro-active' });
+          notifs.forEach(n => n.close());
+        }
+      } catch (err) {
+        console.error('Error closing persistent notification:', err);
+      }
     }
   }, []);
 
