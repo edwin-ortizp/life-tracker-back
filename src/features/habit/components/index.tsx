@@ -8,6 +8,8 @@ import { YearlyView } from './YearlyView';
 import { useHabitData } from '../hooks/useHabitData';
 import type { HabitProps } from '../types';
 import { HabitAiMenu } from './HabitAiMenu';
+import { Button } from '@/components/ui/button';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 // Exports
 export * from './HabitViewToggle';
@@ -24,8 +26,10 @@ export const Habit: React.FC<HabitProps> = () => {
     completedHabits,
     status,
     error,
-    toggleHabit
+    toggleHabit,
+    resync
   } = useHabitData();
+  const { isOnline } = useNetworkStatus();
 
   if (!user) {
     return (
@@ -48,16 +52,26 @@ export const Habit: React.FC<HabitProps> = () => {
           </div>
         </div>
 
+        <div className="flex items-center gap-2 mb-4 text-xs">
+          {status === 'saving' && <span className="text-blue-500">Guardando...</span>}
+          {status === 'pending' && <span className="text-yellow-600">Pendiente de sincronizar</span>}
+          {status === 'saved' && <span className="text-green-600">Sincronizado</span>}
+          {status === 'error' && <span className="text-red-600">Error de sincronización</span>}
+          {!isOnline && <span className="text-orange-600">Offline</span>}
+          <Button onClick={resync} variant="link" className="p-0 h-auto text-xs">Reintentar</Button>
+        </div>
+
         {view === 'weekly' ? (
           <WeeklyView
             completedHabits={completedHabits}
             onToggle={toggleHabit}
-            disabled={status === 'saving'}
+            disabled={status === 'saving' || !isOnline}
           />
         ) : (
           <YearlyView
             completedHabits={completedHabits}
             onToggle={toggleHabit}
+            disabled={status === 'saving' || !isOnline}
           />
         )}
 

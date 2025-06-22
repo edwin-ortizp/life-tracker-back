@@ -1,7 +1,10 @@
 // firebase.ts
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import {
+  getFirestore,
+  enableIndexedDbPersistence
+} from 'firebase/firestore';
 
 const firebaseConfig = {
   // Aquí necesitarás poner tu configuración de Firebase
@@ -16,4 +19,13 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Enable offline persistence for Firestore
+if (typeof window !== 'undefined') {
+  enableIndexedDbPersistence(db).catch((err) => {
+    if (import.meta.env.DEV) {
+      console.error('Firestore persistence error', err);
+    }
+  });
+}
 

@@ -2,15 +2,17 @@
 import { useState, useEffect, useMemo } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  doc, 
-  setDoc, 
+import {
+  doc,
+  setDoc,
   onSnapshot,
   serverTimestamp,
   collection,
   query,
   where,
-  getDocs
+  getDocs,
+  enableNetwork,
+  waitForPendingWrites
 } from 'firebase/firestore';
 
 interface CompletedHabits {
@@ -26,7 +28,7 @@ interface MonthlyHabits {
 
 export const useHabitData = () => {
   const [monthlyHabitsMap, setMonthlyHabitsMap] = useState<Record<string, CompletedHabits>>({});
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -48,7 +50,7 @@ export const useHabitData = () => {
 
     // Subscribe to current month
     const currentMonthRef = doc(db, 'habits', `${user.uid}_${yearMonth}`);
-    const unsubscribe = onSnapshot(currentMonthRef, 
+    const unsubscribe = onSnapshot(currentMonthRef,
       (doc) => {
         if (doc.exists()) {
           const data = doc.data() as MonthlyHabits;
@@ -56,7 +58,19 @@ export const useHabitData = () => {
             ...prev,
             [yearMonth]: data.habits || {}
           }));
-          setStatus('saved');
+
+          if (import.meta.env.DEV) {
+            console.log('Habit snapshot', {
+              fromCache: doc.metadata.fromCache,
+              pending: doc.metadata.hasPendingWrites
+            });
+          }
+
+          if (doc.metadata.hasPendingWrites) {
+            setStatus('pending');
+          } else {
+            setStatus('saved');
+          }
         }
       },
       (error) => {
@@ -122,11 +136,17 @@ export const useHabitData = () => {
         habits: newCompleted,
         updatedAt: serverTimestamp()
       }, { merge: true });
-
-      setStatus('saved');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
+    }
+  };
+
+  const resync = async () => {
+    await enableNetwork(db);
+    await waitForPendingWrites(db);
+    if (import.meta.env.DEV) {
+      console.log('Habit data resynced');
     }
   };
 
@@ -134,7 +154,8 @@ export const useHabitData = () => {
     completedHabits,
     status,
     error,
-    toggleHabit
+    toggleHabit,
+    resync
   };
 };
 

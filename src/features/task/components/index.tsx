@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { TaskAiMenu } from './TaskAiMenu';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 // Exports
 export * from './TaskKanban';
@@ -43,6 +44,7 @@ import type { TaskProps, Task as TaskType } from '../types';
 
 export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
   const { user } = useAuth();
+  const taskData = useTaskData();
   const {
     tasks,
     status,
@@ -57,8 +59,10 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
     completeRecurrentTask,
     setShowRecurrenceModal,
     openEditModal,
-    openCreateModal
-  } = useTaskData();
+    openCreateModal,
+    resync
+  } = taskData;
+  const { isOnline } = useNetworkStatus();
 
   const [detailTask, setDetailTask] = useState<TaskType | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -165,10 +169,21 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Tareas Pendientes</CardTitle>
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-4 text-xs">
               {status === 'saving' && (
-                <span className="text-xs text-blue-500">Guardando...</span>
+                <span className="text-blue-500">Guardando...</span>
               )}
+              {status === 'pending' && (
+                <span className="text-yellow-600">Pendiente de sincronizar</span>
+              )}
+              {status === 'saved' && (
+                <span className="text-green-600">Sincronizado</span>
+              )}
+              {status === 'error' && (
+                <span className="text-red-600">Error de sincronización</span>
+              )}
+              {!isOnline && <span className="text-orange-600">Offline</span>}
+              <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
               
               {/* Botones de importar/exportar */}
               <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
@@ -250,10 +265,21 @@ Campos opcionales:
               </Button>
             </div>
             {/* Solo mostrar estado en móvil */}
-            <div className="md:hidden">
+            <div className="md:hidden text-xs">
               {status === 'saving' && (
-                <span className="text-xs text-blue-500">Guardando...</span>
+                <span className="text-blue-500">Guardando...</span>
               )}
+              {status === 'pending' && (
+                <span className="text-yellow-600">Pendiente de sincronizar</span>
+              )}
+              {status === 'saved' && (
+                <span className="text-green-600">Sincronizado</span>
+              )}
+              {status === 'error' && (
+                <span className="text-red-600">Error de sincronización</span>
+              )}
+              {!isOnline && <span className="text-orange-600">Offline</span>}
+              <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
             </div>
           </div>
         </CardHeader>
