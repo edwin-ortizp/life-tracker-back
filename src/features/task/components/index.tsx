@@ -1,6 +1,6 @@
 // src/features/task/components/index.tsx
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Upload, Download } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -158,8 +158,24 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
       <Card>
         <CardContent className="p-8 text-center">
           <p>Inicia sesión para gestionar tus tareas</p>
-        </CardContent>
-      </Card>
+          </CardContent>
+          <CardFooter className="gap-2 text-xs">
+            {status === 'saving' && (
+              <span className="text-blue-500">Guardando...</span>
+            )}
+            {status === 'pending' && (
+              <span className="text-yellow-600">Pendiente de sincronizar</span>
+            )}
+            {status === 'saved' && (
+              <span className="text-green-600">Sincronizado</span>
+            )}
+            {status === 'error' && (
+              <span className="text-red-600">Error de sincronización</span>
+            )}
+            {!isOnline && <span className="text-orange-600">Offline</span>}
+            <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+          </CardFooter>
+        </Card>
     );
   }
 
@@ -170,20 +186,6 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
           <div className="flex justify-between items-center">
             <CardTitle>Tareas Pendientes</CardTitle>
             <div className="hidden md:flex items-center gap-4 text-xs">
-              {status === 'saving' && (
-                <span className="text-blue-500">Guardando...</span>
-              )}
-              {status === 'pending' && (
-                <span className="text-yellow-600">Pendiente de sincronizar</span>
-              )}
-              {status === 'saved' && (
-                <span className="text-green-600">Sincronizado</span>
-              )}
-              {status === 'error' && (
-                <span className="text-red-600">Error de sincronización</span>
-              )}
-              {!isOnline && <span className="text-orange-600">Offline</span>}
-              <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
               
               {/* Botones de importar/exportar */}
               <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
@@ -266,20 +268,6 @@ Campos opcionales:
             </div>
             {/* Solo mostrar estado en móvil */}
             <div className="md:hidden text-xs">
-              {status === 'saving' && (
-                <span className="text-blue-500">Guardando...</span>
-              )}
-              {status === 'pending' && (
-                <span className="text-yellow-600">Pendiente de sincronizar</span>
-              )}
-              {status === 'saved' && (
-                <span className="text-green-600">Sincronizado</span>
-              )}
-              {status === 'error' && (
-                <span className="text-red-600">Error de sincronización</span>
-              )}
-              {!isOnline && <span className="text-orange-600">Offline</span>}
-              <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
             </div>
           </div>
         </CardHeader>

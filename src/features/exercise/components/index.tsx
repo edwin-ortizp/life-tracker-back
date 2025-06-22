@@ -1,7 +1,7 @@
 // src/features/exercise/components/index.tsx
 import { useState, useImperativeHandle, forwardRef } from 'react';
 import { Plus, BarChart } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { ExerciseProps } from '../types';
@@ -65,22 +65,7 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
             </TabsTrigger>
           </TabsList>
 
-          <div className="flex items-center gap-2 text-xs">
-            {status === 'saving' && (
-              <span className="text-blue-500">Guardando...</span>
-            )}
-            {status === 'pending' && (
-              <span className="text-yellow-600">Pendiente de sincronizar</span>
-            )}
-            {status === 'saved' && (
-              <span className="text-green-600">Sincronizado</span>
-            )}
-            {status === 'error' && (
-              <span className="text-red-600">Error de sincronización</span>
-            )}
-            {!isOnline && <span className="text-orange-600">Offline</span>}
-            <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
-          </div>
+
 
             <Button
               onClick={() => setShowAddExercise(true)}
@@ -135,6 +120,22 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
           />
         )}
       </CardContent>
+      <CardFooter className="gap-2 text-xs">
+        {status === 'saving' && (
+          <span className="text-blue-500">Guardando...</span>
+        )}
+        {status === 'pending' && (
+          <span className="text-yellow-600">Pendiente de sincronizar</span>
+        )}
+        {status === 'saved' && (
+          <span className="text-green-600">Sincronizado</span>
+        )}
+        {status === 'error' && (
+          <span className="text-red-600">Error de sincronización</span>
+        )}
+        {!isOnline && <span className="text-orange-600">Offline</span>}
+        <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+      </CardFooter>
     </Card>
   );
 });

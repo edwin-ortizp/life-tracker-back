@@ -1,6 +1,6 @@
 // src/pages/NegativeHabitsPage.tsx
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useNegativeHabitData } from '../features/negative-habits/hooks/useNegativeHabitData';
 import { NegativeHabitToggle } from '../features/negative-habits/components/NegativeHabitToggle';
@@ -70,22 +70,6 @@ const NegativeHabitsPage = () => {
             <div className="flex items-center gap-2">
               <NegativeHabitAiMenu habits={habits} />
               <NegativeHabitToggle view={view} onViewChange={setView} />
-              <div className="flex items-center gap-2 text-xs">
-                {status === 'saving' && (
-                  <span className="text-blue-500">Guardando...</span>
-                )}
-                {status === 'pending' && (
-                  <span className="text-yellow-600">Pendiente de sincronizar</span>
-                )}
-                {status === 'saved' && (
-                  <span className="text-green-600">Sincronizado</span>
-                )}
-                {status === 'error' && (
-                  <span className="text-red-600">Error de sincronización</span>
-                )}
-                {!isOnline && <span className="text-orange-600">Offline</span>}
-                <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
-              </div>
             </div>
           </div>
 
@@ -111,6 +95,22 @@ const NegativeHabitsPage = () => {
             </p>
           )}
         </CardContent>
+        <CardFooter className="gap-2 text-xs">
+          {status === 'saving' && (
+            <span className="text-blue-500">Guardando...</span>
+          )}
+          {status === 'pending' && (
+            <span className="text-yellow-600">Pendiente de sincronizar</span>
+          )}
+          {status === 'saved' && (
+            <span className="text-green-600">Sincronizado</span>
+          )}
+          {status === 'error' && (
+            <span className="text-red-600">Error de sincronización</span>
+          )}
+          {!isOnline && <span className="text-orange-600">Offline</span>}
+          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+        </CardFooter>
       </Card>
 
       <AddHabitModal

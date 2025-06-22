@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { TaskKanban, TaskDetailsModal, TaskAiMenu } from './index';
@@ -40,21 +40,6 @@ export const TaskKanbanView: React.FC = () => {
           <div className="flex justify-between items-center">
             <CardTitle>Tablero Kanban</CardTitle>
             <div className="flex items-center gap-4 text-xs">
-              {status === 'saving' && (
-                <span className="text-blue-500">Guardando...</span>
-              )}
-              {status === 'pending' && (
-                <span className="text-yellow-600">Pendiente de sincronizar</span>
-              )}
-              {status === 'saved' && (
-                <span className="text-green-600">Sincronizado</span>
-              )}
-              {status === 'error' && (
-                <span className="text-red-600">Error de sincronización</span>
-              )}
-              {!isOnline && <span className="text-orange-600">Offline</span>}
-              <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
-
               <div className="flex items-center gap-2">
                 <TaskAiMenu tasks={visibleTasks} onUpdate={(id, u) => editTask(id, u)} />
                 <Button onClick={() => openCreateModal()} size="sm" disabled={status === 'saving' || !isOnline}>
@@ -82,6 +67,22 @@ export const TaskKanbanView: React.FC = () => {
             <p className="text-sm text-red-500 mt-4">{error}</p>
           )}
         </CardContent>
+        <CardFooter className="gap-2 text-xs">
+          {status === 'saving' && (
+            <span className="text-blue-500">Guardando...</span>
+          )}
+          {status === 'pending' && (
+            <span className="text-yellow-600">Pendiente de sincronizar</span>
+          )}
+          {status === 'saved' && (
+            <span className="text-green-600">Sincronizado</span>
+          )}
+          {status === 'error' && (
+            <span className="text-red-600">Error de sincronización</span>
+          )}
+          {!isOnline && <span className="text-orange-600">Offline</span>}
+          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+        </CardFooter>
       </Card>
       <RecurrenceModal
         isOpen={showRecurrenceModal}

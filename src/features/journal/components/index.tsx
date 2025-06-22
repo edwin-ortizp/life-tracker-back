@@ -62,12 +62,7 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
     <>
       <Card className="w-full">
         <CardContent className="p-4">
-          <JournalHeader
-            status={status}
-            onLock={handleLock}
-            isUnlocked={isUnlocked}
-            resync={resync}
-          />
+          <JournalHeader onLock={handleLock} />
           <JournalInput
             value={sharedEntry}
             onChange={(value) => {
@@ -83,6 +78,22 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
         </CardContent>
         <CardFooter className="flex flex-col items-end gap-2 sm:flex-row sm:justify-between">
           <LastUpdatedInfo lastUpdated={lastUpdated} />
+          <div className="flex items-center gap-2 text-xs">
+            {status === 'saving' && (
+              <span className="text-blue-500">Guardando...</span>
+            )}
+            {status === 'pending' && (
+              <span className="text-yellow-600">Pendiente de sincronizar</span>
+            )}
+            {status === 'saved' && (
+              <span className="text-green-600">Sincronizado</span>
+            )}
+            {status === 'error' && (
+              <span className="text-red-600">Error de sincronización</span>
+            )}
+            {!isOnline && <span className="text-orange-600">Offline</span>}
+            <Button onClick={resync} variant="link" className="p-0 h-auto text-xs">Reintentar</Button>
+          </div>
           <div className="flex gap-2">
             <Button
               onClick={() => saveEntry(sharedEntry)}

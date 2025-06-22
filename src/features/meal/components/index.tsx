@@ -143,22 +143,6 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
           Comidas Preparadas
         </Link>
       </div>
-        <div className="flex items-center gap-2 text-xs">
-          {status === 'saving' && (
-            <span className="text-blue-500">Guardando...</span>
-          )}
-          {status === 'pending' && (
-            <span className="text-yellow-600">Pendiente de sincronizar</span>
-          )}
-          {status === 'saved' && (
-            <span className="text-green-600">Sincronizado</span>
-          )}
-          {status === 'error' && (
-            <span className="text-red-600">Error de sincronización</span>
-          )}
-          {!isOnline && <span className="text-orange-600">Offline</span>}
-          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
-        </div>
 
         {/* Menú de opciones */}
         <DropdownMenu>
@@ -227,6 +211,22 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
           </div>
         </DialogContent>
       </Dialog>
+      <div className="flex items-center gap-2 text-xs p-4 border-t bg-white">
+        {status === 'saving' && (
+          <span className="text-blue-500">Guardando...</span>
+        )}
+        {status === 'pending' && (
+          <span className="text-yellow-600">Pendiente de sincronizar</span>
+        )}
+        {status === 'saved' && (
+          <span className="text-green-600">Sincronizado</span>
+        )}
+        {status === 'error' && (
+          <span className="text-red-600">Error de sincronización</span>
+        )}
+        {!isOnline && <span className="text-orange-600">Offline</span>}
+        <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+      </div>
     </div>
   );
 };

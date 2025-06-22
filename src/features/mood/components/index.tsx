@@ -1,6 +1,6 @@
 // src/features/mood/components/index.tsx
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { MoodSelector } from './MoodSelector';
@@ -73,17 +73,7 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
               {isUnlocked && (
                 <MoodAiMenu selectedDate={selectedDate} />
               )}
-              {status === 'saving' && (
-                <span className="text-xs text-blue-500">Guardando...</span>
-              )}
-              {status === 'pending' && (
-                <span className="text-xs text-yellow-600">Pendiente de sincronizar</span>
-              )}
-              {status === 'error' && (
-                <span className="text-xs text-red-500">Error al guardar</span>
-              )}
-              {!isOnline && <span className="text-xs text-orange-600">Offline</span>}
-              <Button onClick={resyncMood} variant="link" className="p-0 h-auto text-xs">Reintentar</Button>
+              
             </div>
           </div>
 
@@ -97,13 +87,28 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
             onDeleteMood={deleteMood}
           />
 
-          {error && (
-            <p className="mt-2 text-sm text-red-500">
-              {error}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        {error && (
+          <p className="mt-2 text-sm text-red-500">
+            {error}
+          </p>
+        )}
+      </CardContent>
+      <CardFooter className="gap-2 text-xs">
+        {status === 'saving' && (
+          <span className="text-blue-500">Guardando...</span>
+        )}
+        {status === 'pending' && (
+          <span className="text-yellow-600">Pendiente de sincronizar</span>
+        )}
+        {status === 'error' && (
+          <span className="text-red-500">Error al guardar</span>
+        )}
+        {!isOnline && <span className="text-orange-600">Offline</span>}
+        <Button onClick={resyncMood} variant="link" className="p-0 h-auto text-xs">
+          Reintentar
+        </Button>
+      </CardFooter>
+    </Card>
   );
 
   const energyCard = (
@@ -117,17 +122,7 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
               )}
             </h3>
             <div className="flex items-center gap-2">
-              {energyStatus === 'saving' && (
-                <span className="text-xs text-blue-500">Guardando...</span>
-              )}
-              {energyStatus === 'pending' && (
-                <span className="text-xs text-yellow-600">Pendiente de sincronizar</span>
-              )}
-              {energyStatus === 'error' && (
-                <span className="text-xs text-red-500">Error al guardar</span>
-              )}
-              {!isOnline && <span className="text-xs text-orange-600">Offline</span>}
-              <Button onClick={resyncEnergy} variant="link" className="p-0 h-auto text-xs">Reintentar</Button>
+
             </div>
           </div>
 
@@ -146,13 +141,28 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
             onDelete={deleteEntry}
           />
 
-          {energyError && (
-            <p className="mt-2 text-sm text-red-500">
-              {energyError}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        {energyError && (
+          <p className="mt-2 text-sm text-red-500">
+            {energyError}
+          </p>
+        )}
+      </CardContent>
+      <CardFooter className="gap-2 text-xs">
+        {energyStatus === 'saving' && (
+          <span className="text-blue-500">Guardando...</span>
+        )}
+        {energyStatus === 'pending' && (
+          <span className="text-yellow-600">Pendiente de sincronizar</span>
+        )}
+        {energyStatus === 'error' && (
+          <span className="text-red-500">Error al guardar</span>
+        )}
+        {!isOnline && <span className="text-orange-600">Offline</span>}
+        <Button onClick={resyncEnergy} variant="link" className="p-0 h-auto text-xs">
+          Reintentar
+        </Button>
+      </CardFooter>
+    </Card>
   );
 
   return (

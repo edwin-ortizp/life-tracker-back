@@ -1,6 +1,6 @@
 // src/features/pomodoro/components/Pomodoro.tsx
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Clock, Bell, BellOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePomodoroTimer, usePomodoroData } from '../hooks';
@@ -159,6 +159,22 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
         <CardContent className="p-4 text-center">
           <p>Inicia sesión para usar el temporizador Pomodoro</p>
         </CardContent>
+        <CardFooter className="gap-2 text-xs">
+          {status === 'saving' && (
+            <span className="text-blue-500">Guardando...</span>
+          )}
+          {status === 'pending' && (
+            <span className="text-yellow-600">Pendiente de sincronizar</span>
+          )}
+          {status === 'saved' && (
+            <span className="text-green-600">Sincronizado</span>
+          )}
+          {status === 'error' && (
+            <span className="text-red-600">Error de sincronización</span>
+          )}
+          {!isOnline && <span className="text-orange-600">Offline</span>}
+          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+        </CardFooter>
       </Card>
     );
   }
@@ -211,22 +227,7 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
               status={status}
             />
           </div>
-          <div className="flex items-center gap-2 text-xs">
-            {status === 'saving' && (
-              <span className="text-blue-500">Guardando...</span>
-            )}
-            {status === 'pending' && (
-              <span className="text-yellow-600">Pendiente de sincronizar</span>
-            )}
-            {status === 'saved' && (
-              <span className="text-green-600">Sincronizado</span>
-            )}
-            {status === 'error' && (
-              <span className="text-red-600">Error de sincronización</span>
-            )}
-            {!isOnline && <span className="text-orange-600">Offline</span>}
-            <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
-          </div>
+
 
           {/* Timer y Progreso */}
           <div className="space-y-6">
