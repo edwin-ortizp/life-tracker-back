@@ -57,12 +57,8 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
     'Analiza la siguiente entrada del diario y sugiere estados de ánimo en formato JSON: [{"emoji":"","text":"","time":"HH:mm","reason":""}]';
   const params = moodConfig?.params;
 
-  if (!isUnlocked) {
-    return null;
-  }
-
   useEffect(() => {
-    if (open) {
+    if (open && isUnlocked) {
       (async () => {
         const journalText = entry || (await fetchJournalEntry());
         setPrompt(
@@ -70,11 +66,15 @@ export const MoodAiSuggestion: React.FC<MoodAiSuggestionProps> = ({ selectedDate
         );
       })();
     }
-  }, [open, entry]);
+  }, [open, entry, isUnlocked]);
 
   useEffect(() => {
     setTokenCount(countTokens(prompt));
   }, [prompt]);
+
+  if (!isUnlocked) {
+    return null;
+  }
 
   const fetchJournalEntry = async (): Promise<string> => {
     if (!user) return '';

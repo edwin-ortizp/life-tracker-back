@@ -1,3 +1,4 @@
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Trophy, Clock, Target } from 'lucide-react';

@@ -99,7 +99,7 @@ const BadgeWithRef = forwardRef<
   HTMLDivElement,
   React.ComponentProps<typeof Badge>
 >(({ children, ...props }, ref) => {
-  // @ts-ignore
+  // @ts-expect-error Badge component ref handling
   return <Badge {...props} ref={ref}>{children}</Badge>;
 });
 

@@ -5,7 +5,7 @@ interface JournalEntry {
   text: string;
 }
 
-const markdownFiles = import.meta.glob('../markdown/*.md', { as: 'raw' });
+const markdownFiles = import.meta.glob('../markdown/*.md', { query: '?raw', import: 'default' });
 
 const parseMarkdown = (content: string): JournalEntry[] => {
   const regex = /^###\s*(.+)\n([\s\S]*?)(?=^###\s*|$)/gm;
