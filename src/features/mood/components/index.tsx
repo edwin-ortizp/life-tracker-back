@@ -11,6 +11,7 @@ import { MoodAiMenu } from './MoodAiMenu';
 import { useJournalLock } from '@/features/journal/context/JournalLockContext';
 import { useMoodData } from '../hooks/useMoodData';
 import { useEnergyData } from '../hooks/useEnergyData';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { getLocalDateString } from '@/utils/dates';
 import type { MoodProps } from '../types';
 
@@ -23,7 +24,8 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
     error,
     addMood,
     updateMood,
-    deleteMood
+    deleteMood,
+    resync: resyncMood
   } = useMoodData(selectedDate);
   const {
     energyHistory,
@@ -31,8 +33,10 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
     error: energyError,
     addEntry,
     updateEntry,
-    deleteEntry
+    deleteEntry,
+    resync: resyncEnergy
   } = useEnergyData(selectedDate);
+  const { isOnline } = useNetworkStatus();
 
   const latestEnergy = energyHistory
     .slice()
@@ -71,14 +75,19 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
               {status === 'saving' && (
                 <span className="text-xs text-blue-500">Guardando...</span>
               )}
+              {status === 'pending' && (
+                <span className="text-xs text-yellow-600">Pendiente de sincronizar</span>
+              )}
               {status === 'error' && (
                 <span className="text-xs text-red-500">Error al guardar</span>
               )}
+              {!isOnline && <span className="text-xs text-orange-600">Offline</span>}
+              <Button onClick={resyncMood} variant="link" className="p-0 h-auto text-xs">Reintentar</Button>
             </div>
           </div>
 
           {isCurrentDate && (
-            <MoodSelector onSelect={addMood} disabled={status === 'saving'} />
+            <MoodSelector onSelect={addMood} disabled={status === 'saving' || !isOnline} />
           )}
 
           <MoodHistory
@@ -110,9 +119,14 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
               {energyStatus === 'saving' && (
                 <span className="text-xs text-blue-500">Guardando...</span>
               )}
+              {energyStatus === 'pending' && (
+                <span className="text-xs text-yellow-600">Pendiente de sincronizar</span>
+              )}
               {energyStatus === 'error' && (
                 <span className="text-xs text-red-500">Error al guardar</span>
               )}
+              {!isOnline && <span className="text-xs text-orange-600">Offline</span>}
+              <Button onClick={resyncEnergy} variant="link" className="p-0 h-auto text-xs">Reintentar</Button>
             </div>
           </div>
 
@@ -120,7 +134,7 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
             <div className="mb-4">
               <EnergySelector
                 onSelect={addEntry}
-                disabled={energyStatus === 'saving'}
+                disabled={energyStatus === 'saving' || !isOnline}
               />
             </div>
           )}

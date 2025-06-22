@@ -9,13 +9,15 @@ import {
   onSnapshot,
   getDoc,
   collection,
-  deleteDoc
+  deleteDoc,
+  enableNetwork,
+  waitForPendingWrites
 } from 'firebase/firestore';
 import type { EnergyEntry, DailyEnergy } from '../types';
 
 export const useEnergyData = (selectedDate: Date) => {
   const [dailyEnergy, setDailyEnergy] = useState<DailyEnergy | null>(null);
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -42,7 +44,19 @@ export const useEnergyData = (selectedDate: Date) => {
         } else {
           setDailyEnergy(null);
         }
-        setStatus('saved');
+
+        if (import.meta.env.DEV) {
+          console.log('Energy snapshot', {
+            fromCache: snapshot.metadata.fromCache,
+            pending: snapshot.metadata.hasPendingWrites
+          });
+        }
+
+        if (snapshot.metadata.hasPendingWrites) {
+          setStatus('pending');
+        } else {
+          setStatus('saved');
+        }
       },
       (err) => {
         console.error('Energy - Error en snapshot:', err);
@@ -98,7 +112,9 @@ export const useEnergyData = (selectedDate: Date) => {
         });
       }
 
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Energy entry added locally');
+      }
     } catch (err) {
       console.error('Energy - Error al guardar:', err);
       setError(err instanceof Error ? err.message : 'Error al guardar');
@@ -120,7 +136,9 @@ export const useEnergyData = (selectedDate: Date) => {
         ...dailyEnergy,
         entries: updatedEntries
       });
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Energy entry updated locally');
+      }
     } catch (err) {
       console.error('Energy - Error al actualizar:', err);
       setError(err instanceof Error ? err.message : 'Error al actualizar');
@@ -145,11 +163,21 @@ export const useEnergyData = (selectedDate: Date) => {
           entries: updatedEntries
         });
       }
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Energy entry deleted locally');
+      }
     } catch (err) {
       console.error('Energy - Error al eliminar:', err);
       setError(err instanceof Error ? err.message : 'Error al eliminar');
       setStatus('error');
+    }
+  };
+
+  const resync = async () => {
+    await enableNetwork(db);
+    await waitForPendingWrites(db);
+    if (import.meta.env.DEV) {
+      console.log('Energy data resynced');
     }
   };
 
@@ -159,6 +187,7 @@ export const useEnergyData = (selectedDate: Date) => {
     error,
     addEntry,
     updateEntry,
-    deleteEntry
+    deleteEntry,
+    resync
   };
 };

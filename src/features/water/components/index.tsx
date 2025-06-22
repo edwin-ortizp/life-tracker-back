@@ -6,6 +6,8 @@ import { WaterProgress } from './WaterProgress';
 import { DrinkSelector } from './DrinkSelector';
 import { DrinkHistory } from './DrinkHistory';
 import { useWaterData } from '../hooks/useWaterData';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { Button } from '@/components/ui/button';
 import { getLocalDateString } from '@/utils/dates';
 import type { WaterProps } from '../types';
 
@@ -21,8 +23,10 @@ export const Water: React.FC<WaterProps> = ({ selectedDate, goal }) => {
     error,
     addDrink,
     editDrink,
-    deleteDrink
+    deleteDrink,
+    resync
   } = useWaterData(selectedDate);
+  const { isOnline } = useNetworkStatus();
 
   if (!user) {
     return (
@@ -39,6 +43,22 @@ export const Water: React.FC<WaterProps> = ({ selectedDate, goal }) => {
       <CardContent className="p-6 md:p-8">
         <div className="space-y-8">
           <WaterProgress intake={intake} goal={goal} />
+          <div className="flex items-center gap-2 text-xs">
+            {status === 'saving' && (
+              <span className="text-blue-500">Guardando...</span>
+            )}
+            {status === 'pending' && (
+              <span className="text-yellow-600">Pendiente de sincronizar</span>
+            )}
+            {status === 'saved' && (
+              <span className="text-green-600">Sincronizado</span>
+            )}
+            {status === 'error' && (
+              <span className="text-red-600">Error de sincronización</span>
+            )}
+            {!isOnline && <span className="text-orange-600">Offline</span>}
+            <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+          </div>
 
           {isCurrentDate && (
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -49,7 +69,7 @@ export const Water: React.FC<WaterProps> = ({ selectedDate, goal }) => {
                   addDrink(type, amount);
                   setSelectedDrink(null);
                 }}
-                disabled={status === 'saving'}
+                disabled={status === 'saving' || !isOnline}
               />
             </div>
           )}

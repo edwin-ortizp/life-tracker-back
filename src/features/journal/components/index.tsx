@@ -11,6 +11,7 @@ import { LastUpdatedInfo } from './LastUpdatedInfo';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import { useJournalData } from '../hooks/useJournalData';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useJournalEntry } from '../context/JournalEntryContext';
 import { useJournalLock } from '../context/JournalLockContext';
 import type { JournalProps } from '../types';
@@ -24,8 +25,10 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
     status,
     error,
     saveEntry,
-    lastUpdated
+    lastUpdated,
+    resync
   } = useJournalData(selectedDate);
+  const { isOnline } = useNetworkStatus();
 
   const { entry: sharedEntry, setEntry: setSharedEntry } = useJournalEntry();
 
@@ -63,6 +66,7 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
             status={status}
             onLock={handleLock}
             isUnlocked={isUnlocked}
+            resync={resync}
           />
           <JournalInput
             value={sharedEntry}
@@ -82,7 +86,7 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
           <div className="flex gap-2">
             <Button
               onClick={() => saveEntry(sharedEntry)}
-              disabled={status === 'saving'}
+              disabled={status === 'saving' || !isOnline}
             >
               {status === 'saving' ? (
                 <span className="flex items-center gap-2">

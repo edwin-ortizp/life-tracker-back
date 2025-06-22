@@ -1,14 +1,21 @@
 import { useState, useEffect } from 'react';
 import { db } from '../../../firebase';
 import { useAuth } from '../../../hooks/useAuth';
-import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import {
+  doc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp,
+  enableNetwork,
+  waitForPendingWrites
+} from 'firebase/firestore';
 import { Drink, DRINKS } from '../types';
 import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
 
 export const useWaterData = (selectedDate: Date) => {
   const [intake, setIntake] = useState(0);
   const [drinks, setDrinks] = useState<Drink[]>([]);
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -23,16 +30,27 @@ export const useWaterData = (selectedDate: Date) => {
     const dateString = getLocalDateString(selectedDate);
     const docRef = doc(db, 'water', `${user.uid}_${dateString}`);
 
-    const unsubscribe = onSnapshot(docRef, 
+    const unsubscribe = onSnapshot(docRef,
       (doc) => {
         if (doc.exists()) {
           const data = doc.data();
           const drinksList = data.drinks || [];
-          // Recalculamos el total cada vez que obtenemos datos
           const totalIntake = calculateTotalIntake(drinksList);
           setIntake(totalIntake);
           setDrinks(drinksList);
-          setStatus('saved');
+
+          if (import.meta.env.DEV) {
+            console.log('Water snapshot', {
+              fromCache: doc.metadata.fromCache,
+              pending: doc.metadata.hasPendingWrites
+            });
+          }
+
+          if (doc.metadata.hasPendingWrites) {
+            setStatus('pending');
+          } else {
+            setStatus('saved');
+          }
         } else {
           setIntake(0);
           setDrinks([]);
@@ -90,8 +108,9 @@ export const useWaterData = (selectedDate: Date) => {
         totalWater,
         updatedAt: serverTimestamp()
       }, { merge: true });
-
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Drink added locally');
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
@@ -131,8 +150,9 @@ export const useWaterData = (selectedDate: Date) => {
         totalWater,
         updatedAt: serverTimestamp()
       }, { merge: true });
-
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Drink edited locally');
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al editar');
       setStatus('error');
@@ -159,11 +179,20 @@ export const useWaterData = (selectedDate: Date) => {
         totalWater,
         updatedAt: serverTimestamp()
       }, { merge: true });
-
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Drink deleted locally');
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al eliminar');
       setStatus('error');
+    }
+  };
+
+  const resync = async () => {
+    await enableNetwork(db);
+    await waitForPendingWrites(db);
+    if (import.meta.env.DEV) {
+      console.log('Water data resynced');
     }
   };
 
@@ -174,6 +203,7 @@ export const useWaterData = (selectedDate: Date) => {
     error,
     addDrink,
     editDrink,
-    deleteDrink
+    deleteDrink,
+    resync
   };
 };

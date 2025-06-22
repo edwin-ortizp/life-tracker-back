@@ -2,13 +2,20 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
-import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import {
+  doc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp,
+  enableNetwork,
+  waitForPendingWrites
+} from 'firebase/firestore';
 import { getLocalDateString } from '@/utils/dates';
 import { formatDateToSpanishWithUTC } from '@/utils/dates';
 
 export const useJournalData = (selectedDate: Date) => {
   const [entry, setEntry] = useState('');
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | undefined>(undefined);
   const { user } = useAuth();
@@ -19,15 +26,27 @@ export const useJournalData = (selectedDate: Date) => {
     const dateString = getLocalDateString(selectedDate);
     const docRef = doc(db, 'journal', `${user.uid}_${dateString}`);
 
-    const unsubscribe = onSnapshot(docRef, 
+    const unsubscribe = onSnapshot(docRef,
       (doc) => {
         if (doc.exists()) {
           setEntry(doc.data().text || '');
-          setStatus('saved');
-          // Actualizar lastUpdated si existe
+
+          if (import.meta.env.DEV) {
+            console.log('Journal snapshot', {
+              fromCache: doc.metadata.fromCache,
+              pending: doc.metadata.hasPendingWrites
+            });
+          }
+
           if (doc.data().lastUpdated) {
             const timestamp = doc.data().lastUpdated.toDate();
             setLastUpdated(formatDateToSpanishWithUTC(timestamp));
+          }
+
+          if (doc.metadata.hasPendingWrites) {
+            setStatus('pending');
+          } else {
+            setStatus('saved');
           }
         } else {
           setEntry('');
@@ -66,11 +85,17 @@ export const useJournalData = (selectedDate: Date) => {
           month: '2-digit'
         })
       }, { merge: true });
-
-      setStatus('saved');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
+    }
+  };
+
+  const resync = async () => {
+    await enableNetwork(db);
+    await waitForPendingWrites(db);
+    if (import.meta.env.DEV) {
+      console.log('Journal data resynced');
     }
   };
 
@@ -80,6 +105,7 @@ export const useJournalData = (selectedDate: Date) => {
     status,
     error,
     saveEntry,
-    lastUpdated
+    lastUpdated,
+    resync
   };
 };

@@ -10,7 +10,9 @@ import {
   query,
   where,
   getDocs,
-  writeBatch
+  writeBatch,
+  enableNetwork,
+  waitForPendingWrites
 } from 'firebase/firestore';
 import { MealPlan, Meal, MealPlanEntry } from '../types';
 import { getCurrentYearMonth } from '../utils/dateUtils';
@@ -22,7 +24,7 @@ interface MonthlyMealPlan {
   updatedAt: any;
 }
 
-type MealPlanStatus = 'idle' | 'loading' | 'saving' | 'saved' | 'error';
+type MealPlanStatus = 'idle' | 'loading' | 'saving' | 'pending' | 'saved' | 'error';
 
 export const useMealPlan = () => {
   const [monthlyMealPlans, setMonthlyMealPlans] = useState<Record<string, MealPlan>>({});
@@ -43,7 +45,7 @@ export const useMealPlan = () => {
     const yearMonth = getCurrentYearMonth();
     const currentMonthRef = doc(db, 'meals', `${user.uid}_${yearMonth}`);
     
-    const unsubscribe = onSnapshot(currentMonthRef, 
+    const unsubscribe = onSnapshot(currentMonthRef,
       (doc) => {
         if (doc.exists()) {
           const data = doc.data() as MonthlyMealPlan;
@@ -51,7 +53,19 @@ export const useMealPlan = () => {
             ...prev,
             [yearMonth]: data.meals || {}
           }));
-          setStatus('saved');
+
+          if (import.meta.env.DEV) {
+            console.log('Meal plan snapshot', {
+              fromCache: doc.metadata.fromCache,
+              pending: doc.metadata.hasPendingWrites
+            });
+          }
+
+          if (doc.metadata.hasPendingWrites) {
+            setStatus('pending');
+          } else {
+            setStatus('saved');
+          }
         } else {
           setMonthlyMealPlans(prev => ({
             ...prev,
@@ -143,7 +157,9 @@ export const useMealPlan = () => {
         updatedAt: serverTimestamp()
       }, { merge: true });
 
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Meal added locally');
+      }
     } catch (error) {
       console.error('Error adding meal:', error);
       setError(error instanceof Error ? error.message : 'Error al guardar');
@@ -193,7 +209,9 @@ export const useMealPlan = () => {
         updatedAt: serverTimestamp()
       });
 
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Meal removed locally');
+      }
     } catch (error) {
       console.error('Error removing meal:', error);
       setError(error instanceof Error ? error.message : 'Error al eliminar');
@@ -248,12 +266,22 @@ export const useMealPlan = () => {
       });
 
       await batch.commit();
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Meal plan imported locally');
+      }
     } catch (error) {
       console.error('Error importing meal plan:', error);
       setError(error instanceof Error ? error.message : 'Error al importar');
       setStatus('error');
       throw error;
+    }
+  };
+
+  const resync = async () => {
+    await enableNetwork(db);
+    await waitForPendingWrites(db);
+    if (import.meta.env.DEV) {
+      console.log('Meal plan resynced');
     }
   };
 
@@ -263,7 +291,8 @@ export const useMealPlan = () => {
     error,
     addMeal,
     removeMeal,
-    importMealPlan
+    importMealPlan,
+    resync
   };
 };
 

@@ -4,17 +4,20 @@ import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { getLocalDateString } from '@/utils/dates';
 import { ExerciseDocument, ExerciseLog, EXERCISES } from '../types';
-import { 
-  doc, 
+import {
+  doc,
   setDoc,
   getDoc,
   deleteDoc,
-  serverTimestamp
+  serverTimestamp,
+  onSnapshot,
+  enableNetwork,
+  waitForPendingWrites
 } from 'firebase/firestore';
 
 export const useExerciseData = (selectedDate: Date) => {
   const [exerciseDoc, setExerciseDoc] = useState<ExerciseDocument | null>(null);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -53,26 +56,38 @@ export const useExerciseData = (selectedDate: Date) => {
   useEffect(() => {
     if (!user) return;
 
-    const fetchExercises = async () => {
-      setStatus('loading');
-      const date = getLocalDateString(selectedDate);
-      const docRef = doc(db, 'exercises', `${user.uid}_${date}`);
-      
-      try {
-        const docSnap = await getDoc(docRef);
+    setStatus('loading');
+    const date = getLocalDateString(selectedDate);
+    const docRef = doc(db, 'exercises', `${user.uid}_${date}`);
+
+    const unsubscribe = onSnapshot(docRef,
+      (docSnap) => {
         if (docSnap.exists()) {
           setExerciseDoc(docSnap.data() as ExerciseDocument);
         } else {
           setExerciseDoc(null);
         }
-        setStatus('idle');
-      } catch (error) {
+
+        if (import.meta.env.DEV) {
+          console.log('Exercise snapshot', {
+            fromCache: docSnap.metadata.fromCache,
+            pending: docSnap.metadata.hasPendingWrites
+          });
+        }
+
+        if (docSnap.metadata.hasPendingWrites) {
+          setStatus('pending');
+        } else {
+          setStatus('saved');
+        }
+      },
+      (error) => {
         setError(error instanceof Error ? error.message : 'Error al cargar ejercicios');
         setStatus('error');
       }
-    };
+    );
 
-    fetchExercises();
+    return () => unsubscribe();
   }, [user, selectedDate]);
 
   const logExercise = async (newExercise: ExerciseLog) => {
@@ -100,7 +115,9 @@ export const useExerciseData = (selectedDate: Date) => {
 
       await setDoc(docRef, newDoc);
       setExerciseDoc(newDoc);
-      setStatus('idle');
+      if (import.meta.env.DEV) {
+        console.log('Exercise logged locally');
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al guardar ejercicio');
       setStatus('error');
@@ -130,7 +147,9 @@ export const useExerciseData = (selectedDate: Date) => {
 
       await setDoc(docRef, updatedDoc);
       setExerciseDoc(updatedDoc);
-      setStatus('idle');
+      if (import.meta.env.DEV) {
+        console.log('Exercise log updated locally');
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al actualizar ejercicio');
       setStatus('error');
@@ -165,11 +184,21 @@ export const useExerciseData = (selectedDate: Date) => {
         await setDoc(docRef, updatedDoc);
         setExerciseDoc(updatedDoc);
       }
-      
-      setStatus('idle');
+
+      if (import.meta.env.DEV) {
+        console.log('Exercise log deleted locally');
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al eliminar ejercicio');
       setStatus('error');
+    }
+  };
+
+  const resync = async () => {
+    await enableNetwork(db);
+    await waitForPendingWrites(db);
+    if (import.meta.env.DEV) {
+      console.log('Exercise data resynced');
     }
   };
 
@@ -180,6 +209,7 @@ export const useExerciseData = (selectedDate: Date) => {
     error,
     logExercise,
     updateExerciseLog,
-    deleteExerciseLog
+    deleteExerciseLog,
+    resync
   };
 };

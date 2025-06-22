@@ -1,7 +1,7 @@
 // src/features/negative-habits/hooks/useNegativeHabitData.ts
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { onSnapshot } from 'firebase/firestore';
+import { onSnapshot, enableNetwork, waitForPendingWrites } from 'firebase/firestore';
 import { NegativeHabitLog } from '../types';
 import { 
   MonthlyHabits,
@@ -22,7 +22,7 @@ import {
 
 export const useNegativeHabitData = () => {
   const [monthlyHabitsMap, setMonthlyHabitsMap] = useState<Record<string, MonthlyHabits['habits']>>({});
-  const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -69,7 +69,19 @@ export const useNegativeHabitData = () => {
             [yearMonth]: data.habits || {}
           }));
         }
-        setStatus('idle');
+
+        if (import.meta.env.DEV) {
+          console.log('Negative habit snapshot', {
+            fromCache: doc.metadata.fromCache,
+            pending: doc.metadata.hasPendingWrites
+          });
+        }
+
+        if (doc.metadata.hasPendingWrites) {
+          setStatus('pending');
+        } else {
+          setStatus('saved');
+        }
       },
       (error) => {
         setError(error instanceof Error ? error.message : 'Error al cargar los datos');
@@ -110,8 +122,9 @@ export const useNegativeHabitData = () => {
         currentMonthHabits,
         note
       );
-
-      setStatus('idle');
+      if (import.meta.env.DEV) {
+        console.log('Negative habit logged locally');
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
@@ -136,11 +149,20 @@ export const useNegativeHabitData = () => {
         habitId,
         currentMonthHabits
       );
-
-      setStatus('idle');
+      if (import.meta.env.DEV) {
+        console.log('Negative habit removed locally');
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al eliminar');
       setStatus('error');
+    }
+  };
+
+  const resync = async () => {
+    await enableNetwork(db);
+    await waitForPendingWrites(db);
+    if (import.meta.env.DEV) {
+      console.log('Negative habit data resynced');
     }
   };
 
@@ -150,6 +172,7 @@ export const useNegativeHabitData = () => {
     error,
     stats,
     logHabit,
-    removeLog
+    removeLog,
+    resync
   };
 };

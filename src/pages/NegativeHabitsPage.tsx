@@ -11,6 +11,8 @@ import { NegativeHabitAiMenu } from '../features/negative-habits/components/Nega
 import DateSelector from '@/components/DateSelector';
 import PageLayout from '@/components/PageLayout';
 import { getLocalDateString } from '@/utils/dates';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { Button } from '@/components/ui/button';
 
 const NegativeHabitsPage = () => {
   const [view, setView] = useState<'weekly' | 'yearly'>('weekly');
@@ -22,8 +24,10 @@ const NegativeHabitsPage = () => {
     status,
     error,
     logHabit,
-    removeLog
+    removeLog,
+    resync
   } = useNegativeHabitData();
+  const { isOnline } = useNetworkStatus();
 
   const handleLogHabit = async (habitId: number, note?: string) => {
     await logHabit(habitId, getLocalDateString(selectedDate), note);
@@ -66,6 +70,22 @@ const NegativeHabitsPage = () => {
             <div className="flex items-center gap-2">
               <NegativeHabitAiMenu habits={habits} />
               <NegativeHabitToggle view={view} onViewChange={setView} />
+              <div className="flex items-center gap-2 text-xs">
+                {status === 'saving' && (
+                  <span className="text-blue-500">Guardando...</span>
+                )}
+                {status === 'pending' && (
+                  <span className="text-yellow-600">Pendiente de sincronizar</span>
+                )}
+                {status === 'saved' && (
+                  <span className="text-green-600">Sincronizado</span>
+                )}
+                {status === 'error' && (
+                  <span className="text-red-600">Error de sincronización</span>
+                )}
+                {!isOnline && <span className="text-orange-600">Offline</span>}
+                <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+              </div>
             </div>
           </div>
 
@@ -74,13 +94,14 @@ const NegativeHabitsPage = () => {
               habits={habits}
               onLogHabit={logHabit}
               onRemoveLog={removeLog}
-              disabled={status === 'saving'}
+              disabled={status === 'saving' || !isOnline}
             />
           ) : (
             <YearlyView
               habits={habits}
               onLogHabit={logHabit}
               onRemoveLog={removeLog}
+              disabled={status === 'saving' || !isOnline}
             />
           )}
 
