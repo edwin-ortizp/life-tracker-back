@@ -25,7 +25,7 @@ export const useJournalData = (selectedDate: Date) => {
     const dateString = getLocalDateString(selectedDate);
     const docRef = doc(db, 'journal', `${user.uid}_${dateString}`);
 
-    const unsubscribe = onSnapshot(docRef,
+    const unsubscribe = onSnapshot(docRef, { includeMetadataChanges: true },
       (doc) => {
         if (doc.exists()) {
           setEntry(doc.data().text || '');

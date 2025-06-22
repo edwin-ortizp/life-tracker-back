@@ -100,6 +100,9 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
         {status === 'pending' && (
           <span className="text-yellow-600">Pendiente de sincronizar</span>
         )}
+        {status === 'saved' && (
+          <span className="text-green-600">Sincronizado</span>
+        )}
         {status === 'error' && (
           <span className="text-red-500">Error al guardar</span>
         )}
@@ -153,6 +156,9 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
         )}
         {energyStatus === 'pending' && (
           <span className="text-yellow-600">Pendiente de sincronizar</span>
+        )}
+        {energyStatus === 'saved' && (
+          <span className="text-green-600">Sincronizado</span>
         )}
         {energyStatus === 'error' && (
           <span className="text-red-500">Error al guardar</span>

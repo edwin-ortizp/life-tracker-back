@@ -29,7 +29,7 @@ export const useWaterData = (selectedDate: Date) => {
     const dateString = getLocalDateString(selectedDate);
     const docRef = doc(db, 'water', `${user.uid}_${dateString}`);
 
-    const unsubscribe = onSnapshot(docRef,
+    const unsubscribe = onSnapshot(docRef, { includeMetadataChanges: true },
       (doc) => {
         if (doc.exists()) {
           const data = doc.data();

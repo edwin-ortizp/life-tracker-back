@@ -26,7 +26,7 @@ export const useEnergyData = (selectedDate: Date) => {
     const energyRef = doc(collection(db, 'energy'), `${user.uid}_${dateString}`);
 
     const unsubscribe = onSnapshot(
-      energyRef,
+      energyRef, { includeMetadataChanges: true },
       (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data();

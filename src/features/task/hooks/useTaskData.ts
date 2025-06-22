@@ -51,7 +51,7 @@ export const useTaskData = () => {
       where('userId', '==', user.uid)
     );
 
-    const unsubscribe = onSnapshot(q,
+    const unsubscribe = onSnapshot(q, { includeMetadataChanges: true },
       (snapshot) => {
         const taskList = snapshot.docs
           .map(doc => {

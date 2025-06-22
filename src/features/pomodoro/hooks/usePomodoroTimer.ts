@@ -97,7 +97,7 @@ export const usePomodoroTimer = ({
 
     const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
     
-    const unsubscribe = onSnapshot(docRef, (doc) => {
+    const unsubscribe = onSnapshot(docRef, { includeMetadataChanges: true }, (doc) => {
       if (!doc.exists()) {
         resetState();
         return;

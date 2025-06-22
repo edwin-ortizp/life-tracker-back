@@ -27,7 +27,7 @@ export const useMoodData = (selectedDate: Date) => {
     const dateString = getLocalDateString(selectedDate);
     const moodRef = doc(collection(db, 'moods'), `${user.uid}_${dateString}`);
     
-    const unsubscribe = onSnapshot(moodRef,
+    const unsubscribe = onSnapshot(moodRef, { includeMetadataChanges: true },
       (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data();

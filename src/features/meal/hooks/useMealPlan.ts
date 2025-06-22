@@ -44,7 +44,7 @@ export const useMealPlan = () => {
     const yearMonth = getCurrentYearMonth();
     const currentMonthRef = doc(db, 'meals', `${user.uid}_${yearMonth}`);
     
-    const unsubscribe = onSnapshot(currentMonthRef,
+    const unsubscribe = onSnapshot(currentMonthRef, { includeMetadataChanges: true },
       (doc) => {
         if (doc.exists()) {
           const data = doc.data() as MonthlyMealPlan;
