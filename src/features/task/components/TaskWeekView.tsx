@@ -6,6 +6,7 @@ import { useTaskData } from '../hooks/useTaskData';
 import { TaskWeeklyCalendar } from './TaskWeeklyCalendar';
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import type { Task } from '../types';
 
 export const TaskWeekView: React.FC = () => {
@@ -23,8 +24,10 @@ export const TaskWeekView: React.FC = () => {
     completeRecurrentTask,
     setShowRecurrenceModal,
     openEditModal,
-    openCreateModal
+    openCreateModal,
+    resync
   } = useTaskData();
+  const { isOnline } = useNetworkStatus();
 
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -35,11 +38,23 @@ export const TaskWeekView: React.FC = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Calendario</CardTitle>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 text-xs">
               {status === 'saving' && (
-                <span className="text-xs text-blue-500">Guardando...</span>
+                <span className="text-blue-500">Guardando...</span>
               )}
-              <Button onClick={() => openCreateModal()} size="sm">
+              {status === 'pending' && (
+                <span className="text-yellow-600">Pendiente de sincronizar</span>
+              )}
+              {status === 'saved' && (
+                <span className="text-green-600">Sincronizado</span>
+              )}
+              {status === 'error' && (
+                <span className="text-red-600">Error de sincronización</span>
+              )}
+              {!isOnline && <span className="text-orange-600">Offline</span>}
+              <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+
+              <Button onClick={() => openCreateModal()} size="sm" disabled={status === 'saving' || !isOnline}>
                 <Plus className="w-4 h-4 mr-2" />
                 Nueva Tarea
               </Button>
