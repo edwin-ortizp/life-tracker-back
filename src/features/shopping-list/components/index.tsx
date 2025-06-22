@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ExportIngredientsButton from './ExportIngredientsButton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -35,9 +34,9 @@ export const ShoppingList: React.FC = () => {
         </Button>
       </MealHeader>
       
-      <Card className="flex-1 m-0 border-0 rounded-none">
-        <CardContent className="p-4 space-y-4 overflow-y-auto flex-1">
-          <Tabs defaultValue="kanban" className="w-full">
+      <div className="flex-1 overflow-hidden">
+        <div className="p-4 space-y-4 h-full overflow-y-auto">
+          <Tabs defaultValue="kanban" className="w-full h-full flex flex-col">
             <TabsList className="mb-4">
               <TabsTrigger value="kanban">Kanban</TabsTrigger>
               <TabsTrigger value="list">Lista</TabsTrigger>
@@ -50,14 +49,14 @@ export const ShoppingList: React.FC = () => {
               </div>
             ) : (
               <>
-                <TabsContent value="kanban">
+                <TabsContent value="kanban" className="flex-1 overflow-hidden">
                   <KanbanView
                     items={items}
                     onMove={moveItem}
                     onView={setEditingItem}
                   />
                 </TabsContent>
-                <TabsContent value="list">
+                <TabsContent value="list" className="flex-1 overflow-hidden">
                   <ListView
                     items={items}
                     onEdit={setEditingItem}
@@ -68,8 +67,8 @@ export const ShoppingList: React.FC = () => {
               </>
             )}
           </Tabs>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
       
       <ItemModal
         open={showModal || !!editingItem}

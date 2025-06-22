@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { usePreparedMeals } from '../hooks/usePreparedMeals';
 import type { PreparedMeal } from '../types';
@@ -25,8 +24,8 @@ export const PreparedMeals: React.FC = () => {
         <Button onClick={() => setShowModal(true)}>Agregar</Button>
       </MealHeader>
       
-      <Card className="flex-1 m-0 border-0 rounded-none">
-        <CardContent className="p-4 space-y-4 overflow-y-auto flex-1">
+      <div className="flex-1 overflow-hidden">
+        <div className="p-4 space-y-4 h-full overflow-y-auto">
           {meals.length === 0 ? (
             <p className="text-center text-gray-500">No hay comidas guardadas</p>
           ) : (
@@ -47,8 +46,8 @@ export const PreparedMeals: React.FC = () => {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
       
       <AddPreparedMealModal
         open={showModal || !!editing}

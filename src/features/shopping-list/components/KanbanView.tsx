@@ -107,92 +107,106 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
   return (
     <TooltipProvider>
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-start">
-          <Input
-            placeholder="Buscar"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            className="sm:w-60"
-          />
-          <div className="flex flex-wrap gap-2 items-center">
-            <Select value={sort} onValueChange={v => setSort(v as 'az' | 'za' | 'category')}>
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Ordenar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="az">Nombre A-Z</SelectItem>
-                <SelectItem value="za">Nombre Z-A</SelectItem>
-                <SelectItem value="category">Categoría</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Barra de filtros compacta */}
+        <div className="bg-white p-4 rounded-lg border shadow-sm">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <Input
+              placeholder="Buscar productos..."
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              className="lg:w-64"
+            />
+            
+            <div className="flex flex-wrap gap-2">
+              <Select value={sort} onValueChange={v => setSort(v as 'az' | 'za' | 'category')}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Ordenar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="az">A-Z</SelectItem>
+                  <SelectItem value="za">Z-A</SelectItem>
+                  <SelectItem value="category">Categoría</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select
-              value={placeFilter || 'all'}
-              onValueChange={v => setPlaceFilter(v === 'all' ? '' : v)}
-            >
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Lugar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los lugares</SelectItem>
-                {places.map(p => (
-                  <SelectItem key={p} value={p}>
-                    {p}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select
+                value={placeFilter || 'all'}
+                onValueChange={v => setPlaceFilter(v === 'all' ? '' : v)}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Lugar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {places.map(p => (
+                    <SelectItem key={p} value={p}>
+                      {p}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <Select
-              value={statusFilter || 'all'}
-              onValueChange={v => setStatusFilter(v === 'all' ? '' : (v as ItemStatus))}
-            >
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="to-buy">Por Comprar</SelectItem>
-                <SelectItem value="in-stock">En Stock</SelectItem>
-                <SelectItem value="low-stock">Poco Stock</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select
+                value={statusFilter || 'all'}
+                onValueChange={v => setStatusFilter(v === 'all' ? '' : (v as ItemStatus))}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="to-buy">Por Comprar</SelectItem>
+                  <SelectItem value="in-stock">En Stock</SelectItem>
+                  <SelectItem value="low-stock">Poco Stock</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select
-              value={categoryFilter || 'all'}
-              onValueChange={v => setCategoryFilter(v === 'all' ? '' : v)}
-            >
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="Categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                {categories.map(c => (
-                  <SelectItem key={c} value={c}>
-                    {formatCategory(c)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox checked={onlyToBuy} onCheckedChange={v => setOnlyToBuy(Boolean(v))} />
-              <ShoppingCart className="w-4 h-4" />
-              Lista activa
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox checked={expireSoonOnly} onCheckedChange={v => setExpireSoonOnly(Boolean(v))} />
-              Próximos a vencer
-            </label>
+              <Select
+                value={categoryFilter || 'all'}
+                onValueChange={v => setCategoryFilter(v === 'all' ? '' : v)}
+              >
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="Categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {categories.map(c => (
+                    <SelectItem key={c} value={c}>
+                      {formatCategory(c)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex flex-wrap gap-3 items-center text-sm">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={onlyToBuy} onCheckedChange={v => setOnlyToBuy(Boolean(v))} />
+                <ShoppingCart className="w-4 h-4" />
+                Lista activa
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={expireSoonOnly} onCheckedChange={v => setExpireSoonOnly(Boolean(v))} />
+                <AlertTriangle className="w-4 h-4" />
+                Por vencer
+              </label>
+            </div>
           </div>
         </div>
 
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
         {columns.map(col => (
-          <div key={col.key} className="w-64 flex-shrink-0 space-y-3">
-            <h3 className="font-medium text-sm text-gray-500 uppercase tracking-wider">
-              {col.title}
-            </h3>
+          <div key={col.key} className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-base text-gray-700 flex items-center gap-2">
+                {React.createElement(statusIcons[col.key], { className: "w-4 h-4" })}
+                {col.title}
+              </h3>
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                {filtered.filter(it => it.status === col.key).length}
+              </span>
+            </div>
+            <div className="space-y-2 h-full max-h-[calc(100vh-300px)] overflow-y-auto">
             {filtered.filter(it => it.status === col.key).map(item => {
               const limit = addDays(new Date(), 3);
               const consumeDate = item.consumeBy ? new Date(item.consumeBy) : null;
@@ -201,20 +215,36 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
               return (
                 <Card
                   key={item.id}
-                  className={`cursor-pointer ${isSoon || isExpired ? 'border-red-500' : ''} ${isExpired ? 'bg-red-50/50' : ''}`}
+                  className={`cursor-pointer transition-all duration-200 hover:shadow-md border-l-4 ${
+                    col.key === 'in-stock' 
+                      ? 'border-l-green-500 hover:border-l-green-600' 
+                      : col.key === 'low-stock' 
+                      ? 'border-l-yellow-500 hover:border-l-yellow-600' 
+                      : 'border-l-blue-500 hover:border-l-blue-600'
+                  } ${isSoon || isExpired ? 'border-red-500 bg-red-50/30' : ''} ${isExpired ? 'bg-red-50/50' : ''}`}
                   onClick={() => onView(item)}
                 >
-                  <CardContent className="p-2 space-y-1">
-                    <div className="font-medium">{item.name}</div>
-                    <div className="text-sm text-gray-500">
-                      {item.quantity} - {item.category && formatCategory(item.category)}
+                  <CardContent className="p-2 pb-1 md:p-2 md:pb-1">
+                    <div className="font-medium text-sm leading-tight mb-1">{item.name}</div>
+                    
+                    <div className="flex items-center justify-between text-xs text-gray-600">
+                      <span className="font-medium">{item.quantity}</span>
+                      {item.category && (
+                        <span className="bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded text-xs">
+                          {formatCategory(item.category)}
+                        </span>
+                      )}
                     </div>
+                    
                     {item.consumeBy && (
-                      <div className="text-xs text-gray-500">Consumir antes de {item.consumeBy}</div>
+                      <div className={`text-xs mt-1 ${isExpired ? 'text-red-600 font-medium' : isSoon ? 'text-orange-600' : 'text-gray-500'}`}>
+                        {isExpired ? '⚠️ Vencido' : isSoon ? '⏰ Por vencer' : 'Hasta'} {item.consumeBy}
+                      </div>
                     )}
                   </CardContent>
-                  <CardFooter className="bg-gray-50/50 border-t border-gray-100 p-0">
-                    <div className="flex justify-end gap-1 text-xs w-full px-2 py-1">
+                  
+                  <CardFooter className="bg-gray-50/70 border-t border-gray-100 p-0 md:p-0">
+                    <div className="flex justify-center gap-1 w-full px-2 py-2">
                       {columns.filter(c => c.key !== col.key).map(c => {
                         const Icon = statusIcons[c.key];
                         const color =
@@ -228,8 +258,8 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
                             <TooltipTrigger asChild>
                               <Button
                                 variant="ghost"
-                                size="icon"
-                                className={color}
+                                size="sm"
+                                className={`h-8 w-8 p-0 ${color}`}
                                 onClick={e => {
                                   e.stopPropagation();
                                   onMove(item.id, c.key);
@@ -246,8 +276,8 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
                         <TooltipTrigger asChild>
                           <Button
                             variant="ghost"
-                            size="icon"
-                            className="text-gray-600 hover:bg-gray-50"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-gray-600 hover:bg-gray-50"
                             onClick={e => {
                               e.stopPropagation();
                               onView(item);
@@ -263,6 +293,12 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
                 </Card>
               );
             })}
+            {filtered.filter(it => it.status === col.key).length === 0 && (
+              <div className="text-center py-8 text-gray-400 border-2 border-dashed border-gray-200 rounded-lg">
+                <div className="text-sm">Sin elementos</div>
+              </div>
+            )}
+            </div>
           </div>
         ))}
       </div>
