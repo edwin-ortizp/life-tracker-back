@@ -5,10 +5,9 @@ import {
   doc,
   setDoc,
   onSnapshot,
-  serverTimestamp,
-  enableNetwork,
-  waitForPendingWrites
+  serverTimestamp
 } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 import { Drink, DRINKS } from '../types';
 import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
 
@@ -188,13 +187,7 @@ export const useWaterData = (selectedDate: Date) => {
     }
   };
 
-  const resync = async () => {
-    await enableNetwork(db);
-    await waitForPendingWrites(db);
-    if (import.meta.env.DEV) {
-      console.log('Water data resynced');
-    }
-  };
+  const resync = useResync('Water data');
 
   return {
     intake,

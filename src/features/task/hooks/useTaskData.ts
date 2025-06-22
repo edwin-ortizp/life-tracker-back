@@ -11,10 +11,9 @@ import {
   deleteDoc,
   updateDoc,
   serverTimestamp,
-  Timestamp,
-  enableNetwork,
-  waitForPendingWrites
+  Timestamp
 } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 import type { Task, TaskFormData } from '../types';
 import { getCheckboxProgress } from '@/utils/markdown';
 
@@ -367,13 +366,7 @@ export const useTaskData = () => {
     setStatus('idle'); // Asegurarnos de que el estado esté en idle al abrir el modal
   };
 
-  const resync = async () => {
-    await enableNetwork(db);
-    await waitForPendingWrites(db);
-    if (import.meta.env.DEV) {
-      console.log('Task data resynced');
-    }
-  };
+  const resync = useResync('Task data');
   return {
     tasks: getPublicTasks(), // Solo devolver tareas públicas por defecto
     allTasks: tasks, // Disponible para casos especiales como PrivateTaskSection

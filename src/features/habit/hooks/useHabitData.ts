@@ -10,10 +10,9 @@ import {
   collection,
   query,
   where,
-  getDocs,
-  enableNetwork,
-  waitForPendingWrites
+  getDocs
 } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 
 interface CompletedHabits {
   [key: string]: boolean;
@@ -142,13 +141,7 @@ export const useHabitData = () => {
     }
   };
 
-  const resync = async () => {
-    await enableNetwork(db);
-    await waitForPendingWrites(db);
-    if (import.meta.env.DEV) {
-      console.log('Habit data resynced');
-    }
-  };
+  const resync = useResync('Habit data');
 
   return {
     completedHabits,

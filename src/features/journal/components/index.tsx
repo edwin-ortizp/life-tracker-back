@@ -76,9 +76,38 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
             </p>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col items-end gap-2 sm:flex-row sm:justify-between">
-          <LastUpdatedInfo lastUpdated={lastUpdated} />
-          <div className="flex items-center gap-2 text-xs">
+        <CardFooter className="flex flex-col gap-4">
+          <div className="flex justify-between items-center w-full">
+            <LastUpdatedInfo lastUpdated={lastUpdated} />
+            <div className="flex gap-2">
+              <Button
+                onClick={() => saveEntry(sharedEntry)}
+                disabled={status === 'saving' || !isOnline}
+              >
+              {status === 'saving' ? (
+                <span className="flex items-center gap-2">
+                  <Save className="w-4 h-4 animate-spin" />
+                  Guardando...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Save className="w-4 h-4" />
+                  Guardar entrada
+                </span>
+              )}
+            </Button>
+              <JournalAiMenu
+                entry={sharedEntry}
+                selectedDate={selectedDate}
+                onInsert={(text) => {
+                  setSharedEntry(prev => prev + (prev ? '\n' : '') + text);
+                  setEntry(prev => prev + (prev ? '\n' : '') + text);
+                }}
+              />
+              <ExportRangeButton />
+            </div>
+          </div>
+          <div className="flex justify-center items-center gap-2 text-xs">
             {status === 'saving' && (
               <span className="text-blue-500">Guardando...</span>
             )}
@@ -93,33 +122,6 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
             )}
             {!isOnline && <span className="text-orange-600">Offline</span>}
             <Button onClick={resync} variant="link" className="p-0 h-auto text-xs">Reintentar</Button>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => saveEntry(sharedEntry)}
-              disabled={status === 'saving' || !isOnline}
-            >
-              {status === 'saving' ? (
-                <span className="flex items-center gap-2">
-                  <Save className="w-4 h-4 animate-spin" />
-                  Guardando...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <Save className="w-4 h-4" />
-                  Guardar entrada
-                </span>
-              )}
-            </Button>
-            <JournalAiMenu
-              entry={sharedEntry}
-              selectedDate={selectedDate}
-              onInsert={(text) => {
-                setSharedEntry(prev => prev + (prev ? '\n' : '') + text);
-                setEntry(prev => prev + (prev ? '\n' : '') + text);
-              }}
-            />
-            <ExportRangeButton />
           </div>
         </CardFooter>
       </Card>

@@ -10,10 +10,9 @@ import {
   getDoc,
   deleteDoc,
   serverTimestamp,
-  onSnapshot,
-  enableNetwork,
-  waitForPendingWrites
+  onSnapshot
 } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 
 export const useExerciseData = (selectedDate: Date) => {
   const [exerciseDoc, setExerciseDoc] = useState<ExerciseDocument | null>(null);
@@ -194,13 +193,7 @@ export const useExerciseData = (selectedDate: Date) => {
     }
   };
 
-  const resync = async () => {
-    await enableNetwork(db);
-    await waitForPendingWrites(db);
-    if (import.meta.env.DEV) {
-      console.log('Exercise data resynced');
-    }
-  };
+  const resync = useResync('Exercise data');
 
   return {
     exerciseLogs: exerciseDoc?.exercises || [],

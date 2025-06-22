@@ -6,10 +6,9 @@ import {
   doc,
   setDoc,
   onSnapshot,
-  serverTimestamp,
-  enableNetwork,
-  waitForPendingWrites
+  serverTimestamp
 } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 import { getLocalDateString } from '@/utils/dates';
 import { formatDateToSpanishWithUTC } from '@/utils/dates';
 
@@ -91,13 +90,7 @@ export const useJournalData = (selectedDate: Date) => {
     }
   };
 
-  const resync = async () => {
-    await enableNetwork(db);
-    await waitForPendingWrites(db);
-    if (import.meta.env.DEV) {
-      console.log('Journal data resynced');
-    }
-  };
+  const resync = useResync('Journal data');
 
   return {
     entry,

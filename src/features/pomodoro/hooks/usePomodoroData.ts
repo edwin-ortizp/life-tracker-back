@@ -4,10 +4,9 @@ import {
   doc,
   setDoc,
   onSnapshot,
-  serverTimestamp,
-  enableNetwork,
-  waitForPendingWrites
+  serverTimestamp
 } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import type { PomodoroData, PomodoroSession } from '../types';
@@ -317,13 +316,7 @@ export const usePomodoroData = (selectedDate?: Date) => {
     }
   };
 
-  const resync = async () => {
-    await enableNetwork(db);
-    await waitForPendingWrites(db);
-    if (import.meta.env.DEV) {
-      console.log('Pomodoro data resynced');
-    }
-  };
+  const resync = useResync('Pomodoro data');
 
   return {
     count: data?.count ?? 0,

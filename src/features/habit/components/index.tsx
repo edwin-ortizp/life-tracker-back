@@ -74,7 +74,7 @@ export const Habit: React.FC<HabitProps> = () => {
           </p>
         )}
       </CardContent>
-      <CardFooter className="gap-2 text-xs">
+      <CardFooter className="justify-center gap-2 text-xs">
         {status === 'saving' && (
           <span className="text-blue-500">Guardando...</span>
         )}

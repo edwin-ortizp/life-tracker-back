@@ -1,7 +1,8 @@
 // src/features/negative-habits/hooks/useNegativeHabitData.ts
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { onSnapshot, enableNetwork, waitForPendingWrites } from 'firebase/firestore';
+import { onSnapshot } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 import { NegativeHabitLog } from '../types';
 import { 
   MonthlyHabits,
@@ -158,13 +159,7 @@ export const useNegativeHabitData = () => {
     }
   };
 
-  const resync = async () => {
-    await enableNetwork(db);
-    await waitForPendingWrites(db);
-    if (import.meta.env.DEV) {
-      console.log('Negative habit data resynced');
-    }
-  };
+  const resync = useResync('Negative habit data');
 
   return {
     habits,

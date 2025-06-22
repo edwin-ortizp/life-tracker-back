@@ -211,7 +211,7 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
           </div>
         </DialogContent>
       </Dialog>
-      <div className="flex items-center gap-2 text-xs p-4 border-t bg-white">
+      <div className="flex justify-center items-center gap-2 text-xs p-4 border-t bg-white">
         {status === 'saving' && (
           <span className="text-blue-500">Guardando...</span>
         )}

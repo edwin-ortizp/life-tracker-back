@@ -93,7 +93,7 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
           </p>
         )}
       </CardContent>
-      <CardFooter className="gap-2 text-xs">
+      <CardFooter className="justify-center gap-2 text-xs">
         {status === 'saving' && (
           <span className="text-blue-500">Guardando...</span>
         )}
@@ -147,7 +147,7 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
           </p>
         )}
       </CardContent>
-      <CardFooter className="gap-2 text-xs">
+      <CardFooter className="justify-center gap-2 text-xs">
         {energyStatus === 'saving' && (
           <span className="text-blue-500">Guardando...</span>
         )}

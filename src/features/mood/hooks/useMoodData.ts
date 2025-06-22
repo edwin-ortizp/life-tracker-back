@@ -3,16 +3,15 @@ import { useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
-import { 
+import {
   doc,
   setDoc,
   onSnapshot,
   getDoc,
   collection,
-  deleteDoc,
-  enableNetwork,
-  waitForPendingWrites
+  deleteDoc
 } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 import type { MoodEntry, DailyMood } from '../types';
 import { getMoodValue } from '../types';
 
@@ -194,13 +193,7 @@ export const useMoodData = (selectedDate: Date) => {
     }
   };
 
-  const resync = async () => {
-    await enableNetwork(db);
-    await waitForPendingWrites(db);
-    if (import.meta.env.DEV) {
-      console.log('Mood data resynced');
-    }
-  };
+  const resync = useResync('Mood data');
 
   return {
     moodHistory: dailyMood?.moods || [],

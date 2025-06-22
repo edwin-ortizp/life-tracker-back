@@ -9,10 +9,9 @@ import {
   onSnapshot,
   getDoc,
   collection,
-  deleteDoc,
-  enableNetwork,
-  waitForPendingWrites
+  deleteDoc
 } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 import type { EnergyEntry, DailyEnergy } from '../types';
 
 export const useEnergyData = (selectedDate: Date) => {
@@ -173,13 +172,7 @@ export const useEnergyData = (selectedDate: Date) => {
     }
   };
 
-  const resync = async () => {
-    await enableNetwork(db);
-    await waitForPendingWrites(db);
-    if (import.meta.env.DEV) {
-      console.log('Energy data resynced');
-    }
-  };
+  const resync = useResync('Energy data');
 
   return {
     energyHistory: dailyEnergy?.entries || [],

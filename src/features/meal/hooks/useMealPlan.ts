@@ -1,19 +1,18 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  doc, 
-  setDoc, 
+import {
+  doc,
+  setDoc,
   onSnapshot,
   serverTimestamp,
   collection,
   query,
   where,
   getDocs,
-  writeBatch,
-  enableNetwork,
-  waitForPendingWrites
+  writeBatch
 } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 import { MealPlan, Meal, MealPlanEntry } from '../types';
 import { getCurrentYearMonth } from '../utils/dateUtils';
 
@@ -277,13 +276,7 @@ export const useMealPlan = () => {
     }
   };
 
-  const resync = async () => {
-    await enableNetwork(db);
-    await waitForPendingWrites(db);
-    if (import.meta.env.DEV) {
-      console.log('Meal plan resynced');
-    }
-  };
+  const resync = useResync('Meal plan');
 
   return {
     mealPlan,
