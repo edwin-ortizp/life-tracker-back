@@ -41,6 +41,12 @@ export default defineConfig({
     }),    VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      devOptions: {
+        enabled: false // Deshabilitar PWA en desarrollo para evitar conflictos
+      },
+      strategies: 'injectManifest',
+      srcDir: '.',
+      filename: 'service-worker.ts',
       manifest: {
         name: 'Life Tracker',
         short_name: 'LifeTrack',
@@ -98,36 +104,6 @@ export default defineConfig({
             type: 'image/png'
           }
         ],
-      },      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-        maximumFileSizeToCacheInBytes: 5000000, // 5MB
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          },
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 días
-              }
-            }
-          }
-        ]
       }
     })
   ],

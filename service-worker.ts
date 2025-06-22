@@ -7,6 +7,17 @@ import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 declare let self: ServiceWorkerGlobalScope;
 
+// Manejo de errores global para el service worker
+self.addEventListener('error', (event) => {
+  console.warn('Service Worker error:', event.error);
+});
+
+// Manejo de errores para promises no capturadas
+self.addEventListener('unhandledrejection', (event) => {
+  console.warn('Service Worker unhandled rejection:', event.reason);
+  event.preventDefault();
+});
+
 // Precache todos los assets generados por Vite
 precacheAndRoute(self.__WB_MANIFEST);
 
@@ -86,4 +97,29 @@ self.addEventListener('notificationclick', event => {
       }
     })
   );
+});
+
+// Manejo de mensajes para evitar errores de message port
+self.addEventListener('message', (event) => {
+  try {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+      self.skipWaiting();
+      return;
+    }
+    
+    // Responder a otros mensajes si es necesario
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage({ success: true });
+    }
+  } catch (error) {
+    console.warn('Error handling message:', error);
+    // Intentar responder con error si hay un puerto disponible
+    if (event.ports && event.ports[0]) {
+      try {
+        event.ports[0].postMessage({ success: false, error: error.message });
+      } catch (portError) {
+        console.warn('Error sending response through message port:', portError);
+      }
+    }
+  }
 });
