@@ -19,8 +19,8 @@ const AppLayout = () => {
           <div className="pt-16 md:pt-0 flex-1 flex flex-col overflow-hidden">
             <main className="flex-1 overflow-auto scroll-container">
               <Outlet />
+              <AppFooter />
             </main>
-            <AppFooter />
           </div>
           {/* Espaciado para navegación móvil */}
           <div className="pb-16 md:pb-0" />
