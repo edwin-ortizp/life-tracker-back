@@ -14,6 +14,7 @@ import AddRecipeModal from './AddRecipeModal';
 import ExportRecipesButton from './ExportRecipesButton';
 import { MEAL_TYPES } from '@/features/meal/types';
 import type { Recipe } from '../types';
+import { MealHeader } from '@/components/MealHeader';
 
 export const Recipes: React.FC = () => {
   const { recipes, addRecipe, updateRecipe } = useRecipes();
@@ -51,52 +52,54 @@ export const Recipes: React.FC = () => {
   };
 
   return (
-    <Card className="w-full h-full flex flex-col">
-      <CardContent className="p-4 space-y-4 overflow-y-auto flex-1">
-        <div className="flex justify-between items-center">
-          <h3 className="font-medium text-lg">Recetas</h3>
-          <div className="flex gap-2">
-            <ExportRecipesButton recipes={recipes} />
-            <Button onClick={() => setShowModal(true)}>Agregar</Button>
+    <div className="w-full h-full flex flex-col">
+      <MealHeader 
+        title="Recetas"
+        subtitle="Gestiona tu colección de recetas"
+      >
+        <ExportRecipesButton recipes={recipes} />
+        <Button onClick={() => setShowModal(true)}>Agregar</Button>
+      </MealHeader>
+      
+      <Card className="flex-1 m-0 border-0 rounded-none">
+        <CardContent className="p-4 space-y-4 overflow-y-auto flex-1">
+          <div className="flex flex-col sm:flex-row gap-4 items-start">
+            <Input
+              placeholder="Buscar"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              className="sm:w-60"
+            />
+            <div className="flex flex-wrap gap-2 items-center">
+              <Select value={sort} onValueChange={v => setSort(v as 'az' | 'za')}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Ordenar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="az">Nombre A-Z</SelectItem>
+                  <SelectItem value="za">Nombre Z-A</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={mealFilter || 'all'}
+                onValueChange={v => setMealFilter(v === 'all' ? '' : v)}
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {Object.entries(MEAL_TYPES).map(([key, info]) => (
+                    <SelectItem key={key} value={key}>{info.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-4 items-start">
-          <Input
-            placeholder="Buscar"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            className="sm:w-60"
-          />
-          <div className="flex flex-wrap gap-2 items-center">
-            <Select value={sort} onValueChange={v => setSort(v as 'az' | 'za')}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Ordenar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="az">Nombre A-Z</SelectItem>
-                <SelectItem value="za">Nombre Z-A</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={mealFilter || 'all'}
-              onValueChange={v => setMealFilter(v === 'all' ? '' : v)}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {Object.entries(MEAL_TYPES).map(([key, info]) => (
-                  <SelectItem key={key} value={key}>{info.title}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        {filtered.length === 0 ? (
-          <p className="text-center text-gray-500">No hay recetas guardadas</p>
-        ) : (
-          <div className="space-y-4">
+          {filtered.length === 0 ? (
+            <p className="text-center text-gray-500">No hay recetas guardadas</p>
+          ) : (
+            <div className="space-y-4">
             {filtered.map(recipe => (
               <Card key={recipe.id}>
                 <CardHeader className="flex flex-row items-start justify-between">
@@ -140,14 +143,16 @@ export const Recipes: React.FC = () => {
             ))}
           </div>
         )}
-      </CardContent>
+        </CardContent>
+      </Card>
+      
       <AddRecipeModal
         open={showModal}
         onOpenChange={(o) => { if (!o) setEditing(null); setShowModal(o); }}
         onSave={handleSave}
         recipe={editing || undefined}
       />
-    </Card>
+    </div>
   );
 };
 

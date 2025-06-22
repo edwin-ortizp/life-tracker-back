@@ -8,6 +8,7 @@ import { ShoppingItem } from '../types';
 import ItemModal from './ItemModal';
 import KanbanView from './KanbanView';
 import ListView from './ListView';
+import { MealHeader } from '@/components/MealHeader';
 
 export const ShoppingList: React.FC = () => {
   const { items, addItem, updateItem, deleteItem, moveItem } = useShoppingList();
@@ -23,50 +24,53 @@ export const ShoppingList: React.FC = () => {
   };
 
   return (
-    <Card className="w-full h-full flex flex-col">
-      <CardContent className="p-4 space-y-4 overflow-y-auto flex-1">
-        <div className="flex justify-between items-center">
-          <h3 className="font-medium text-lg">Lista de Compras</h3>
-          <div className="flex gap-2">
-            <ExportIngredientsButton items={items} />
-            <Button onClick={() => setShowModal(true)}>
-              Agregar
-            </Button>
-          </div>
-        </div>
-        
-        <Tabs defaultValue="kanban" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="kanban">Kanban</TabsTrigger>
-            <TabsTrigger value="list">Lista</TabsTrigger>
-          </TabsList>
-          
-          {items.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p className="text-lg">No hay elementos en tu lista</p>
-              <p className="text-sm">Haz clic en "Agregar" para comenzar</p>
-            </div>
-          ) : (
-            <>
-              <TabsContent value="kanban">
-                <KanbanView
-                  items={items}
-                  onMove={moveItem}
-                  onView={setEditingItem}
-                />
-              </TabsContent>
-              <TabsContent value="list">
-                <ListView
-                  items={items}
-                  onEdit={setEditingItem}
-                  onDelete={deleteItem}
-                  onUpdate={updateItem}
-                />
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
-      </CardContent>
+    <div className="w-full h-full flex flex-col">
+      <MealHeader 
+        title="Lista de Compras"
+        subtitle="Organiza tus ingredientes y productos"
+      >
+        <ExportIngredientsButton items={items} />
+        <Button onClick={() => setShowModal(true)}>
+          Agregar
+        </Button>
+      </MealHeader>
+      
+      <Card className="flex-1 m-0 border-0 rounded-none">
+        <CardContent className="p-4 space-y-4 overflow-y-auto flex-1">
+          <Tabs defaultValue="kanban" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="kanban">Kanban</TabsTrigger>
+              <TabsTrigger value="list">Lista</TabsTrigger>
+            </TabsList>
+            
+            {items.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p className="text-lg">No hay elementos en tu lista</p>
+                <p className="text-sm">Haz clic en "Agregar" para comenzar</p>
+              </div>
+            ) : (
+              <>
+                <TabsContent value="kanban">
+                  <KanbanView
+                    items={items}
+                    onMove={moveItem}
+                    onView={setEditingItem}
+                  />
+                </TabsContent>
+                <TabsContent value="list">
+                  <ListView
+                    items={items}
+                    onEdit={setEditingItem}
+                    onDelete={deleteItem}
+                    onUpdate={updateItem}
+                  />
+                </TabsContent>
+              </>
+            )}
+          </Tabs>
+        </CardContent>
+      </Card>
+      
       <ItemModal
         open={showModal || !!editingItem}
         onOpenChange={() => {
@@ -77,7 +81,7 @@ export const ShoppingList: React.FC = () => {
         onDelete={id => deleteItem(id)}
         item={editingItem || undefined}
       />
-    </Card>
+    </div>
   );
 };
 

@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
-import { Calendar, AlertCircle, MoreVertical, Settings, Download } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { AlertCircle, MoreVertical, Settings, Download } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -18,6 +17,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList';
 import { useRecipes } from '@/features/recipe/hooks/useRecipes';
 import { usePreparedMeals } from '@/features/prepared-meals/hooks/usePreparedMeals';
+import { MealHeader } from '@/components/MealHeader';
 
 export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   const { user } = useAuth();
@@ -125,25 +125,12 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col">      {/* Header con menú de opciones */}
-      <div className="flex items-center justify-between p-4 bg-white border-b sticky top-0 z-10">
-      <div className="flex items-center space-x-3">
-          <h2 className="text-lg sm:text-xl font-bold">Plan de Comidas</h2>
-          <div className="flex items-center space-x-2">
-            <Calendar className="h-4 w-4 text-gray-500" />
-            <span className="text-xs sm:text-sm text-gray-500">Semanal</span>
-          </div>
-          <Link to="/shopping-list" className="text-sm text-blue-600 underline">
-            Lista de Compras
-          </Link>
-          <Link to="/recipes" className="text-sm text-blue-600 underline">
-            Recetas
-          </Link>
-        <Link to="/prepared-meals" className="text-sm text-blue-600 underline">
-          Comidas Preparadas
-        </Link>
-      </div>
-
+    <div className="w-full h-full flex flex-col">
+      {/* Header con navegación unificada */}
+      <MealHeader 
+        title="Plan de Comidas"
+        subtitle="Planifica tus comidas semanales"
+      >
         {/* Menú de opciones */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -167,7 +154,7 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </MealHeader>
       
       {/* Content area */}
       <div className="flex-1 bg-gray-50 overflow-hidden">
