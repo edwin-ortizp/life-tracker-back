@@ -4,6 +4,7 @@ import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import PWAStatus from '../components/PWAStatus';
 import MobileGestures from '../components/MobileGestures';
 import { Toaster } from '@/components/ui/sonner';
+import AppFooter from '@/components/AppFooter';
 
 const AppLayout = () => {
   return (
@@ -18,6 +19,7 @@ const AppLayout = () => {
           <div className="pt-16 md:pt-0 flex-1 flex flex-col overflow-hidden">
             <main className="flex-1 overflow-auto scroll-container">
               <Outlet />
+              <AppFooter />
             </main>
           </div>
           {/* Espaciado para navegación móvil */}

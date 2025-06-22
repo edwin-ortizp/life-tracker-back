@@ -17,6 +17,7 @@ import PreparedMealsPage from './pages/PreparedMealsPage';
 import ExercisePage from './pages/ExercisePage';
 import NegativeHabitsPage from './pages/NegativeHabitsPage';
 import StatisticsPage from './pages/StatisticsPage';
+import SettingsPage from './pages/SettingsPage';
 
 // Loader reutilizable para componentes cargados de forma diferida
 export const PageLoader = () => (
@@ -45,6 +46,7 @@ function App() {
         <Route path="shopping-list" element={<ShoppingListPage />} />
         <Route path="recipes" element={<RecipesPage />} />
         <Route path="prepared-meals" element={<PreparedMealsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
   );
