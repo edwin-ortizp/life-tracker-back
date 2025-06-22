@@ -85,7 +85,6 @@ const NegativeHabitsPage = () => {
               habits={habits}
               onLogHabit={logHabit}
               onRemoveLog={removeLog}
-              disabled={status === 'saving' || !isOnline}
             />
           )}
 

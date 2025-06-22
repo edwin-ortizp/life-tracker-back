@@ -8,8 +8,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { Sparkles, RefreshCw, Loader2, Copy } from 'lucide-react';
-import { toast } from 'sonner';
+import { Sparkles, RefreshCw, Loader2 } from 'lucide-react';
 import { getAiConfig } from '@/config/ai';
 import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList';
 import type { MealModalState, MealFormData } from './types';

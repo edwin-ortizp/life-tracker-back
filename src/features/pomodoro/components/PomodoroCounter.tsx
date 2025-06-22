@@ -6,7 +6,7 @@ interface PomodoroCounterProps {
   count: number;
   onIncrement: () => void;
   disabled?: boolean;
-  status: 'idle' | 'saving' | 'saved' | 'error';
+  status: 'idle' | 'saving' | 'pending' | 'saved' | 'error';
 }
 
 export const PomodoroCounter = ({

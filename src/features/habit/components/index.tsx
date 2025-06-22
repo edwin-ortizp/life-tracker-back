@@ -64,7 +64,6 @@ export const Habit: React.FC<HabitProps> = () => {
           <YearlyView
             completedHabits={completedHabits}
             onToggle={toggleHabit}
-            disabled={status === 'saving' || !isOnline}
           />
         )}
 

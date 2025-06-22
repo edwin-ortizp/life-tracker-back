@@ -7,7 +7,6 @@ import { ExerciseDocument, ExerciseLog, EXERCISES } from '../types';
 import {
   doc,
   setDoc,
-  getDoc,
   deleteDoc,
   serverTimestamp,
   onSnapshot
