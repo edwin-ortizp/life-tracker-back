@@ -1,6 +1,6 @@
 // src/pages/NegativeHabitsPage.tsx
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useNegativeHabitData } from '../features/negative-habits/hooks/useNegativeHabitData';
 import { NegativeHabitToggle } from '../features/negative-habits/components/NegativeHabitToggle';
@@ -11,6 +11,8 @@ import { NegativeHabitAiMenu } from '../features/negative-habits/components/Nega
 import DateSelector from '@/components/DateSelector';
 import PageLayout from '@/components/PageLayout';
 import { getLocalDateString } from '@/utils/dates';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { Button } from '@/components/ui/button';
 
 const NegativeHabitsPage = () => {
   const [view, setView] = useState<'weekly' | 'yearly'>('weekly');
@@ -22,8 +24,10 @@ const NegativeHabitsPage = () => {
     status,
     error,
     logHabit,
-    removeLog
+    removeLog,
+    resync
   } = useNegativeHabitData();
+  const { isOnline } = useNetworkStatus();
 
   const handleLogHabit = async (habitId: number, note?: string) => {
     await logHabit(habitId, getLocalDateString(selectedDate), note);
@@ -74,13 +78,14 @@ const NegativeHabitsPage = () => {
               habits={habits}
               onLogHabit={logHabit}
               onRemoveLog={removeLog}
-              disabled={status === 'saving'}
+              disabled={status === 'saving' || !isOnline}
             />
           ) : (
             <YearlyView
               habits={habits}
               onLogHabit={logHabit}
               onRemoveLog={removeLog}
+              disabled={status === 'saving' || !isOnline}
             />
           )}
 
@@ -90,6 +95,22 @@ const NegativeHabitsPage = () => {
             </p>
           )}
         </CardContent>
+        <CardFooter className="justify-center gap-2 text-xs p-2">
+          {status === 'saving' && (
+            <span className="text-blue-500">Guardando...</span>
+          )}
+          {status === 'pending' && (
+            <span className="text-yellow-600">Pendiente de sincronizar</span>
+          )}
+          {status === 'saved' && (
+            <span className="text-green-600">Sincronizado</span>
+          )}
+          {status === 'error' && (
+            <span className="text-red-600">Error de sincronización</span>
+          )}
+          {!isOnline && <span className="text-orange-600">Offline</span>}
+          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+        </CardFooter>
       </Card>
 
       <AddHabitModal

@@ -1,11 +1,12 @@
 // src/features/exercise/components/index.tsx
 import { useState, useImperativeHandle, forwardRef } from 'react';
 import { Plus, BarChart } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { ExerciseProps } from '../types';
 import { useExerciseData } from '../hooks/useExerciseData';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { ExerciseList } from './ExerciseList';
 import { ExerciseFormModal } from './ExerciseFormModal';
 import { ExerciseStats } from './ExerciseStats';
@@ -29,8 +30,10 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
     error,
     logExercise,
     updateExerciseLog,
-    deleteExerciseLog
+    deleteExerciseLog,
+    resync
   } = useExerciseData(selectedDate);
+  const { isOnline } = useNetworkStatus();
 
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [editingExerciseIndex, setEditingExerciseIndex] = useState<number | null>(null);
@@ -54,17 +57,20 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
       <CardContent className="p-6">
         <Tabs defaultValue="list" className="space-y-6">
           <div className="flex justify-between items-center">
-            <TabsList>
-              <TabsTrigger value="list">Lista</TabsTrigger>
-              <TabsTrigger value="stats" className="gap-2">
-                <BarChart className="w-4 h-4" />
-                Estadísticas
-              </TabsTrigger>
-            </TabsList>
+          <TabsList>
+            <TabsTrigger value="list">Lista</TabsTrigger>
+            <TabsTrigger value="stats" className="gap-2">
+              <BarChart className="w-4 h-4" />
+              Estadísticas
+            </TabsTrigger>
+          </TabsList>
+
+
 
             <Button
               onClick={() => setShowAddExercise(true)}
               className="gap-2 hidden sm:flex"
+              disabled={status === 'saving' || !isOnline}
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Agregar</span>
@@ -114,6 +120,22 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
           />
         )}
       </CardContent>
+      <CardFooter className="justify-center gap-2 text-xs p-2">
+        {status === 'saving' && (
+          <span className="text-blue-500">Guardando...</span>
+        )}
+        {status === 'pending' && (
+          <span className="text-yellow-600">Pendiente de sincronizar</span>
+        )}
+        {status === 'saved' && (
+          <span className="text-green-600">Sincronizado</span>
+        )}
+        {status === 'error' && (
+          <span className="text-red-600">Error de sincronización</span>
+        )}
+        {!isOnline && <span className="text-orange-600">Offline</span>}
+        <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+      </CardFooter>
     </Card>
   );
 });

@@ -2,9 +2,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  doc, 
-  setDoc, 
+import {
+  doc,
+  setDoc,
   onSnapshot,
   serverTimestamp,
   collection,
@@ -12,6 +12,7 @@ import {
   where,
   getDocs
 } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 
 interface CompletedHabits {
   [key: string]: boolean;
@@ -26,7 +27,7 @@ interface MonthlyHabits {
 
 export const useHabitData = () => {
   const [monthlyHabitsMap, setMonthlyHabitsMap] = useState<Record<string, CompletedHabits>>({});
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -48,7 +49,7 @@ export const useHabitData = () => {
 
     // Subscribe to current month
     const currentMonthRef = doc(db, 'habits', `${user.uid}_${yearMonth}`);
-    const unsubscribe = onSnapshot(currentMonthRef, 
+    const unsubscribe = onSnapshot(currentMonthRef, { includeMetadataChanges: true },
       (doc) => {
         if (doc.exists()) {
           const data = doc.data() as MonthlyHabits;
@@ -56,7 +57,19 @@ export const useHabitData = () => {
             ...prev,
             [yearMonth]: data.habits || {}
           }));
-          setStatus('saved');
+
+          if (import.meta.env.DEV) {
+            console.log('Habit snapshot', {
+              fromCache: doc.metadata.fromCache,
+              pending: doc.metadata.hasPendingWrites
+            });
+          }
+
+          if (doc.metadata.hasPendingWrites) {
+            setStatus('pending');
+          } else {
+            setStatus('saved');
+          }
         }
       },
       (error) => {
@@ -122,19 +135,20 @@ export const useHabitData = () => {
         habits: newCompleted,
         updatedAt: serverTimestamp()
       }, { merge: true });
-
-      setStatus('saved');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
     }
   };
 
+  const resync = useResync('Habit data');
+
   return {
     completedHabits,
     status,
     error,
-    toggleHabit
+    toggleHabit,
+    resync
   };
 };
 

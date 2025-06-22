@@ -1,6 +1,6 @@
 // src/features/pomodoro/components/Pomodoro.tsx
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Clock, Bell, BellOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePomodoroTimer, usePomodoroData } from '../hooks';
@@ -12,6 +12,7 @@ import { PomodoroProgress } from './PomodoroProgress';
 import { PomodoroEditModal } from './PomodoroEditModal';
 import { DailyProgress } from './DailyProgress';
 import { Button } from '@/components/ui/button';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { formatTime } from '../utils/formatTime';
 import {
   AlertDialog,
@@ -56,8 +57,10 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
     saveSession,
     deleteSession,
     editSession,
-    addManualSession
+    addManualSession,
+    resync
   } = usePomodoroData(selectedDate);
+  const { isOnline } = useNetworkStatus();
 
   const handleComplete = useCallback(async (duration: number) => {
     await saveSession(duration, true);
@@ -114,7 +117,7 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
   };
 
   const handleIncrement = async () => {
-    if (status === 'saving') return;
+    if (status === 'saving' || !isOnline) return;
     await addManualSession();
   };
 
@@ -156,6 +159,22 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
         <CardContent className="p-4 text-center">
           <p>Inicia sesión para usar el temporizador Pomodoro</p>
         </CardContent>
+        <CardFooter className="justify-center gap-2 text-xs p-2">
+          {status === 'saving' && (
+            <span className="text-blue-500">Guardando...</span>
+          )}
+          {status === 'pending' && (
+            <span className="text-yellow-600">Pendiente de sincronizar</span>
+          )}
+          {status === 'saved' && (
+            <span className="text-green-600">Sincronizado</span>
+          )}
+          {status === 'error' && (
+            <span className="text-red-600">Error de sincronización</span>
+          )}
+          {!isOnline && <span className="text-orange-600">Offline</span>}
+          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+        </CardFooter>
       </Card>
     );
   }
@@ -172,11 +191,11 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
       <Card className="w-full">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                <h2 className="text-lg font-medium">Pomodoro Timer</h2>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5" />
+              <h2 className="text-lg font-medium">Pomodoro Timer</h2>
+            </div>
 
               {notificationsSupported && (
                 <Button
@@ -204,10 +223,11 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
             <PomodoroCounter
               count={count}
               onIncrement={handleIncrement}
-              disabled={status === 'saving'}
+              disabled={status === 'saving' || !isOnline}
               status={status}
             />
           </div>
+
 
           {/* Timer y Progreso */}
           <div className="space-y-6">
@@ -216,7 +236,7 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
               isActive={isActive}
               onStart={startTimer}
               onStop={stopTimer}
-              disabled={status === 'saving'}
+              disabled={status === 'saving' || !isOnline}
             />
 
             <PomodoroProgress
@@ -271,6 +291,22 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
           {error}
         </p>
       )}
+      <div className="flex justify-center items-center gap-2 text-xs p-2">
+        {status === 'saving' && (
+          <span className="text-blue-500">Guardando...</span>
+        )}
+        {status === 'pending' && (
+          <span className="text-yellow-600">Pendiente de sincronizar</span>
+        )}
+        {status === 'saved' && (
+          <span className="text-green-600">Sincronizado</span>
+        )}
+        {status === 'error' && (
+          <span className="text-red-600">Error de sincronización</span>
+        )}
+        {!isOnline && <span className="text-orange-600">Offline</span>}
+        <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+      </div>
     </div>
   );
 };

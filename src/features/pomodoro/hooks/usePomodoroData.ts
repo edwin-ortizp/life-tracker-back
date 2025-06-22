@@ -1,6 +1,12 @@
 // src/features/pomodoro/hooks/usePomodoroData.ts
 import { useState, useEffect } from 'react';
-import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import {
+  doc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp
+} from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import type { PomodoroData, PomodoroSession } from '../types';
@@ -12,7 +18,7 @@ interface SaveSessionOptions {
 
 export const usePomodoroData = (selectedDate?: Date) => {
   const [data, setData] = useState<PomodoroData | null>(null);
-  const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -24,7 +30,7 @@ export const usePomodoroData = (selectedDate?: Date) => {
 
     const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
 
-    const unsubscribe = onSnapshot(docRef, 
+    const unsubscribe = onSnapshot(docRef, { includeMetadataChanges: true },
       (doc) => {
         if (doc.exists()) {
           const pomodoroData = doc.data() as PomodoroData;
@@ -35,7 +41,19 @@ export const usePomodoroData = (selectedDate?: Date) => {
             sessions,
             count: completedCount
           });
-          setStatus('saved');
+
+          if (import.meta.env.DEV) {
+            console.log('Pomodoro snapshot', {
+              fromCache: doc.metadata.fromCache,
+              pending: doc.metadata.hasPendingWrites
+            });
+          }
+
+          if (doc.metadata.hasPendingWrites) {
+            setStatus('pending');
+          } else {
+            setStatus('saved');
+          }
         } else {
           setData({
             userId: user.uid,
@@ -113,7 +131,9 @@ export const usePomodoroData = (selectedDate?: Date) => {
 
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
       await setDoc(docRef, dataToWrite);
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Manual pomodoro session added locally');
+      }
     } catch (error) {
       console.error('Pomodoro - Error al agregar sesión manual:', error);
       setError(error instanceof Error ? error.message : 'Error al guardar');
@@ -176,7 +196,9 @@ export const usePomodoroData = (selectedDate?: Date) => {
 
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
       await setDoc(docRef, dataToWrite);
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Pomodoro session saved locally');
+      }
     } catch (error) {
       console.error('Pomodoro - Error al guardar:', error);
       setError(error instanceof Error ? error.message : 'Error al guardar');
@@ -205,7 +227,9 @@ export const usePomodoroData = (selectedDate?: Date) => {
 
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
       await setDoc(docRef, dataToWrite);
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Pomodoro session deleted locally');
+      }
     } catch (error) {
       console.error('Pomodoro - Error al eliminar sesión:', error);
       setError(error instanceof Error ? error.message : 'Error al eliminar');
@@ -282,13 +306,17 @@ export const usePomodoroData = (selectedDate?: Date) => {
   
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
       await setDoc(docRef, updatedData);
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Pomodoro session updated locally');
+      }
     } catch (error) {
       console.error('Pomodoro - Error al editar sesión:', error);
       setError(error instanceof Error ? error.message : 'Error al editar');
       setStatus('error');
     }
   };
+
+  const resync = useResync('Pomodoro data');
 
   return {
     count: data?.count ?? 0,
@@ -298,6 +326,7 @@ export const usePomodoroData = (selectedDate?: Date) => {
     saveSession,
     deleteSession,
     editSession,
-    addManualSession
+    addManualSession,
+    resync
   };
 };

@@ -1,18 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
+import {
+  collection,
+  addDoc,
+  query,
+  where,
   onSnapshot,
   doc,
   deleteDoc,
   updateDoc,
   serverTimestamp,
-  Timestamp 
+  Timestamp
 } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 import type { Task, TaskFormData } from '../types';
 import { getCheckboxProgress } from '@/utils/markdown';
 
@@ -20,7 +21,7 @@ type ModalMode = 'create' | 'edit' | 'complete';
 
 export const useTaskData = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [showRecurrenceModal, setShowRecurrenceModal] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
@@ -50,7 +51,7 @@ export const useTaskData = () => {
       where('userId', '==', user.uid)
     );
 
-    const unsubscribe = onSnapshot(q, 
+    const unsubscribe = onSnapshot(q, { includeMetadataChanges: true },
       (snapshot) => {
         const taskList = snapshot.docs
           .map(doc => {
@@ -91,9 +92,18 @@ export const useTaskData = () => {
           });
         
         setTasks(taskList);
-        // Solo cambiar a 'saved' si no estamos en proceso de guardar
-        if (status !== 'saving') {
-          setStatus('idle');
+
+        if (import.meta.env.DEV) {
+          console.log('Task snapshot', {
+            fromCache: snapshot.metadata.fromCache,
+            pending: snapshot.metadata.hasPendingWrites
+          });
+        }
+
+        if (snapshot.metadata.hasPendingWrites) {
+          setStatus('pending');
+        } else if (status !== 'saving') {
+          setStatus('saved');
         }
       },
       (error) => {
@@ -151,7 +161,9 @@ export const useTaskData = () => {
       }
 
       await addDoc(collection(db, 'tasks'), taskData);
-      setStatus('idle');
+      if (import.meta.env.DEV) {
+        console.log('Task added locally');
+      }
     } catch (error) {
       console.error('Error al guardar:', error);
       setError(error instanceof Error ? error.message : 'Error al guardar');
@@ -218,6 +230,9 @@ export const useTaskData = () => {
       );
 
       await updateDoc(taskRef, updateData);
+      if (import.meta.env.DEV) {
+        console.log('Task updated locally');
+      }
       handleCloseModal(); // Cerrar el modal después de guardar exitosamente
     } catch (error) {
       console.error('Error al actualizar:', error);
@@ -237,18 +252,19 @@ export const useTaskData = () => {
       
       if (!task.isRecurrent) {
         const taskRef = doc(db, 'tasks', taskId);
-        await updateDoc(taskRef, {
-          completed: completed,
-          updatedAt: serverTimestamp()
-        });
-        setStatus('idle');
-        return;
+      await updateDoc(taskRef, {
+        completed: completed,
+        updatedAt: serverTimestamp()
+      });
+      if (import.meta.env.DEV) {
+        console.log('Task toggled locally');
+      }
+      return;
       }
 
       setCurrentTask(task);
       setModalMode('complete');
       setShowRecurrenceModal(true);
-      setStatus('idle');
     } catch (error) {
       console.error('Error al actualizar estado:', error);
       setError(error instanceof Error ? error.message : 'Error al actualizar');
@@ -263,7 +279,9 @@ export const useTaskData = () => {
     
     try {
       await deleteDoc(doc(db, 'tasks', taskId));
-      setStatus('idle');
+      if (import.meta.env.DEV) {
+        console.log('Task deleted locally');
+      }
     } catch (error) {
       console.error('Error al eliminar:', error);
       setError(error instanceof Error ? error.message : 'Error al eliminar');
@@ -312,6 +330,9 @@ export const useTaskData = () => {
       nextTaskData.progress = getCheckboxProgress(nextTaskData.description || '');
 
       await addDoc(collection(db, 'tasks'), nextTaskData);
+      if (import.meta.env.DEV) {
+        console.log('Next task created locally');
+      }
 
       handleCloseModal(); // Usar el nuevo manejador de cierre
     } catch (error) {
@@ -344,6 +365,8 @@ export const useTaskData = () => {
     setShowRecurrenceModal(true);
     setStatus('idle'); // Asegurarnos de que el estado esté en idle al abrir el modal
   };
+
+  const resync = useResync('Task data');
   return {
     tasks: getPublicTasks(), // Solo devolver tareas públicas por defecto
     allTasks: tasks, // Disponible para casos especiales como PrivateTaskSection
@@ -360,6 +383,7 @@ export const useTaskData = () => {
     setShowRecurrenceModal: handleCloseModal,
     openEditModal,
     openCreateModal,
-    getPublicTasks
+    getPublicTasks,
+    resync
   };
 };

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
-import { 
+import {
   doc,
   setDoc,
   onSnapshot,
@@ -11,12 +11,13 @@ import {
   collection,
   deleteDoc
 } from 'firebase/firestore';
+import { useResync } from '@/hooks/useResync';
 import type { MoodEntry, DailyMood } from '../types';
 import { getMoodValue } from '../types';
 
 export const useMoodData = (selectedDate: Date) => {
   const [dailyMood, setDailyMood] = useState<DailyMood | null>(null);
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -26,7 +27,7 @@ export const useMoodData = (selectedDate: Date) => {
     const dateString = getLocalDateString(selectedDate);
     const moodRef = doc(collection(db, 'moods'), `${user.uid}_${dateString}`);
     
-    const unsubscribe = onSnapshot(moodRef, 
+    const unsubscribe = onSnapshot(moodRef, { includeMetadataChanges: true },
       (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data();
@@ -45,7 +46,19 @@ export const useMoodData = (selectedDate: Date) => {
         } else {
           setDailyMood(null);
         }
-        setStatus('saved');
+
+        if (import.meta.env.DEV) {
+          console.log('Mood snapshot', {
+            fromCache: snapshot.metadata.fromCache,
+            pending: snapshot.metadata.hasPendingWrites
+          });
+        }
+
+        if (snapshot.metadata.hasPendingWrites) {
+          setStatus('pending');
+        } else {
+          setStatus('saved');
+        }
       },
       (error) => {
         console.error('Mood - Error en snapshot:', error);
@@ -109,7 +122,9 @@ export const useMoodData = (selectedDate: Date) => {
         });
       }
 
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Mood added locally');
+      }
     } catch (error) {
       console.error('Mood - Error al guardar:', error);
       setError(error instanceof Error ? error.message : 'Error al guardar');
@@ -134,8 +149,9 @@ export const useMoodData = (selectedDate: Date) => {
         ...dailyMood,
         moods: updatedMoods
       });
-
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Mood updated locally');
+      }
     } catch (error) {
       console.error('Mood - Error al actualizar:', error);
       setError(error instanceof Error ? error.message : 'Error al actualizar');
@@ -167,7 +183,9 @@ export const useMoodData = (selectedDate: Date) => {
         });
       }
 
-      setStatus('saved');
+      if (import.meta.env.DEV) {
+        console.log('Mood deleted locally');
+      }
     } catch (error) {
       console.error('Mood - Error al eliminar:', error);
       setError(error instanceof Error ? error.message : 'Error al eliminar');
@@ -175,12 +193,15 @@ export const useMoodData = (selectedDate: Date) => {
     }
   };
 
+  const resync = useResync('Mood data');
+
   return {
     moodHistory: dailyMood?.moods || [],
     status,
     error,
     addMood,
     updateMood,
-    deleteMood
+    deleteMood,
+    resync
   };
 };

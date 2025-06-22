@@ -11,6 +11,7 @@ import { LastUpdatedInfo } from './LastUpdatedInfo';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import { useJournalData } from '../hooks/useJournalData';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useJournalEntry } from '../context/JournalEntryContext';
 import { useJournalLock } from '../context/JournalLockContext';
 import type { JournalProps } from '../types';
@@ -24,8 +25,10 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
     status,
     error,
     saveEntry,
-    lastUpdated
+    lastUpdated,
+    resync
   } = useJournalData(selectedDate);
+  const { isOnline } = useNetworkStatus();
 
   const { entry: sharedEntry, setEntry: setSharedEntry } = useJournalEntry();
 
@@ -59,11 +62,7 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
     <>
       <Card className="w-full">
         <CardContent className="p-4">
-          <JournalHeader
-            status={status}
-            onLock={handleLock}
-            isUnlocked={isUnlocked}
-          />
+          <JournalHeader onLock={handleLock} />
           <JournalInput
             value={sharedEntry}
             onChange={(value) => {
@@ -77,13 +76,14 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
             </p>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col items-end gap-2 sm:flex-row sm:justify-between">
-          <LastUpdatedInfo lastUpdated={lastUpdated} />
-          <div className="flex gap-2">
-            <Button
-              onClick={() => saveEntry(sharedEntry)}
-              disabled={status === 'saving'}
-            >
+        <CardFooter className="flex flex-col gap-4 p-2">
+          <div className="flex justify-between items-center w-full">
+            <LastUpdatedInfo lastUpdated={lastUpdated} />
+            <div className="flex gap-2">
+              <Button
+                onClick={() => saveEntry(sharedEntry)}
+                disabled={status === 'saving' || !isOnline}
+              >
               {status === 'saving' ? (
                 <span className="flex items-center gap-2">
                   <Save className="w-4 h-4 animate-spin" />
@@ -96,15 +96,32 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
                 </span>
               )}
             </Button>
-            <JournalAiMenu
-              entry={sharedEntry}
-              selectedDate={selectedDate}
-              onInsert={(text) => {
-                setSharedEntry(prev => prev + (prev ? '\n' : '') + text);
-                setEntry(prev => prev + (prev ? '\n' : '') + text);
-              }}
-            />
-            <ExportRangeButton />
+              <JournalAiMenu
+                entry={sharedEntry}
+                selectedDate={selectedDate}
+                onInsert={(text) => {
+                  setSharedEntry(prev => prev + (prev ? '\n' : '') + text);
+                  setEntry(prev => prev + (prev ? '\n' : '') + text);
+                }}
+              />
+              <ExportRangeButton />
+            </div>
+          </div>
+          <div className="flex justify-center items-center gap-2 text-xs">
+            {status === 'saving' && (
+              <span className="text-blue-500">Guardando...</span>
+            )}
+            {status === 'pending' && (
+              <span className="text-yellow-600">Pendiente de sincronizar</span>
+            )}
+            {status === 'saved' && (
+              <span className="text-green-600">Sincronizado</span>
+            )}
+            {status === 'error' && (
+              <span className="text-red-600">Error de sincronización</span>
+            )}
+            {!isOnline && <span className="text-orange-600">Offline</span>}
+            <Button onClick={resync} variant="link" className="p-0 h-auto text-xs">Reintentar</Button>
           </div>
         </CardFooter>
       </Card>

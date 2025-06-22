@@ -12,6 +12,7 @@ import WeeklyView from './WeeklyView';
 import { ImportMealPlan } from './ImportMealPlan';
 import { PasteMealPlan } from './PasteMealPlan';
 import { useMealPlan } from '../hooks/useMealPlan';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import type { MealProps } from '../types';
 import { useToast } from '@/components/ui/use-toast';
 import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList';
@@ -29,8 +30,10 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
     error,
     addMeal,
     removeMeal,
-    importMealPlan
+    importMealPlan,
+    resync
   } = useMealPlan();
+  const { isOnline } = useNetworkStatus();
 
   const { items } = useShoppingList();
   const { recipes } = useRecipes();
@@ -124,7 +127,7 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   return (
     <div className="w-full h-full flex flex-col">      {/* Header con menú de opciones */}
       <div className="flex items-center justify-between p-4 bg-white border-b sticky top-0 z-10">
-        <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-3">
           <h2 className="text-lg sm:text-xl font-bold">Plan de Comidas</h2>
           <div className="flex items-center space-x-2">
             <Calendar className="h-4 w-4 text-gray-500" />
@@ -136,11 +139,11 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
           <Link to="/recipes" className="text-sm text-blue-600 underline">
             Recetas
           </Link>
-          <Link to="/prepared-meals" className="text-sm text-blue-600 underline">
-            Comidas Preparadas
-          </Link>
-        </div>
-        
+        <Link to="/prepared-meals" className="text-sm text-blue-600 underline">
+          Comidas Preparadas
+        </Link>
+      </div>
+
         {/* Menú de opciones */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -172,7 +175,7 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
           mealPlan={mealPlan}
           onAddMeal={handleAddMeal}
           onRemoveMeal={handleRemoveMeal}
-          disabled={status === 'saving'}
+          disabled={status === 'saving' || !isOnline}
           selectedDate={selectedDate}
         />
 
@@ -198,16 +201,32 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
             <div className="space-y-2">
               <ImportMealPlan 
                 onImport={handleImportMealPlan}
-                disabled={status === 'saving'}
+                disabled={status === 'saving' || !isOnline}
               />
               <PasteMealPlan 
                 onImport={handleImportMealPlan}
-                disabled={status === 'saving'}
+                disabled={status === 'saving' || !isOnline}
               />
             </div>
           </div>
         </DialogContent>
       </Dialog>
+      <div className="flex justify-center items-center gap-2 text-xs p-2 border-t bg-white">
+        {status === 'saving' && (
+          <span className="text-blue-500">Guardando...</span>
+        )}
+        {status === 'pending' && (
+          <span className="text-yellow-600">Pendiente de sincronizar</span>
+        )}
+        {status === 'saved' && (
+          <span className="text-green-600">Sincronizado</span>
+        )}
+        {status === 'error' && (
+          <span className="text-red-600">Error de sincronización</span>
+        )}
+        {!isOnline && <span className="text-orange-600">Offline</span>}
+        <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+      </div>
     </div>
   );
 };

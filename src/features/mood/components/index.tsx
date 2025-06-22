@@ -1,6 +1,7 @@
 // src/features/mood/components/index.tsx
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { MoodSelector } from './MoodSelector';
 import { MoodHistory } from './MoodHistory';
@@ -11,6 +12,7 @@ import { MoodAiMenu } from './MoodAiMenu';
 import { useJournalLock } from '@/features/journal/context/JournalLockContext';
 import { useMoodData } from '../hooks/useMoodData';
 import { useEnergyData } from '../hooks/useEnergyData';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { getLocalDateString } from '@/utils/dates';
 import type { MoodProps } from '../types';
 
@@ -23,7 +25,8 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
     error,
     addMood,
     updateMood,
-    deleteMood
+    deleteMood,
+    resync: resyncMood
   } = useMoodData(selectedDate);
   const {
     energyHistory,
@@ -31,8 +34,10 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
     error: energyError,
     addEntry,
     updateEntry,
-    deleteEntry
+    deleteEntry,
+    resync: resyncEnergy
   } = useEnergyData(selectedDate);
+  const { isOnline } = useNetworkStatus();
 
   const latestEnergy = energyHistory
     .slice()
@@ -68,17 +73,12 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
               {isUnlocked && (
                 <MoodAiMenu selectedDate={selectedDate} />
               )}
-              {status === 'saving' && (
-                <span className="text-xs text-blue-500">Guardando...</span>
-              )}
-              {status === 'error' && (
-                <span className="text-xs text-red-500">Error al guardar</span>
-              )}
+              
             </div>
           </div>
 
           {isCurrentDate && (
-            <MoodSelector onSelect={addMood} disabled={status === 'saving'} />
+            <MoodSelector onSelect={addMood} disabled={status === 'saving' || !isOnline} />
           )}
 
           <MoodHistory
@@ -87,13 +87,31 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
             onDeleteMood={deleteMood}
           />
 
-          {error && (
-            <p className="mt-2 text-sm text-red-500">
-              {error}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        {error && (
+          <p className="mt-2 text-sm text-red-500">
+            {error}
+          </p>
+        )}
+      </CardContent>
+      <CardFooter className="justify-center gap-2 text-xs p-2">
+        {status === 'saving' && (
+          <span className="text-blue-500">Guardando...</span>
+        )}
+        {status === 'pending' && (
+          <span className="text-yellow-600">Pendiente de sincronizar</span>
+        )}
+        {status === 'saved' && (
+          <span className="text-green-600">Sincronizado</span>
+        )}
+        {status === 'error' && (
+          <span className="text-red-500">Error al guardar</span>
+        )}
+        {!isOnline && <span className="text-orange-600">Offline</span>}
+        <Button onClick={resyncMood} variant="link" className="p-0 h-auto text-xs">
+          Reintentar
+        </Button>
+      </CardFooter>
+    </Card>
   );
 
   const energyCard = (
@@ -107,12 +125,7 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
               )}
             </h3>
             <div className="flex items-center gap-2">
-              {energyStatus === 'saving' && (
-                <span className="text-xs text-blue-500">Guardando...</span>
-              )}
-              {energyStatus === 'error' && (
-                <span className="text-xs text-red-500">Error al guardar</span>
-              )}
+
             </div>
           </div>
 
@@ -120,7 +133,7 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
             <div className="mb-4">
               <EnergySelector
                 onSelect={addEntry}
-                disabled={energyStatus === 'saving'}
+                disabled={energyStatus === 'saving' || !isOnline}
               />
             </div>
           )}
@@ -131,13 +144,31 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
             onDelete={deleteEntry}
           />
 
-          {energyError && (
-            <p className="mt-2 text-sm text-red-500">
-              {energyError}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        {energyError && (
+          <p className="mt-2 text-sm text-red-500">
+            {energyError}
+          </p>
+        )}
+      </CardContent>
+      <CardFooter className="justify-center gap-2 text-xs p-2">
+        {energyStatus === 'saving' && (
+          <span className="text-blue-500">Guardando...</span>
+        )}
+        {energyStatus === 'pending' && (
+          <span className="text-yellow-600">Pendiente de sincronizar</span>
+        )}
+        {energyStatus === 'saved' && (
+          <span className="text-green-600">Sincronizado</span>
+        )}
+        {energyStatus === 'error' && (
+          <span className="text-red-500">Error al guardar</span>
+        )}
+        {!isOnline && <span className="text-orange-600">Offline</span>}
+        <Button onClick={resyncEnergy} variant="link" className="p-0 h-auto text-xs">
+          Reintentar
+        </Button>
+      </CardFooter>
+    </Card>
   );
 
   return (

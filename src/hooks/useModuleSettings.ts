@@ -13,7 +13,7 @@ export function useModuleSettings<T>(module: string, defaults: T) {
     if (!user) return;
     setStatus('loading');
     const docRef = doc(db, 'settings', `${user.uid}_${module}`);
-    const unsub = onSnapshot(docRef, (snap) => {
+    const unsub = onSnapshot(docRef, { includeMetadataChanges: true }, (snap) => {
       if (snap.exists()) {
         setSettings({ ...defaults, ...snap.data() } as T);
       } else {
