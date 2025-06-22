@@ -43,7 +43,7 @@ export const ThemeProvider = ({ children, defaultTheme = 'default' }: ThemeProvi
     })
     if (user) {
       const docRef = doc(db, 'settings', user.uid)
-      setDoc(docRef, { theme }, { merge: true }).catch(console.error)
+      setDoc(docRef, { userId: user.uid, theme }, { merge: true }).catch(console.error)
     }
   }, [theme, user, defaultTheme])
 

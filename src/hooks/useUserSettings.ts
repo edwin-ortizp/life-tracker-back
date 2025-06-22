@@ -26,7 +26,7 @@ export function useUserSettings() {
   const saveSettings = async (updates: UserSettings) => {
     if (!user) return
     const ref = doc(db, 'settings', user.uid)
-    await setDoc(ref, updates, { merge: true })
+    await setDoc(ref, { userId: user.uid, ...updates }, { merge: true })
   }
 
   return { settings, saveSettings }
