@@ -159,7 +159,7 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
         <CardContent className="p-8 text-center">
           <p>Inicia sesión para gestionar tus tareas</p>
           </CardContent>
-          <CardFooter className="gap-2 text-xs">
+          <CardFooter className="gap-2 text-xs p-2">
             {status === 'saving' && (
               <span className="text-blue-500">Guardando...</span>
             )}

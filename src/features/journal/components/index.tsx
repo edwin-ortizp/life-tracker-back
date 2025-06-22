@@ -76,7 +76,7 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
             </p>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col gap-4">
+        <CardFooter className="flex flex-col gap-4 p-2">
           <div className="flex justify-between items-center w-full">
             <LastUpdatedInfo lastUpdated={lastUpdated} />
             <div className="flex gap-2">

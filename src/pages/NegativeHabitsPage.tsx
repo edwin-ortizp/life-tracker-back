@@ -95,7 +95,7 @@ const NegativeHabitsPage = () => {
             </p>
           )}
         </CardContent>
-        <CardFooter className="justify-center gap-2 text-xs">
+        <CardFooter className="justify-center gap-2 text-xs p-2">
           {status === 'saving' && (
             <span className="text-blue-500">Guardando...</span>
           )}

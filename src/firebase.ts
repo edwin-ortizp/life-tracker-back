@@ -20,8 +20,10 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Enable offline persistence for Firestore
-if (typeof window !== 'undefined') {
+// Enable offline persistence for Firestore only once
+let persistenceInitialized = false;
+if (typeof window !== 'undefined' && !persistenceInitialized) {
+  persistenceInitialized = true;
   enableIndexedDbPersistence(db).catch((err) => {
     if (import.meta.env.DEV) {
       console.error('Firestore persistence error', err);

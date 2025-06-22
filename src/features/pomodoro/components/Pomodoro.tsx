@@ -159,7 +159,7 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
         <CardContent className="p-4 text-center">
           <p>Inicia sesión para usar el temporizador Pomodoro</p>
         </CardContent>
-        <CardFooter className="justify-center gap-2 text-xs">
+        <CardFooter className="justify-center gap-2 text-xs p-2">
           {status === 'saving' && (
             <span className="text-blue-500">Guardando...</span>
           )}
@@ -291,7 +291,7 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
           {error}
         </p>
       )}
-      <div className="flex justify-center items-center gap-2 text-xs">
+      <div className="flex justify-center items-center gap-2 text-xs p-2">
         {status === 'saving' && (
           <span className="text-blue-500">Guardando...</span>
         )}
