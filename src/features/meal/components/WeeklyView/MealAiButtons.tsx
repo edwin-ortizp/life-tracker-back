@@ -5,9 +5,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { Sparkles, RefreshCw, Loader2 } from 'lucide-react';
+import { Sparkles, RefreshCw, Loader2, Copy } from 'lucide-react';
+import { toast } from 'sonner';
 import { getAiConfig } from '@/config/ai';
 import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList';
 import type { MealModalState, MealFormData } from './types';
@@ -199,29 +201,123 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
         {(loadingMeal || loadingDay) && <AiLoadingBar className="mt-2" />}
       </div>
       <Dialog open={promptDialog !== null} onOpenChange={(o) => (o ? null : closeDialog())}>
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Editar Prompt</DialogTitle>
+        <DialogContent className="w-[95vw] h-[90vh] max-w-none max-h-none overflow-hidden flex flex-col sm:w-[90vw] sm:h-[85vh]">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="text-xl">
+              {promptDialog === 'meal' ? 'Generar Comida con IA' : 'Regenerar Día Completo con IA'}
+            </DialogTitle>
+            <DialogDescription>
+              {promptDialog === 'meal' 
+                ? 'La IA generará una comida específica basada en tus ingredientes disponibles y preferencias.'
+                : 'La IA generará un plan completo del día con todas las comidas basándose en tus ingredientes disponibles.'
+              }
+            </DialogDescription>
           </DialogHeader>
-          <Textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="max-h-[500px] overflow-y-auto"
-          />
-          <p className="text-xs text-right">
-            Tokens: {tokenCount}{' '}
-            {tokenCount > 3500 && (
-              <span className="text-red-500">¡Prompt demasiado largo!</span>
-            )}
-          </p>
-          <DialogFooter className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={closeDialog}>
-              Cancelar
-            </Button>
-            <Button type="button" onClick={confirmPrompt}>
-              Generar
-            </Button>
-          </DialogFooter>
+          
+          {/* Layout de dos columnas - responsivo */}
+          <div className="flex-1 flex flex-col sm:flex-row gap-4 min-h-0 overflow-hidden">
+            {/* Columna izquierda - Prompt */}
+            <div className="flex-1 flex flex-col min-w-0">
+              <div className="flex-1 flex flex-col mb-3">
+                <h3 className="text-sm font-medium text-gray-700 mb-2 flex-shrink-0">Prompt para IA</h3>
+                <Textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  className="flex-1 resize-none min-h-0"
+                  placeholder="Instrucciones para generar comidas..."
+                />
+              </div>
+              
+              <div className="flex flex-col gap-3 flex-shrink-0">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">
+                    Tokens: {tokenCount}
+                  </span>
+                  {tokenCount > 3500 && (
+                    <span className="text-red-500 font-medium">¡Prompt demasiado largo!</span>
+                  )}
+                </div>
+                
+                <Button 
+                  onClick={confirmPrompt} 
+                  disabled={(promptDialog === 'meal' ? loadingMeal : loadingDay) || !apiKey || tokenCount > 3500} 
+                  className="w-full flex items-center justify-center gap-2"
+                  size="lg"
+                >
+                  {(promptDialog === 'meal' ? loadingMeal : loadingDay) && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <Sparkles className="w-4 h-4" />
+                  {(promptDialog === 'meal' ? loadingMeal : loadingDay) ? 'Generando...' : 'Generar comidas'}
+                </Button>
+                
+                {(loadingMeal || loadingDay) && <AiLoadingBar className="mt-2" />}
+              </div>
+            </div>
+            
+            {/* Columna derecha - Resultado */}
+            <div className="flex-1 flex flex-col min-w-0 sm:border-l sm:border-gray-200 sm:pl-4 border-t sm:border-t-0 border-gray-200 pt-4 sm:pt-0">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-sm font-medium text-gray-700">Información del proceso</h3>
+              </div>
+              
+              <div className="flex-1 flex flex-col min-h-0">
+                <div className="flex-1 bg-gray-50 border border-gray-200 rounded-md p-4 overflow-auto">
+                  <div className="text-sm text-gray-700 space-y-3">
+                    {promptDialog === 'meal' ? (
+                      <>
+                        <div>
+                          <strong>Tipo de comida:</strong> {MEAL_TYPES[selectedMeal.type]?.title}
+                        </div>
+                        <div>
+                          <strong>Fecha:</strong> {selectedMeal.date}
+                        </div>
+                        <div>
+                          <strong>Ingredientes disponibles:</strong> {getIngredientList() || 'Ninguno disponible'}
+                        </div>
+                        {(loadingMeal || loadingDay) ? (
+                          <div className="text-blue-600">✨ Generando comida personalizada...</div>
+                        ) : (
+                          <div className="text-gray-500">La comida se generará automáticamente y llenará los campos del formulario.</div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <strong>Fecha completa:</strong> {selectedMeal.date}
+                        </div>
+                        <div>
+                          <strong>Comidas a generar:</strong> {Object.values(MEAL_TYPES).map(t => t.title).join(', ')}
+                        </div>
+                        <div>
+                          <strong>Ingredientes disponibles:</strong> {getIngredientList() || 'Ninguno disponible'}
+                        </div>
+                        {(loadingMeal || loadingDay) ? (
+                          <div className="text-blue-600">✨ Generando plan completo del día...</div>
+                        ) : (
+                          <div className="text-gray-500">Se generarán todas las comidas del día y se sobrescribirán las existentes.</div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Footer con información adicional */}
+          <div className="flex-shrink-0 mt-4 pt-3 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-gray-500">
+              <span>💡 Tip: Mantén tu lista de compras actualizada para mejores sugerencias</span>
+              {!apiKey && (
+                <span className="text-red-500 font-medium">⚠️ API Key no configurada</span>
+              )}
+            </div>
+            
+            <DialogFooter className="flex justify-end gap-2 mt-3">
+              <Button type="button" variant="outline" onClick={closeDialog}>
+                Cancelar
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </>

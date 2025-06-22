@@ -40,7 +40,7 @@ export const ExportRangeButton: React.FC = () => {
       <DialogTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2">
           <Download className="w-4 h-4" />
-          Exportar Diario
+          Exportar
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -65,12 +65,16 @@ export const ExportRangeButton: React.FC = () => {
                 className="border rounded-md px-2 py-1 flex-1"
                 value={formatDateForInput(startDate)}
                 onChange={e => setStartDate(new Date(e.target.value))}
+                placeholder="Fecha de inicio"
+                title="Fecha de inicio"
               />
               <input
                 type="date"
                 className="border rounded-md px-2 py-1 flex-1"
                 value={formatDateForInput(endDate)}
                 onChange={e => setEndDate(new Date(e.target.value))}
+                placeholder="Fecha de fin"
+                title="Fecha de fin"
               />
             </div>
           )}

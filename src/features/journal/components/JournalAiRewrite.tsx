@@ -19,6 +19,7 @@ interface JournalAiRewriteProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   onInsert?: (text: string) => void;
+  onReplace?: (text: string) => void;
 }
 
 const journalConfig = getAiConfig('journal');
@@ -26,7 +27,7 @@ const API_URL = journalConfig
   ? `https://generativelanguage.googleapis.com/v1beta/models/${journalConfig.model}:generateContent`
   : '';
 
-export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry, open: openProp, onOpenChange, onInsert }) => {
+export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry, open: openProp, onOpenChange, onInsert, onReplace }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = openProp !== undefined ? openProp : internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
@@ -87,48 +88,125 @@ export const JournalAiRewrite: React.FC<JournalAiRewriteProps> = ({ entry, open:
           Mejorar entrada
         </Button>
       )}
-      <DialogContent className="w-full sm:max-w-5xl max-h-[90vh] overflow-auto">
-        <DialogHeader>
-          <DialogTitle>Reescribir Diario</DialogTitle>
+      <DialogContent className="w-[95vw] h-[90vh] max-w-none max-h-none overflow-hidden flex flex-col sm:w-[90vw] sm:h-[85vh]">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="text-xl">Reescribir Diario con IA</DialogTitle>
           <DialogDescription>
-            Gemini transformará tu texto en un estilo más natural.
+            Gemini transformará tu texto en un estilo más natural. Usa el panel izquierdo para editar el prompt y visualiza el resultado en el panel derecho.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
-          <Textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="max-h-[500px] overflow-y-auto"
-          />
-          <p className="text-xs text-right">
-            Tokens: {tokenCount}{' '}
-            {tokenCount > 3500 && (
-              <span className="text-red-500">¡Prompt demasiado largo!</span>
-            )}
-          </p>
-          <Button onClick={getRewrite} disabled={loading || !apiKey} className="w-full flex items-center justify-center gap-2">
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {loading ? 'Consultando...' : 'Generar versión mejorada'}
-          </Button>
-          {loading && <AiLoadingBar className="mt-2" />}
-          {rewrite && (
-            <div className="space-y-2">
-              <div className="flex justify-end">
-                <Button type="button" size="icon" variant="ghost" onClick={() => {
-                  navigator.clipboard.writeText(rewrite);
-                  toast.success('Texto copiado');
-                }}>
-                  <Copy className="w-4 h-4" />
-                </Button>
+        
+        {/* Layout de dos columnas - responsivo */}
+        <div className="flex-1 flex flex-col sm:flex-row gap-4 min-h-0 overflow-hidden">
+          {/* Columna izquierda - Prompt */}
+          <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col mb-3">
+              <h3 className="text-sm font-medium text-gray-700 mb-2 flex-shrink-0">Prompt para IA</h3>
+              <Textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className="flex-1 resize-none min-h-0"
+                placeholder="Escribe o modifica el prompt para la IA..."
+              />
+            </div>
+            
+            <div className="flex flex-col gap-3 flex-shrink-0">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-500">
+                  Tokens: {tokenCount}
+                </span>
+                {tokenCount > 3500 && (
+                  <span className="text-red-500 font-medium">¡Prompt demasiado largo!</span>
+                )}
               </div>
-              <Textarea readOnly value={rewrite} className="max-h-[300px]" />
-              {onInsert && (
-                <Button type="button" className="w-full" onClick={() => onInsert(rewrite)}>
-                  Insertar en entrada
+              
+              <Button 
+                onClick={getRewrite} 
+                disabled={loading || !apiKey || tokenCount > 3500} 
+                className="w-full flex items-center justify-center gap-2"
+                size="lg"
+              >
+                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                <Bot className="w-4 h-4" />
+                {loading ? 'Consultando IA...' : 'Generar versión mejorada'}
+              </Button>
+              
+              {loading && <AiLoadingBar className="mt-2" />}
+            </div>
+          </div>
+          
+          {/* Columna derecha - Resultado */}
+          <div className="flex-1 flex flex-col min-w-0 sm:border-l sm:border-gray-200 sm:pl-4 border-t sm:border-t-0 border-gray-200 pt-4 sm:pt-0">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-medium text-gray-700">Resultado</h3>
+              {rewrite && (
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => {
+                    navigator.clipboard.writeText(rewrite);
+                    toast.success('Texto copiado al portapapeles');
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Copy className="w-4 h-4" />
+                  Copiar
                 </Button>
               )}
             </div>
-          )}
+            
+            <div className="flex-1 flex flex-col min-h-0">
+              <Textarea 
+                readOnly 
+                value={rewrite || (loading ? 'Generando respuesta...' : 'El resultado aparecerá aquí después de generar')} 
+                className="flex-1 resize-none bg-gray-50 border-gray-200 min-h-0"
+                placeholder="El resultado aparecerá aquí..."
+              />
+              
+              {/* Botones de acción */}
+              {rewrite && (onInsert || onReplace) && (
+                <div className="mt-3 flex flex-col sm:flex-row gap-2 flex-shrink-0">
+                  {onInsert && (
+                    <Button 
+                      type="button" 
+                      className="flex-1" 
+                      onClick={() => {
+                        onInsert(rewrite);
+                        toast.success('Texto insertado');
+                      }}
+                      variant="default"
+                    >
+                      📝 Insertar en entrada
+                    </Button>
+                  )}
+                  {onReplace && (
+                    <Button 
+                      type="button" 
+                      className="flex-1" 
+                      onClick={() => {
+                        onReplace(rewrite);
+                        toast.success('Texto reemplazado');
+                      }}
+                      variant="secondary"
+                    >
+                      🔄 Reemplazar entrada
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Footer con información adicional */}
+        <div className="flex-shrink-0 mt-4 pt-3 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-gray-500">
+            <span>💡 Tip: Puedes editar el prompt para obtener diferentes estilos de reescritura</span>
+            {!apiKey && (
+              <span className="text-red-500 font-medium">⚠️ API Key no configurada</span>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

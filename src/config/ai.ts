@@ -163,7 +163,11 @@ export const aiConfig: Record<string, AiModuleConfig> = {
       '- Va al grano rápido\n\n' +
       '### **{ESTILO}**\n' +
       'El estilo de escritura debe parecer hablado, como si lo estuviera contando en voz alta. Uso palabras comunes, no me complico con adornos o tecnicismos. Prefiero frases naturales, incluso si son largas, pero que fluyan como un pensamiento. No me gusta sonar falso ni muy estructurado. A veces repito conectores como "pues", "entonces" o "como que" y palabras como "básicamente" porque así hablo yo. Cuando explico algo, voy directo al punto, pero sin sonar cortante. Si escribo sobre algo emocional, no filtro mucho: lo digo tal cual lo sentí. Quiero que suene auténtico, claro y sin vueltas raras.'
-      + '{MENSAJE-ORIGINAL}\n',
+      + '\n\n### {PALABRAS QUE NO USO}\n' +
+      'A continuación, te doy algunas palabras que no uso. Te encuentro como escribiría un colombiano para que no vayas a usar términos españoles o mexicanos, por ejemplo: bronca, chamba, chido, buena onda,'
+      + '\n### {PALABRAS QUE SI USO}\n' +
+      'Sin exagerar su uso digo palabras como: ratito, pues, entonces, como que, básicamente, osea, creo, obviamente, etc. No me gusta sonar muy formal o técnico, prefiero un tono más relajado y cercano.Pero si las repito excesivamente puedes cambiarlo para que el texto no quede lleno de muletillas\n\n'
+      + '\n{MENSAJE-ORIGINAL}\n\n',
   },
   meal: {
     model: 'gemini-2.5-flash',
