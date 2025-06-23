@@ -4,7 +4,6 @@ import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import PWAStatus from '../components/PWAStatus';
 import MobileGestures from '../components/MobileGestures';
 import { Toaster } from '@/components/ui/sonner';
-import AppFooter from '@/components/AppFooter';
 
 const AppLayout = () => {
   return (
@@ -16,10 +15,9 @@ const AppLayout = () => {
         {/* Main content - Con margin adaptativo basado en el estado de la navegación */}
         <div className="flex-1 flex flex-col main-content-adaptive overflow-hidden">
           {/* Espaciado para header móvil */}
-          <div className="pt-16 md:pt-0 flex-1 flex flex-col overflow-hidden">
+          <div className="pt-0 flex-1 flex flex-col overflow-hidden">
             <main className="flex-1 overflow-auto scroll-container">
               <Outlet />
-              <AppFooter />
             </main>
           </div>
           {/* Espaciado para navegación móvil */}

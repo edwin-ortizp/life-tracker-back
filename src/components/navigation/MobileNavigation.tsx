@@ -56,21 +56,6 @@ const MobileNavigation = () => {
     );
   };  return (
     <div className="md:hidden">
-      {/* Mobile Header - Mejorado */}
-      <div className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-gray-200 z-30 shadow-sm">
-        <div className="flex justify-between items-center px-4 h-16 max-w-screen-sm mx-auto">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-xs">DT</span>
-            </div>
-            <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Daily Tracker
-            </h1>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Navigation Bar - Mejorado */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 z-30 shadow-lg">
         <nav className="flex justify-around items-center px-1 py-1 max-w-screen-sm mx-auto">
           {visibleMenuItems.map((item) => (
