@@ -2,15 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { addDays, isBefore } from 'date-fns';
 import { ShoppingItem, ItemStatus } from '../types';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { formatCategory } from '../utils/categories';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
@@ -23,10 +14,9 @@ import {
   ShoppingCart,
   AlertTriangle,
   Check,
-  Eye,
-  Filter
+  Eye
 } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import ShoppingFilters from './ShoppingFilters';
 import { useResponsive } from '@/hooks/useResponsive';
 
 interface KanbanViewProps {
@@ -112,101 +102,28 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
   return (
     <TooltipProvider>
       <div className="space-y-4">
-        {/* Barra de filtros compacta */}
         <div className="bg-white p-4 rounded-lg border shadow-sm">
-          <Collapsible open={!isMobile || filtersOpen} onOpenChange={setFiltersOpen}>
-            <div className="flex gap-2 items-start lg:flex-row flex-col">
-              <Input
-                placeholder="Buscar productos..."
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                className="flex-1 lg:w-64"
-              />
-              {isMobile && (
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Filter className="w-4 h-4" />
-                  </Button>
-                </CollapsibleTrigger>
-              )}
-            </div>
-            <CollapsibleContent className="mt-2">
-              <div className="flex flex-wrap gap-2">
-              <Select value={sort} onValueChange={v => setSort(v as 'az' | 'za' | 'category')}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Ordenar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="az">A-Z</SelectItem>
-                  <SelectItem value="za">Z-A</SelectItem>
-                  <SelectItem value="category">Categoría</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={placeFilter || 'all'}
-                onValueChange={v => setPlaceFilter(v === 'all' ? '' : v)}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Lugar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {places.map(p => (
-                    <SelectItem key={p} value={p}>
-                      {p}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={statusFilter || 'all'}
-                onValueChange={v => setStatusFilter(v === 'all' ? '' : (v as ItemStatus))}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="to-buy">Por Comprar</SelectItem>
-                  <SelectItem value="in-stock">En Stock</SelectItem>
-                  <SelectItem value="low-stock">Poco Stock</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={categoryFilter || 'all'}
-                onValueChange={v => setCategoryFilter(v === 'all' ? '' : v)}
-              >
-                <SelectTrigger className="w-36">
-                  <SelectValue placeholder="Categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  {categories.map(c => (
-                    <SelectItem key={c} value={c}>
-                      {formatCategory(c)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              </div>
-
-              <div className="flex flex-wrap gap-3 items-center text-sm mt-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <Checkbox checked={onlyToBuy} onCheckedChange={v => setOnlyToBuy(Boolean(v))} />
-                <ShoppingCart className="w-4 h-4" />
-                Lista activa
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <Checkbox checked={expireSoonOnly} onCheckedChange={v => setExpireSoonOnly(Boolean(v))} />
-                <AlertTriangle className="w-4 h-4" />
-                Por vencer
-              </label>
-            </div>
-            </CollapsibleContent>
-          </Collapsible>
+          <ShoppingFilters
+            query={query}
+            onQueryChange={setQuery}
+            sort={sort}
+            onSortChange={setSort}
+            placeFilter={placeFilter}
+            onPlaceFilterChange={setPlaceFilter}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            categoryFilter={categoryFilter}
+            onCategoryFilterChange={setCategoryFilter}
+            onlyToBuy={onlyToBuy}
+            onOnlyToBuyChange={setOnlyToBuy}
+            expireSoonOnly={expireSoonOnly}
+            onExpireSoonOnlyChange={setExpireSoonOnly}
+            places={places}
+            categories={categories}
+            filtersOpen={filtersOpen}
+            setFiltersOpen={setFiltersOpen}
+            isMobile={isMobile}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">

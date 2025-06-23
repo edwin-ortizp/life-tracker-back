@@ -64,28 +64,26 @@ export const ShoppingList: React.FC = () => {
         </DropdownMenu>
       </MealHeader>
       
-      <div className="flex-1 overflow-hidden">
-        <div className="p-4 space-y-4 h-full overflow-y-auto">
-          {items.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p className="text-lg">No hay elementos en tu lista</p>
-              <p className="text-sm">Haz clic en "Agregar" para comenzar</p>
-            </div>
-          ) : view === 'kanban' ? (
-            <KanbanView
-              items={items}
-              onMove={moveItem}
-              onView={setEditingItem}
-            />
-          ) : (
-            <ListView
-              items={items}
-              onEdit={setEditingItem}
-              onDelete={deleteItem}
-              onUpdate={updateItem}
-            />
-          )}
-        </div>
+      <div className="flex-1 overflow-auto p-4 space-y-4">
+        {items.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p className="text-lg">No hay elementos en tu lista</p>
+            <p className="text-sm">Haz clic en "Agregar" para comenzar</p>
+          </div>
+        ) : view === 'kanban' ? (
+          <KanbanView
+            items={items}
+            onMove={moveItem}
+            onView={setEditingItem}
+          />
+        ) : (
+          <ListView
+            items={items}
+            onEdit={setEditingItem}
+            onDelete={deleteItem}
+            onUpdate={updateItem}
+          />
+        )}
       </div>
       
       <ItemModal

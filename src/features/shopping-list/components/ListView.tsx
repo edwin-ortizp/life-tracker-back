@@ -1,20 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Filter } from 'lucide-react';
 import { addDays, isBefore } from 'date-fns';
 import { ShoppingItem, ItemStatus } from '../types';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, ShoppingCart, ChevronUp, ChevronDown } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Edit, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { formatCategory } from '../utils/categories';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import ShoppingFilters from './ShoppingFilters';
 import { useResponsive } from '@/hooks/useResponsive';
 
 interface ListViewProps {
@@ -107,104 +97,29 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
 
   return (
     <div className="space-y-4">
-      <Collapsible open={!isMobile || filtersOpen} onOpenChange={setFiltersOpen}>
-        <div className="flex gap-2 items-start">
-          <Input
-            placeholder="Buscar"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            className="flex-1 sm:w-60"
-          />
-          {isMobile && (
-            <CollapsibleTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Filter className="w-4 h-4" />
-              </Button>
-            </CollapsibleTrigger>
-          )}
-        </div>
-        <CollapsibleContent className="mt-2">
-          <div className="flex flex-wrap gap-2 items-center">
-            <Select value={sort} onValueChange={v => setSort(v as 'az' | 'za' | 'category')}>
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Ordenar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="az">Nombre A-Z</SelectItem>
-                <SelectItem value="za">Nombre Z-A</SelectItem>
-                <SelectItem value="category">Categoría</SelectItem>
-              </SelectContent>
-            </Select>
-
-          <Select
-            value={placeFilter || 'all'}
-            onValueChange={v => setPlaceFilter(v === 'all' ? '' : v)}
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="Lugar" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los lugares</SelectItem>
-              {places.map(p => (
-                <SelectItem key={p} value={p}>
-                  {p}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={statusFilter || 'all'}
-            onValueChange={v =>
-              setStatusFilter(v === 'all' ? '' : (v as ItemStatus))
-            }
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="to-buy">Por Comprar</SelectItem>
-              <SelectItem value="in-stock">En Stock</SelectItem>
-              <SelectItem value="low-stock">Poco Stock</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={categoryFilter || 'all'}
-            onValueChange={v => setCategoryFilter(v === 'all' ? '' : v)}
-          >
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="Categoría" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              <SelectItem value="__empty">Sin categoría</SelectItem>
-              {categories.map(c => (
-                <SelectItem key={c} value={c}>
-                  {formatCategory(c)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <label className="flex items-center gap-2 text-sm">
-            <Checkbox checked={noPriceOnly} onCheckedChange={v => setNoPriceOnly(Boolean(v))} />
-            Sin precio
-          </label>
-
-          <label className="flex items-center gap-2 text-sm">
-            <Checkbox checked={onlyToBuy} onCheckedChange={v => setOnlyToBuy(Boolean(v))} />
-            <ShoppingCart className="w-4 h-4" />
-            Lista activa
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <Checkbox checked={expireSoonOnly} onCheckedChange={v => setExpireSoonOnly(Boolean(v))} />
-            Próximos a vencer
-          </label>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+      <ShoppingFilters
+        query={query}
+        onQueryChange={setQuery}
+        sort={sort}
+        onSortChange={setSort}
+        placeFilter={placeFilter}
+        onPlaceFilterChange={setPlaceFilter}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        categoryFilter={categoryFilter}
+        onCategoryFilterChange={setCategoryFilter}
+        onlyToBuy={onlyToBuy}
+        onOnlyToBuyChange={setOnlyToBuy}
+        expireSoonOnly={expireSoonOnly}
+        onExpireSoonOnlyChange={setExpireSoonOnly}
+        noPriceOnly={noPriceOnly}
+        onNoPriceOnlyChange={setNoPriceOnly}
+        places={places}
+        categories={categories}
+        filtersOpen={filtersOpen}
+        setFiltersOpen={setFiltersOpen}
+        isMobile={isMobile}
+      />
 
       <div className="text-right font-medium">
         Total pendiente: {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(totalPending)}
