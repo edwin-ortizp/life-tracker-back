@@ -111,6 +111,22 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
 
     return sorted;
   }, [items, query, placeFilter, statusFilter, categoryFilter, onlyToBuy, nextOnly, expireSoonOnly, sort]);
+
+  const columnTotals = useMemo(() => {
+    const totals: Record<ItemStatus, number> = {
+      'to-buy': 0,
+      'low-stock': 0,
+      'in-stock': 0
+    };
+    filtered.forEach(item => {
+      if (item.price !== undefined) {
+        totals[item.status] += item.price * item.quantity;
+      }
+    });
+    return totals;
+  }, [filtered]);
+
+  const formatter = useMemo(() => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }), []);
   return (
     <TooltipProvider>
       <div className="space-y-4">
@@ -151,6 +167,9 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
                 {filtered.filter(it => it.status === col.key).length}
               </span>
+            </div>
+            <div className="text-sm text-gray-600 font-medium">
+              {formatter.format(columnTotals[col.key])}
             </div>
             <div className="space-y-2 h-full max-h-[calc(100vh-300px)] overflow-y-auto">
             {filtered.filter(it => it.status === col.key).map(item => {
