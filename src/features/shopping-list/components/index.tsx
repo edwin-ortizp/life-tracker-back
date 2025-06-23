@@ -30,6 +30,7 @@ export const ShoppingList: React.FC = () => {
       <MealHeader
         title="Lista de Compras"
         subtitle="Organiza tus ingredientes y productos"
+        sticky={false}
       >
         <ToggleGroup
           type="single"
@@ -75,6 +76,9 @@ export const ShoppingList: React.FC = () => {
             items={items}
             onMove={moveItem}
             onView={setEditingItem}
+            onToggleNext={item =>
+              updateItem(item.id, { nextPurchase: !item.nextPurchase })
+            }
           />
         ) : (
           <ListView

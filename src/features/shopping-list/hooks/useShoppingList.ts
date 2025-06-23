@@ -44,7 +44,7 @@ export const useShoppingList = () => {
         
         const list: ShoppingItem[] = snapshot.docs.map(docSnap => {
           const data = docSnap.data();
-          
+
           const item: ShoppingItem = {
             id: docSnap.id,
             name: data.name || '',
@@ -54,7 +54,8 @@ export const useShoppingList = () => {
             ...(data.price !== undefined && { price: data.price }),
             ...(data.category && { category: data.category }),
             ...(data.place && { place: data.place }),
-            ...(data.consumeBy && { consumeBy: data.consumeBy })
+            ...(data.consumeBy && { consumeBy: data.consumeBy }),
+            ...(data.nextPurchase && { nextPurchase: data.nextPurchase })
           };
           
           return item;
@@ -138,6 +139,9 @@ export const useShoppingList = () => {
       if (item.consumeBy && typeof item.consumeBy === 'string' && item.consumeBy.trim() !== '') {
         docData.consumeBy = item.consumeBy.trim();
       }
+      if (item.nextPurchase) {
+        docData.nextPurchase = true;
+      }
       await addDoc(collection(db, 'shopping-list'), docData);
       setStatus('idle');
     } catch (e) {
@@ -182,7 +186,11 @@ export const useShoppingList = () => {
       if (data.consumeBy !== undefined && typeof data.consumeBy === 'string' && data.consumeBy.trim() !== '') {
         updateData.consumeBy = data.consumeBy.trim();
       }
-      
+
+      if (data.nextPurchase !== undefined) {
+        updateData.nextPurchase = data.nextPurchase;
+      }
+
       await updateDoc(docRef, updateData);
       setStatus('idle');
     } catch (e) {

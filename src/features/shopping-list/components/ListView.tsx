@@ -21,6 +21,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
   const [statusFilter, setStatusFilter] = useState<ItemStatus | ''>('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [onlyToBuy, setOnlyToBuy] = useState(false);
+  const [nextOnly, setNextOnly] = useState(false);
   const [noPriceOnly, setNoPriceOnly] = useState(false);
   const [expireSoonOnly, setExpireSoonOnly] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -61,6 +62,10 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
       list = list.filter(i => i.status === 'to-buy');
     }
 
+    if (nextOnly) {
+      list = list.filter(i => i.nextPurchase);
+    }
+
     if (expireSoonOnly) {
       const limit = addDays(new Date(), 3);
       list = list.filter(i => {
@@ -84,7 +89,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
     }
 
     return sorted;
-  }, [items, query, placeFilter, statusFilter, categoryFilter, noPriceOnly, onlyToBuy, expireSoonOnly, sort]);
+  }, [items, query, placeFilter, statusFilter, categoryFilter, noPriceOnly, onlyToBuy, nextOnly, expireSoonOnly, sort]);
 
   const totalPending = useMemo(() => {
     return filtered.reduce((sum, item) => {
@@ -110,6 +115,8 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
         onCategoryFilterChange={setCategoryFilter}
         onlyToBuy={onlyToBuy}
         onOnlyToBuyChange={setOnlyToBuy}
+        nextOnly={nextOnly}
+        onNextOnlyChange={setNextOnly}
         expireSoonOnly={expireSoonOnly}
         onExpireSoonOnlyChange={setExpireSoonOnly}
         noPriceOnly={noPriceOnly}
