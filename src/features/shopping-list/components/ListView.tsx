@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Filter } from 'lucide-react';
 import { addDays, isBefore } from 'date-fns';
 import { ShoppingItem, ItemStatus } from '../types';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,8 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatCategory } from '../utils/categories';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface ListViewProps {
   items: ShoppingItem[];
@@ -30,6 +33,8 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
   const [onlyToBuy, setOnlyToBuy] = useState(false);
   const [noPriceOnly, setNoPriceOnly] = useState(false);
   const [expireSoonOnly, setExpireSoonOnly] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const { isMobile } = useResponsive();
 
   const places = useMemo(() => {
     return Array.from(new Set(items.map(i => i.place).filter(Boolean))) as string[];
@@ -102,24 +107,34 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4 items-start">
-        <Input
-          placeholder="Buscar"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          className="sm:w-60"
-        />
-        <div className="flex flex-wrap gap-2 items-center">
-          <Select value={sort} onValueChange={v => setSort(v as 'az' | 'za' | 'category')}>
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="Ordenar" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="az">Nombre A-Z</SelectItem>
-              <SelectItem value="za">Nombre Z-A</SelectItem>
-              <SelectItem value="category">Categoría</SelectItem>
-            </SelectContent>
-          </Select>
+      <Collapsible open={!isMobile || filtersOpen} onOpenChange={setFiltersOpen}>
+        <div className="flex gap-2 items-start">
+          <Input
+            placeholder="Buscar"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            className="flex-1 sm:w-60"
+          />
+          {isMobile && (
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Filter className="w-4 h-4" />
+              </Button>
+            </CollapsibleTrigger>
+          )}
+        </div>
+        <CollapsibleContent className="mt-2">
+          <div className="flex flex-wrap gap-2 items-center">
+            <Select value={sort} onValueChange={v => setSort(v as 'az' | 'za' | 'category')}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Ordenar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="az">Nombre A-Z</SelectItem>
+                <SelectItem value="za">Nombre Z-A</SelectItem>
+                <SelectItem value="category">Categoría</SelectItem>
+              </SelectContent>
+            </Select>
 
           <Select
             value={placeFilter || 'all'}
@@ -187,8 +202,9 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
             <Checkbox checked={expireSoonOnly} onCheckedChange={v => setExpireSoonOnly(Boolean(v))} />
             Próximos a vencer
           </label>
-        </div>
-      </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       <div className="text-right font-medium">
         Total pendiente: {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(totalPending)}

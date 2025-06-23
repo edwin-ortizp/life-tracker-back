@@ -23,8 +23,11 @@ import {
   ShoppingCart,
   AlertTriangle,
   Check,
-  Eye
+  Eye,
+  Filter
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface KanbanViewProps {
   items: ShoppingItem[];
@@ -52,6 +55,8 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
   const [categoryFilter, setCategoryFilter] = useState('');
   const [onlyToBuy, setOnlyToBuy] = useState(false);
   const [expireSoonOnly, setExpireSoonOnly] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const { isMobile } = useResponsive();
 
   const places = useMemo(() => {
     return Array.from(new Set(items.map(i => i.place).filter(Boolean))) as string[];
@@ -109,15 +114,24 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
       <div className="space-y-4">
         {/* Barra de filtros compacta */}
         <div className="bg-white p-4 rounded-lg border shadow-sm">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <Input
-              placeholder="Buscar productos..."
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              className="lg:w-64"
-            />
-            
-            <div className="flex flex-wrap gap-2">
+          <Collapsible open={!isMobile || filtersOpen} onOpenChange={setFiltersOpen}>
+            <div className="flex gap-2 items-start lg:flex-row flex-col">
+              <Input
+                placeholder="Buscar productos..."
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                className="flex-1 lg:w-64"
+              />
+              {isMobile && (
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Filter className="w-4 h-4" />
+                  </Button>
+                </CollapsibleTrigger>
+              )}
+            </div>
+            <CollapsibleContent className="mt-2">
+              <div className="flex flex-wrap gap-2">
               <Select value={sort} onValueChange={v => setSort(v as 'az' | 'za' | 'category')}>
                 <SelectTrigger className="w-32">
                   <SelectValue placeholder="Ordenar" />
@@ -177,9 +191,9 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            
-            <div className="flex flex-wrap gap-3 items-center text-sm">
+              </div>
+
+              <div className="flex flex-wrap gap-3 items-center text-sm mt-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={onlyToBuy} onCheckedChange={v => setOnlyToBuy(Boolean(v))} />
                 <ShoppingCart className="w-4 h-4" />
@@ -191,7 +205,8 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
                 Por vencer
               </label>
             </div>
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
