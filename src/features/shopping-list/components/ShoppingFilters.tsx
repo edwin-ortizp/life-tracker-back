@@ -27,6 +27,8 @@ interface ShoppingFiltersProps {
   onCategoryFilterChange: (v: string) => void;
   onlyToBuy: boolean;
   onOnlyToBuyChange: (v: boolean) => void;
+  nextOnly: boolean;
+  onNextOnlyChange: (v: boolean) => void;
   expireSoonOnly: boolean;
   onExpireSoonOnlyChange: (v: boolean) => void;
   noPriceOnly?: boolean;
@@ -51,6 +53,8 @@ export const ShoppingFilters: React.FC<ShoppingFiltersProps> = ({
   onCategoryFilterChange,
   onlyToBuy,
   onOnlyToBuyChange,
+  nextOnly,
+  onNextOnlyChange,
   expireSoonOnly,
   onExpireSoonOnlyChange,
   noPriceOnly = false,
@@ -152,6 +156,10 @@ export const ShoppingFilters: React.FC<ShoppingFiltersProps> = ({
             <Checkbox checked={onlyToBuy} onCheckedChange={v => onOnlyToBuyChange(Boolean(v))} />
             <ShoppingCart className="w-4 h-4" />
             Lista activa
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox checked={nextOnly} onCheckedChange={v => onNextOnlyChange(Boolean(v))} />
+            Próxima compra
           </label>
           <label className="flex items-center gap-2 text-sm">
             <Checkbox checked={expireSoonOnly} onCheckedChange={v => onExpireSoonOnlyChange(Boolean(v))} />

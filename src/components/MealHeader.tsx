@@ -48,17 +48,24 @@ interface MealHeaderProps {
   title: string;
   subtitle?: string;
   children?: React.ReactNode;
+  sticky?: boolean;
 }
 
-export const MealHeader: React.FC<MealHeaderProps> = ({ 
-  title, 
+export const MealHeader: React.FC<MealHeaderProps> = ({
+  title,
   subtitle = 'Gestiona tu alimentación',
-  children 
+  children,
+  sticky = true
 }) => {
   const location = useLocation();
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b border-blue-100 sticky top-0 z-10 shadow-sm">
+    <div
+      className={cn(
+        'bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b border-blue-100',
+        sticky && 'sticky top-0 z-10 shadow-sm'
+      )}
+    >
       <div className="p-4 sm:p-6">
         {/* Título principal */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

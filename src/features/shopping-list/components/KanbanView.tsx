@@ -14,7 +14,8 @@ import {
   ShoppingCart,
   AlertTriangle,
   Check,
-  Eye
+  Eye,
+  Star
 } from 'lucide-react';
 import ShoppingFilters from './ShoppingFilters';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -23,6 +24,7 @@ interface KanbanViewProps {
   items: ShoppingItem[];
   onMove: (id: string, status: ItemStatus) => void;
   onView: (item: ShoppingItem) => void;
+  onToggleNext: (item: ShoppingItem) => void;
 }
 
 const columns: { key: ItemStatus; title: string }[] = [
@@ -37,7 +39,12 @@ const statusIcons: Record<ItemStatus, React.ElementType> = {
   'in-stock': Check
 };
 
-export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView }) => {
+export const KanbanView: React.FC<KanbanViewProps> = ({
+  items,
+  onMove,
+  onView,
+  onToggleNext
+}) => {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'az' | 'za' | 'category'>('az');
   const [placeFilter, setPlaceFilter] = useState('');
@@ -45,6 +52,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
   const [categoryFilter, setCategoryFilter] = useState('');
   const [onlyToBuy, setOnlyToBuy] = useState(false);
   const [expireSoonOnly, setExpireSoonOnly] = useState(false);
+  const [nextOnly, setNextOnly] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const { isMobile } = useResponsive();
 
@@ -75,6 +83,10 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
       list = list.filter(i => i.status === 'to-buy');
     }
 
+    if (nextOnly) {
+      list = list.filter(i => i.nextPurchase);
+    }
+
     if (expireSoonOnly) {
       const limit = addDays(new Date(), 3);
       list = list.filter(i => {
@@ -98,7 +110,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
     }
 
     return sorted;
-  }, [items, query, placeFilter, statusFilter, categoryFilter, onlyToBuy, expireSoonOnly, sort]);
+  }, [items, query, placeFilter, statusFilter, categoryFilter, onlyToBuy, nextOnly, expireSoonOnly, sort]);
   return (
     <TooltipProvider>
       <div className="space-y-4">
@@ -116,6 +128,8 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
             onCategoryFilterChange={setCategoryFilter}
             onlyToBuy={onlyToBuy}
             onOnlyToBuyChange={setOnlyToBuy}
+            nextOnly={nextOnly}
+            onNextOnlyChange={setNextOnly}
             expireSoonOnly={expireSoonOnly}
             onExpireSoonOnlyChange={setExpireSoonOnly}
             places={places}
@@ -219,6 +233,33 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ items, onMove, onView })
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>Ver detalles</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={`h-8 w-8 p-0 ${
+                              item.nextPurchase
+                                ? 'text-yellow-600 hover:bg-yellow-50'
+                                : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                            onClick={e => {
+                              e.stopPropagation();
+                              onToggleNext(item);
+                            }}
+                          >
+                            <Star
+                              className="w-4 h-4"
+                              {...(item.nextPurchase && { fill: 'currentColor' })}
+                            />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {item.nextPurchase
+                            ? 'Quitar de próxima compra'
+                            : 'Marcar próxima compra'}
+                        </TooltipContent>
                       </Tooltip>
                     </div>
                   </CardFooter>
