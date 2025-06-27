@@ -19,7 +19,7 @@ import {
 } from 'recharts';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -42,15 +42,21 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
     if (!user) return;
 
     // Obtener estadísticas de tareas completadas vs pendientes
+    // Usar consulta simple para evitar problemas de índice
     const q = query(
       collection(db, 'tasks'),
       where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc'),
       limit(100)
     );
 
     const querySnapshot = await getDocs(q);
-    const tasks = querySnapshot.docs.map(doc => doc.data());
+    const tasks = querySnapshot.docs
+      .map(doc => doc.data())
+      .sort((a, b) => {
+        const aDate = a.createdAt?.toDate?.() || new Date(0);
+        const bDate = b.createdAt?.toDate?.() || new Date(0);
+        return bDate.getTime() - aDate.getTime(); // ordenar por fecha desc
+      });
     
     // Calcular estadísticas por día
     const dailyStats = tasks.reduce((acc: any, task) => {

@@ -94,16 +94,8 @@ const isTaskOverdue = (dueDate: Date | null): boolean => {
 
 // Sub-components with forwardRef support
 
-// Badge with forwardRef for tooltip usage
-const BadgeWithRef = forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<typeof Badge>
->(({ children, ...props }, ref) => {
-  // @ts-expect-error Badge component ref handling
-  return <Badge {...props} ref={ref}>{children}</Badge>;
-});
-
-BadgeWithRef.displayName = 'BadgeWithRef';
+// Badge already supports forwardRef, so we can use it directly
+const BadgeWithRef = Badge;
 
 const TaskBadges = memo<{
   task: Task;

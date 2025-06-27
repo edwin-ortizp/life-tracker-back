@@ -99,7 +99,7 @@ export const ShoppingExportWizard: React.FC<ShoppingExportWizardProps> = ({
           }
 
           // Filtrar por estado - solo incluir los estados seleccionados
-          const statusFilters = [];
+          const statusFilters: string[] = [];
           if (selectedFields.includes('in-stock')) statusFilters.push('in-stock');
           if (selectedFields.includes('low-stock')) statusFilters.push('low-stock');
           if (selectedFields.includes('to-buy')) statusFilters.push('to-buy');

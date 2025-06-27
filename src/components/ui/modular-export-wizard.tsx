@@ -41,7 +41,7 @@ export const ModularExportWizard: React.FC<ModularExportWizardProps> = ({
   onOpenChange,
   config,
   customFieldValues = {},
-  onCustomFieldChange
+  onCustomFieldChange: _onCustomFieldChange
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
@@ -55,7 +55,7 @@ export const ModularExportWizard: React.FC<ModularExportWizardProps> = ({
 
   const selectedModulesData = selectedModules
     .map(id => config.modules.find(m => m.id === id))
-    .filter(m => m);
+    .filter((m): m is ExportModule => m !== undefined);
 
   const selectedModulesWithFields = selectedModulesData
     .filter(m => m.fields && m.fields.length > 0);
@@ -110,11 +110,13 @@ export const ModularExportWizard: React.FC<ModularExportWizardProps> = ({
     
     // Procesar todos los módulos seleccionados (con y sin fields)
     selectedModulesData.forEach(module => {
-      const selectedFields = moduleFields[module.id] || [];
-      const moduleCustomValues = customFieldValues[module.id] || {};
-      const moduleData = module.dataGenerator(selectedFields, moduleCustomValues);
-      if (moduleData && Object.keys(moduleData).length > 0) {
-        Object.assign(result, moduleData);
+      if (module) {
+        const selectedFields = moduleFields[module.id] || [];
+        const moduleCustomValues = customFieldValues[module.id] || {};
+        const moduleData = module.dataGenerator(selectedFields, moduleCustomValues);
+        if (moduleData && Object.keys(moduleData).length > 0) {
+          Object.assign(result, moduleData);
+        }
       }
     });
 
@@ -312,11 +314,13 @@ export const ModularExportWizard: React.FC<ModularExportWizardProps> = ({
     // Agregar pasos de configuración de módulos (solo los que tienen fields)
     selectedModulesWithFields.forEach((module, index) => {
       const stepIndex = index + 1;
-      steps.push({
-        label: module.label,
-        isCompleted: currentStep > stepIndex,
-        isCurrent: currentStep === stepIndex
-      });
+      if (module) {
+        steps.push({
+          label: module.label,
+          isCompleted: currentStep > stepIndex,
+          isCurrent: currentStep === stepIndex
+        });
+      }
     });
 
     // Agregar paso final
@@ -364,7 +368,7 @@ export const ModularExportWizard: React.FC<ModularExportWizardProps> = ({
           <div className="px-6 pb-3">
             <div className="text-xs text-gray-500 mb-1">Módulos seleccionados:</div>
             <div className="flex flex-wrap gap-1">
-              {selectedModulesData.map(module => (
+              {selectedModulesData.map(module => module && (
                 <span 
                   key={module.id} 
                   className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
