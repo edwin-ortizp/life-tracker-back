@@ -4,7 +4,7 @@ import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList'
 import { useRecipes } from '@/features/recipe/hooks/useRecipes';
 import { usePreparedMeals } from '@/features/prepared-meals/hooks/usePreparedMeals';
 import { useMealPlan } from '../hooks/useMealPlan';
-import { Package, ShoppingCart, ChefHat, Calendar, BookOpen } from 'lucide-react';
+import { Package, ChefHat, Calendar, BookOpen } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, subDays, startOfWeek, endOfWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -77,7 +77,7 @@ export const MealExportWizard: React.FC<MealExportWizardProps> = ({
             description: 'Organizar por en stock, stock bajo, pendiente'
           }
         ],
-        dataGenerator: (selectedFields, customValues) => {
+        dataGenerator: (selectedFields, _customValues) => {
           const EXCLUDED_WORDS = ['aseo', 'otro', 'limpieza'];
           let filtered = items;
 
@@ -139,7 +139,7 @@ export const MealExportWizard: React.FC<MealExportWizardProps> = ({
         label: 'Comidas Preparadas',
         description: 'Lista de comidas ya preparadas',
         icon: <ChefHat className="w-4 h-4" />,
-        dataGenerator: (selectedFields, customValues) => {
+        dataGenerator: (_selectedFields, _customValues) => {
           return {
             comidasPreparadas: preparedMeals.map(meal => ({
               name: meal.name,
@@ -177,7 +177,7 @@ export const MealExportWizard: React.FC<MealExportWizardProps> = ({
             )
           }
         ],
-        dataGenerator: (selectedFields, customValues) => {
+        dataGenerator: (_selectedFields, customValues) => {
           const dateRange = customValues?.dateRange || 'today';
           const today = new Date();
           const todayStr = format(today, 'yyyy-MM-dd');
@@ -272,7 +272,7 @@ export const MealExportWizard: React.FC<MealExportWizardProps> = ({
             description: 'Calorías, proteínas, carbohidratos, grasas'
           }
         ],
-        dataGenerator: (selectedFields, customValues) => {
+        dataGenerator: (selectedFields, _customValues) => {
           // Determinar qué recetas incluir
           const includeAll = selectedFields.includes('allRecipes');
           const recipesToExport = includeAll 

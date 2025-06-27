@@ -9,7 +9,7 @@ interface ExportIngredientsButtonProps {
 }
 
 
-export const ExportIngredientsButton: React.FC<ExportIngredientsButtonProps> = ({ items }) => {
+export const ExportIngredientsButton: React.FC<ExportIngredientsButtonProps> = ({ items: _items }) => {
   const [showExportWizard, setShowExportWizard] = useState(false);
 
   const handleExport = () => {

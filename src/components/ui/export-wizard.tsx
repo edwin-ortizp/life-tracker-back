@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Copy, Check, Package, Settings, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 export interface ExportField {

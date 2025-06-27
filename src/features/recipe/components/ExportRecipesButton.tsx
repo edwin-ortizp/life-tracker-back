@@ -8,7 +8,7 @@ interface ExportRecipesButtonProps {
   recipes: Recipe[];
 }
 
-export const ExportRecipesButton: React.FC<ExportRecipesButtonProps> = ({ recipes }) => {
+export const ExportRecipesButton: React.FC<ExportRecipesButtonProps> = ({ recipes: _recipes }) => {
   const [showExportWizard, setShowExportWizard] = useState(false);
 
   const handleExport = () => {

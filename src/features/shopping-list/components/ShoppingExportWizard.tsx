@@ -2,7 +2,7 @@ import React from 'react';
 import { ModularExportWizard, ModularExportWizardConfig } from '@/components/ui/modular-export-wizard';
 import { useShoppingList } from '../hooks/useShoppingList';
 import type { ShoppingItem } from '../types';
-import { ShoppingCart, Package, DollarSign, Calendar, MapPin, Filter } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 
 interface ShoppingExportWizardProps {
   open: boolean;
@@ -80,7 +80,7 @@ export const ShoppingExportWizard: React.FC<ShoppingExportWizardProps> = ({
             description: 'Organizar elementos por categorías'
           }
         ],
-        dataGenerator: (selectedFields, customValues) => {
+        dataGenerator: (selectedFields, _customValues) => {
           let filteredItems = [...items];
 
           // Filtrar por categorías no alimentarias

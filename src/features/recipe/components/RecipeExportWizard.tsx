@@ -2,7 +2,7 @@ import React from 'react';
 import { ModularExportWizard, ModularExportWizardConfig } from '@/components/ui/modular-export-wizard';
 import { useRecipes } from '../hooks/useRecipes';
 import type { Recipe } from '../types';
-import { BookOpen, Star, Clock, ChefHat, Info } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 
 interface RecipeExportWizardProps {
   open: boolean;
@@ -85,7 +85,7 @@ export const RecipeExportWizard: React.FC<RecipeExportWizardProps> = ({
             description: 'Si la receta está marcada como favorita'
           }
         ],
-        dataGenerator: (selectedFields, customValues) => {
+        dataGenerator: (selectedFields, _customValues) => {
           // Determinar qué recetas incluir
           const includeAll = selectedFields.includes('allRecipes');
           const recipesToExport = includeAll 

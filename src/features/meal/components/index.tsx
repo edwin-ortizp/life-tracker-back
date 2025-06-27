@@ -37,9 +37,9 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   } = useMealPlan();
   const { isOnline } = useNetworkStatus();
 
-  const { items } = useShoppingList();
-  const { recipes } = useRecipes();
-  const { meals: preparedMeals } = usePreparedMeals();
+  const { items: _items } = useShoppingList();
+  const { recipes: _recipes } = useRecipes();
+  const { meals: _preparedMeals } = usePreparedMeals();
 
   if (!user) {
     return (
