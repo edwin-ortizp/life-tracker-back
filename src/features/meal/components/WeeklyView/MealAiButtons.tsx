@@ -8,12 +8,13 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { Sparkles, RefreshCw, Loader2 } from 'lucide-react';
+import { Sparkles, RefreshCw, Loader2, Check, X } from 'lucide-react';
 import { getAiConfig } from '@/config/ai';
 import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList';
 import type { MealModalState, MealFormData } from './types';
 import { MEAL_TYPES, Meal } from '../../types';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AiLoadingBar } from '@/features/task/components';
 import { countTokens } from '@/utils/tokens';
 
@@ -36,6 +37,9 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
   const [prompt, setPrompt] = useState('');
   const [preference, setPreference] = useState('');
   const [tokenCount, setTokenCount] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
+  const [generatedData, setGeneratedData] = useState<any>(null);
+  const [generationType, setGenerationType] = useState<'meal' | 'day'>('meal');
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   const basePromptMeal = mealConfig?.prompts?.meal ??
@@ -92,20 +96,27 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
     setPromptDialog(null);
     setPrompt('');
     setTokenCount(0);
+    setShowPreview(false);
+    setGeneratedData(null);
   };
 
   const confirmPrompt = async () => {
     if (promptDialog === 'meal') {
-      await regenerateMeal(prompt);
+      setGenerationType('meal');
+      await generateMealWithPreview(prompt);
     } else if (promptDialog === 'day') {
-      await regenerateDay(prompt);
+      setGenerationType('day');
+      await generateDayWithPreview(prompt);
     }
-    closeDialog();
+    // NO cerrar el diálogo aquí - mantenerlo abierto para mostrar la previsualización
   };
 
-  const regenerateMeal = async (p: string) => {
+  const generateMealWithPreview = async (p: string) => {
     if (!apiKey) return;
     setLoadingMeal(true);
+    setShowPreview(true);
+    setGeneratedData(null);
+    
     try {
       const prompt = p;
       const res = await fetch(`${API_URL}?key=${apiKey}`, {
@@ -121,20 +132,27 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         const json = JSON.parse(match[0]);
-        onFormChange('name', json.name || '');
-        onFormChange('notes', json.notes || '');
-        onFormChange('recipe', json.recipe || '');
+        setGeneratedData({
+          name: json.name || '',
+          notes: json.notes || '',
+          recipe: json.recipe || '',
+          type: selectedMeal.type
+        });
       }
     } catch (e) {
       console.error('AI meal error', e);
+      setGeneratedData(null);
     } finally {
       setLoadingMeal(false);
     }
   };
 
-  const regenerateDay = async (p: string) => {
+  const generateDayWithPreview = async (p: string) => {
     if (!apiKey) return;
     setLoadingDay(true);
+    setShowPreview(true);
+    setGeneratedData(null);
+    
     try {
       const prompt = p;
       const res = await fetch(`${API_URL}?key=${apiKey}`, {
@@ -150,24 +168,55 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         const json = JSON.parse(match[0]);
-        const meals: Record<Meal['type'], Omit<Meal, 'id'>> = {} as any;
-        (Object.keys(MEAL_TYPES) as Array<Meal['type']>).forEach(t => {
-          if (json[t]) {
-            meals[t] = {
-              type: t,
-              name: json[t].name || '',
-              notes: json[t].notes || '',
-              recipe: json[t].recipe || ''
-            };
-          }
-        });
-        await onOverwriteDay(meals);
+        setGeneratedData(json);
       }
     } catch (e) {
       console.error('AI day error', e);
+      setGeneratedData(null);
     } finally {
       setLoadingDay(false);
     }
+  };
+
+  const handleInsertMeal = () => {
+    if (!generatedData) return;
+    
+    if (generationType === 'meal') {
+      onFormChange('name', generatedData.name || '');
+      onFormChange('notes', generatedData.notes || '');
+      onFormChange('recipe', generatedData.recipe || '');
+    } else {
+      const meals: Record<Meal['type'], Omit<Meal, 'id'>> = {} as any;
+      (Object.keys(MEAL_TYPES) as Array<Meal['type']>).forEach(t => {
+        if (generatedData[t]) {
+          meals[t] = {
+            type: t,
+            name: generatedData[t].name || '',
+            notes: generatedData[t].notes || '',
+            recipe: generatedData[t].recipe || ''
+          };
+        }
+      });
+      onOverwriteDay(meals);
+    }
+    
+    // Cerrar el modal completamente después de insertar
+    closeDialog();
+  };
+
+  const handleRegenerateFromPreview = () => {
+    // Mantener el prompt actual y regenerar
+    if (generationType === 'meal') {
+      generateMealWithPreview(prompt);
+    } else {
+      generateDayWithPreview(prompt);
+    }
+  };
+
+  const handleCancelPreview = () => {
+    // Volver al estado de prompt sin cerrar el modal
+    setShowPreview(false);
+    setGeneratedData(null);
   };
 
   return (
@@ -237,67 +286,228 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
                   )}
                 </div>
                 
-                <Button 
-                  onClick={confirmPrompt} 
-                  disabled={(promptDialog === 'meal' ? loadingMeal : loadingDay) || !apiKey || tokenCount > 3500} 
-                  className="w-full flex items-center justify-center gap-2"
-                  size="lg"
-                >
-                  {(promptDialog === 'meal' ? loadingMeal : loadingDay) && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <Sparkles className="w-4 h-4" />
-                  {(promptDialog === 'meal' ? loadingMeal : loadingDay) ? 'Generando...' : 'Generar comidas'}
-                </Button>
+                {!showPreview && (
+                  <Button 
+                    onClick={confirmPrompt} 
+                    disabled={(promptDialog === 'meal' ? loadingMeal : loadingDay) || !apiKey || tokenCount > 3500} 
+                    className="w-full flex items-center justify-center gap-2"
+                    size="lg"
+                  >
+                    {(promptDialog === 'meal' ? loadingMeal : loadingDay) && <Loader2 className="w-4 h-4 animate-spin" />}
+                    <Sparkles className="w-4 h-4" />
+                    {(promptDialog === 'meal' ? loadingMeal : loadingDay) ? 'Generando...' : 'Generar comidas'}
+                  </Button>
+                )}
                 
                 {(loadingMeal || loadingDay) && <AiLoadingBar className="mt-2" />}
               </div>
             </div>
             
-            {/* Columna derecha - Resultado */}
+            {/* Columna derecha - Resultado/Previsualización */}
             <div className="flex-1 flex flex-col min-w-0 sm:border-l sm:border-gray-200 sm:pl-4 border-t sm:border-t-0 border-gray-200 pt-4 sm:pt-0">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-700">Información del proceso</h3>
+                <h3 className="text-sm font-medium text-gray-700">
+                  {showPreview ? 'Previsualización' : 'Información del proceso'}
+                </h3>
               </div>
               
               <div className="flex-1 flex flex-col min-h-0">
-                <div className="flex-1 bg-gray-50 border border-gray-200 rounded-md p-4 overflow-auto">
-                  <div className="text-sm text-gray-700 space-y-3">
-                    {promptDialog === 'meal' ? (
-                      <>
-                        <div>
-                          <strong>Tipo de comida:</strong> {MEAL_TYPES[selectedMeal.type]?.title}
+                {showPreview ? (
+                  // Mostrar previsualización o estado de carga
+                  <div className="flex-1 flex flex-col space-y-4">
+                    <div className="flex-1 overflow-auto">
+                      {(loadingMeal || loadingDay) && !generatedData ? (
+                        // Estado de carga
+                        <div className="flex flex-col items-center justify-center h-full py-12 space-y-4">
+                          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                          <div className="text-center">
+                            <h3 className="text-lg font-medium text-gray-900">
+                              Generando {generationType === 'meal' ? 'comida' : 'plan del día'}...
+                            </h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                              La IA está creando tu {generationType === 'meal' ? 'comida personalizada' : 'plan completo del día'}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <strong>Fecha:</strong> {selectedMeal.date}
+                      ) : !generatedData ? (
+                        // Error o sin datos
+                        <div className="flex flex-col items-center justify-center h-full py-12 space-y-4">
+                          <X className="w-8 h-8 text-red-500" />
+                          <div className="text-center">
+                            <h3 className="text-lg font-medium text-gray-900">Error al generar</h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                              No se pudo generar el contenido. Intenta nuevamente.
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <strong>Ingredientes disponibles:</strong> {getIngredientList() || 'Ninguno disponible'}
+                      ) : generationType === 'meal' ? (
+                        // Previsualización de comida individual
+                        <Card className="h-full">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-base flex items-center gap-2">
+                              <Sparkles className="w-4 h-4 text-blue-500" />
+                              Comida Generada
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div>
+                              <span className="text-sm font-medium text-gray-700">Nombre:</span>
+                              <p className="text-sm mt-1">{generatedData.name || 'Sin nombre'}</p>
+                            </div>
+                            
+                            {generatedData.notes && (
+                              <div>
+                                <span className="text-sm font-medium text-gray-700">Notas:</span>
+                                <p className="text-sm mt-1 text-gray-600">{generatedData.notes}</p>
+                              </div>
+                            )}
+                            
+                            {generatedData.recipe && (
+                              <div>
+                                <span className="text-sm font-medium text-gray-700">Receta:</span>
+                                <div className="text-sm mt-1 text-gray-600 bg-gray-50 p-3 rounded-md max-h-32 overflow-y-auto">
+                                  <pre className="whitespace-pre-wrap font-sans">{generatedData.recipe}</pre>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        // Previsualización de día completo
+                        <div className="space-y-3">
+                          {Object.keys(MEAL_TYPES).map(type => {
+                            const mealData = generatedData[type];
+                            if (!mealData) return null;
+                            
+                            return (
+                              <Card key={type} className="border border-gray-200">
+                                <CardHeader className="pb-2">
+                                  <CardTitle className="text-sm flex items-center gap-2">
+                                    <Sparkles className="w-3 h-3 text-blue-500" />
+                                    {MEAL_TYPES[type as keyof typeof MEAL_TYPES]?.title}
+                                  </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-2 text-sm">
+                                  <div>
+                                    <span className="font-medium">Nombre:</span>
+                                    <span className="ml-1">{mealData.name || 'Sin nombre'}</span>
+                                  </div>
+                                  {mealData.notes && (
+                                    <div>
+                                      <span className="font-medium">Notas:</span>
+                                      <span className="ml-1 text-gray-600">{mealData.notes}</span>
+                                    </div>
+                                  )}
+                                  {mealData.recipe && (
+                                    <div>
+                                      <span className="font-medium">Receta:</span>
+                                      <div className="mt-1 text-gray-600 bg-gray-50 p-2 rounded text-xs max-h-16 overflow-y-auto">
+                                        <pre className="whitespace-pre-wrap font-sans">{mealData.recipe.substring(0, 100)}...</pre>
+                                      </div>
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
                         </div>
-                        {(loadingMeal || loadingDay) ? (
-                          <div className="text-blue-600">✨ Generando comida personalizada...</div>
-                        ) : (
-                          <div className="text-gray-500">La comida se generará automáticamente y llenará los campos del formulario.</div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <div>
-                          <strong>Fecha completa:</strong> {selectedMeal.date}
-                        </div>
-                        <div>
-                          <strong>Comidas a generar:</strong> {Object.values(MEAL_TYPES).map(t => t.title).join(', ')}
-                        </div>
-                        <div>
-                          <strong>Ingredientes disponibles:</strong> {getIngredientList() || 'Ninguno disponible'}
-                        </div>
-                        {(loadingMeal || loadingDay) ? (
-                          <div className="text-blue-600">✨ Generando plan completo del día...</div>
-                        ) : (
-                          <div className="text-gray-500">Se generarán todas las comidas del día y se sobrescribirán las existentes.</div>
-                        )}
-                      </>
+                      )}
+                    </div>
+                    
+                    {/* Botones de acción para la previsualización - solo mostrar si hay datos */}
+                    {generatedData && (
+                      <div className="flex flex-col gap-2 pt-3 border-t">
+                        <Button
+                          onClick={handleInsertMeal}
+                          className="w-full gap-2"
+                          size="sm"
+                        >
+                          <Check className="w-4 h-4" />
+                          Insertar
+                        </Button>
+                        <Button
+                          onClick={handleRegenerateFromPreview}
+                          variant="secondary"
+                          className="w-full gap-2"
+                          size="sm"
+                          disabled={loadingMeal || loadingDay}
+                        >
+                          {(loadingMeal || loadingDay) ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <RefreshCw className="w-4 h-4" />
+                          )}
+                          Regenerar
+                        </Button>
+                        <Button
+                          onClick={handleCancelPreview}
+                          variant="outline"
+                          className="w-full gap-2"
+                          size="sm"
+                        >
+                          <X className="w-4 h-4" />
+                          Cancelar
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {/* Botón de cancelar durante carga o error */}
+                    {!generatedData && (
+                      <div className="flex justify-center pt-3 border-t">
+                        <Button
+                          onClick={handleCancelPreview}
+                          variant="outline"
+                          className="gap-2"
+                          size="sm"
+                        >
+                          <X className="w-4 h-4" />
+                          Cancelar
+                        </Button>
+                      </div>
                     )}
                   </div>
-                </div>
+                ) : (
+                  // Mostrar información del proceso (estado original)
+                  <div className="flex-1 bg-gray-50 border border-gray-200 rounded-md p-4 overflow-auto">
+                    <div className="text-sm text-gray-700 space-y-3">
+                      {promptDialog === 'meal' ? (
+                        <>
+                          <div>
+                            <strong>Tipo de comida:</strong> {MEAL_TYPES[selectedMeal.type]?.title}
+                          </div>
+                          <div>
+                            <strong>Fecha:</strong> {selectedMeal.date}
+                          </div>
+                          <div>
+                            <strong>Ingredientes disponibles:</strong> {getIngredientList() || 'Ninguno disponible'}
+                          </div>
+                          {(loadingMeal || loadingDay) ? (
+                            <div className="text-blue-600">✨ Generando comida personalizada...</div>
+                          ) : (
+                            <div className="text-gray-500">La comida se generará y podrás previsualizarla antes de insertarla.</div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <strong>Fecha completa:</strong> {selectedMeal.date}
+                          </div>
+                          <div>
+                            <strong>Comidas a generar:</strong> {Object.values(MEAL_TYPES).map(t => t.title).join(', ')}
+                          </div>
+                          <div>
+                            <strong>Ingredientes disponibles:</strong> {getIngredientList() || 'Ninguno disponible'}
+                          </div>
+                          {(loadingMeal || loadingDay) ? (
+                            <div className="text-blue-600">✨ Generando plan completo del día...</div>
+                          ) : (
+                            <div className="text-gray-500">Se generará el plan del día y podrás previsualizarlo antes de insertarlo.</div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

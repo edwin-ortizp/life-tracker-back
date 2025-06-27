@@ -184,28 +184,18 @@ export const aiConfig: Record<string, AiModuleConfig> = {
         '- **Edad**: 31 años\n' +
         '- **Peso actual**: 84.70 kg\n' +
         '- **IMC**: 26.7 (sobrepeso leve)\n' +
-        '- **Composición corporal crítica**:\n' +
-        '  - Grasa corporal: 26.3% (elevado)\n' +
-        '  - **Grasa visceral: 11 (ALTA - requiere intervención urgente)**\n' +
-        '  - Nivel de agua: 50.6% (insuficiente - CRÍTICO)\n' +
-        '  - Masa muscular: 59.27 kg (normal)\n' +
-        '  - Metabolismo basal: 1,733 kcal\n' +
         '- **Condición médica**: Un riñón y medio (post-cirugía infantil)\n' +
         '- **Actividad física**: Moderada, algunas veces por semana\n' +
         '- **Estilo de vida**: Trabajo sedentario desde casa\n' +
         '- **Objetivos prioritarios**:\n' +
-        '  1. **Reducir grasa visceral (nivel 11 → objetivo <6)**\n' +
-        '  2. **Mejorar hidratación (50.6% → objetivo >55%)**\n' +
-        '  3. Mantener masa muscular (59.27kg)\n' +
         '  4. Energía constante durante jornada laboral sedentaria\n' +
         '  5. Pérdida de peso gradual y sostenible\n\n' +
         '## {INSTRUCCIONES}\n' +
         'Genera una comida usando ÚNICAMENTE los ingredientes proporcionados\n' +
         '- Sea meal prep friendly cuando posible\n\n' +
-        'Devuelve solo JSON: {"name":"","notes":"","recipe":""}\n' +
         '- **name**: Incluir bebidas recomendadas\n' +
-        '- **notes**: Beneficios anti-grasa visceral, hidratación, tiempo prep, almacenamiento\n' +
-        '- **recipe**: Método saludable, tips sabor, opciones meal prep',
+        '- **notes**: Max 50 palabras; Beneficios anti-grasa visceral, hidratación, tiempo prep, almacenamiento\n' +
+        '- **recipe**: Max 50 palabras; Método saludable, tips sabor, opciones meal prep',
       day:
         '## {ROL}\n' +
         'Asume el rol de un **experto nutricionista especializado en composición corporal y chef profesional** con amplia experiencia en:\n' +

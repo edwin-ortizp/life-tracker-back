@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { MoreVertical, LayoutList, Kanban } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { exportIngredients } from './ExportIngredientsButton';
+import { ShoppingExportWizard } from './ShoppingExportWizard';
 import { useShoppingList } from '../hooks/useShoppingList';
 import { ShoppingItem } from '../types';
 import ItemModal from './ItemModal';
@@ -16,6 +16,7 @@ export const ShoppingList: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
   const [view, setView] = useState<'kanban' | 'list'>('kanban');
+  const [showExportWizard, setShowExportWizard] = useState(false);
 
   const handleSave = (data: Omit<ShoppingItem, 'id'>, id?: string) => {
     if (id) {
@@ -58,7 +59,7 @@ export const ShoppingList: React.FC = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => exportIngredients(items)}>
+            <DropdownMenuItem onClick={() => setShowExportWizard(true)}>
               Exportar ingredientes
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -99,6 +100,11 @@ export const ShoppingList: React.FC = () => {
         onSave={handleSave}
         onDelete={id => deleteItem(id)}
         item={editingItem || undefined}
+      />
+      
+      <ShoppingExportWizard
+        open={showExportWizard}
+        onOpenChange={setShowExportWizard}
       />
     </div>
   );
