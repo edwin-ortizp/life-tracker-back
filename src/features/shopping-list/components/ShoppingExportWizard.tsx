@@ -25,28 +25,28 @@ export const ShoppingExportWizard: React.FC<ShoppingExportWizardProps> = ({
         icon: <ShoppingCart className="w-4 h-4" />,
         fields: [
           {
-            id: 'includeInStock',
-            label: 'Incluir elementos en stock',
+            id: 'in-stock',
+            label: 'En stock',
             description: 'Elementos que ya tienes disponibles'
           },
           {
-            id: 'includeLowStock',
-            label: 'Incluir elementos con stock bajo',
+            id: 'low-stock',
+            label: 'Stock bajo',
             description: 'Elementos que necesitas reponer pronto'
           },
           {
-            id: 'includeToBuy',
-            label: 'Incluir elementos pendientes de compra',
+            id: 'to-buy',
+            label: 'Pendientes de compra',
             description: 'Elementos que planeas comprar'
           },
           {
             id: 'nextPurchase',
-            label: 'Solo elementos de próxima compra',
+            label: 'Solo próximas compras',
             description: 'Filtrar solo elementos marcados para próxima compra'
           },
           {
             id: 'excludeCategories',
-            label: 'Excluir categorías no alimentarias',
+            label: 'Excluir no comestibles',
             description: 'Filtrar elementos de aseo y otros no comestibles'
           },
           {
@@ -98,12 +98,13 @@ export const ShoppingExportWizard: React.FC<ShoppingExportWizardProps> = ({
             filteredItems = filteredItems.filter(item => item.nextPurchase === true);
           }
 
-          // Filtrar por estado (si se especifica alguno)
+          // Filtrar por estado - solo incluir los estados seleccionados
           const statusFilters = [];
-          if (selectedFields.includes('includeInStock')) statusFilters.push('in-stock');
-          if (selectedFields.includes('includeLowStock')) statusFilters.push('low-stock');
-          if (selectedFields.includes('includeToBuy')) statusFilters.push('to-buy');
+          if (selectedFields.includes('in-stock')) statusFilters.push('in-stock');
+          if (selectedFields.includes('low-stock')) statusFilters.push('low-stock');
+          if (selectedFields.includes('to-buy')) statusFilters.push('to-buy');
 
+          // Si se seleccionó al menos un estado, filtrar por esos estados
           if (statusFilters.length > 0) {
             filteredItems = filteredItems.filter(item => statusFilters.includes(item.status));
           }

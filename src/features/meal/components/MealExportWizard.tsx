@@ -47,24 +47,19 @@ export const MealExportWizard: React.FC<MealExportWizardProps> = ({
         icon: <Package className="w-4 h-4" />,
         fields: [
           {
-            id: 'includeInStock',
-            label: 'Incluir elementos en stock',
+            id: 'in-stock',
+            label: 'En stock',
             description: 'Elementos que ya tienes disponibles'
           },
           {
-            id: 'includeLowStock',
-            label: 'Incluir elementos con stock bajo',
+            id: 'low-stock',
+            label: 'Stock bajo',
             description: 'Elementos que necesitas reponer pronto'
           },
           {
-            id: 'includeToBuy',
-            label: 'Incluir elementos pendientes',
+            id: 'to-buy',
+            label: 'Pendientes de compra',
             description: 'Elementos que planeas comprar'
-          },
-          {
-            id: 'excludeOutOfStock',
-            label: 'Excluir productos sin stock',
-            description: 'Filtrar elementos completamente agotados'
           },
           {
             id: 'excludeNonFood',
@@ -95,19 +90,15 @@ export const MealExportWizard: React.FC<MealExportWizardProps> = ({
             });
           }
 
-          // Filtrar por estado (si se especifica alguno)
+          // Filtrar por estado - solo incluir los estados seleccionados
           const statusFilters = [];
-          if (selectedFields.includes('includeInStock')) statusFilters.push('in-stock');
-          if (selectedFields.includes('includeLowStock')) statusFilters.push('low-stock');
-          if (selectedFields.includes('includeToBuy')) statusFilters.push('to-buy');
+          if (selectedFields.includes('in-stock')) statusFilters.push('in-stock');
+          if (selectedFields.includes('low-stock')) statusFilters.push('low-stock');
+          if (selectedFields.includes('to-buy')) statusFilters.push('to-buy');
 
+          // Si se seleccionó al menos un estado, filtrar por esos estados
           if (statusFilters.length > 0) {
             filtered = filtered.filter(item => statusFilters.includes(item.status));
-          }
-
-          // Excluir productos sin stock (este filtro funciona independientemente)
-          if (selectedFields.includes('excludeOutOfStock')) {
-            filtered = filtered.filter(item => item.quantity > 0);
           }
 
           const includeQuantities = selectedFields.includes('withQuantities');
