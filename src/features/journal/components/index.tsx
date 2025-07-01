@@ -104,6 +104,10 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
                   setSharedEntry(prev => prev + (prev ? '\n' : '') + text);
                   setEntry(prev => prev + (prev ? '\n' : '') + text);
                 }}
+                onReplace={(text) => {
+                  setSharedEntry(text);
+                  setEntry(text);
+                }}
               />
               <Button
                 variant="outline"

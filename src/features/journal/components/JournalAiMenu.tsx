@@ -9,9 +9,10 @@ interface JournalAiMenuProps {
   entry: string;
   selectedDate: Date;
   onInsert?: (text: string) => void;
+  onReplace?: (text: string) => void;
 }
 
-export const JournalAiMenu: React.FC<JournalAiMenuProps> = ({ entry, selectedDate, onInsert }) => {
+export const JournalAiMenu: React.FC<JournalAiMenuProps> = ({ entry, selectedDate, onInsert, onReplace }) => {
   const [openRewrite, setOpenRewrite] = useState(false);
   const [openFeedback, setOpenFeedback] = useState(false);
 
@@ -33,7 +34,7 @@ export const JournalAiMenu: React.FC<JournalAiMenuProps> = ({ entry, selectedDat
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <JournalAiRewrite entry={entry} open={openRewrite} onOpenChange={setOpenRewrite} onInsert={onInsert} />
+      <JournalAiRewrite entry={entry} open={openRewrite} onOpenChange={setOpenRewrite} onInsert={onInsert} onReplace={onReplace} />
       <JournalAiFeedback entry={entry} selectedDate={selectedDate} open={openFeedback} onOpenChange={setOpenFeedback} />
     </>
   );
