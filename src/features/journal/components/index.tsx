@@ -1,15 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { JournalHeader } from './JournalHeader';
 import { JournalInput } from './JournalInput';
 import { PasswordProtection } from './PasswordProtection';
 import { PrivateTaskSection } from '@/features/task/components/PrivateTaskSection';
-import ExportRangeButton from './ExportRangeButton';
+import { SimpleJournalExportWizard } from './SimpleJournalExportWizard';
 import JournalAiMenu from './JournalAiMenu';
 import { LastUpdatedInfo } from './LastUpdatedInfo';
 import { Button } from '@/components/ui/button';
-import { Save } from 'lucide-react';
+import { Save, Download } from 'lucide-react';
 import { useJournalData } from '../hooks/useJournalData';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useJournalEntry } from '../context/JournalEntryContext';
@@ -19,6 +19,7 @@ import type { JournalProps } from '../types';
 export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
   const { user } = useAuth();
   const { isUnlocked, setUnlocked } = useJournalLock();
+  const [isExportWizardOpen, setIsExportWizardOpen] = useState(false);
   const {
     entry,
     setEntry,
@@ -104,7 +105,13 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
                   setEntry(prev => prev + (prev ? '\n' : '') + text);
                 }}
               />
-              <ExportRangeButton />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsExportWizardOpen(true)}
+              >
+                <Download className="w-4 h-4" />
+              </Button>
             </div>
           </div>
           <div className="flex justify-center items-center gap-2 text-xs">
@@ -126,6 +133,10 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
         </CardFooter>
       </Card>
       <PrivateTaskSection selectedDate={selectedDate} />
+      <SimpleJournalExportWizard
+        open={isExportWizardOpen}
+        onOpenChange={setIsExportWizardOpen}
+      />
     </>
   );
 };
