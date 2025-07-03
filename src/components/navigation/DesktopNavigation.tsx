@@ -128,18 +128,7 @@ const DesktopNavigation = () => {
     <aside className={`hidden md:flex flex-col h-screen fixed top-0 left-0 transition-all duration-300 glass-card z-50 border-r-0
       ${isExpanded ? 'w-64' : 'w-16'}`}>
       <div className="flex flex-col items-center space-y-3 p-4">
-        {isExpanded ? (
-          <div className="text-center">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Daily Tracker
-            </h1>
-            <p className="text-xs text-muted-foreground mt-1">Organiza tu vida</p>
-          </div>
-        ) : (
-          <div className="w-10 h-10 gradient-bg-primary rounded-xl flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-sm">DT</span>
-          </div>
-        )}        <Button
+        <Button
           variant="ghost"
           size="icon"
           title="Expand/Collapse Menu"
