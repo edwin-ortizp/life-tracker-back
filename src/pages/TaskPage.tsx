@@ -1,9 +1,15 @@
 // src/pages/TaskPage.tsx
 import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Task, TaskWeekView, TaskKanbanView } from '@/features/task/components';
-import PageLayout from '@/components/PageLayout';
+import RecurrenceModal from '@/features/task/components/RecurrenceModal';
+import { CompactTaskHeader } from '@/components/navigation/CompactTaskHeader';
+import { Plus, Upload, Download, Brain } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import {
   LineChart,
   Line,
@@ -18,19 +24,38 @@ import {
   Cell
 } from 'recharts';
 import { useAuth } from '@/hooks/useAuth';
+import { useTaskData } from '@/features/task/hooks/useTaskData';
 import { db } from '@/firebase';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 interface TaskPageProps {
-  defaultTab?: 'list' | 'kanban' | 'analytics' | 'week' | 'settings';
+  defaultTab?: 'list' | 'kanban' | 'analytics' | 'week';
 }
 
 const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
   const [taskStats, setTaskStats] = useState<any[]>([]);
   const [completionStats, setCompletionStats] = useState<any[]>([]);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importJson, setImportJson] = useState('');
+  const [currentTab, setCurrentTab] = useState<'list' | 'kanban' | 'analytics' | 'week'>(defaultTab);
+  
+  const handleTabChange = (tab: string) => {
+    setCurrentTab(tab as 'list' | 'kanban' | 'analytics' | 'week');
+  };
   const { user } = useAuth();
+  const taskData = useTaskData();
+  const {
+    showRecurrenceModal,
+    currentTask,
+    modalMode,
+    addTask,
+    editTask,
+    completeRecurrentTask,
+    setShowRecurrenceModal,
+    openCreateModal
+  } = taskData;
 
   useEffect(() => {
     if (user) {
@@ -82,29 +107,139 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
 
   if (!user) {
     return (
-      <PageLayout>
-        <div className="text-center py-8">
-          <h2 className="text-xl font-semibold">Inicia sesión para ver tus tareas</h2>
+      <div className="min-h-screen">
+        <CompactTaskHeader 
+          title="Tareas"
+          actions={[]}
+          currentTab={currentTab}
+          onTabChange={handleTabChange}
+        />
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="text-center py-8">
+            <h2 className="text-xl font-semibold">Inicia sesión para ver tus tareas</h2>
+          </div>
         </div>
-      </PageLayout>
+      </div>
     );
   }
 
-  return (
-    <PageLayout>
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Gestor de Tareas</h1>
-        <p className="text-gray-500">Organiza y gestiona tus tareas pendientes y completadas</p>
-      </div>
+  // Task actions for header
+  const handleNewTask = () => {
+    openCreateModal();
+  };
 
-      <Tabs defaultValue={defaultTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="list">Lista de Tareas</TabsTrigger>
-          <TabsTrigger value="kanban">Kanban</TabsTrigger>
-          <TabsTrigger value="analytics">Análisis</TabsTrigger>
-          <TabsTrigger value="week">Calendario</TabsTrigger>
-          <TabsTrigger value="settings">Configuración</TabsTrigger>
-        </TabsList>
+  const handleImportTasks = () => {
+    setShowImportDialog(true);
+  };
+
+  const handleImportTasksConfirm = () => {
+    try {
+      const tasksToImport = JSON.parse(importJson);
+      
+      if (!Array.isArray(tasksToImport)) {
+        toast.error('El JSON debe contener un array de tareas');
+        return;
+      }
+
+      let importedCount = 0;
+      let invalidDatesCount = 0;
+      
+      tasksToImport.forEach((taskData: any) => {
+        if (taskData.title) {
+          let dueDate = undefined;
+          
+          // Manejo mejorado de fechas
+          if (taskData.dueDate) {
+            const parsedDate = new Date(taskData.dueDate);
+            if (!isNaN(parsedDate.getTime())) {
+              dueDate = parsedDate;
+            } else {
+              invalidDatesCount++;
+              console.warn(`Fecha inválida para tarea "${taskData.title}": ${taskData.dueDate}`);
+            }
+          }
+          
+          // Note: This would need to be connected to the Task component's addTask function
+          console.log('Would import task:', {
+            title: taskData.title,
+            description: taskData.description || '',
+            dueDate: dueDate,
+            category: taskData.category || 'personal',
+            priority: taskData.priority || undefined,
+            isPrivate: false,
+            isRecurrent: taskData.isRecurrent || false,
+            size: taskData.size || undefined
+          });
+          importedCount++;
+        }
+      });
+
+      if (invalidDatesCount > 0) {
+        toast.warning(`${importedCount} tareas procesadas. ${invalidDatesCount} fechas inválidas fueron omitidas.`);
+      } else {
+        toast.success(`${importedCount} tareas procesadas correctamente`);
+      }
+      
+      setImportJson('');
+      setShowImportDialog(false);
+    } catch (error) {
+      toast.error('Error al importar las tareas. Verifica el formato JSON.');
+      console.error('Error de importación:', error);
+    }
+  };
+
+  const handleExportTasks = () => {
+    // Note: This would need to be connected to the Task component's tasks data
+    toast.success('Funcionalidad de exportar - será implementada');
+  };
+
+  const handleAiMenu = () => {
+    // TODO: Implement AI menu functionality
+    toast.success('Funcionalidad de AI - será implementada');
+  };
+
+  const taskActions = [
+    {
+      id: 'new',
+      label: 'Nueva Tarea',
+      icon: <Plus className="h-4 w-4" />,
+      onClick: handleNewTask,
+      tooltip: 'Crear nueva tarea'
+    },
+    {
+      id: 'import',
+      label: 'Importar',
+      icon: <Upload className="h-4 w-4" />,
+      onClick: handleImportTasks,
+      tooltip: 'Importar tareas'
+    },
+    {
+      id: 'export',
+      label: 'Exportar',
+      icon: <Download className="h-4 w-4" />,
+      onClick: handleExportTasks,
+      tooltip: 'Exportar tareas'
+    },
+    {
+      id: 'ai',
+      label: 'AI Assistant',
+      icon: <Brain className="h-4 w-4" />,
+      onClick: handleAiMenu,
+      tooltip: 'Asistente IA'
+    }
+  ];
+
+  return (
+    <div className="min-h-screen">
+      <CompactTaskHeader 
+        title="Tareas"
+        actions={taskActions}
+        currentTab={currentTab}
+        onTabChange={handleTabChange}
+      />
+      
+      <div className="p-4">
+        <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4">
 
         <TabsContent value="list" className="space-y-4">
           <Task />
@@ -201,16 +336,93 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
             </Card>
           </div>
         </TabsContent>
+        </Tabs>
+      </div>
 
-        <TabsContent value="settings" className="space-y-4">
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="font-medium mb-4">Configuración de Tareas</h3>
-              {/* Aquí irían las configuraciones */}
-            </CardContent>          </Card>
-        </TabsContent>
-      </Tabs>
-    </PageLayout>
+      {/* Recurrence Modal for new task creation */}
+      <RecurrenceModal
+        isOpen={showRecurrenceModal}
+        onClose={() => setShowRecurrenceModal()}
+        onConfirm={(data: any) => {
+          if (modalMode === 'complete') {
+            completeRecurrentTask(data);
+          } else if (modalMode === 'edit') {
+            editTask(currentTask!.id, data);
+          } else {
+            addTask(data);
+          }
+        }}
+        task={currentTask || {
+          id: '',
+          title: '',
+          completed: false,
+          category: 'personal',
+          createdAt: { seconds: Date.now() / 1000 }
+        }}
+        mode={modalMode}
+      />
+
+      {/* Import Tasks Dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Importar Tareas</DialogTitle>
+            <DialogDescription>
+              Pega el JSON con las tareas a importar. Puedes incluir fechas en varios formatos.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder={`Ejemplo - Importa tareas con fechas en diferentes formatos:
+[
+  {
+    "title": "Completar proyecto importante",
+    "description": "Terminar la implementación",
+    "dueDate": "2024-12-31",
+    "category": "work",
+    "priority": "do",
+    "size": "grande"
+  },
+  {
+    "title": "Revisión médica anual", 
+    "description": "Chequeo general de salud",
+    "dueDate": "2024-07-15T09:00:00Z",
+    "category": "health",
+    "priority": "decide"
+  },
+  {
+    "title": "Tarea flexible",
+    "description": "Esta tarea no tiene fecha límite específica",
+    "category": "personal",
+    "isRecurrent": true
+  }
+]
+
+Formatos de fecha soportados:
+- "2024-12-31" (solo fecha)
+- "2024-06-15T14:30:00Z" (fecha y hora ISO)
+- "2024-06-15T14:30:00" (fecha y hora local)
+- Sin campo "dueDate" = sin fecha asignada
+
+Campos opcionales:
+- description, dueDate, priority, size, isRecurrent`}
+              value={importJson}
+              onChange={(e) => setImportJson(e.target.value)}
+              rows={20}
+              className="font-mono text-sm"
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowImportDialog(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleImportTasksConfirm} disabled={!importJson.trim()}>
+                Importar Tareas
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 
