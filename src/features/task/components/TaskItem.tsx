@@ -1,7 +1,7 @@
 import React, { memo, useCallback, forwardRef } from 'react';
 import { isBefore, startOfDay, format, addDays } from 'date-fns';
 import { toNoon } from '@/utils/dates';
-import { X, Repeat, Calendar, Edit, Tag, AlignLeft, Clock } from 'lucide-react';
+import { X, Repeat, Calendar, Edit, Tag, AlignLeft, Clock, Play } from 'lucide-react';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { getCheckboxStats } from '@/utils/markdown';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -230,6 +231,7 @@ const TaskActions = memo<{
   onMove?: (taskId: string, dueDate: Date | null) => void;
   variant: 'list' | 'kanban';
 }>(({ task, onEdit, onDelete, onMove, variant }) => {
+  const navigate = useNavigate();
   const handleSetToday = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onMove?.(task.id, toNoon(new Date()));
@@ -253,6 +255,11 @@ const TaskActions = memo<{
   const handleDelete = useCallback(() => {
     onDelete(task.id);
   }, [onDelete, task.id]);
+
+  const handleRun = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/task/${task.id}/run`);
+  }, [navigate, task.id]);
 
   const buttonClassName = cn(
     BUTTON_SIZES.medium,
@@ -298,6 +305,15 @@ const TaskActions = memo<{
     )}>
       {quickActions}
       <div className="flex gap-1">
+        <ActionButton
+          variant="ghost"
+          size="icon"
+          className={buttonClassName}
+          title="Ejecutar"
+          onClick={handleRun}
+        >
+          <Play className={cn(ICON_SIZES.medium, 'md:w-3 md:h-3 text-green-600')} />
+        </ActionButton>
         <ActionButton
           variant="ghost"
           size="icon"
