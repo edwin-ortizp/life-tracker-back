@@ -38,14 +38,17 @@ interface TaskListProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
+  onRun?: (task: Task) => void;
 }
 
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
   onDelete,
   onEdit,
-  onView
-}) => {  const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
+  onView,
+  onRun
+}) => {
+  const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
   const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -257,6 +260,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}
+          onRun={onRun}
         />
         <TaskGroup
           title="Para Hoy"
@@ -264,6 +268,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}
+          onRun={onRun}
         />
         <TaskGroup
           title="Esta Semana"
@@ -271,6 +276,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}
+          onRun={onRun}
         />
         <TaskGroup
           title="Próximamente"
@@ -278,6 +284,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}
+          onRun={onRun}
         />
         <TaskGroup
           title="Sin Fecha"
@@ -285,6 +292,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}
+          onRun={onRun}
         />
 
         {filteredTasks.length === 0 && (

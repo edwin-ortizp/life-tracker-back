@@ -14,12 +14,13 @@ interface TaskWeeklyCalendarProps {
   onDelete: (id: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
+  onRun?: (task: Task) => void;
   onAssignTimeOfDay: (id: string, slot: TimeOfDay) => void;
 }
 
 const slots: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
 
-export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, onDelete, onEdit, onView, onAssignTimeOfDay }) => {
+export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, onDelete, onEdit, onView, onRun, onAssignTimeOfDay }) => {
   const today = startOfDay(new Date());
   const endToday = endOfDay(today);
   const tomorrow = addDays(today, 1);
@@ -69,14 +70,15 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, o
                     {TIME_OF_DAY_LABELS[slot]}
                   </div>
                   {byColumn[key][slot].map((task) => (
-                    <TaskItem
-                      key={task.id}
-                      task={task}
-                      onDelete={onDelete}
-                      onEdit={onEdit}
-                      onView={onView}
-                      variant="list"
-                    />
+                  <TaskItem
+                    key={task.id}
+                    task={task}
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                    onView={onView}
+                    onRun={onRun}
+                    variant="list"
+                  />
                   ))}
                 </div>
               ))}

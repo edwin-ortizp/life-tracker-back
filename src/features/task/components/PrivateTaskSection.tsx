@@ -10,6 +10,7 @@ import { RecurrenceModal } from './RecurrenceModal';
 import { useTaskData } from '../hooks/useTaskData';
 import type { Task } from '../types';
 import { isSameDay } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
     openEditModal,
     openCreateModal
   } = useTaskData();
+  const navigate = useNavigate();
 
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -172,6 +174,10 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
                   onDelete={deleteTask}
                   onEdit={openEditModal}
                   onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
+                  onRun={(task) => {
+                    setShowDetailModal(false);
+                    navigate(`/task/run/${task.id}`);
+                  }}
                   variant="list"
                 />
               ))}
@@ -193,6 +199,10 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
                   onDelete={deleteTask}
                   onEdit={openEditModal}
                   onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
+                  onRun={(task) => {
+                    setShowDetailModal(false);
+                    navigate(`/task/run/${task.id}`);
+                  }}
                   variant="list"
                 />
               ))}

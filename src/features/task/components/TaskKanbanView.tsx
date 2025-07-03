@@ -8,6 +8,7 @@ import { RecurrenceModal } from './RecurrenceModal';
 import { useTaskData } from '../hooks/useTaskData';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import type { Task } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 export const TaskKanbanView: React.FC = () => {
   const {
@@ -28,6 +29,7 @@ export const TaskKanbanView: React.FC = () => {
     resync
   } = useTaskData();
   const { isOnline } = useNetworkStatus();
+  const navigate = useNavigate();
 
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -59,6 +61,7 @@ export const TaskKanbanView: React.FC = () => {
               setDetailTask(task);
               setShowDetailModal(true);
             }}
+            onRun={(task) => navigate(`/task/run/${task.id}`)}
             onMove={(id, due) => editTask(id, { dueDate: due ?? undefined })}
             onAdd={(due) => openCreateModal(due ?? undefined)}
             onFilteredTasksChange={setVisibleTasks}

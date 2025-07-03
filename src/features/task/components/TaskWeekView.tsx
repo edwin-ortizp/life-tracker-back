@@ -8,6 +8,7 @@ import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import type { Task } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 export const TaskWeekView: React.FC = () => {
   const {
@@ -28,6 +29,7 @@ export const TaskWeekView: React.FC = () => {
     resync
   } = useTaskData();
   const { isOnline } = useNetworkStatus();
+  const navigate = useNavigate();
 
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -53,6 +55,7 @@ export const TaskWeekView: React.FC = () => {
             onEdit={openEditModal}
             onAssignTimeOfDay={(id, slot) => editTask(id, { timeOfDay: slot })}
             onView={(t) => { setDetailTask(t); setShowDetailModal(true); }}
+            onRun={(t) => navigate(`/task/run/${t.id}`)}
           />
           {error && (
             <p className="text-sm text-red-500 mt-4">{error}</p>
