@@ -7,6 +7,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { Play } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { isBefore, startOfDay } from 'date-fns';
@@ -59,6 +61,8 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   onToggle
 }) => {
   if (!task) return null;
+
+  const navigate = useNavigate();
 
   const categoryStyle = CATEGORY_COLORS[task.category];
   const priorityInfo = getPriorityInfo(task.priority);
@@ -201,7 +205,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Acciones</h3>
               <div className="space-y-2">
                 {onToggle && (
-                  <Button 
+                  <Button
                     onClick={() => onToggle(task.id, !task.completed)}
                     variant={task.completed ? "outline" : "default"}
                     className="w-full justify-start gap-2"
@@ -219,9 +223,17 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                     )}
                   </Button>
                 )}
-                <Button 
-                  onClick={() => onEdit(task)} 
-                  variant="outline" 
+                <Button
+                  onClick={() => navigate(`/task/${task.id}/run`)}
+                  variant="outline"
+                  className="w-full justify-start gap-2"
+                >
+                  <Play className="w-4 h-4" />
+                  Ejecutar
+                </Button>
+                <Button
+                  onClick={() => onEdit(task)}
+                  variant="outline"
                   className="w-full justify-start gap-2"
                 >
                   <span>✏️</span>

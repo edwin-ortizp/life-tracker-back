@@ -69,6 +69,7 @@ export const useTaskData = () => {
               size: data.size || 'peque\u00f1a',
               estimatedTime: data.estimatedTime,
               timeOfDay: data.timeOfDay,
+              elapsedSeconds: data.elapsedSeconds || 0,
               progress:
                 typeof data.progress === 'number'
                   ? data.progress
@@ -131,6 +132,7 @@ export const useTaskData = () => {
         category: formData.category || 'other',
         priority: formData.priority || 'delete',
         size: formData.size || 'peque\u00f1a',
+        elapsedSeconds: 0,
         ...(formData.timeOfDay && { timeOfDay: formData.timeOfDay }),
         ...(formData.estimatedTime !== undefined && { estimatedTime: formData.estimatedTime }),
       };
@@ -308,6 +310,7 @@ export const useTaskData = () => {
         title: currentTask.title,
         completed: false,
         createdAt: serverTimestamp(),
+        elapsedSeconds: 0,
         dueDate: data.dueDate ? Timestamp.fromDate(data.dueDate) : null,
         isRecurrent: true,
         category: currentTask.category,
