@@ -72,6 +72,7 @@ export interface Task {
   estimatedTime?: number;
   timeOfDay?: TimeOfDay;
   progress?: number;
+  elapsedSeconds?: number;
 }
 
 export interface TaskProps {
@@ -104,4 +105,5 @@ export interface TaskFormData {
   size?: 'peque\u00f1a' | 'mediana' | 'grande';
   estimatedTime?: number;
   timeOfDay?: TimeOfDay;
+  elapsedSeconds?: number;
 }
