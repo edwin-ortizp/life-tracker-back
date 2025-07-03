@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Plus, MoreVertical } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -9,16 +10,21 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Calendar, ChefHat, ShoppingCart, Package } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { useRecipes } from '../hooks/useRecipes';
 import AddRecipeModal from './AddRecipeModal';
 import ExportRecipesButton from './ExportRecipesButton';
 import { MEAL_TYPES } from '@/features/meal/types';
 import type { Recipe } from '../types';
-import { MealHeader } from '@/components/MealHeader';
+import { CompactMealHeader } from '@/components/navigation/CompactMealHeader';
 
 export const Recipes: React.FC = () => {
   const { recipes, addRecipe, updateRecipe } = useRecipes();
   const [showModal, setShowModal] = useState(false);
+  const location = useLocation();
   const [editing, setEditing] = useState<Recipe | null>(null);
   const [query, setQuery] = useState('');
   const [mealFilter, setMealFilter] = useState('');
@@ -53,13 +59,86 @@ export const Recipes: React.FC = () => {
 
   return (
     <div className="w-full h-full flex flex-col">
-      <MealHeader 
+      <CompactMealHeader 
         title="Recetas"
-        subtitle="Gestiona tu colección de recetas"
       >
-        <ExportRecipesButton recipes={recipes} />
-        <Button onClick={() => setShowModal(true)}>Agregar</Button>
-      </MealHeader>
+        {/* Desktop: Icon buttons */}
+        <TooltipProvider>
+          <div className="hidden md:flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setShowModal(true)}>
+                  <Plus className="h-4 w-4" />
+                  <span className="sr-only">Agregar</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Agregar</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <ExportRecipesButton recipes={recipes} iconOnly />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Exportar</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
+        
+        {/* Mobile: Three dots menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 md:hidden">
+              <MoreVertical className="h-4 w-4" />
+              <span className="sr-only">Opciones</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setShowModal(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Agregar
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <ExportRecipesButton recipes={recipes} />
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {location.pathname !== '/meal' && (
+              <DropdownMenuItem asChild>
+                <Link to="/meal" className="flex items-center">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Plan de Comidas
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {location.pathname !== '/shopping-list' && (
+              <DropdownMenuItem asChild>
+                <Link to="/shopping-list" className="flex items-center">
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Lista de Compras
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {location.pathname !== '/recipes' && (
+              <DropdownMenuItem asChild>
+                <Link to="/recipes" className="flex items-center">
+                  <ChefHat className="mr-2 h-4 w-4" />
+                  Recetas
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {location.pathname !== '/prepared-meals' && (
+              <DropdownMenuItem asChild>
+                <Link to="/prepared-meals" className="flex items-center">
+                  <Package className="mr-2 h-4 w-4" />
+                  Comidas Preparadas
+                </Link>
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </CompactMealHeader>
       
       <div className="flex-1 overflow-hidden">
         <div className="p-4 space-y-4 h-full overflow-y-auto">
