@@ -73,6 +73,17 @@ export interface Task {
   timeOfDay?: TimeOfDay;
   progress?: number;
   elapsedSeconds?: number;
+  // Timer-related fields
+  timerStartTime?: {
+    timestamp: number;
+    formatted: string;
+    date: string;
+    hour: number;
+    minute: number;
+  };
+  timerPaused?: boolean;
+  pausedDuration?: number;
+  timerActive?: boolean;
 }
 
 export interface TaskProps {
@@ -106,4 +117,15 @@ export interface TaskFormData {
   estimatedTime?: number;
   timeOfDay?: TimeOfDay;
   elapsedSeconds?: number;
+  // Timer-related fields
+  timerStartTime?: {
+    timestamp: number;
+    formatted: string;
+    date: string;
+    hour: number;
+    minute: number;
+  };
+  timerPaused?: boolean;
+  pausedDuration?: number;
+  timerActive?: boolean;
 }

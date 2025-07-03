@@ -5,6 +5,19 @@ import { db } from '@/firebase';
 import { renderMarkdown, getCheckboxProgress } from '@/utils/markdown';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { useTaskTimer } from '@/features/task/hooks/useTaskTimer';
+import { Play, Pause, Square, CheckCircle } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ChecklistItem {
   text: string;
@@ -32,24 +45,28 @@ const buildDescription = (body: string, checklist: ChecklistItem[]) => {
   return [...bodyLines, ...checklistLines].join('\n').trim();
 };
 
-const formatTime = (seconds: number) => {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  const parts = [h, m, s].map(t => String(t).padStart(2, '0'));
-  return parts.join(':');
-};
 
 export default function TaskRunPage() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [baseElapsed, setBaseElapsed] = useState(0);
-  const [running, setRunning] = useState(0);
-  const elapsed = baseElapsed + running;
 
   const { body, checklist } = useMemo(() => parseDescription(description), [description]);
+
+  const { 
+    formattedTime, 
+    isActive, 
+    isPaused, 
+    startTimer, 
+    pauseTimer, 
+    resumeTimer, 
+    stopTimer, 
+    completeTask 
+  } = useTaskTimer({ 
+    taskId: taskId as string, 
+    onComplete: () => navigate(-1) 
+  });
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'tasks', taskId as string), (snap) => {
@@ -57,31 +74,11 @@ export default function TaskRunPage() {
         const data = snap.data();
         setTitle(data.title || '');
         setDescription(data.description || '');
-        setBaseElapsed(data.elapsedSeconds || 0);
       }
     });
     return () => unsub();
   }, [taskId]);
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      setRunning((r) => r + 1);
-    }, 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  useEffect(() => {
-    const saveId = setInterval(() => {
-      updateDoc(doc(db, 'tasks', taskId as string), { elapsedSeconds: baseElapsed + running });
-    }, 30000);
-    return () => clearInterval(saveId);
-  }, [baseElapsed, running, taskId]);
-
-  useEffect(() => {
-    return () => {
-      updateDoc(doc(db, 'tasks', taskId as string), { elapsedSeconds: baseElapsed + running });
-    };
-  }, [baseElapsed, running, taskId]);
 
   const handleToggle = async (index: number) => {
     const updated = checklist.map((c, i) => i === index ? { ...c, checked: !c.checked } : c);
@@ -95,12 +92,12 @@ export default function TaskRunPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center gradient-bg-secondary text-white p-6">
-      <div className="w-full max-w-xl space-y-6">
+      <div className="w-full max-w-3xl space-y-6">
         <div className="flex justify-between items-center">
           <Button variant="ghost" className="text-white" onClick={() => navigate(-1)}>
             Volver
           </Button>
-          <div className="text-2xl font-mono">{formatTime(elapsed)}</div>
+          <div className="text-2xl font-mono">{formattedTime}</div>
         </div>
         <h1 className="text-4xl font-bold break-words">{title}</h1>
         {body && (
@@ -116,6 +113,77 @@ export default function TaskRunPage() {
             ))}
           </div>
         )}
+        
+        {/* Timer Controls */}
+        <div className="flex flex-col gap-4 mt-8">
+          <div className="flex gap-3 justify-center">
+            {!isActive ? (
+              <Button 
+                onClick={startTimer} 
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg"
+              >
+                <Play className="w-5 h-5 mr-2" />
+                Iniciar
+              </Button>
+            ) : (
+              <>
+                {isPaused ? (
+                  <Button 
+                    onClick={resumeTimer} 
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg"
+                  >
+                    <Play className="w-5 h-5 mr-2" />
+                    Reanudar
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={pauseTimer} 
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 text-lg"
+                  >
+                    <Pause className="w-5 h-5 mr-2" />
+                    Pausar
+                  </Button>
+                )}
+                <Button 
+                  onClick={stopTimer} 
+                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 text-lg"
+                >
+                  <Square className="w-5 h-5 mr-2" />
+                  Detener
+                </Button>
+              </>
+            )}
+          </div>
+          
+          {/* Complete Task Button with Confirmation */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-lg w-full"
+              >
+                <CheckCircle className="w-5 h-5 mr-2" />
+                Completar Tarea
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Completar Tarea</AlertDialogTitle>
+                <AlertDialogDescription>
+                  ¿Estás seguro de que quieres completar esta tarea? El timer se detendrá automáticamente y la tarea será marcada como completada.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={completeTask}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Sí, completar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </div>
   );
