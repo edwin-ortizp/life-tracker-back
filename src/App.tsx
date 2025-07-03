@@ -9,6 +9,7 @@ import MoodPage from './pages/MoodPage';
 import JournalPage from './pages/JournalPage';
 import TaskPage from './pages/TaskPage';
 import KanbanPage from './pages/KanbanPage';
+import TaskRunPage from './pages/TaskRunPage';
 import HabitPage from './pages/HabitPage';
 import MealPage from './pages/MealPage';
 import ShoppingListPage from './pages/ShoppingListPage';
@@ -30,7 +31,8 @@ export const PageLoader = () => (
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<AppLayout />}>
+      <Route path="task/run/:id" element={<TaskRunPage />} />
+      <Route path="/" element={<AppLayout />}> 
         <Route index element={<Home />} />
         <Route path="habit" element={<HabitPage />} />
         <Route path="task" element={<TaskPage />} />

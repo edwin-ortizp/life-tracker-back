@@ -1,7 +1,7 @@
 import React, { memo, useCallback, forwardRef } from 'react';
 import { isBefore, startOfDay, format, addDays } from 'date-fns';
 import { toNoon } from '@/utils/dates';
-import { X, Repeat, Calendar, Edit, Tag, AlignLeft, Clock } from 'lucide-react';
+import { X, Repeat, Calendar, Edit, Tag, AlignLeft, Clock, Play } from 'lucide-react';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -71,6 +71,7 @@ interface TaskItemProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
+  onRun?: (task: Task) => void;
   onMove?: (taskId: string, dueDate: Date | null) => void;
   variant?: 'list' | 'kanban';
   showCategoryLabel?: boolean;
@@ -228,8 +229,9 @@ const TaskActions = memo<{
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
   onMove?: (taskId: string, dueDate: Date | null) => void;
+  onRun?: (task: Task) => void;
   variant: 'list' | 'kanban';
-}>(({ task, onEdit, onDelete, onMove, variant }) => {
+}>(({ task, onEdit, onDelete, onMove, onRun, variant }) => {
   const handleSetToday = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onMove?.(task.id, toNoon(new Date()));
@@ -249,6 +251,11 @@ const TaskActions = memo<{
     e.stopPropagation();
     onEdit(task);
   }, [onEdit, task]);
+
+  const handleRun = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onRun?.(task);
+  }, [onRun, task]);
 
   const handleDelete = useCallback(() => {
     onDelete(task.id);
@@ -302,6 +309,15 @@ const TaskActions = memo<{
           variant="ghost"
           size="icon"
           className={buttonClassName}
+          title="Iniciar tarea"
+          onClick={handleRun}
+        >
+          <Play className={cn(ICON_SIZES.medium, 'md:w-3 md:h-3 text-green-600')} />
+        </ActionButton>
+        <ActionButton
+          variant="ghost"
+          size="icon"
+          className={buttonClassName}
           title="Editar tarea"
           onClick={handleEdit}
         >
@@ -350,6 +366,7 @@ export const TaskItem = memo<TaskItemProps>(({
   onDelete,
   onEdit,
   onView,
+  onRun,
   onMove,
   variant = 'list',
   showCategoryLabel = true
@@ -424,6 +441,7 @@ export const TaskItem = memo<TaskItemProps>(({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onMove={onMove}
+                onRun={onRun}
                 variant="kanban"
               />
             </div>
@@ -474,6 +492,7 @@ export const TaskItem = memo<TaskItemProps>(({
           task={task}
           onEdit={onEdit}
           onDelete={onDelete}
+          onRun={onRun}
           variant="list"
         />
       </CardContent>

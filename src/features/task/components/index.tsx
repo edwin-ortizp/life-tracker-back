@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner';
 import { TaskAiMenu } from './TaskAiMenu';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useNavigate } from 'react-router-dom';
 
 // Exports
 export * from './TaskKanban';
@@ -37,6 +38,7 @@ export * from "./TaskWeeklyCalendar";
 export * from "./TaskWeekView";
 export * from "./TaskKanbanView";
 export * from "./UnassignedTaskItem";
+export * from './TaskExecution';
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { useTaskData } from '../hooks/useTaskData';
@@ -44,6 +46,7 @@ import type { TaskProps, Task as TaskType } from '../types';
 
 export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const taskData = useTaskData();
   const {
     tasks,
@@ -279,6 +282,7 @@ Campos opcionales:
               onDelete={deleteTask}
               onEdit={openEditModal}
               onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
+              onRun={(task) => navigate(`/task/run/${task.id}`)}
             />
 
             {error && (

@@ -33,6 +33,7 @@ interface TaskKanbanProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
+  onRun?: (task: Task) => void;
   onMove: (taskId: string, dueDate: Date | null) => void;
   onAdd: (dueDate?: Date | null) => void;
   onFilteredTasksChange?: (tasks: Task[]) => void;
@@ -102,6 +103,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
   onDelete,
   onEdit,
   onView,
+  onRun,
   onMove,
   onAdd,
   onFilteredTasksChange
@@ -638,6 +640,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
                   onDelete={onDelete}
                   onEdit={onEdit}
                   onView={onView}
+                  onRun={onRun}
                   onMove={onMove}
                   variant="kanban"
                   showCategoryLabel={selectedCategory === 'all'}
