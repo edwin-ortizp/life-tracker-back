@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { ShoppingItem, ItemStatus } from '../types';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
+import { firestoreLogger } from '@/utils/firestore-logger';
 import {
   collection,
   addDoc,
   query,
   where,
-  onSnapshot,
+  getDocs,
   doc,
   updateDoc,
   deleteDoc,
@@ -20,68 +21,71 @@ export const useShoppingList = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'error'>(
     'idle'
   );
-  const [error, setError] = useState<string | null>(null);  useEffect(() => {
+  const [error, setError] = useState<string | null>(null);
+  
+  // Cargar lista de compras (carga única)
+  const loadShoppingList = useCallback(async () => {
     if (!user) {
       setItems([]);
       return;
     }
 
     setStatus('loading');
+    setError(null);
     
-    const q = query(
-      collection(db, 'shopping-list'),
-      where('userId', '==', user.uid)
-    );
-    
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        if (snapshot.empty) {
-          setItems([]);
-          setStatus('idle');
-          return;
-        }
-        
-        const list: ShoppingItem[] = snapshot.docs.map(docSnap => {
-          const data = docSnap.data();
-
-          const item: ShoppingItem = {
-            id: docSnap.id,
-            name: data.name || '',
-            quantity: data.quantity || 0,
-            status: (data.status as ItemStatus) || 'to-buy',
-            // Campos opcionales
-            ...(data.price !== undefined && { price: data.price }),
-            ...(data.category && { category: data.category }),
-            ...(data.place && { place: data.place }),
-            ...(data.consumeBy && { consumeBy: data.consumeBy }),
-            ...(data.nextPurchase && { nextPurchase: data.nextPurchase })
-          };
-          
-          return item;
-        });
-        
-        setItems(list);
+    try {
+      firestoreLogger.logRead('shopping-list', 'useShoppingList.loadShoppingList');
+      const q = query(
+        collection(db, 'shopping-list'),
+        where('userId', '==', user.uid)
+      );
+      
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        setItems([]);
         setStatus('idle');
-      },
-      err => {
-        // Si es un error de permisos, mantener los datos actuales pero marcar error
-        if (err?.code === 'permission-denied') {
-          setError('Error de permisos - Verificar reglas de Firestore');
-          setStatus('error');
-        } else {
-          // Para otros errores, limpiar datos
-          setError(err instanceof Error ? err.message : 'Error al cargar');
-          setStatus('error');
-          setItems([]);
-        }
+        return;
       }
-    );
+      
+      const list: ShoppingItem[] = snapshot.docs.map(docSnap => {
+        const data = docSnap.data();
 
-    return () => {
-      unsubscribe();
-    };
+        const item: ShoppingItem = {
+          id: docSnap.id,
+          name: data.name || '',
+          quantity: data.quantity || 0,
+          status: (data.status as ItemStatus) || 'to-buy',
+          // Campos opcionales
+          ...(data.price !== undefined && { price: data.price }),
+          ...(data.category && { category: data.category }),
+          ...(data.place && { place: data.place }),
+          ...(data.consumeBy && { consumeBy: data.consumeBy }),
+          ...(data.nextPurchase && { nextPurchase: data.nextPurchase })
+        };
+        
+        return item;
+      });
+      
+      setItems(list);
+      setStatus('idle');
+    } catch (err: any) {
+      // Si es un error de permisos, mantener los datos actuales pero marcar error
+      if (err?.code === 'permission-denied') {
+        setError('Error de permisos - Verificar reglas de Firestore');
+        setStatus('error');
+      } else {
+        // Para otros errores, limpiar datos
+        setError(err instanceof Error ? err.message : 'Error al cargar');
+        setStatus('error');
+        setItems([]);
+      }
+    }
   }, [user]);
+
+  useEffect(() => {
+    loadShoppingList();
+  }, [loadShoppingList]);
 
   const addItem = async (item: Omit<ShoppingItem, 'id'>) => {
     if (!user) {
@@ -142,7 +146,11 @@ export const useShoppingList = () => {
       if (item.nextPurchase) {
         docData.nextPurchase = true;
       }
+      firestoreLogger.logWrite('shopping-list', 'useShoppingList.addItem');
       await addDoc(collection(db, 'shopping-list'), docData);
+      
+      // Recargar lista después de agregar
+      await loadShoppingList();
       setStatus('idle');
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'Error al guardar';
@@ -191,7 +199,11 @@ export const useShoppingList = () => {
         updateData.nextPurchase = data.nextPurchase;
       }
 
+      firestoreLogger.logWrite('shopping-list', 'useShoppingList.updateItem', id);
       await updateDoc(docRef, updateData);
+      
+      // Recargar lista después de actualizar
+      await loadShoppingList();
       setStatus('idle');
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'Error al actualizar';
@@ -208,7 +220,11 @@ export const useShoppingList = () => {
     setError(null);
 
     try {
+      firestoreLogger.logDelete('shopping-list', 'useShoppingList.deleteItem', id);
       await deleteDoc(doc(db, 'shopping-list', id));
+      
+      // Recargar lista después de eliminar
+      await loadShoppingList();
       setStatus('idle');
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'Error al eliminar';
@@ -221,5 +237,5 @@ export const useShoppingList = () => {
     updateItem(id, { status });
   };
 
-  return { items, status, error, addItem, updateItem, deleteItem, moveItem };
+  return { items, status, error, addItem, updateItem, deleteItem, moveItem, loadShoppingList };
 };

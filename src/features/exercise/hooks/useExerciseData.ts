@@ -9,9 +9,10 @@ import {
   setDoc,
   deleteDoc,
   serverTimestamp,
-  onSnapshot
+  getDoc
 } from 'firebase/firestore';
 import { useResync } from '@/hooks/useResync';
+import { firestoreLogger } from '@/utils/firestore-logger';
 
 export const useExerciseData = (selectedDate: Date) => {
   const [exerciseDoc, setExerciseDoc] = useState<ExerciseDocument | null>(null);
@@ -51,41 +52,33 @@ export const useExerciseData = (selectedDate: Date) => {
     });
   };
 
-  useEffect(() => {
+  // Cargar datos de ejercicios (carga única)
+  const loadExerciseData = async () => {
     if (!user) return;
 
     setStatus('loading');
-    const date = getLocalDateString(selectedDate);
-    const docRef = doc(db, 'exercises', `${user.uid}_${date}`);
+    setError(null);
 
-    const unsubscribe = onSnapshot(docRef,
-      (docSnap) => {
-        if (docSnap.exists()) {
-          setExerciseDoc(docSnap.data() as ExerciseDocument);
-        } else {
-          setExerciseDoc(null);
-        }
+    try {
+      const date = getLocalDateString(selectedDate);
+      firestoreLogger.logRead('exercises', 'useExerciseData.loadData', `${user.uid}_${date}`);
+      const docRef = doc(db, 'exercises', `${user.uid}_${date}`);
+      const docSnap = await getDoc(docRef);
 
-        if (import.meta.env.DEV) {
-          console.log('Exercise snapshot', {
-            fromCache: docSnap.metadata.fromCache,
-            pending: docSnap.metadata.hasPendingWrites
-          });
-        }
-
-        if (docSnap.metadata.hasPendingWrites) {
-          setStatus('pending');
-        } else {
-          setStatus('saved');
-        }
-      },
-      (error) => {
-        setError(error instanceof Error ? error.message : 'Error al cargar ejercicios');
-        setStatus('error');
+      if (docSnap.exists()) {
+        setExerciseDoc(docSnap.data() as ExerciseDocument);
+      } else {
+        setExerciseDoc(null);
       }
-    );
+      setStatus('saved');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error al cargar ejercicios');
+      setStatus('error');
+    }
+  };
 
-    return () => unsubscribe();
+  useEffect(() => {
+    loadExerciseData();
   }, [user, selectedDate]);
 
   const logExercise = async (newExercise: ExerciseLog) => {
@@ -111,8 +104,12 @@ export const useExerciseData = (selectedDate: Date) => {
         updatedAt: serverTimestamp()
       };
 
+      firestoreLogger.logWrite('exercises', 'useExerciseData.logExercise', `${user.uid}_${date}`);
       await setDoc(docRef, newDoc);
-      setExerciseDoc(newDoc);
+      
+      // Recargar datos después de guardar
+      await loadExerciseData();
+      
       if (import.meta.env.DEV) {
         console.log('Exercise logged locally');
       }
@@ -143,8 +140,12 @@ export const useExerciseData = (selectedDate: Date) => {
         updatedAt: serverTimestamp()
       };
 
+      firestoreLogger.logWrite('exercises', 'useExerciseData.updateExerciseLog', `${user.uid}_${date}`);
       await setDoc(docRef, updatedDoc);
-      setExerciseDoc(updatedDoc);
+      
+      // Recargar datos después de actualizar
+      await loadExerciseData();
+      
       if (import.meta.env.DEV) {
         console.log('Exercise log updated locally');
       }
@@ -168,8 +169,8 @@ export const useExerciseData = (selectedDate: Date) => {
       
       if (updatedExercises.length === 0) {
         // Si no quedan ejercicios, eliminar el documento completo
+        firestoreLogger.logDelete('exercises', 'useExerciseData.deleteExerciseLog.delete', `${user.uid}_${date}`);
         await deleteDoc(docRef);
-        setExerciseDoc(null);
       } else {
         const summary = calculateSummary(updatedExercises);
         const updatedDoc: ExerciseDocument = {
@@ -179,9 +180,12 @@ export const useExerciseData = (selectedDate: Date) => {
           updatedAt: serverTimestamp()
         };
 
+        firestoreLogger.logWrite('exercises', 'useExerciseData.deleteExerciseLog.update', `${user.uid}_${date}`);
         await setDoc(docRef, updatedDoc);
-        setExerciseDoc(updatedDoc);
       }
+
+      // Recargar datos después de eliminar
+      await loadExerciseData();
 
       if (import.meta.env.DEV) {
         console.log('Exercise log deleted locally');
@@ -202,6 +206,7 @@ export const useExerciseData = (selectedDate: Date) => {
     logExercise,
     updateExerciseLog,
     deleteExerciseLog,
+    loadExerciseData, // Exponer función de recarga manual
     resync
   };
 };

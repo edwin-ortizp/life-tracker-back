@@ -4,10 +4,11 @@ import { useAuth } from '../../../hooks/useAuth';
 import {
   doc,
   setDoc,
-  onSnapshot,
+  getDoc,
   serverTimestamp
 } from 'firebase/firestore';
 import { useResync } from '@/hooks/useResync';
+import { firestoreLogger } from '@/utils/firestore-logger';
 import { Drink, DRINKS } from '../types';
 import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
 
@@ -23,47 +24,39 @@ export const useWaterData = (selectedDate: Date) => {
     return drinksList.reduce((total, drink) => total + drink.hydration, 0);
   };
 
-  useEffect(() => {
+  // Cargar datos de hidratación (carga única)
+  const loadWaterData = async () => {
     if (!user) return;
 
-    const dateString = getLocalDateString(selectedDate);
-    const docRef = doc(db, 'water', `${user.uid}_${dateString}`);
+    setError(null);
 
-    const unsubscribe = onSnapshot(docRef,
-      (doc) => {
-        if (doc.exists()) {
-          const data = doc.data();
-          const drinksList = data.drinks || [];
-          const totalIntake = calculateTotalIntake(drinksList);
-          setIntake(totalIntake);
-          setDrinks(drinksList);
+    try {
+      const dateString = getLocalDateString(selectedDate);
+      firestoreLogger.logRead('water', 'useWaterData.loadData', `${user.uid}_${dateString}`);
+      const docRef = doc(db, 'water', `${user.uid}_${dateString}`);
+      const docSnapshot = await getDoc(docRef);
 
-          if (import.meta.env.DEV) {
-            console.log('Water snapshot', {
-              fromCache: doc.metadata.fromCache,
-              pending: doc.metadata.hasPendingWrites
-            });
-          }
-
-          if (doc.metadata.hasPendingWrites) {
-            setStatus('pending');
-          } else {
-            setStatus('saved');
-          }
-        } else {
-          setIntake(0);
-          setDrinks([]);
-          setStatus('idle');
-        }
-      },
-      (error) => {
-        console.error('Error en snapshot:', error);
-        setError(error.message);
-        setStatus('error');
+      if (docSnapshot.exists()) {
+        const data = docSnapshot.data();
+        const drinksList = data.drinks || [];
+        const totalIntake = calculateTotalIntake(drinksList);
+        setIntake(totalIntake);
+        setDrinks(drinksList);
+        setStatus('saved');
+      } else {
+        setIntake(0);
+        setDrinks([]);
+        setStatus('idle');
       }
-    );
+    } catch (error) {
+      console.error('Error loading water data:', error);
+      setError(error instanceof Error ? error.message : 'Error al cargar datos de hidratación');
+      setStatus('error');
+    }
+  };
 
-    return () => unsubscribe();
+  useEffect(() => {
+    loadWaterData();
   }, [user, selectedDate]);
 
   const addDrink = async (type: keyof typeof DRINKS, amount: number) => {
@@ -100,6 +93,7 @@ export const useWaterData = (selectedDate: Date) => {
       const updatedDrinks = [...drinks, newDrink];
       const totalWater = calculateTotalIntake(updatedDrinks);
 
+      firestoreLogger.logWrite('water', 'useWaterData.addDrink', `${user.uid}_${dateString}`);
       await setDoc(docRef, {
         userId: user.uid,
         date: dateString,
@@ -107,6 +101,10 @@ export const useWaterData = (selectedDate: Date) => {
         totalWater,
         updatedAt: serverTimestamp()
       }, { merge: true });
+      
+      // Recargar datos después de agregar
+      await loadWaterData();
+      
       if (import.meta.env.DEV) {
         console.log('Drink added locally');
       }
@@ -142,6 +140,7 @@ export const useWaterData = (selectedDate: Date) => {
 
       const totalWater = calculateTotalIntake(updatedDrinks);
 
+      firestoreLogger.logWrite('water', 'useWaterData.editDrink', `${user.uid}_${dateString}`);
       await setDoc(docRef, {
         userId: user.uid,
         date: dateString,
@@ -149,6 +148,10 @@ export const useWaterData = (selectedDate: Date) => {
         totalWater,
         updatedAt: serverTimestamp()
       }, { merge: true });
+      
+      // Recargar datos después de editar
+      await loadWaterData();
+      
       if (import.meta.env.DEV) {
         console.log('Drink edited locally');
       }
@@ -171,6 +174,7 @@ export const useWaterData = (selectedDate: Date) => {
       const updatedDrinks = drinks.filter((_, i) => i !== index);
       const totalWater = calculateTotalIntake(updatedDrinks);
 
+      firestoreLogger.logWrite('water', 'useWaterData.deleteDrink', `${user.uid}_${dateString}`);
       await setDoc(docRef, {
         userId: user.uid,
         date: dateString,
@@ -178,6 +182,10 @@ export const useWaterData = (selectedDate: Date) => {
         totalWater,
         updatedAt: serverTimestamp()
       }, { merge: true });
+      
+      // Recargar datos después de eliminar
+      await loadWaterData();
+      
       if (import.meta.env.DEV) {
         console.log('Drink deleted locally');
       }
@@ -197,6 +205,7 @@ export const useWaterData = (selectedDate: Date) => {
     addDrink,
     editDrink,
     deleteDrink,
+    loadWaterData, // Exponer función de recarga manual
     resync
   };
 };
