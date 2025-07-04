@@ -1,7 +1,8 @@
 // src/features/negative-habits/hooks/useNegativeHabitData.ts
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { onSnapshot } from 'firebase/firestore';
+import { getDoc } from 'firebase/firestore';
+import { firestoreLogger } from '@/utils/firestore-logger';
 import { useResync } from '@/hooks/useResync';
 import { NegativeHabitLog } from '../types';
 import { 
@@ -52,69 +53,84 @@ export const useNegativeHabitData = () => {
     };
   }, [habits, monthlyHabitsMap]);
 
-  useEffect(() => {
+  // Cargar datos de hábitos negativos (carga inicial única)
+  const loadNegativeHabitData = useCallback(async () => {
     if (!user) return;
 
+    setStatus('loading');
+    setError(null);
     const currentDate = new Date();
     const yearMonth = getYearMonth(currentDate);
-    setStatus('loading');
-
-    // Suscribirse al mes actual
-    const unsubscribe = onSnapshot(
-      getMonthDocRef(user.uid, yearMonth),
-      (doc) => {
-        if (doc.exists()) {
-          const data = doc.data() as MonthlyHabits;
-          setMonthlyHabitsMap(prev => ({
-            ...prev,
-            [yearMonth]: data.habits || {}
-          }));
-        }
-
-        if (import.meta.env.DEV) {
-          console.log('Negative habit snapshot', {
-            fromCache: doc.metadata.fromCache,
-            pending: doc.metadata.hasPendingWrites
-          });
-        }
-
-        if (doc.metadata.hasPendingWrites) {
-          setStatus('pending');
-        } else {
-          setStatus('saved');
-        }
-      },
-      (error) => {
-        setError(error instanceof Error ? error.message : 'Error al cargar los datos');
-        setStatus('error');
-      }
-    );
-
-    // Cargar meses visibles para la vista anual
-    const loadVisibleMonths = async () => {
-      const months = getVisibleMonths(currentDate);
-      const visibleMonthsData = await fetchVisibleMonths(user.uid, months);
-      setMonthlyHabitsMap(prev => ({
-        ...prev,
-        ...visibleMonthsData
-      }));
-    };
-
-    loadVisibleMonths();
-    return () => unsubscribe();
-  }, [user]);
-
-  const logHabit = async (habitId: number, date: string, note?: string) => {
-    if (!user) return;
 
     try {
-      setStatus('saving');
-      setError(null);
+      // Cargar mes actual
+      firestoreLogger.logRead('negative-habits', 'useNegativeHabitData.loadCurrentMonth');
+      const currentMonthDoc = await getDoc(getMonthDocRef(user.uid, yearMonth));
       
-      const [year, month] = date.split('-');
-      const yearMonth = `${year}-${month}`;
-      const currentMonthHabits = monthlyHabitsMap[yearMonth] || {};
+      let newMonthlyHabitsMap: Record<string, MonthlyHabits['habits']> = {};
+      
+      if (currentMonthDoc.exists()) {
+        const data = currentMonthDoc.data() as MonthlyHabits;
+        newMonthlyHabitsMap[yearMonth] = data.habits || {};
+      }
 
+      // Cargar meses visibles para la vista anual
+      const months = getVisibleMonths(currentDate);
+      const visibleMonthsData = await fetchVisibleMonths(user.uid, months);
+      
+      newMonthlyHabitsMap = {
+        ...newMonthlyHabitsMap,
+        ...visibleMonthsData
+      };
+
+      setMonthlyHabitsMap(newMonthlyHabitsMap);
+      setStatus('saved');
+      
+      if (import.meta.env.DEV) {
+        console.log('Negative habits data loaded for months:', Object.keys(newMonthlyHabitsMap));
+      }
+    } catch (error) {
+      console.error('Error loading negative habit data:', error);
+      setError(error instanceof Error ? error.message : 'Error al cargar los datos');
+      setStatus('error');
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadNegativeHabitData();
+  }, [loadNegativeHabitData]);
+
+  const logHabit = useCallback(async (habitId: number, date: string, note?: string) => {
+    if (!user) return;
+
+    setStatus('saving');
+    setError(null);
+    
+    const [year, month] = date.split('-');
+    const yearMonth = `${year}-${month}`;
+    const currentMonthHabits = monthlyHabitsMap[yearMonth] || {};
+
+    // Actualización optimista
+    const optimisticLog: NegativeHabitLog = {
+      timestamp: Date.now(),
+      habitId,
+      note
+    };
+
+    const optimisticHabits = {
+      ...currentMonthHabits,
+      [date]: {
+        ...currentMonthHabits[date],
+        [habitId]: optimisticLog
+      }
+    };
+
+    setMonthlyHabitsMap(prev => ({
+      ...prev,
+      [yearMonth]: optimisticHabits
+    }));
+
+    try {
       await logHabitToFirebase(
         user.uid,
         yearMonth,
@@ -123,26 +139,52 @@ export const useNegativeHabitData = () => {
         currentMonthHabits,
         note
       );
+      
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Negative habit logged locally');
+        console.log('Negative habit logged for date:', date, 'habit:', habitId);
       }
     } catch (error) {
+      console.error('Error logging negative habit:', error);
+      // Revertir actualización optimista en caso de error
+      setMonthlyHabitsMap(prev => ({
+        ...prev,
+        [yearMonth]: currentMonthHabits
+      }));
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
     }
-  };
+  }, [user, monthlyHabitsMap]);
 
-  const removeLog = async (habitId: number, date: string) => {
+  const removeLog = useCallback(async (habitId: number, date: string) => {
     if (!user) return;
 
+    setStatus('saving');
+    setError(null);
+
+    const [year, month] = date.split('-');
+    const yearMonth = `${year}-${month}`;
+    const currentMonthHabits = monthlyHabitsMap[yearMonth] || {};
+
+    // Actualización optimista
+    const optimisticHabits = { ...currentMonthHabits };
+    if (optimisticHabits[date]) {
+      const dayHabits = { ...optimisticHabits[date] };
+      delete dayHabits[habitId];
+      
+      if (Object.keys(dayHabits).length === 0) {
+        delete optimisticHabits[date];
+      } else {
+        optimisticHabits[date] = dayHabits;
+      }
+    }
+
+    setMonthlyHabitsMap(prev => ({
+      ...prev,
+      [yearMonth]: optimisticHabits
+    }));
+
     try {
-      setStatus('saving');
-      setError(null);
-
-      const [year, month] = date.split('-');
-      const yearMonth = `${year}-${month}`;
-      const currentMonthHabits = monthlyHabitsMap[yearMonth] || {};
-
       await removeHabitFromFirebase(
         user.uid,
         yearMonth,
@@ -150,14 +192,22 @@ export const useNegativeHabitData = () => {
         habitId,
         currentMonthHabits
       );
+      
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Negative habit removed locally');
+        console.log('Negative habit removed for date:', date, 'habit:', habitId);
       }
     } catch (error) {
+      console.error('Error removing negative habit:', error);
+      // Revertir actualización optimista en caso de error
+      setMonthlyHabitsMap(prev => ({
+        ...prev,
+        [yearMonth]: currentMonthHabits
+      }));
       setError(error instanceof Error ? error.message : 'Error al eliminar');
       setStatus('error');
     }
-  };
+  }, [user, monthlyHabitsMap]);
 
   const resync = useResync('Negative habit data');
 
@@ -168,6 +218,7 @@ export const useNegativeHabitData = () => {
     stats,
     logHabit,
     removeLog,
+    loadNegativeHabitData,
     resync
   };
 };

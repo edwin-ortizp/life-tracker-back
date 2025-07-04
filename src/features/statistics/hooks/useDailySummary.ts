@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { startOfDay, endOfDay } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
@@ -629,75 +629,60 @@ export const useDailySummary = (date: Date) => {
   const { user } = useAuth();
   const [summary, setSummary] = useState<DailySummaryData>(emptySummary);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadSummary = useCallback(async () => {
     if (!user) {
-      console.log('❌ useDailySummary - No user authenticated');
       setLoading(false);
       return;
     }
 
     const cacheKey = `${user.uid}_${getLocalDateString(date)}`;
-
-    const updateCallback = (data: DailySummaryData, isLoading: boolean) => {
-      setSummary(data);
-      setLoading(isLoading);
-    };
-
-    // Check if we already have listeners for this date
+    
+    // Check cache first
     if (summaryCache.has(cacheKey)) {
       const cached = summaryCache.get(cacheKey)!;
-      cached.subscribers.add(updateCallback);
-      
-      // Immediately update with cached data
       setSummary(cached.summary);
-      setLoading(cached.loading);
-    } else {
-      // Create new listeners
-      setLoading(true);
-
-      // Test de permisos comentado para evitar operaciones excesivas
-      // testFirestorePermissions(user.uid, date);
-
-      const handleDataUpdate = (data: DailySummaryData) => {
-        const cached = summaryCache.get(cacheKey);
-        if (cached) {
-          cached.summary = data;
-          cached.loading = false;
-          // Notify all subscribers
-          cached.subscribers.forEach(callback => callback(data, false));
-        }
-      };
-
-      const unsubscribes = createDayListeners(user.uid, date, handleDataUpdate);
-      
-      // Store in cache
-      summaryCache.set(cacheKey, {
-        summary: emptySummary,
-        loading: true,
-        subscribers: new Set([updateCallback]),
-        unsubscribes
-      });
+      setLoading(false);
+      return;
     }
-    
-    // Cleanup function
-    return () => {
-      const cached = summaryCache.get(cacheKey);
-      if (cached) {
-        cached.subscribers.delete(updateCallback);
-        
-        // If no more subscribers, cleanup listeners
-        if (cached.subscribers.size === 0) {
-          cached.unsubscribes.forEach(unsubscribe => unsubscribe());
-          summaryCache.delete(cacheKey);
-        }
-      }
-    };
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('📊 Loading daily summary for:', getLocalDateString(date));
+      const summaryData = await fetchDailySummary(user.uid, date);
+      
+      // Cache the result
+      summaryCache.set(cacheKey, {
+        summary: summaryData,
+        loading: false,
+        subscribers: new Set(),
+        unsubscribes: []
+      });
+
+      setSummary(summaryData);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error loading daily summary:', err);
+      setError(err instanceof Error ? err.message : 'Error loading summary');
+      setLoading(false);
+    }
   }, [user, date]);
 
-  const refetch = () => {
-    console.log('🔄 Refetch requested - listeners will automatically update');
-  };
+  useEffect(() => {
+    loadSummary();
+  }, [loadSummary]);
 
-  return { summary, loading, refetch };
+  const refetch = useCallback(() => {
+    if (!user) return;
+    
+    const cacheKey = `${user.uid}_${getLocalDateString(date)}`;
+    // Clear cache for this date to force refresh
+    summaryCache.delete(cacheKey);
+    loadSummary();
+  }, [user, date, loadSummary]);
+
+  return { summary, loading, error, refetch };
 };

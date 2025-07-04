@@ -65,50 +65,56 @@ export const useWaterData = (selectedDate: Date) => {
     setStatus('saving');
     setError(null);
 
+    const now = new Date();
+    const formattedTime = createFormattedTimestamp(
+      selectedDate,
+      now.getHours(),
+      now.getMinutes()
+    );
+
+    const hydrationAmount = amount * DRINKS[type].hydrationFactor;
+
+    const newDrink = {
+      type,
+      amount,
+      hydration: hydrationAmount,
+      timestamp: formattedTime.timestamp.toString(),
+      time: now.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      })
+    };
+
+    // Actualización optimista
+    const optimisticDrinks = [...drinks, newDrink];
+    const optimisticIntake = calculateTotalIntake(optimisticDrinks);
+    
+    setDrinks(optimisticDrinks);
+    setIntake(optimisticIntake);
+
     try {
       const dateString = getLocalDateString(selectedDate);
       const docRef = doc(db, 'water', `${user.uid}_${dateString}`);
-      
-      const now = new Date();
-      const formattedTime = createFormattedTimestamp(
-        selectedDate,
-        now.getHours(),
-        now.getMinutes()
-      );
-
-      const hydrationAmount = amount * DRINKS[type].hydrationFactor;
-
-      const newDrink = {
-        type,
-        amount,
-        hydration: hydrationAmount,
-        timestamp: formattedTime.timestamp.toString(),
-        time: now.toLocaleTimeString('es-ES', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          hour12: false 
-        })
-      };
-
-      const updatedDrinks = [...drinks, newDrink];
-      const totalWater = calculateTotalIntake(updatedDrinks);
 
       firestoreLogger.logWrite('water', 'useWaterData.addDrink', `${user.uid}_${dateString}`);
       await setDoc(docRef, {
         userId: user.uid,
         date: dateString,
-        drinks: updatedDrinks,
-        totalWater,
+        drinks: optimisticDrinks,
+        totalWater: optimisticIntake,
         updatedAt: serverTimestamp()
       }, { merge: true });
       
-      // Recargar datos después de agregar
-      await loadWaterData();
-      
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Drink added locally');
+        console.log('Drink added with amount:', amount, 'ml');
       }
     } catch (error) {
+      console.error('Error adding drink:', error);
+      // Revertir actualización optimista en caso de error
+      setDrinks(drinks);
+      setIntake(intake);
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
     }
@@ -135,27 +141,32 @@ export const useWaterData = (selectedDate: Date) => {
         hydration: updatedDrink.amount * DRINKS[updatedDrink.type].hydrationFactor
       };
 
-      const updatedDrinks = [...drinks];
-      updatedDrinks[index] = drinkWithUpdates;
+      // Actualización optimista
+      const optimisticDrinks = [...drinks];
+      optimisticDrinks[index] = drinkWithUpdates;
+      const optimisticIntake = calculateTotalIntake(optimisticDrinks);
 
-      const totalWater = calculateTotalIntake(updatedDrinks);
+      setDrinks(optimisticDrinks);
+      setIntake(optimisticIntake);
 
       firestoreLogger.logWrite('water', 'useWaterData.editDrink', `${user.uid}_${dateString}`);
       await setDoc(docRef, {
         userId: user.uid,
         date: dateString,
-        drinks: updatedDrinks,
-        totalWater,
+        drinks: optimisticDrinks,
+        totalWater: optimisticIntake,
         updatedAt: serverTimestamp()
       }, { merge: true });
       
-      // Recargar datos después de editar
-      await loadWaterData();
-      
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Drink edited locally');
+        console.log('Drink edited at index:', index);
       }
     } catch (error) {
+      console.error('Error editing drink:', error);
+      // Revertir actualización optimista en caso de error
+      setDrinks(drinks);
+      setIntake(intake);
       setError(error instanceof Error ? error.message : 'Error al editar');
       setStatus('error');
     }
@@ -167,29 +178,40 @@ export const useWaterData = (selectedDate: Date) => {
     setStatus('saving');
     setError(null);
 
+    // Guardar drink a eliminar para poder revertir si falla
+    const drinkToDelete = drinks[index];
+
     try {
       const dateString = getLocalDateString(selectedDate);
       const docRef = doc(db, 'water', `${user.uid}_${dateString}`);
       
-      const updatedDrinks = drinks.filter((_, i) => i !== index);
-      const totalWater = calculateTotalIntake(updatedDrinks);
+      // Actualización optimista
+      const optimisticDrinks = drinks.filter((_, i) => i !== index);
+      const optimisticIntake = calculateTotalIntake(optimisticDrinks);
+
+      setDrinks(optimisticDrinks);
+      setIntake(optimisticIntake);
 
       firestoreLogger.logWrite('water', 'useWaterData.deleteDrink', `${user.uid}_${dateString}`);
       await setDoc(docRef, {
         userId: user.uid,
         date: dateString,
-        drinks: updatedDrinks,
-        totalWater,
+        drinks: optimisticDrinks,
+        totalWater: optimisticIntake,
         updatedAt: serverTimestamp()
       }, { merge: true });
       
-      // Recargar datos después de eliminar
-      await loadWaterData();
-      
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Drink deleted locally');
+        console.log('Drink deleted at index:', index);
       }
     } catch (error) {
+      console.error('Error deleting drink:', error);
+      // Revertir actualización optimista en caso de error
+      const revertedDrinks = [...drinks];
+      revertedDrinks.splice(index, 0, drinkToDelete);
+      setDrinks(revertedDrinks);
+      setIntake(calculateTotalIntake(revertedDrinks));
       setError(error instanceof Error ? error.message : 'Error al eliminar');
       setStatus('error');
     }

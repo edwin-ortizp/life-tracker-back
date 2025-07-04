@@ -1,16 +1,16 @@
 // src/features/mood/hooks/useEnergyData.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
 import {
   doc,
   setDoc,
-  onSnapshot,
   getDoc,
   collection,
   deleteDoc
 } from 'firebase/firestore';
+import { firestoreLogger } from '@/utils/firestore-logger';
 import { useResync } from '@/hooks/useResync';
 import type { EnergyEntry, DailyEnergy } from '../types';
 
@@ -20,157 +20,174 @@ export const useEnergyData = (selectedDate: Date) => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  useEffect(() => {
+  // Cargar datos de energía del usuario (carga inicial única)
+  const loadEnergyData = useCallback(async () => {
     if (!user) return;
+
+    setStatus('saving');
+    setError(null);
     const dateString = getLocalDateString(selectedDate);
-    const energyRef = doc(collection(db, 'energy'), `${user.uid}_${dateString}`);
 
-    const unsubscribe = onSnapshot(
-      energyRef,
-      (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          if (data && Array.isArray(data.entries)) {
-            setDailyEnergy(data as DailyEnergy);
-          } else {
-            setDailyEnergy({
-              id: `${user.uid}_${dateString}`,
-              userId: user.uid,
-              date: dateString,
-              entries: []
-            });
-          }
+    try {
+      firestoreLogger.logRead('energy', 'useEnergyData.loadEnergyData');
+      const energyRef = doc(collection(db, 'energy'), `${user.uid}_${dateString}`);
+      const snapshot = await getDoc(energyRef);
+
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data && Array.isArray(data.entries)) {
+          setDailyEnergy(data as DailyEnergy);
         } else {
-          setDailyEnergy(null);
-        }
-
-        if (import.meta.env.DEV) {
-          console.log('Energy snapshot', {
-            fromCache: snapshot.metadata.fromCache,
-            pending: snapshot.metadata.hasPendingWrites
+          setDailyEnergy({
+            id: `${user.uid}_${dateString}`,
+            userId: user.uid,
+            date: dateString,
+            entries: []
           });
         }
-
-        if (snapshot.metadata.hasPendingWrites) {
-          setStatus('pending');
-        } else {
-          setStatus('saved');
-        }
-      },
-      (err) => {
-        console.error('Energy - Error en snapshot:', err);
-        setError(err.message);
-        setStatus('error');
+      } else {
+        setDailyEnergy(null);
       }
-    );
-    return () => unsubscribe();
+
+      setStatus('saved');
+    } catch (error) {
+      console.error('Error loading energy data:', error);
+      setError(error instanceof Error ? error.message : 'Error loading energy data');
+      setStatus('error');
+    }
   }, [user, selectedDate]);
 
-  const addEntry = async (level: number, comment?: string) => {
+  useEffect(() => {
+    loadEnergyData();
+  }, [loadEnergyData]);
+
+  const addEntry = useCallback(async (level: number, comment?: string) => {
     if (!user) return;
     setStatus('saving');
     setError(null);
     const dateString = getLocalDateString(selectedDate);
     const docId = `${user.uid}_${dateString}`;
-    const energyRef = doc(collection(db, 'energy'), docId);
+
+    const now = new Date();
+    const formattedTimestamp = createFormattedTimestamp(
+      selectedDate,
+      now.getHours(),
+      now.getMinutes()
+    );
+    const newEntry: EnergyEntry = {
+      level,
+      comment,
+      timestamp: formattedTimestamp.timestamp,
+      time: now.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    };
+
+    // Actualización optimista
+    const currentEntries = dailyEnergy?.entries || [];
+    const optimisticEnergyData: DailyEnergy = {
+      id: docId,
+      userId: user.uid,
+      date: dateString,
+      entries: [...currentEntries, newEntry]
+    };
+    setDailyEnergy(optimisticEnergyData);
 
     try {
-      const now = new Date();
-      const formattedTimestamp = createFormattedTimestamp(
-        selectedDate,
-        now.getHours(),
-        now.getMinutes()
-      );
-      const newEntry: EnergyEntry = {
-        level,
-        comment,
-        timestamp: formattedTimestamp.timestamp,
-        time: now.toLocaleTimeString('es-ES', {
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      };
+      const energyRef = doc(collection(db, 'energy'), docId);
+      
+      firestoreLogger.logWrite('energy', 'useEnergyData.addEntry');
+      await setDoc(energyRef, optimisticEnergyData);
 
-      const docSnap = await getDoc(energyRef);
-
-      if (docSnap.exists()) {
-        const existingData = docSnap.data();
-        const currentEntries = Array.isArray(existingData?.entries) ? existingData.entries : [];
-        await setDoc(energyRef, {
-          id: docId,
-          userId: user.uid,
-          date: dateString,
-          entries: [...currentEntries, newEntry]
-        });
-      } else {
-        await setDoc(energyRef, {
-          id: docId,
-          userId: user.uid,
-          date: dateString,
-          entries: [newEntry]
-        });
-      }
-
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Energy entry added locally');
+        console.log('Energy entry added with timestamp:', newEntry.timestamp);
       }
     } catch (err) {
       console.error('Energy - Error al guardar:', err);
+      // Revertir actualización optimista en caso de error
+      setDailyEnergy(dailyEnergy);
       setError(err instanceof Error ? err.message : 'Error al guardar');
       setStatus('error');
     }
-  };
+  }, [user, selectedDate, dailyEnergy]);
 
-  const updateEntry = async (originalTimestamp: number, updatedEntry: EnergyEntry) => {
+  const updateEntry = useCallback(async (originalTimestamp: number, updatedEntry: EnergyEntry) => {
     if (!user || !dailyEnergy) return;
     setStatus('saving');
     setError(null);
-    const energyRef = doc(collection(db, 'energy'), dailyEnergy.id);
+
+    // Guardar estado original para revertir si falla
+    const originalData = dailyEnergy;
 
     try {
+      // Actualización optimista
       const updatedEntries = dailyEnergy.entries.map((e) =>
         e.timestamp === originalTimestamp ? updatedEntry : e
       );
-      await setDoc(energyRef, {
+      const optimisticData = {
         ...dailyEnergy,
         entries: updatedEntries
-      });
+      };
+      setDailyEnergy(optimisticData);
+
+      const energyRef = doc(collection(db, 'energy'), dailyEnergy.id);
+      firestoreLogger.logWrite('energy', 'useEnergyData.updateEntry', dailyEnergy.id);
+      await setDoc(energyRef, optimisticData);
+
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Energy entry updated locally');
+        console.log('Energy entry updated with timestamp:', originalTimestamp);
       }
     } catch (err) {
       console.error('Energy - Error al actualizar:', err);
+      // Revertir actualización optimista en caso de error
+      setDailyEnergy(originalData);
       setError(err instanceof Error ? err.message : 'Error al actualizar');
       setStatus('error');
     }
-  };
+  }, [user, dailyEnergy]);
 
-  const deleteEntry = async (timestamp: number) => {
+  const deleteEntry = useCallback(async (timestamp: number) => {
     if (!user || !dailyEnergy) return;
     setStatus('saving');
     setError(null);
-    const energyRef = doc(collection(db, 'energy'), dailyEnergy.id);
+
+    // Guardar estado original para revertir si falla
+    const originalData = dailyEnergy;
 
     try {
       const updatedEntries = dailyEnergy.entries.filter((e) => e.timestamp !== timestamp);
+      const energyRef = doc(collection(db, 'energy'), dailyEnergy.id);
+
+      // Actualización optimista
       if (updatedEntries.length === 0) {
-        await deleteDoc(energyRef);
         setDailyEnergy(null);
+        firestoreLogger.logDelete('energy', 'useEnergyData.deleteEntry', dailyEnergy.id);
+        await deleteDoc(energyRef);
       } else {
-        await setDoc(energyRef, {
+        const optimisticData = {
           ...dailyEnergy,
           entries: updatedEntries
-        });
+        };
+        setDailyEnergy(optimisticData);
+        firestoreLogger.logWrite('energy', 'useEnergyData.deleteEntry', dailyEnergy.id);
+        await setDoc(energyRef, optimisticData);
       }
+
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Energy entry deleted locally');
+        console.log('Energy entry deleted with timestamp:', timestamp);
       }
     } catch (err) {
       console.error('Energy - Error al eliminar:', err);
+      // Revertir actualización optimista en caso de error
+      setDailyEnergy(originalData);
       setError(err instanceof Error ? err.message : 'Error al eliminar');
       setStatus('error');
     }
-  };
+  }, [user, dailyEnergy]);
 
   const resync = useResync('Energy data');
 
@@ -181,6 +198,7 @@ export const useEnergyData = (selectedDate: Date) => {
     addEntry,
     updateEntry,
     deleteEntry,
+    loadEnergyData,
     resync
   };
 };

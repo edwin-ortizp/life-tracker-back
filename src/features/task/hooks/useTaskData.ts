@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -29,8 +29,8 @@ export const useTaskData = () => {
   const [modalMode, setModalMode] = useState<ModalMode>('create');
   const { user } = useAuth();
 
-  // Función para obtener solo tareas públicas (no privadas)
-  const getPublicTasks = () => tasks.filter(task => !task.isPrivate);
+  // Función para obtener solo tareas públicas (no privadas) - memoizada
+  const getPublicTasks = useCallback(() => tasks.filter(task => !task.isPrivate), [tasks]);
 
   // Manejar el cierre del modal
   const handleCloseModal = useCallback(() => {
@@ -109,11 +109,41 @@ export const useTaskData = () => {
     loadTasks();
   }, [loadTasks]);
 
-  const addTask = async (formData: TaskFormData) => {
+  const addTask = useCallback(async (formData: TaskFormData) => {
     if (!formData.title.trim() || !user) return;
 
     setStatus('saving');
     setError(null);
+
+    // Crear optimistically la nueva tarea
+    const optimisticTask: Task = {
+      id: `temp-${Date.now()}`, // ID temporal
+      title: formData.title.trim(),
+      description: formData.description?.trim() || '',
+      completed: false,
+      createdAt: { seconds: Date.now() / 1000 },
+      dueDate: formData.dueDate || undefined,
+      category: formData.category || 'other',
+      priority: formData.priority || 'delete',
+      size: formData.size || 'pequeña',
+      elapsedSeconds: 0,
+      progress: getCheckboxProgress(formData.description || ''),
+      isRecurrent: formData.isRecurrent || false,
+      isPrivate: formData.isPrivate || false,
+      ...(formData.timeOfDay && { timeOfDay: formData.timeOfDay }),
+      ...(formData.estimatedTime !== undefined && { estimatedTime: formData.estimatedTime }),
+      ...(formData.recurrence && { recurrence: formData.recurrence })
+    };
+
+    // Actualización optimista
+    setTasks(prev => [...prev, optimisticTask].sort((a, b) => {
+      if (a.dueDate && b.dueDate) {
+        return a.dueDate.getTime() - b.dueDate.getTime();
+      }
+      if (a.dueDate) return -1;
+      if (b.dueDate) return 1;
+      return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+    }));
 
     try {
       const taskData: any = {
@@ -155,28 +185,74 @@ export const useTaskData = () => {
       }
 
       firestoreLogger.logWrite('tasks', 'useTaskData.addTask');
-      await addDoc(collection(db, 'tasks'), taskData);
+      const docRef = await addDoc(collection(db, 'tasks'), taskData);
       
-      // Recargar tareas después de agregar
-      await loadTasks();
+      // Actualizar con el ID real del documento
+      setTasks(prev => prev.map(task => 
+        task.id === optimisticTask.id 
+          ? { ...task, id: docRef.id }
+          : task
+      ));
       
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Task added locally');
+        console.log('Task added with ID:', docRef.id);
       }
     } catch (error) {
       console.error('Error al guardar:', error);
+      // Revertir actualización optimista en caso de error
+      setTasks(prev => prev.filter(task => task.id !== optimisticTask.id));
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
     }
-  };
+  }, [user]);
 
-  const editTask = async (taskId: string, updates: Partial<TaskFormData>) => {
+  const editTask = useCallback(async (taskId: string, updates: Partial<TaskFormData>) => {
     if (!user) return;
 
     setStatus('saving');
-    try {
-      const taskRef = doc(db, 'tasks', taskId);
+    
+    // Guardar tarea original para revertir si falla
+    const originalTask = tasks.find(t => t.id === taskId);
+    if (!originalTask) return;
 
+    try {
+      // Actualización optimista
+      const updatedTask: Task = {
+        ...originalTask,
+        ...(updates.title?.trim() && { title: updates.title.trim() }),
+        ...(typeof updates.description === 'string' && { description: updates.description.trim() }),
+        ...(updates.dueDate !== undefined && { dueDate: updates.dueDate || undefined }),
+        ...(updates.category && { category: updates.category }),
+        ...(updates.priority && { priority: updates.priority }),
+        ...(updates.size && { size: updates.size }),
+        ...(updates.estimatedTime !== undefined && { estimatedTime: updates.estimatedTime }),
+        ...(updates.timeOfDay && { timeOfDay: updates.timeOfDay }),
+        ...(updates.isPrivate !== undefined && { isPrivate: updates.isPrivate }),
+        ...(updates.isRecurrent !== undefined && { isRecurrent: updates.isRecurrent }),
+        ...(updates.recurrence && { recurrence: updates.recurrence })
+      };
+
+      // Actualizar progreso basado en checkboxes
+      updatedTask.progress = getCheckboxProgress(
+        typeof updates.description === 'string'
+          ? updates.description
+          : originalTask.description || ''
+      );
+
+      // Actualizar localmente
+      setTasks(prev => prev.map(task => 
+        task.id === taskId ? updatedTask : task
+      ).sort((a, b) => {
+        if (a.dueDate && b.dueDate) {
+          return a.dueDate.getTime() - b.dueDate.getTime();
+        }
+        if (a.dueDate) return -1;
+        if (b.dueDate) return 1;
+        return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+      }));
+
+      const taskRef = doc(db, 'tasks', taskId);
       const updateData: any = {
         updatedAt: serverTimestamp()
       };
@@ -222,31 +298,28 @@ export const useTaskData = () => {
         }
       }
 
-      const existing = tasks.find(t => t.id === taskId);
-      updateData.progress = getCheckboxProgress(
-        typeof updates.description === 'string'
-          ? updates.description
-          : existing?.description || ''
-      );
+      updateData.progress = updatedTask.progress;
 
       firestoreLogger.logWrite('tasks', 'useTaskData.editTask', taskId);
       await updateDoc(taskRef, updateData);
       
-      // Recargar tareas después de editar
-      await loadTasks();
-      
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Task updated locally');
+        console.log('Task updated with ID:', taskId);
       }
-      handleCloseModal(); // Cerrar el modal después de guardar exitosamente
+      handleCloseModal();
     } catch (error) {
       console.error('Error al actualizar:', error);
+      // Revertir actualización optimista en caso de error
+      setTasks(prev => prev.map(task => 
+        task.id === taskId ? originalTask : task
+      ));
       setError(error instanceof Error ? error.message : 'Error al actualizar');
       setStatus('error');
     }
-  };
+  }, [user, tasks, handleCloseModal]);
 
-  const toggleTask = async (taskId: string, completed: boolean) => {
+  const toggleTask = useCallback(async (taskId: string, completed: boolean) => {
     if (!user) return;
 
     setStatus('saving');
@@ -256,6 +329,11 @@ export const useTaskData = () => {
       if (!task) throw new Error('Tarea no encontrada');
       
       if (!task.isRecurrent) {
+        // Actualización optimista - remover de la lista si se completa
+        if (completed) {
+          setTasks(prev => prev.filter(t => t.id !== taskId));
+        }
+
         const taskRef = doc(db, 'tasks', taskId);
         firestoreLogger.logWrite('tasks', 'useTaskData.toggleTask', taskId);
         await updateDoc(taskRef, {
@@ -263,11 +341,9 @@ export const useTaskData = () => {
           updatedAt: serverTimestamp()
         });
         
-        // Recargar tareas después de toggle
-        await loadTasks();
-        
+        setStatus('saved');
         if (import.meta.env.DEV) {
-          console.log('Task toggled locally');
+          console.log('Task toggled with ID:', taskId);
         }
         return;
       }
@@ -277,38 +353,98 @@ export const useTaskData = () => {
       setShowRecurrenceModal(true);
     } catch (error) {
       console.error('Error al actualizar estado:', error);
+      // Revertir actualización optimista en caso de error
+      if (completed) {
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+          setTasks(prev => [...prev, task]);
+        }
+      }
       setError(error instanceof Error ? error.message : 'Error al actualizar');
       setStatus('error');
     }
-  };
+  }, [user, tasks]);
 
-  const deleteTask = async (taskId: string) => {
+  const deleteTask = useCallback(async (taskId: string) => {
     if (!user) return;
 
     setStatus('saving');
     
+    // Guardar la tarea para poder revertir si falla
+    const taskToDelete = tasks.find(t => t.id === taskId);
+    if (!taskToDelete) return;
+    
     try {
+      // Actualización optimista - remover de la lista inmediatamente
+      setTasks(prev => prev.filter(t => t.id !== taskId));
+      
       firestoreLogger.logDelete('tasks', 'useTaskData.deleteTask', taskId);
       await deleteDoc(doc(db, 'tasks', taskId));
       
-      // Recargar tareas después de eliminar
-      await loadTasks();
-      
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Task deleted locally');
+        console.log('Task deleted with ID:', taskId);
       }
     } catch (error) {
       console.error('Error al eliminar:', error);
+      // Revertir actualización optimista en caso de error
+      setTasks(prev => [...prev, taskToDelete].sort((a, b) => {
+        if (a.dueDate && b.dueDate) {
+          return a.dueDate.getTime() - b.dueDate.getTime();
+        }
+        if (a.dueDate) return -1;
+        if (b.dueDate) return 1;
+        return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+      }));
       setError(error instanceof Error ? error.message : 'Error al eliminar');
       setStatus('error');
     }
-  };
+  }, [user, tasks]);
 
-  const completeRecurrentTask = async (data: TaskFormData) => {
+  const completeRecurrentTask = useCallback(async (data: TaskFormData) => {
     if (!currentTask || !user) return;
 
     setStatus('saving');
+    
+    // Crear la siguiente tarea optimistically
+    const nextTask: Task = {
+      id: `temp-${Date.now()}`,
+      title: currentTask.title,
+      description: data.description?.trim() || currentTask.description || '',
+      completed: false,
+      createdAt: { seconds: Date.now() / 1000 },
+      dueDate: data.dueDate || undefined,
+      isRecurrent: true,
+      category: currentTask.category,
+      priority: currentTask.priority || 'delete',
+      size: currentTask.size || 'pequeña',
+      elapsedSeconds: 0,
+      progress: getCheckboxProgress(data.description?.trim() || currentTask.description || ''),
+      isPrivate: currentTask.isPrivate || false,
+      ...(data.timeOfDay && { timeOfDay: data.timeOfDay }),
+      recurrence: {
+        pattern: currentTask.recurrence?.pattern || 'daily',
+        frequency: currentTask.recurrence?.frequency || 1,
+        ...(currentTask.recurrence?.pattern === 'custom' && {
+          customDays: currentTask.recurrence.customDays
+        })
+      }
+    };
+
     try {
+      // Actualización optimista - remover tarea actual y agregar siguiente
+      setTasks(prev => {
+        const filtered = prev.filter(t => t.id !== currentTask.id);
+        return [...filtered, nextTask].sort((a, b) => {
+          if (a.dueDate && b.dueDate) {
+            return a.dueDate.getTime() - b.dueDate.getTime();
+          }
+          if (a.dueDate) return -1;
+          if (b.dueDate) return 1;
+          return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+        });
+      });
+
       const taskRef = doc(db, 'tasks', currentTask.id);
       
       // Marcamos la tarea actual como completada
@@ -347,22 +483,39 @@ export const useTaskData = () => {
       nextTaskData.progress = getCheckboxProgress(nextTaskData.description || '');
 
       firestoreLogger.logWrite('tasks', 'useTaskData.completeRecurrentTask.next');
-      await addDoc(collection(db, 'tasks'), nextTaskData);
+      const docRef = await addDoc(collection(db, 'tasks'), nextTaskData);
       
-      // Recargar tareas después de completar recurrente
-      await loadTasks();
+      // Actualizar con el ID real del documento
+      setTasks(prev => prev.map(task => 
+        task.id === nextTask.id 
+          ? { ...task, id: docRef.id }
+          : task
+      ));
       
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Next task created locally');
+        console.log('Recurrent task completed and next created with ID:', docRef.id);
       }
 
-      handleCloseModal(); // Usar el nuevo manejador de cierre
+      handleCloseModal();
     } catch (error) {
       console.error('Error al procesar tarea recurrente:', error);
+      // Revertir actualización optimista en caso de error
+      setTasks(prev => {
+        const filtered = prev.filter(t => t.id !== nextTask.id);
+        return [...filtered, currentTask].sort((a, b) => {
+          if (a.dueDate && b.dueDate) {
+            return a.dueDate.getTime() - b.dueDate.getTime();
+          }
+          if (a.dueDate) return -1;
+          if (b.dueDate) return 1;
+          return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+        });
+      });
       setError(error instanceof Error ? error.message : 'Error al actualizar tarea recurrente');
       setStatus('error');
     }
-  };
+  }, [currentTask, user, handleCloseModal]);
 
   const openCreateModal = useCallback((dueDate?: Date | null, isPrivate?: boolean) => {
     setModalMode('create');
@@ -382,17 +535,21 @@ export const useTaskData = () => {
     setShowRecurrenceModal(true);
   }, []);
 
-  const openEditModal = (task: Task) => {
+  const openEditModal = useCallback((task: Task) => {
     setCurrentTask(task);
     setModalMode('edit');
     setShowRecurrenceModal(true);
     setStatus('idle'); // Asegurarnos de que el estado esté en idle al abrir el modal
-  };
+  }, []);
 
   const resync = useResync('Task data');
-  
-  return {
-    tasks: getPublicTasks(), // Solo devolver tareas públicas por defecto
+
+  // Memoizar tareas públicas para evitar recálculos innecesarios
+  const publicTasks = useMemo(() => tasks.filter(task => !task.isPrivate), [tasks]);
+
+  // Memoizar objeto de retorno para evitar re-renders innecesarios
+  return useMemo(() => ({
+    tasks: publicTasks, // Solo devolver tareas públicas por defecto
     allTasks: tasks, // Disponible para casos especiales como PrivateTaskSection
     status,
     error,
@@ -410,5 +567,23 @@ export const useTaskData = () => {
     getPublicTasks,
     loadTasks, // Exponer función de recarga manual
     resync
-  };
+  }), [
+    publicTasks,
+    tasks,
+    status,
+    error,
+    showRecurrenceModal,
+    currentTask,
+    modalMode,
+    addTask,
+    editTask,
+    toggleTask,
+    deleteTask,
+    completeRecurrentTask,
+    handleCloseModal,
+    openCreateModal,
+    getPublicTasks,
+    loadTasks,
+    resync
+  ]);
 };

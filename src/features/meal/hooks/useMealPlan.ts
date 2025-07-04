@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import {
   doc,
   setDoc,
-  onSnapshot,
+  getDoc,
   serverTimestamp,
   collection,
   query,
@@ -12,6 +12,7 @@ import {
   getDocs,
   writeBatch
 } from 'firebase/firestore';
+import { firestoreLogger } from '@/utils/firestore-logger';
 import { useResync } from '@/hooks/useResync';
 import { MealPlan, Meal, MealPlanEntry } from '../types';
 import { getCurrentYearMonth } from '../utils/dateUtils';
@@ -37,51 +38,30 @@ export const useMealPlan = () => {
     ...monthPlan
   }), {});
 
-  useEffect(() => {
+  // Cargar planes de comida (carga inicial única)
+  const loadMealPlans = useCallback(async () => {
     if (!user) return;
 
     setStatus('loading');
+    setError(null);
     const yearMonth = getCurrentYearMonth();
-    const currentMonthRef = doc(db, 'meals', `${user.uid}_${yearMonth}`);
-    
-    const unsubscribe = onSnapshot(currentMonthRef,
-      (doc) => {
-        if (doc.exists()) {
-          const data = doc.data() as MonthlyMealPlan;
-          setMonthlyMealPlans(prev => ({
-            ...prev,
-            [yearMonth]: data.meals || {}
-          }));
 
-          if (import.meta.env.DEV) {
-            console.log('Meal plan snapshot', {
-              fromCache: doc.metadata.fromCache,
-              pending: doc.metadata.hasPendingWrites
-            });
-          }
+    try {
+      let newMonthlyMealPlans: Record<string, MealPlan> = {};
 
-          if (doc.metadata.hasPendingWrites) {
-            setStatus('pending');
-          } else {
-            setStatus('saved');
-          }
-        } else {
-          setMonthlyMealPlans(prev => ({
-            ...prev,
-            [yearMonth]: {}
-          }));
-          setStatus('saved');
-        }
-      },
-      (error) => {
-        console.error('Error loading meal plan:', error);
-        setError(error instanceof Error ? error.message : 'Error al cargar el plan');
-        setStatus('error');
+      // Cargar mes actual
+      firestoreLogger.logRead('meals', 'useMealPlan.loadCurrentMonth');
+      const currentMonthRef = doc(db, 'meals', `${user.uid}_${yearMonth}`);
+      const currentMonthDoc = await getDoc(currentMonthRef);
+      
+      if (currentMonthDoc.exists()) {
+        const data = currentMonthDoc.data() as MonthlyMealPlan;
+        newMonthlyMealPlans[yearMonth] = data.meals || {};
+      } else {
+        newMonthlyMealPlans[yearMonth] = {};
       }
-    );
 
-    // Fetch other visible months if needed
-    const fetchVisibleMonths = async () => {
+      // Cargar otros meses visibles
       const visibleMonths = getVisibleMonths();
       const mealsCollectionRef = collection(db, 'meals');
       
@@ -89,6 +69,7 @@ export const useMealPlan = () => {
         if (month === yearMonth) continue;
         
         try {
+          firestoreLogger.logRead('meals', `useMealPlan.loadMonth_${month}`);
           const q = query(mealsCollectionRef, 
             where('userId', '==', user.uid),
             where('yearMonth', '==', month)
@@ -99,28 +80,34 @@ export const useMealPlan = () => {
           if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
               const data = doc.data() as MonthlyMealPlan;
-              setMonthlyMealPlans(prev => ({
-                ...prev,
-                [month]: data.meals || {}
-              }));
+              newMonthlyMealPlans[month] = data.meals || {};
             });
           } else {
-            setMonthlyMealPlans(prev => ({
-              ...prev,
-              [month]: {}
-            }));
+            newMonthlyMealPlans[month] = {};
           }
         } catch (error) {
           console.error(`Error fetching month ${month}:`, error);
         }
       }
-    };
 
-    fetchVisibleMonths();
-    return () => unsubscribe();
+      setMonthlyMealPlans(newMonthlyMealPlans);
+      setStatus('saved');
+      
+      if (import.meta.env.DEV) {
+        console.log('Meal plans loaded for months:', Object.keys(newMonthlyMealPlans));
+      }
+    } catch (error) {
+      console.error('Error loading meal plans:', error);
+      setError(error instanceof Error ? error.message : 'Error al cargar el plan');
+      setStatus('error');
+    }
   }, [user]);
 
-  const addMeal = async (date: string, type: Meal['type'], meal: Omit<Meal, 'id'>) => {
+  useEffect(() => {
+    loadMealPlans();
+  }, [loadMealPlans]);
+
+  const addMeal = useCallback(async (date: string, type: Meal['type'], meal: Omit<Meal, 'id'>) => {
     if (!user) return;
 
     setStatus('saving');
@@ -130,12 +117,15 @@ export const useMealPlan = () => {
     const yearMonth = `${year}-${month}`;
     const mealId = `${date}_${type}`;
     
+    // Guardar estado original para revertir si falla
+    const originalMonthPlan = monthlyMealPlans[yearMonth] || {};
+
     try {
-      const currentMonthMeals = monthlyMealPlans[yearMonth] || {};
+      // Actualización optimista
       const newMealPlan = {
-        ...currentMonthMeals,
+        ...originalMonthPlan,
         [date]: {
-          ...currentMonthMeals[date],
+          ...originalMonthPlan[date],
           [type]: {
             id: mealId,
             ...meal
@@ -149,6 +139,7 @@ export const useMealPlan = () => {
       }));
       
       const docRef = doc(db, 'meals', `${user.uid}_${yearMonth}`);
+      firestoreLogger.logWrite('meals', 'useMealPlan.addMeal');
       await setDoc(docRef, {
         userId: user.uid,
         yearMonth,
@@ -156,18 +147,24 @@ export const useMealPlan = () => {
         updatedAt: serverTimestamp()
       }, { merge: true });
 
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Meal added locally');
+        console.log('Meal added for date:', date, 'type:', type);
       }
     } catch (error) {
       console.error('Error adding meal:', error);
+      // Revertir actualización optimista en caso de error
+      setMonthlyMealPlans(prev => ({
+        ...prev,
+        [yearMonth]: originalMonthPlan
+      }));
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
       throw error;
     }
-  };
+  }, [user, monthlyMealPlans]);
 
-  const removeMeal = async (date: string, type: Meal['type']) => {
+  const removeMeal = useCallback(async (date: string, type: Meal['type']) => {
     if (!user) return;
 
     setStatus('saving');
@@ -176,9 +173,12 @@ export const useMealPlan = () => {
     const [year, month] = date.split('-');
     const yearMonth = `${year}-${month}`;
     
+    // Guardar estado original para revertir si falla
+    const originalMonthPlan = monthlyMealPlans[yearMonth] || {};
+
     try {
-      // Crear una copia profunda del estado actual
-      const currentMonthMeals = JSON.parse(JSON.stringify(monthlyMealPlans[yearMonth] || {}));
+      // Actualización optimista
+      const currentMonthMeals = JSON.parse(JSON.stringify(originalMonthPlan));
       
       if (currentMonthMeals[date]) {
         // Eliminar la comida específica
@@ -201,6 +201,7 @@ export const useMealPlan = () => {
       
       // Actualizar Firestore
       const docRef = doc(db, 'meals', `${user.uid}_${yearMonth}`);
+      firestoreLogger.logWrite('meals', 'useMealPlan.removeMeal');
       await setDoc(docRef, {
         userId: user.uid,
         yearMonth,
@@ -208,22 +209,31 @@ export const useMealPlan = () => {
         updatedAt: serverTimestamp()
       });
 
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Meal removed locally');
+        console.log('Meal removed for date:', date, 'type:', type);
       }
     } catch (error) {
       console.error('Error removing meal:', error);
+      // Revertir actualización optimista en caso de error
+      setMonthlyMealPlans(prev => ({
+        ...prev,
+        [yearMonth]: originalMonthPlan
+      }));
       setError(error instanceof Error ? error.message : 'Error al eliminar');
       setStatus('error');
       throw error;
     }
-  };
+  }, [user, monthlyMealPlans]);
 
-  const importMealPlan = async (newMealPlan: MealPlan) => {
+  const importMealPlan = useCallback(async (newMealPlan: MealPlan) => {
     if (!user) return;
 
     setStatus('saving');
     setError(null);
+
+    // Guardar estado original para revertir si falla
+    const originalMonthlyMealPlans = monthlyMealPlans;
 
     try {
       const mealsByMonth = Object.entries(newMealPlan).reduce((acc, [date, meals]) => {
@@ -247,6 +257,7 @@ export const useMealPlan = () => {
         return acc;
       }, {} as Record<string, MealPlan>);
 
+      // Actualización optimista
       setMonthlyMealPlans(prev => ({
         ...prev,
         ...mealsByMonth
@@ -264,17 +275,22 @@ export const useMealPlan = () => {
         }, { merge: true });
       });
 
+      firestoreLogger.logWrite('meals', 'useMealPlan.importMealPlan');
       await batch.commit();
+      
+      setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Meal plan imported locally');
+        console.log('Meal plan imported for months:', Object.keys(mealsByMonth));
       }
     } catch (error) {
       console.error('Error importing meal plan:', error);
+      // Revertir actualización optimista en caso de error
+      setMonthlyMealPlans(originalMonthlyMealPlans);
       setError(error instanceof Error ? error.message : 'Error al importar');
       setStatus('error');
       throw error;
     }
-  };
+  }, [user, monthlyMealPlans]);
 
   const resync = useResync('Meal plan');
 
@@ -285,6 +301,7 @@ export const useMealPlan = () => {
     addMeal,
     removeMeal,
     importMealPlan,
+    loadMealPlans,
     resync
   };
 };
