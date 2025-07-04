@@ -90,30 +90,32 @@ export const useExerciseData = (selectedDate: Date) => {
     const date = getLocalDateString(selectedDate);
     const docRef = doc(db, 'exercises', `${user.uid}_${date}`);
 
+    // Optimistic update: update UI immediately
+    const newExercises = exerciseDoc?.exercises || [];
+    newExercises.push(newExercise);
+    const summary = calculateSummary(newExercises);
+    const optimisticDoc: ExerciseDocument = {
+      userId: user.uid,
+      date,
+      exercises: newExercises,
+      summary,
+      createdAt: exerciseDoc?.createdAt || serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+    
+    setExerciseDoc(optimisticDoc);
+    setStatus('saved');
+
     try {
-      const newExercises = exerciseDoc?.exercises || [];
-      newExercises.push(newExercise);
-
-      const summary = calculateSummary(newExercises);
-      const newDoc: ExerciseDocument = {
-        userId: user.uid,
-        date,
-        exercises: newExercises,
-        summary,
-        createdAt: exerciseDoc?.createdAt || serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
-
       firestoreLogger.logWrite('exercises', 'useExerciseData.logExercise', `${user.uid}_${date}`);
-      await setDoc(docRef, newDoc);
-      
-      // Recargar datos después de guardar
-      await loadExerciseData();
+      await setDoc(docRef, optimisticDoc);
       
       if (import.meta.env.DEV) {
-        console.log('Exercise logged locally');
+        console.log('Exercise logged successfully');
       }
     } catch (error) {
+      // Rollback on error
+      setExerciseDoc(exerciseDoc);
       setError(error instanceof Error ? error.message : 'Error al guardar ejercicio');
       setStatus('error');
     }
@@ -125,31 +127,36 @@ export const useExerciseData = (selectedDate: Date) => {
     setStatus('saving');
     setError(null);
 
+    // Save previous state for rollback
+    const previousDoc = exerciseDoc;
+    
+    // Optimistic update: update UI immediately
+    const updatedExercises = [...exerciseDoc.exercises];
+    updatedExercises[index] = { ...updatedExercises[index], ...updates };
+    const summary = calculateSummary(updatedExercises);
+    const updatedDoc: ExerciseDocument = {
+      ...exerciseDoc,
+      exercises: updatedExercises,
+      summary,
+      updatedAt: serverTimestamp()
+    };
+    
+    setExerciseDoc(updatedDoc);
+    setStatus('saved');
+
     try {
       const date = getLocalDateString(selectedDate);
       const docRef = doc(db, 'exercises', `${user.uid}_${date}`);
-
-      const updatedExercises = [...exerciseDoc.exercises];
-      updatedExercises[index] = { ...updatedExercises[index], ...updates };
-
-      const summary = calculateSummary(updatedExercises);
-      const updatedDoc: ExerciseDocument = {
-        ...exerciseDoc,
-        exercises: updatedExercises,
-        summary,
-        updatedAt: serverTimestamp()
-      };
-
+      
       firestoreLogger.logWrite('exercises', 'useExerciseData.updateExerciseLog', `${user.uid}_${date}`);
       await setDoc(docRef, updatedDoc);
       
-      // Recargar datos después de actualizar
-      await loadExerciseData();
-      
       if (import.meta.env.DEV) {
-        console.log('Exercise log updated locally');
+        console.log('Exercise log updated successfully');
       }
     } catch (error) {
+      // Rollback on error
+      setExerciseDoc(previousDoc);
       setError(error instanceof Error ? error.message : 'Error al actualizar ejercicio');
       setStatus('error');
     }
@@ -161,11 +168,30 @@ export const useExerciseData = (selectedDate: Date) => {
     setStatus('saving');
     setError(null);
 
+    // Save previous state for rollback
+    const previousDoc = exerciseDoc;
+    
+    // Optimistic update: update UI immediately
+    const updatedExercises = exerciseDoc.exercises.filter((_, i) => i !== index);
+    
+    if (updatedExercises.length === 0) {
+      setExerciseDoc(null);
+    } else {
+      const summary = calculateSummary(updatedExercises);
+      const updatedDoc: ExerciseDocument = {
+        ...exerciseDoc,
+        exercises: updatedExercises,
+        summary,
+        updatedAt: serverTimestamp()
+      };
+      setExerciseDoc(updatedDoc);
+    }
+    
+    setStatus('saved');
+
     try {
       const date = getLocalDateString(selectedDate);
       const docRef = doc(db, 'exercises', `${user.uid}_${date}`);
-
-      const updatedExercises = exerciseDoc.exercises.filter((_, i) => i !== index);
       
       if (updatedExercises.length === 0) {
         // Si no quedan ejercicios, eliminar el documento completo
@@ -184,13 +210,12 @@ export const useExerciseData = (selectedDate: Date) => {
         await setDoc(docRef, updatedDoc);
       }
 
-      // Recargar datos después de eliminar
-      await loadExerciseData();
-
       if (import.meta.env.DEV) {
-        console.log('Exercise log deleted locally');
+        console.log('Exercise log deleted successfully');
       }
     } catch (error) {
+      // Rollback on error
+      setExerciseDoc(previousDoc);
       setError(error instanceof Error ? error.message : 'Error al eliminar ejercicio');
       setStatus('error');
     }

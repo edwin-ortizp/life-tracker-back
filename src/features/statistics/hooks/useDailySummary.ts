@@ -11,7 +11,6 @@ import {
   query,
   where,
   getDocs,
-  onSnapshot,
   Timestamp
 } from 'firebase/firestore';
 import { getLocalDateString } from '@/utils/dates';
@@ -401,131 +400,10 @@ const emptySummary: DailySummaryData = {
   water: { intake: 0, drinkDetails: [] }
 };
 
-// Función reutilizable para crear listeners de una fecha específica
-export const createDayListeners = (
-  uid: string,
-  date: Date,
-  onDataUpdate: (data: DailySummaryData) => void
-): (() => void)[] => {
-  const dateStr = getLocalDateString(date);
-  const [year, month] = dateStr.split('-');
-  const todayStartTimestamp = Timestamp.fromDate(startOfDay(date));
-  const todayEndTimestamp = Timestamp.fromDate(endOfDay(date));
-
-  // Listener setup logs removed to reduce console spam
-
-  // Referencias a documentos
-  const journalRef = doc(db, 'journal', `${uid}_${dateStr}`);
-  const moodRef = doc(db, 'moods', `${uid}_${dateStr}`);
-  const waterRef = doc(db, 'water', `${uid}_${dateStr}`);
-  const exerciseRef = doc(db, 'exercises', `${uid}_${dateStr}`);
-  const pomodoroRef = doc(db, 'pomodoro', `${uid}_${dateStr}`);
-  const habitRef = doc(db, 'habits', `${uid}_${year}-${month}`);
-  const negativeRef = doc(db, 'negative-habits', `${uid}_${year}-${month}`);
-
-  // Pomodoro document ID: ${uid}_${dateStr}
-
-  // Estado temporal para almacenar los datos
-  let journalData: any = null;
-  let moodData: any = null;
-  let waterData: any = null;
-  let exerciseData: any = null;
-  let pomodoroData: any = null;
-  let habitData: any = null;
-  let negativeData: any = null;
-  let completedTasksTodayData: any[] = [];
-  let dueTodayTasksData: any[] = [];
-  let incompleteTasksData: any[] = [];
-
-  // Función para recalcular el resumen
-  const updateSummary = () => {
-    const summary = createDailySummaryFromData(
-      date,
-      dateStr,
-      journalData,
-      moodData,
-      waterData,
-      exerciseData,
-      pomodoroData,
-      habitData,
-      negativeData,
-      completedTasksTodayData,
-      dueTodayTasksData,
-      incompleteTasksData
-    );
-    onDataUpdate(summary);
-  };
-
-  const unsubscribes: (() => void)[] = [];
-
-  // Journal listener
-  unsubscribes.push(onSnapshot(journalRef, (doc) => {
-    journalData = doc.exists() ? doc.data() : null;
-    updateSummary();
-  }, (error) => console.error('❌ Journal listener error:', error)));
-
-  // Mood listener
-  unsubscribes.push(onSnapshot(moodRef, (doc) => {
-    moodData = doc.exists() ? doc.data() : null;
-    updateSummary();
-  }, (error) => console.error('❌ Mood listener error:', error)));
-
-  // Water listener
-  unsubscribes.push(onSnapshot(waterRef, (doc) => {
-    waterData = doc.exists() ? doc.data() : null;
-    updateSummary();
-  }, (error) => console.error('❌ Water listener error:', error)));
-
-  // Exercise listener
-  unsubscribes.push(onSnapshot(exerciseRef, (doc) => {
-    exerciseData = doc.exists() ? doc.data() : null;
-    updateSummary();
-  }, (error) => console.error('❌ Exercise listener error:', error)));  // Pomodoro listener
-  unsubscribes.push(onSnapshot(pomodoroRef, (doc) => {
-    pomodoroData = doc.exists() ? doc.data() : null;
-    updateSummary();
-  }, (error) => console.error('❌ Pomodoro listener error:', error)));
-
-  // Habits listener
-  unsubscribes.push(onSnapshot(habitRef, (doc) => {
-    habitData = doc.exists() ? doc.data() : null;
-    updateSummary();
-  }, (error) => console.error('❌ Habit listener error:', error)));
-
-  // Negative habits listener
-  unsubscribes.push(onSnapshot(negativeRef, (doc) => {
-    negativeData = doc.exists() ? doc.data() : null;
-    updateSummary();
-  }, (error) => console.error('❌ Negative habit listener error:', error)));
-
-  // Single optimized listener for all user tasks - filter client-side
-  const allUserTasksQuery = query(
-    collection(db, 'tasks'),
-    where('userId', '==', uid)
-  );
-  unsubscribes.push(onSnapshot(allUserTasksQuery, (snapshot) => {
-    const allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
-    
-    // Filter tasks client-side to reduce Firebase queries
-    completedTasksTodayData = allTasks.filter((task: any) => {
-      if (!task.completed || !task.updatedAt) return false;
-      const updatedDate = task.updatedAt.toDate();
-      return updatedDate >= todayStartTimestamp.toDate() && updatedDate <= todayEndTimestamp.toDate();
-    });
-    
-    dueTodayTasksData = allTasks.filter((task: any) => {
-      if (!task.dueDate) return false;
-      const dueDate = task.dueDate.toDate();
-      return dueDate >= todayStartTimestamp.toDate() && dueDate <= todayEndTimestamp.toDate();
-    });
-    
-    incompleteTasksData = allTasks.filter((task: any) => !task.completed);
-    
-    updateSummary();
-  }, (error) => console.error('❌ Task listener error (all tasks):', error)));
-
-  return unsubscribes;
-};
+// ⚠️ LEGACY CODE REMOVED: createDayListeners function eliminated
+// This function created 8 onSnapshot listeners per day and was causing
+// massive Firestore operations (56 listeners for weekly summaries).
+// Replaced with single-load pattern using fetchDailySummary.
 
 // Función reutilizable para crear un resumen diario a partir de datos
 export const createDailySummaryFromData = (

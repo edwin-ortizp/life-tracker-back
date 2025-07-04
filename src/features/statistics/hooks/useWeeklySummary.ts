@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { getLocalDateString } from '@/utils/dates';
 import { 
   DailySummaryData, 
-  createDayListeners
+  fetchDailySummary
 } from './useDailySummary';
 
 export interface WeeklySummaryData {
@@ -29,34 +29,41 @@ export const useWeeklySummary = (startDate: Date) => {
     totals: { ...emptySummary }
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  // Función para cargar datos de la semana (carga única)
+  const loadWeeklySummary = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
     }
 
-    // Setting up weekly listeners
-    
     setLoading(true);
+    setError(null);
 
-    // Generar las 7 fechas de la semana
-    const weekDates: Date[] = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(startDate);
-      d.setDate(startDate.getDate() + i);
-      weekDates.push(d);
-    }
+    try {
+      // Generar las 7 fechas de la semana
+      const weekDates: Date[] = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        weekDates.push(d);
+      }
 
-    // Estado para almacenar los datos de cada día
-    const weeklyData: { [dateStr: string]: DailySummaryData } = {};
+      // Cargar datos de todos los días en paralelo
+      const dailyPromises = weekDates.map(date => 
+        fetchDailySummary(user.uid, date)
+      );
 
-    // Función para recalcular el resumen semanal
-    const updateWeeklySummary = () => {
+      const dailyResults = await Promise.all(dailyPromises);
+
+      // Procesar resultados
       const daily: { date: string; summary: DailySummaryData }[] = [];
-      const totals = { ...emptySummary };      weekDates.forEach(date => {
+      const totals = { ...emptySummary };
+
+      weekDates.forEach((date, index) => {
         const dateStr = getLocalDateString(date);
-        const daySummary = weeklyData[dateStr] || { ...emptySummary };
+        const daySummary = dailyResults[index];
         daily.push({ date: dateStr, summary: daySummary });
 
         // Sumar a los totales (valores acumulativos)
@@ -96,38 +103,26 @@ export const useWeeklySummary = (startDate: Date) => {
       totals.pomodoro.completionRate = parseFloat(totals.pomodoro.completionRate.toFixed(1));
       totals.pomodoro.averageSessionLength = parseFloat(totals.pomodoro.averageSessionLength.toFixed(1));
 
-      // Weekly summary updated
       setSummary({ daily, totals });
       setLoading(false);
-    };
 
-    // Arrays para almacenar todos los unsubscribes
-    const allUnsubscribes: (() => void)[] = [];
-
-    // Configurar listeners para cada día de la semana
-    weekDates.forEach(date => {
-      const dateStr = getLocalDateString(date);
-
-      // Función para actualizar los datos de este día específico
-      const updateDayData = (dayData: DailySummaryData) => {
-        weeklyData[dateStr] = dayData;
-        updateWeeklySummary();
-      };
-
-      // Crear listeners para este día y agregar a la lista de cleanup
-      const dayUnsubscribes = createDayListeners(user.uid, date, updateDayData);
-      allUnsubscribes.push(...dayUnsubscribes);
-    });
-
-    // Cleanup function
-    return () => {
-      allUnsubscribes.forEach(unsubscribe => unsubscribe());
-    };
+      if (import.meta.env.DEV) {
+        console.log('📊 Weekly summary loaded for dates:', weekDates.map(d => getLocalDateString(d)));
+      }
+    } catch (err) {
+      console.error('Error loading weekly summary:', err);
+      setError(err instanceof Error ? err.message : 'Error loading weekly summary');
+      setLoading(false);
+    }
   }, [user, startDate]);
 
-  const refetch = () => {
-    // Weekly refetch requested - listeners will automatically update
-  };
+  useEffect(() => {
+    loadWeeklySummary();
+  }, [loadWeeklySummary]);
 
-  return { summary, loading, refetch };
+  const refetch = useCallback(() => {
+    loadWeeklySummary();
+  }, [loadWeeklySummary]);
+
+  return { summary, loading, error, refetch };
 };

@@ -70,6 +70,9 @@ export const useMoodData = (selectedDate: Date) => {
     const docId = `${user.uid}_${dateString}`;
     const moodRef = doc(collection(db, 'moods'), docId);
 
+    // Save previous state for rollback
+    const previousState = dailyMood;
+
     try {
       const now = new Date();
       const formattedTimestamp = createFormattedTimestamp(
@@ -86,41 +89,39 @@ export const useMoodData = (selectedDate: Date) => {
           hour: '2-digit', 
           minute: '2-digit' 
         }),
-        value: getMoodValue(mood.text) // <-- Aquí se agrega el valor numérico del mood
+        value: getMoodValue(mood.text)
       };
 
-      const docSnap = await getDoc(moodRef);
+      // Optimistic update: update UI immediately
+      const currentMoods = dailyMood?.moods || [];
+      const updatedMoods = [...currentMoods, newMoodEntry];
       
-      if (docSnap.exists()) {
-        const existingData = docSnap.data();
-        // Verificamos que exista el array de moods
-        const currentMoods = Array.isArray(existingData?.moods) ? existingData.moods : [];
-        
-        firestoreLogger.logWrite('moods', 'useMoodData.addMood.update', docId);
-        await setDoc(moodRef, {
-          id: docId,
-          userId: user.uid,
-          date: dateString,
-          moods: [...currentMoods, newMoodEntry]
-        });
-      } else {
-        // Creamos nuevo documento con el primer mood
-        firestoreLogger.logWrite('moods', 'useMoodData.addMood.create', docId);
-        await setDoc(moodRef, {
-          id: docId,
-          userId: user.uid,
-          date: dateString,
-          moods: [newMoodEntry]
-        });
-      }
+      const optimisticDoc: DailyMood = {
+        id: docId,
+        userId: user.uid,
+        date: dateString,
+        moods: updatedMoods
+      };
+      
+      setDailyMood(optimisticDoc);
+      setStatus('saved');
 
-      // Recargar datos después de guardar
-      await loadMoodData();
+      if (dailyMood) {
+        // Update existing document
+        firestoreLogger.logWrite('moods', 'useMoodData.addMood.update', docId);
+        await setDoc(moodRef, optimisticDoc);
+      } else {
+        // Create new document
+        firestoreLogger.logWrite('moods', 'useMoodData.addMood.create', docId);
+        await setDoc(moodRef, optimisticDoc);
+      }
 
       if (import.meta.env.DEV) {
-        console.log('Mood added locally');
+        console.log('Mood added successfully');
       }
     } catch (error) {
+      // Rollback on error
+      setDailyMood(previousState);
       console.error('Mood - Error al guardar:', error);
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
@@ -134,20 +135,33 @@ export const useMoodData = (selectedDate: Date) => {
     setError(null);
 
     const moodRef = doc(collection(db, 'moods'), dailyMood.id);
+    
+    // Save previous state for rollback
+    const previousState = dailyMood;
 
     try {
+      // Optimistic update: update UI immediately
       const updatedMoods = dailyMood.moods.map(mood => 
         mood.timestamp === originalTimestamp ? updatedMood : mood
       );
-
-      await setDoc(moodRef, {
+      
+      const optimisticDoc: DailyMood = {
         ...dailyMood,
         moods: updatedMoods
-      });
+      };
+      
+      setDailyMood(optimisticDoc);
+      setStatus('saved');
+
+      firestoreLogger.logWrite('moods', 'useMoodData.updateMood', dailyMood.id);
+      await setDoc(moodRef, optimisticDoc);
+      
       if (import.meta.env.DEV) {
-        console.log('Mood updated locally');
+        console.log('Mood updated successfully');
       }
     } catch (error) {
+      // Rollback on error
+      setDailyMood(previousState);
       console.error('Mood - Error al actualizar:', error);
       setError(error instanceof Error ? error.message : 'Error al actualizar');
       setStatus('error');
@@ -161,32 +175,42 @@ export const useMoodData = (selectedDate: Date) => {
     setError(null);
 
     const moodRef = doc(collection(db, 'moods'), dailyMood.id);
+    
+    // Save previous state for rollback
+    const previousState = dailyMood;
 
     try {
+      // Optimistic update: update UI immediately
       const updatedMoods = dailyMood.moods.filter(mood => 
         mood.timestamp !== timestamp
       );
 
       if (updatedMoods.length === 0) {
-        // Si no quedan estados de ánimo, eliminar el documento
+        setDailyMood(null);
+        setStatus('saved');
+        
+        // Delete document from server
         firestoreLogger.logDelete('moods', 'useMoodData.deleteMood.deleteDoc', dailyMood.id);
         await deleteDoc(moodRef);
-        setDailyMood(null);
       } else {
-        firestoreLogger.logWrite('moods', 'useMoodData.deleteMood.update', dailyMood.id);
-        await setDoc(moodRef, {
+        const optimisticDoc: DailyMood = {
           ...dailyMood,
           moods: updatedMoods
-        });
+        };
+        
+        setDailyMood(optimisticDoc);
+        setStatus('saved');
+        
+        firestoreLogger.logWrite('moods', 'useMoodData.deleteMood.update', dailyMood.id);
+        await setDoc(moodRef, optimisticDoc);
       }
-
-      // Recargar datos después de eliminar
-      await loadMoodData();
 
       if (import.meta.env.DEV) {
-        console.log('Mood deleted locally');
+        console.log('Mood deleted successfully');
       }
     } catch (error) {
+      // Rollback on error
+      setDailyMood(previousState);
       console.error('Mood - Error al eliminar:', error);
       setError(error instanceof Error ? error.message : 'Error al eliminar');
       setStatus('error');
