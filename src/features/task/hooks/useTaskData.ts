@@ -6,7 +6,7 @@ import {
   addDoc,
   query,
   where,
-  onSnapshot,
+  getDocs,
   doc,
   deleteDoc,
   updateDoc,
@@ -14,6 +14,7 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { useResync } from '@/hooks/useResync';
+import { firestoreLogger } from '@/utils/firestore-logger';
 import type { Task, TaskFormData } from '../types';
 import { getCheckboxProgress } from '@/utils/markdown';
 
@@ -40,82 +41,73 @@ export const useTaskData = () => {
     setModalMode('create');
   }, []);
 
-  // Cargar las tareas del usuario
-  // y sus actualizaciones en tiempo real
-  useEffect(() => {
+  // Cargar las tareas del usuario (carga inicial única)
+  const loadTasks = useCallback(async () => {
     if (!user) return;
 
     setStatus('loading');
-    const q = query(
-      collection(db, 'tasks'),
-      where('userId', '==', user.uid)
-    );
+    setError(null);
 
-    const unsubscribe = onSnapshot(q,
-      (snapshot) => {
-        const taskList = snapshot.docs
-          .map(doc => {
-            const data = doc.data();            return {
-              id: doc.id,
-              title: data.title,
-              description: data.description || '',
-              completed: data.completed,
-              createdAt: data.createdAt,
-              dueDate: data.dueDate?.toDate(),
-              isRecurrent: data.isRecurrent || false,
-              isPrivate: data.isPrivate || false,
-              category: data.category || 'other',
-              priority: data.priority || 'delete',
-              size: data.size || 'peque\u00f1a',
-              estimatedTime: data.estimatedTime,
-              timeOfDay: data.timeOfDay,
-              elapsedSeconds: data.elapsedSeconds || 0,
-              progress:
-                typeof data.progress === 'number'
-                  ? data.progress
-                  : getCheckboxProgress(data.description || ''),
-              recurrence: data.recurrence ? {
-                frequency: data.recurrence.frequency,
-                pattern: data.recurrence.pattern,
-                customDays: data.recurrence.customDays,
-                nextDate: data.recurrence.nextDate?.toDate()
-              } : undefined
-            } as Task;
-          })
-          .filter(task => !task.completed)
-          .sort((a, b) => {
-            if (a.dueDate && b.dueDate) {
-              return a.dueDate.getTime() - b.dueDate.getTime();
-            }
-            if (a.dueDate) return -1;
-            if (b.dueDate) return 1;
-            return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
-          });
-        
-        setTasks(taskList);
+    try {
+      firestoreLogger.logRead('tasks', 'useTaskData.loadTasks');
+      const q = query(
+        collection(db, 'tasks'),
+        where('userId', '==', user.uid)
+      );
 
-        if (import.meta.env.DEV) {
-          console.log('Task snapshot', {
-            fromCache: snapshot.metadata.fromCache,
-            pending: snapshot.metadata.hasPendingWrites
-          });
-        }
-
-        if (snapshot.metadata.hasPendingWrites) {
-          setStatus('pending');
-        } else if (status !== 'saving') {
-          setStatus('saved');
-        }
-      },
-      (error) => {
-        console.error('Error en snapshot:', error);
-        setError(error instanceof Error ? error.message : 'An unknown error occurred');
-        setStatus('error');
-      }
-    );
-
-    return () => unsubscribe();
+      const snapshot = await getDocs(q);
+      const taskList = snapshot.docs
+        .map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            title: data.title,
+            description: data.description || '',
+            completed: data.completed,
+            createdAt: data.createdAt,
+            dueDate: data.dueDate?.toDate(),
+            isRecurrent: data.isRecurrent || false,
+            isPrivate: data.isPrivate || false,
+            category: data.category || 'other',
+            priority: data.priority || 'delete',
+            size: data.size || 'pequeña',
+            estimatedTime: data.estimatedTime,
+            timeOfDay: data.timeOfDay,
+            elapsedSeconds: data.elapsedSeconds || 0,
+            progress:
+              typeof data.progress === 'number'
+                ? data.progress
+                : getCheckboxProgress(data.description || ''),
+            recurrence: data.recurrence ? {
+              frequency: data.recurrence.frequency,
+              pattern: data.recurrence.pattern,
+              customDays: data.recurrence.customDays,
+              nextDate: data.recurrence.nextDate?.toDate()
+            } : undefined
+          } as Task;
+        })
+        .filter(task => !task.completed)
+        .sort((a, b) => {
+          if (a.dueDate && b.dueDate) {
+            return a.dueDate.getTime() - b.dueDate.getTime();
+          }
+          if (a.dueDate) return -1;
+          if (b.dueDate) return 1;
+          return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+        });
+      
+      setTasks(taskList);
+      setStatus('saved');
+    } catch (error) {
+      console.error('Error loading tasks:', error);
+      setError(error instanceof Error ? error.message : 'Error loading tasks');
+      setStatus('error');
+    }
   }, [user]);
+
+  useEffect(() => {
+    loadTasks();
+  }, [loadTasks]);
 
   const addTask = async (formData: TaskFormData) => {
     if (!formData.title.trim() || !user) return;
@@ -131,7 +123,7 @@ export const useTaskData = () => {
         createdAt: serverTimestamp(),
         category: formData.category || 'other',
         priority: formData.priority || 'delete',
-        size: formData.size || 'peque\u00f1a',
+        size: formData.size || 'pequeña',
         elapsedSeconds: 0,
         ...(formData.timeOfDay && { timeOfDay: formData.timeOfDay }),
         ...(formData.estimatedTime !== undefined && { estimatedTime: formData.estimatedTime }),
@@ -162,7 +154,12 @@ export const useTaskData = () => {
         }
       }
 
+      firestoreLogger.logWrite('tasks', 'useTaskData.addTask');
       await addDoc(collection(db, 'tasks'), taskData);
+      
+      // Recargar tareas después de agregar
+      await loadTasks();
+      
       if (import.meta.env.DEV) {
         console.log('Task added locally');
       }
@@ -196,7 +193,8 @@ export const useTaskData = () => {
       }
       if (updates.priority) {
         updateData.priority = updates.priority;
-      }      if (updates.size) {
+      }
+      if (updates.size) {
         updateData.size = updates.size;
       }
       if (updates.estimatedTime !== undefined) {
@@ -231,7 +229,12 @@ export const useTaskData = () => {
           : existing?.description || ''
       );
 
+      firestoreLogger.logWrite('tasks', 'useTaskData.editTask', taskId);
       await updateDoc(taskRef, updateData);
+      
+      // Recargar tareas después de editar
+      await loadTasks();
+      
       if (import.meta.env.DEV) {
         console.log('Task updated locally');
       }
@@ -254,14 +257,19 @@ export const useTaskData = () => {
       
       if (!task.isRecurrent) {
         const taskRef = doc(db, 'tasks', taskId);
-      await updateDoc(taskRef, {
-        completed: completed,
-        updatedAt: serverTimestamp()
-      });
-      if (import.meta.env.DEV) {
-        console.log('Task toggled locally');
-      }
-      return;
+        firestoreLogger.logWrite('tasks', 'useTaskData.toggleTask', taskId);
+        await updateDoc(taskRef, {
+          completed: completed,
+          updatedAt: serverTimestamp()
+        });
+        
+        // Recargar tareas después de toggle
+        await loadTasks();
+        
+        if (import.meta.env.DEV) {
+          console.log('Task toggled locally');
+        }
+        return;
       }
 
       setCurrentTask(task);
@@ -280,7 +288,12 @@ export const useTaskData = () => {
     setStatus('saving');
     
     try {
+      firestoreLogger.logDelete('tasks', 'useTaskData.deleteTask', taskId);
       await deleteDoc(doc(db, 'tasks', taskId));
+      
+      // Recargar tareas después de eliminar
+      await loadTasks();
+      
       if (import.meta.env.DEV) {
         console.log('Task deleted locally');
       }
@@ -299,6 +312,7 @@ export const useTaskData = () => {
       const taskRef = doc(db, 'tasks', currentTask.id);
       
       // Marcamos la tarea actual como completada
+      firestoreLogger.logWrite('tasks', 'useTaskData.completeRecurrentTask', currentTask.id);
       await updateDoc(taskRef, {
         completed: true,
         updatedAt: serverTimestamp()
@@ -315,7 +329,7 @@ export const useTaskData = () => {
         isRecurrent: true,
         category: currentTask.category,
         priority: currentTask.priority || 'delete',
-        size: currentTask.size || 'peque\u00f1a',
+        size: currentTask.size || 'pequeña',
         ...(data.timeOfDay && { timeOfDay: data.timeOfDay }),
         recurrence: {
           pattern: currentTask.recurrence?.pattern || 'daily',
@@ -332,7 +346,12 @@ export const useTaskData = () => {
 
       nextTaskData.progress = getCheckboxProgress(nextTaskData.description || '');
 
+      firestoreLogger.logWrite('tasks', 'useTaskData.completeRecurrentTask.next');
       await addDoc(collection(db, 'tasks'), nextTaskData);
+      
+      // Recargar tareas después de completar recurrente
+      await loadTasks();
+      
       if (import.meta.env.DEV) {
         console.log('Next task created locally');
       }
@@ -344,6 +363,7 @@ export const useTaskData = () => {
       setStatus('error');
     }
   };
+
   const openCreateModal = useCallback((dueDate?: Date | null, isPrivate?: boolean) => {
     setModalMode('create');
     setCurrentTask({
@@ -352,7 +372,7 @@ export const useTaskData = () => {
       completed: false,
       category: 'personal',
       priority: 'delete',
-      size: 'peque\u00f1a',
+      size: 'pequeña',
       createdAt: { seconds: Date.now() / 1000 },
       ...(dueDate ? { dueDate } : {}),
       ...(isPrivate ? { isPrivate: true } : {}),
@@ -370,6 +390,7 @@ export const useTaskData = () => {
   };
 
   const resync = useResync('Task data');
+  
   return {
     tasks: getPublicTasks(), // Solo devolver tareas públicas por defecto
     allTasks: tasks, // Disponible para casos especiales como PrivateTaskSection
@@ -387,6 +408,7 @@ export const useTaskData = () => {
     openEditModal,
     openCreateModal,
     getPublicTasks,
+    loadTasks, // Exponer función de recarga manual
     resync
   };
 };

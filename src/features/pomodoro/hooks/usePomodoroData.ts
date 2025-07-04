@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react';
 import {
   doc,
   setDoc,
-  onSnapshot,
+  getDoc,
   serverTimestamp
 } from 'firebase/firestore';
 import { useResync } from '@/hooks/useResync';
+import { firestoreLogger } from '@/utils/firestore-logger';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import type { PomodoroData, PomodoroSession } from '../types';
@@ -25,54 +26,44 @@ export const usePomodoroData = (selectedDate?: Date) => {
   // Usamos la nueva función getLocalDateString para obtener la fecha correcta
   const date = selectedDate ? getLocalDateString(selectedDate) : getLocalDateString(new Date());
 
-  useEffect(() => {
+  // Cargar datos de pomodoro (carga única)
+  const loadPomodoroData = async () => {
     if (!user) return;
 
-    const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
+    try {
+      firestoreLogger.logRead('pomodoro', 'usePomodoroData.loadData', `${user.uid}_${date}`);
+      const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
+      const docSnapshot = await getDoc(docRef);
 
-    const unsubscribe = onSnapshot(docRef,
-      (doc) => {
-        if (doc.exists()) {
-          const pomodoroData = doc.data() as PomodoroData;
-          const sessions = Array.isArray(pomodoroData.sessions) ? pomodoroData.sessions : [];
-          const completedCount = sessions.filter((s) => s.completed).length;
-          setData({
-            ...pomodoroData,
-            sessions,
-            count: completedCount
-          });
-
-          if (import.meta.env.DEV) {
-            console.log('Pomodoro snapshot', {
-              fromCache: doc.metadata.fromCache,
-              pending: doc.metadata.hasPendingWrites
-            });
-          }
-
-          if (doc.metadata.hasPendingWrites) {
-            setStatus('pending');
-          } else {
-            setStatus('saved');
-          }
-        } else {
-          setData({
-            userId: user.uid,
-            date,
-            count: 0,
-            sessions: [],
-            updatedAt: null
-          });
-          setStatus('idle');
-        }
-      },
-      (error) => {
-        console.error('Pomodoro - Error en snapshot:', error);
-        setError(error.message);
-        setStatus('error');
+      if (docSnapshot.exists()) {
+        const pomodoroData = docSnapshot.data() as PomodoroData;
+        const sessions = Array.isArray(pomodoroData.sessions) ? pomodoroData.sessions : [];
+        const completedCount = sessions.filter((s) => s.completed).length;
+        setData({
+          ...pomodoroData,
+          sessions,
+          count: completedCount
+        });
+        setStatus('saved');
+      } else {
+        setData({
+          userId: user.uid,
+          date,
+          count: 0,
+          sessions: [],
+          updatedAt: null
+        });
+        setStatus('idle');
       }
-    );
+    } catch (error) {
+      console.error('Pomodoro - Error loading data:', error);
+      setError(error instanceof Error ? error.message : 'Error loading pomodoro data');
+      setStatus('error');
+    }
+  };
 
-    return () => unsubscribe();
+  useEffect(() => {
+    loadPomodoroData();
   }, [user, date]);
 
   const addManualSession = async (options: SaveSessionOptions = {}) => {
@@ -130,7 +121,12 @@ export const usePomodoroData = (selectedDate?: Date) => {
       };
 
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
+      firestoreLogger.logWrite('pomodoro', 'usePomodoroData.addManualSession', `${user.uid}_${date}`);
       await setDoc(docRef, dataToWrite);
+      
+      // Recargar datos después de guardar
+      await loadPomodoroData();
+      
       if (import.meta.env.DEV) {
         console.log('Manual pomodoro session added locally');
       }
@@ -195,7 +191,12 @@ export const usePomodoroData = (selectedDate?: Date) => {
       };
 
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
+      firestoreLogger.logWrite('pomodoro', 'usePomodoroData.saveSession', `${user.uid}_${date}`);
       await setDoc(docRef, dataToWrite);
+      
+      // Recargar datos después de guardar
+      await loadPomodoroData();
+      
       if (import.meta.env.DEV) {
         console.log('Pomodoro session saved locally');
       }
@@ -327,6 +328,7 @@ export const usePomodoroData = (selectedDate?: Date) => {
     deleteSession,
     editSession,
     addManualSession,
+    loadPomodoroData, // Exponer función de recarga manual
     resync
   };
 };

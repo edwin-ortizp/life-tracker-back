@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   doc,
   setDoc,
-  onSnapshot,
+  getDoc,
   serverTimestamp,
   collection,
   query,
@@ -13,6 +13,7 @@ import {
   getDocs
 } from 'firebase/firestore';
 import { useResync } from '@/hooks/useResync';
+import { firestoreLogger } from '@/utils/firestore-logger';
 
 interface CompletedHabits {
   [key: string]: boolean;
@@ -47,36 +48,36 @@ export const useHabitData = () => {
     const currentMonth = currentDate.getMonth() + 1;
     const yearMonth = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
 
-    // Subscribe to current month
-    const currentMonthRef = doc(db, 'habits', `${user.uid}_${yearMonth}`);
-    const unsubscribe = onSnapshot(currentMonthRef,
-      (doc) => {
-        if (doc.exists()) {
-          const data = doc.data() as MonthlyHabits;
+    // Cargar mes actual (carga única)
+    const loadCurrentMonth = async () => {
+      try {
+        firestoreLogger.logRead('habits', 'useHabitData.loadCurrentMonth', `${user.uid}_${yearMonth}`);
+        const currentMonthRef = doc(db, 'habits', `${user.uid}_${yearMonth}`);
+        const docSnapshot = await getDoc(currentMonthRef);
+
+        if (docSnapshot.exists()) {
+          const data = docSnapshot.data() as MonthlyHabits;
           setMonthlyHabitsMap(prev => ({
             ...prev,
             [yearMonth]: data.habits || {}
           }));
-
-          if (import.meta.env.DEV) {
-            console.log('Habit snapshot', {
-              fromCache: doc.metadata.fromCache,
-              pending: doc.metadata.hasPendingWrites
-            });
-          }
-
-          if (doc.metadata.hasPendingWrites) {
-            setStatus('pending');
-          } else {
-            setStatus('saved');
-          }
+          setStatus('saved');
+        } else {
+          // Inicializar mes vacío si no existe
+          setMonthlyHabitsMap(prev => ({
+            ...prev,
+            [yearMonth]: {}
+          }));
+          setStatus('idle');
         }
-      },
-      (error) => {
-        setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      } catch (error) {
+        console.error('Error loading current month habits:', error);
+        setError(error instanceof Error ? error.message : 'Error loading habits');
         setStatus('error');
       }
-    );
+    };
+
+    loadCurrentMonth();
 
     // Fetch other visible months if needed (for yearly view)
     const fetchVisibleMonths = async () => {
@@ -106,7 +107,6 @@ export const useHabitData = () => {
     };
 
     fetchVisibleMonths();
-    return () => unsubscribe();
   }, [user]);
 
   const toggleHabit = async (habitId: number, date: string) => {
@@ -129,12 +129,20 @@ export const useHabitData = () => {
     const docRef = doc(db, 'habits', `${user.uid}_${yearMonth}`);
 
     try {
+      firestoreLogger.logWrite('habits', 'useHabitData.toggleHabit', `${user.uid}_${yearMonth}`);
       await setDoc(docRef, {
         userId: user.uid,
         yearMonth,
         habits: newCompleted,
         updatedAt: serverTimestamp()
       }, { merge: true });
+      
+      // Actualizar estado local inmediatamente
+      setMonthlyHabitsMap(prev => ({
+        ...prev,
+        [yearMonth]: newCompleted
+      }));
+      setStatus('saved');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');

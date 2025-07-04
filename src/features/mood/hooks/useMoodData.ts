@@ -6,12 +6,12 @@ import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
 import {
   doc,
   setDoc,
-  onSnapshot,
   getDoc,
   collection,
   deleteDoc
 } from 'firebase/firestore';
 import { useResync } from '@/hooks/useResync';
+import { firestoreLogger } from '@/utils/firestore-logger';
 import type { MoodEntry, DailyMood } from '../types';
 import { getMoodValue } from '../types';
 
@@ -21,53 +21,43 @@ export const useMoodData = (selectedDate: Date) => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  useEffect(() => {
+  // Cargar datos de mood (carga única)
+  const loadMoodData = async () => {
     if (!user) return;
 
-    const dateString = getLocalDateString(selectedDate);
-    const moodRef = doc(collection(db, 'moods'), `${user.uid}_${dateString}`);
-    
-    const unsubscribe = onSnapshot(moodRef,
-      (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          // Aseguramos que siempre exista un array de moods
-          if (data && Array.isArray(data.moods)) {
-            setDailyMood(data as DailyMood);
-          } else {
-            // Si no hay moods o no es un array, inicializamos con array vacío
-            setDailyMood({
-              id: `${user.uid}_${dateString}`,
-              userId: user.uid,
-              date: dateString,
-              moods: []
-            });
-          }
-        } else {
-          setDailyMood(null);
-        }
+    try {
+      const dateString = getLocalDateString(selectedDate);
+      firestoreLogger.logRead('moods', 'useMoodData.loadData', `${user.uid}_${dateString}`);
+      const moodRef = doc(collection(db, 'moods'), `${user.uid}_${dateString}`);
+      const snapshot = await getDoc(moodRef);
 
-        if (import.meta.env.DEV) {
-          console.log('Mood snapshot', {
-            fromCache: snapshot.metadata.fromCache,
-            pending: snapshot.metadata.hasPendingWrites
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        // Aseguramos que siempre exista un array de moods
+        if (data && Array.isArray(data.moods)) {
+          setDailyMood(data as DailyMood);
+        } else {
+          // Si no hay moods o no es un array, inicializamos con array vacío
+          setDailyMood({
+            id: `${user.uid}_${dateString}`,
+            userId: user.uid,
+            date: dateString,
+            moods: []
           });
         }
-
-        if (snapshot.metadata.hasPendingWrites) {
-          setStatus('pending');
-        } else {
-          setStatus('saved');
-        }
-      },
-      (error) => {
-        console.error('Mood - Error en snapshot:', error);
-        setError(error.message);
-        setStatus('error');
+      } else {
+        setDailyMood(null);
       }
-    );
+      setStatus('saved');
+    } catch (error) {
+      console.error('Error loading mood data:', error);
+      setError(error instanceof Error ? error.message : 'Error al cargar estado de ánimo');
+      setStatus('error');
+    }
+  };
 
-    return () => unsubscribe();
+  useEffect(() => {
+    loadMoodData();
   }, [user, selectedDate]);
 
   const addMood = async (mood: { emoji: string; text: string }) => {
@@ -106,6 +96,7 @@ export const useMoodData = (selectedDate: Date) => {
         // Verificamos que exista el array de moods
         const currentMoods = Array.isArray(existingData?.moods) ? existingData.moods : [];
         
+        firestoreLogger.logWrite('moods', 'useMoodData.addMood.update', docId);
         await setDoc(moodRef, {
           id: docId,
           userId: user.uid,
@@ -114,6 +105,7 @@ export const useMoodData = (selectedDate: Date) => {
         });
       } else {
         // Creamos nuevo documento con el primer mood
+        firestoreLogger.logWrite('moods', 'useMoodData.addMood.create', docId);
         await setDoc(moodRef, {
           id: docId,
           userId: user.uid,
@@ -121,6 +113,9 @@ export const useMoodData = (selectedDate: Date) => {
           moods: [newMoodEntry]
         });
       }
+
+      // Recargar datos después de guardar
+      await loadMoodData();
 
       if (import.meta.env.DEV) {
         console.log('Mood added locally');
@@ -174,14 +169,19 @@ export const useMoodData = (selectedDate: Date) => {
 
       if (updatedMoods.length === 0) {
         // Si no quedan estados de ánimo, eliminar el documento
+        firestoreLogger.logDelete('moods', 'useMoodData.deleteMood.deleteDoc', dailyMood.id);
         await deleteDoc(moodRef);
         setDailyMood(null);
       } else {
+        firestoreLogger.logWrite('moods', 'useMoodData.deleteMood.update', dailyMood.id);
         await setDoc(moodRef, {
           ...dailyMood,
           moods: updatedMoods
         });
       }
+
+      // Recargar datos después de eliminar
+      await loadMoodData();
 
       if (import.meta.env.DEV) {
         console.log('Mood deleted locally');
@@ -202,6 +202,7 @@ export const useMoodData = (selectedDate: Date) => {
     addMood,
     updateMood,
     deleteMood,
+    loadMoodData, // Exponer función de recarga manual
     resync
   };
 };
