@@ -3,7 +3,7 @@ import { List, Columns, Calendar, BarChart, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { MoreVertical } from 'lucide-react';
 
 interface NavigationItem {
@@ -41,6 +41,10 @@ interface TaskAction {
   icon: React.ReactNode;
   onClick: () => void;
   tooltip: string;
+  dropdown?: Array<{
+    label: string;
+    onClick: () => void;
+  }>;
 }
 
 interface CompactTaskHeaderProps {
@@ -111,17 +115,42 @@ export const CompactTaskHeader: React.FC<CompactTaskHeaderProps> = ({
               <TooltipProvider>
                 <div className="hidden md:flex items-center gap-2">
                   {actions.map((action) => (
-                    <Tooltip key={action.id}>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={action.onClick}>
-                          {action.icon}
-                          <span className="sr-only">{action.label}</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{action.tooltip}</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    action.dropdown ? (
+                      <DropdownMenu key={action.id}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                {action.icon}
+                                <span className="sr-only">{action.label}</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{action.tooltip}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <DropdownMenuContent align="end">
+                          {action.dropdown.map((item, index) => (
+                            <DropdownMenuItem key={index} onClick={item.onClick}>
+                              {item.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <Tooltip key={action.id}>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={action.onClick}>
+                            {action.icon}
+                            <span className="sr-only">{action.label}</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{action.tooltip}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )
                   ))}
                 </div>
               </TooltipProvider>
@@ -136,10 +165,26 @@ export const CompactTaskHeader: React.FC<CompactTaskHeaderProps> = ({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {actions.map((action) => (
-                    <DropdownMenuItem key={action.id} onClick={action.onClick}>
-                      {action.icon}
-                      <span className="ml-2">{action.label}</span>
-                    </DropdownMenuItem>
+                    action.dropdown ? (
+                      <DropdownMenuSub key={action.id}>
+                        <DropdownMenuSubTrigger>
+                          {action.icon}
+                          <span className="ml-2">{action.label}</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          {action.dropdown.map((item, index) => (
+                            <DropdownMenuItem key={index} onClick={item.onClick}>
+                              {item.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                    ) : (
+                      <DropdownMenuItem key={action.id} onClick={action.onClick}>
+                        {action.icon}
+                        <span className="ml-2">{action.label}</span>
+                      </DropdownMenuItem>
+                    )
                   ))}
                   <DropdownMenuSeparator />
                   {navigationItems.filter(item => item.tab !== currentTab).map((item) => (

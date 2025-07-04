@@ -99,11 +99,11 @@ export const TaskAiReprioritize: React.FC<TaskAiReprioritizeProps> = ({ tasks, o
         </Button>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[95vw] h-[90vh] max-w-none max-h-none overflow-hidden flex flex-col sm:w-[90vw] sm:h-[85vh]">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="text-xl">Repriorizar Tareas con IA</DialogTitle>
-            <DialogDescription>
-              La IA analizará tus tareas y ajustará automáticamente prioridad, tamaño y tiempo estimado. Usa el panel izquierdo para editar el prompt y visualiza el resultado en el panel derecho.
+        <DialogContent className="max-w-6xl h-[80vh]">
+          <DialogHeader className="flex-shrink-0 pb-1 space-y-0">
+            <DialogTitle className="text-lg font-medium">Repriorizar Tareas con IA</DialogTitle>
+            <DialogDescription className="text-sm mt-1">
+              La IA analizará tus tareas y ajustará automáticamente prioridad, tamaño y tiempo estimado.
             </DialogDescription>
           </DialogHeader>
           

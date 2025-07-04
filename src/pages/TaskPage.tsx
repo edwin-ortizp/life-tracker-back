@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Task, TaskWeekView, TaskKanbanView } from '@/features/task/components';
+import { Task, TaskWeekView, TaskKanbanView, TaskAiSuggestion, TaskAiReprioritize } from '@/features/task/components';
 import RecurrenceModal from '@/features/task/components/RecurrenceModal';
 import { CompactTaskHeader } from '@/components/navigation/CompactTaskHeader';
 import { Plus, Upload, Download, Brain } from 'lucide-react';
@@ -39,6 +39,8 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
   const [completionStats, setCompletionStats] = useState<any[]>([]);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importJson, setImportJson] = useState('');
+  const [showAiSuggestion, setShowAiSuggestion] = useState(false);
+  const [showAiReprioritize, setShowAiReprioritize] = useState(false);
   const [currentTab, setCurrentTab] = useState<'list' | 'kanban' | 'analytics' | 'week'>(defaultTab);
   
   const handleTabChange = (tab: string) => {
@@ -47,6 +49,7 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
   const { user } = useAuth();
   const taskData = useTaskData();
   const {
+    tasks,
     showRecurrenceModal,
     currentTask,
     modalMode,
@@ -194,8 +197,7 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
   };
 
   const handleAiMenu = () => {
-    // TODO: Implement AI menu functionality
-    toast.success('Funcionalidad de AI - será implementada');
+    // El dropdown se maneja directamente en el CompactTaskHeader, no necesitamos hacer nada aquí
   };
 
   const taskActions = [
@@ -225,7 +227,17 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
       label: 'AI Assistant',
       icon: <Brain className="h-4 w-4" />,
       onClick: handleAiMenu,
-      tooltip: 'Asistente IA'
+      tooltip: 'Asistente IA',
+      dropdown: [
+        {
+          label: 'Sugerir tareas',
+          onClick: () => setShowAiSuggestion(true)
+        },
+        {
+          label: 'Repriorizar visibles', 
+          onClick: () => setShowAiReprioritize(true)
+        }
+      ]
     }
   ];
 
@@ -338,6 +350,19 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
         </TabsContent>
         </Tabs>
       </div>
+
+      {/* Task AI Components */}
+      <TaskAiSuggestion 
+        tasks={tasks} 
+        open={showAiSuggestion} 
+        onOpenChange={setShowAiSuggestion} 
+      />
+      <TaskAiReprioritize 
+        tasks={tasks} 
+        onUpdate={editTask} 
+        open={showAiReprioritize} 
+        onOpenChange={setShowAiReprioritize} 
+      />
 
       {/* Recurrence Modal for new task creation */}
       <RecurrenceModal
