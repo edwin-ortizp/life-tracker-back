@@ -2,8 +2,8 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import {
-  getFirestore,
-  enableIndexedDbPersistence
+  initializeFirestore,
+  persistentLocalCache
 } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -18,16 +18,7 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
-
-// Enable offline persistence for Firestore only once
-let persistenceInitialized = false;
-if (typeof window !== 'undefined' && !persistenceInitialized) {
-  persistenceInitialized = true;
-  enableIndexedDbPersistence(db).catch((err) => {
-    if (import.meta.env.DEV) {
-      console.error('Firestore persistence error', err);
-    }
-  });
-}
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache()
+});
 
