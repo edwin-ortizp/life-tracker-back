@@ -31,7 +31,7 @@ export const usePreparedMeals = () => {
     const q = query(collection(db, 'prepared-meals'), where('userId', '==', user.uid));
 
     const unsubscribe = onSnapshot(
-      q, { includeMetadataChanges: true },
+      q,
       snapshot => {
         const list: PreparedMeal[] = snapshot.docs.map(docSnap => {
           const data = docSnap.data();

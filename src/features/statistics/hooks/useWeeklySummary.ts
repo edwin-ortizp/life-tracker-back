@@ -32,12 +32,11 @@ export const useWeeklySummary = (startDate: Date) => {
 
   useEffect(() => {
     if (!user) {
-      console.log('❌ useWeeklySummary - No user authenticated');
       setLoading(false);
       return;
     }
 
-    console.log('🚀 useWeeklySummary - Setting up listeners for user:', user.uid, 'start date:', startDate);
+    // Setting up weekly listeners
     
     setLoading(true);
 
@@ -97,7 +96,7 @@ export const useWeeklySummary = (startDate: Date) => {
       totals.pomodoro.completionRate = parseFloat(totals.pomodoro.completionRate.toFixed(1));
       totals.pomodoro.averageSessionLength = parseFloat(totals.pomodoro.averageSessionLength.toFixed(1));
 
-      console.log('📊 Updated weekly summary:', { daily: daily.length, totals });
+      // Weekly summary updated
       setSummary({ daily, totals });
       setLoading(false);
     };
@@ -122,13 +121,12 @@ export const useWeeklySummary = (startDate: Date) => {
 
     // Cleanup function
     return () => {
-      console.log('🧹 Cleaning up weekly listeners');
       allUnsubscribes.forEach(unsubscribe => unsubscribe());
     };
   }, [user, startDate]);
 
   const refetch = () => {
-    console.log('🔄 Weekly refetch requested - listeners will automatically update');
+    // Weekly refetch requested - listeners will automatically update
   };
 
   return { summary, loading, refetch };

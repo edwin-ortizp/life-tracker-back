@@ -7,7 +7,6 @@ const WeeklySummary = lazy(() => import('@/features/statistics/components/Weekly
 const AiInsightCard = lazy(() => import('@/features/statistics/components/AiInsightCard').then(m => ({ default: m.AiInsightCard })));
 const DailyDashboard = lazy(() => import('@/features/statistics/components/DailyDashboard').then(m => ({ default: m.DailyDashboard })));
 const WeeklyDashboard = lazy(() => import('@/features/statistics/components/WeeklyDashboard').then(m => ({ default: m.WeeklyDashboard })));
-import { useDailySummary } from '@/features/statistics/hooks/useDailySummary';
 import { useWeeklySummary } from '@/features/statistics/hooks/useWeeklySummary';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -20,7 +19,8 @@ const StatisticsPage = () => {
     const d = new Date();
     d.setDate(d.getDate() - d.getDay());
     return d;
-  });  const { summary: dailyData } = useDailySummary(day);
+  });
+  
   const { summary: weeklyData } = useWeeklySummary(weekStart);
 
   return (
@@ -42,7 +42,7 @@ const StatisticsPage = () => {
             <DailySummary date={day} />
           </Suspense>
           <Suspense fallback={<div className="h-24" />}>
-            <AiInsightCard data={dailyData} date={formatDate(day)} />
+            <AiInsightCard date={formatDate(day)} dayDate={day} />
           </Suspense>
         </TabsContent>
         <TabsContent value="weekly" className="space-y-4">

@@ -58,7 +58,7 @@ export const useExerciseData = (selectedDate: Date) => {
     const date = getLocalDateString(selectedDate);
     const docRef = doc(db, 'exercises', `${user.uid}_${date}`);
 
-    const unsubscribe = onSnapshot(docRef, { includeMetadataChanges: true },
+    const unsubscribe = onSnapshot(docRef,
       (docSnap) => {
         if (docSnap.exists()) {
           setExerciseDoc(docSnap.data() as ExerciseDocument);

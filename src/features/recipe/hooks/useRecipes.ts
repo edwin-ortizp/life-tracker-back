@@ -31,7 +31,7 @@ export const useRecipes = () => {
     const q = query(collection(db, 'recipes'), where('userId', '==', user.uid));
 
     const unsubscribe = onSnapshot(
-      q, { includeMetadataChanges: true },
+      q,
       snapshot => {
         const list: Recipe[] = snapshot.docs.map(docSnap => {
           const data = docSnap.data();

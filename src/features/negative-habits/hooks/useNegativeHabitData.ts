@@ -62,7 +62,6 @@ export const useNegativeHabitData = () => {
     // Suscribirse al mes actual
     const unsubscribe = onSnapshot(
       getMonthDocRef(user.uid, yearMonth),
-        { includeMetadataChanges: true },
       (doc) => {
         if (doc.exists()) {
           const data = doc.data() as MonthlyHabits;

@@ -34,7 +34,7 @@ export const useShoppingList = () => {
     );
     
     const unsubscribe = onSnapshot(
-      q, { includeMetadataChanges: true },
+      q,
       snapshot => {
         if (snapshot.empty) {
           setItems([]);

@@ -3,12 +3,13 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { getAiConfig } from '@/config/ai';
-import { DailySummaryData } from '../hooks/useDailySummary';
+import { DailySummaryData, useDailySummary } from '../hooks/useDailySummary';
 import { WeeklySummaryData } from '../hooks/useWeeklySummary';
 
 interface Props {
-  data: DailySummaryData | WeeklySummaryData | null;
+  data?: DailySummaryData | WeeklySummaryData | null;
   date: string;
+  dayDate?: Date; // For daily view when data is not provided
 }
 
 // Helper function to determine if data is weekly summary
@@ -16,7 +17,11 @@ const isWeeklySummaryData = (data: any): data is WeeklySummaryData => {
   return data && 'daily' in data && 'totals' in data;
 };
 
-export const AiInsightCard: React.FC<Props> = ({ data, date }) => {
+export const AiInsightCard: React.FC<Props> = ({ data, date, dayDate }) => {
+  // Use hook only if data is not provided and dayDate is available
+  const { summary: dailySummary } = dayDate && !data ? useDailySummary(dayDate) : { summary: null };
+  const finalData = data || dailySummary;
+  
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState('');
   const [showDebug, setShowDebug] = useState(false);
@@ -28,21 +33,21 @@ export const AiInsightCard: React.FC<Props> = ({ data, date }) => {
     : '';
   const basePrompt = aiConfig?.prompt ?? 'Analiza mis registros y dame consejos.';
   const params = aiConfig?.params;
-  // Crear el summary a partir del objeto data
-  const summary = data 
+  // Crear el summary a partir del objeto finalData
+  const summary = finalData 
     ? (() => {
-        if (isWeeklySummaryData(data)) {
-          return `Fecha: ${date}\nDatos semanales:\n${JSON.stringify(data.totals, null, 2)}\n\nDetalle diario:\n${JSON.stringify(data.daily, null, 2)}`;
+        if (isWeeklySummaryData(finalData)) {
+          return `Fecha: ${date}\nDatos semanales:\n${JSON.stringify(finalData.totals, null, 2)}\n\nDetalle diario:\n${JSON.stringify(finalData.daily, null, 2)}`;
         } else {
-          return `Fecha: ${date}\nDatos diarios:\n${JSON.stringify(data, null, 2)}`;
+          return `Fecha: ${date}\nDatos diarios:\n${JSON.stringify(finalData, null, 2)}`;
         }
       })()
     : `Fecha: ${date}\nNo hay datos disponibles.`;
   
-  const disabled = !data;
+  const disabled = !finalData;
   const fullPrompt = `${basePrompt}\n\n${summary}`;
   const handleAnalyze = async () => {
-    if (!apiKey || !API_URL || !data) return;
+    if (!apiKey || !API_URL || !finalData) return;
     setLoading(true);
     
     const requestBody = {
@@ -51,8 +56,8 @@ export const AiInsightCard: React.FC<Props> = ({ data, date }) => {
     };
       console.log('🤖 AI Analysis Request:', {
       date,
-      dataType: isWeeklySummaryData(data) ? 'weekly' : 'daily',
-      dataKeys: data ? Object.keys(data) : [],
+      dataType: isWeeklySummaryData(finalData) ? 'weekly' : 'daily',
+      dataKeys: finalData ? Object.keys(finalData) : [],
       promptLength: fullPrompt.length,
       requestBody
     });

@@ -412,9 +412,7 @@ export const createDayListeners = (
   const todayStartTimestamp = Timestamp.fromDate(startOfDay(date));
   const todayEndTimestamp = Timestamp.fromDate(endOfDay(date));
 
-  console.log('🔍 createDayListeners - uid:', uid);
-  console.log('🔍 createDayListeners - date:', date);
-  console.log('🔍 createDayListeners - dateStr:', dateStr);
+  // Listener setup logs removed to reduce console spam
 
   // Referencias a documentos
   const journalRef = doc(db, 'journal', `${uid}_${dateStr}`);
@@ -425,7 +423,7 @@ export const createDayListeners = (
   const habitRef = doc(db, 'habits', `${uid}_${year}-${month}`);
   const negativeRef = doc(db, 'negative-habits', `${uid}_${year}-${month}`);
 
-  console.log('🔍 Pomodoro document ID will be:', `${uid}_${dateStr}`);
+  // Pomodoro document ID: ${uid}_${dateStr}
 
   // Estado temporal para almacenar los datos
   let journalData: any = null;
@@ -484,24 +482,7 @@ export const createDayListeners = (
     updateSummary();
   }, (error) => console.error('❌ Exercise listener error:', error)));  // Pomodoro listener
   unsubscribes.push(onSnapshot(pomodoroRef, (doc) => {
-    console.log('🔍 Pomodoro listener - Document ID:', doc.id);
-    console.log('🔍 Pomodoro listener - Document exists:', doc.exists());
-    console.log('🔍 Pomodoro listener - Full document data:', doc.data());
-    
     pomodoroData = doc.exists() ? doc.data() : null;
-    console.log('🍅 Pomodoro listener - processed data:', pomodoroData);
-    
-    if (pomodoroData) {
-      console.log('🍅 Pomodoro listener - keys:', Object.keys(pomodoroData));
-      console.log('🍅 Pomodoro listener - count:', pomodoroData.count);
-      console.log('🍅 Pomodoro listener - sessions:', pomodoroData.sessions?.length || 0, 'sessions');
-      console.log('🍅 Pomodoro listener - sessions data:', pomodoroData.sessions);      if (pomodoroData.sessions) {
-        const totalDuration = pomodoroData.sessions.reduce((total: number, session: any) => total + (session.duration || 0), 0);
-        console.log('🍅 Pomodoro listener - total duration (seconds):', totalDuration, 'minutes:', Math.round(totalDuration / 60));
-      }
-    } else {
-      console.log('❌ Pomodoro listener - No data found for document');
-    }
     updateSummary();
   }, (error) => console.error('❌ Pomodoro listener error:', error)));
 
@@ -517,41 +498,31 @@ export const createDayListeners = (
     updateSummary();
   }, (error) => console.error('❌ Negative habit listener error:', error)));
 
-  // Listener for tasks completed today
-  const completedTasksQuery = query(
+  // Single optimized listener for all user tasks - filter client-side
+  const allUserTasksQuery = query(
     collection(db, 'tasks'),
-    where('userId', '==', uid),
-    where('completed', '==', true),
-    where('updatedAt', '>=', todayStartTimestamp),
-    where('updatedAt', '<=', todayEndTimestamp)
+    where('userId', '==', uid)
   );
-  unsubscribes.push(onSnapshot(completedTasksQuery, (snapshot) => {
-    completedTasksTodayData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  unsubscribes.push(onSnapshot(allUserTasksQuery, (snapshot) => {
+    const allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+    
+    // Filter tasks client-side to reduce Firebase queries
+    completedTasksTodayData = allTasks.filter((task: any) => {
+      if (!task.completed || !task.updatedAt) return false;
+      const updatedDate = task.updatedAt.toDate();
+      return updatedDate >= todayStartTimestamp.toDate() && updatedDate <= todayEndTimestamp.toDate();
+    });
+    
+    dueTodayTasksData = allTasks.filter((task: any) => {
+      if (!task.dueDate) return false;
+      const dueDate = task.dueDate.toDate();
+      return dueDate >= todayStartTimestamp.toDate() && dueDate <= todayEndTimestamp.toDate();
+    });
+    
+    incompleteTasksData = allTasks.filter((task: any) => !task.completed);
+    
     updateSummary();
-  }, (error) => console.error('❌ Task listener error (completed today):', error)));
-
-  // Listener for tasks due today
-  const dueTodayTasksQuery = query(
-    collection(db, 'tasks'),
-    where('userId', '==', uid),
-    where('dueDate', '>=', todayStartTimestamp),
-    where('dueDate', '<=', todayEndTimestamp)
-  );
-  unsubscribes.push(onSnapshot(dueTodayTasksQuery, (snapshot) => {
-    dueTodayTasksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    updateSummary();
-  }, (error) => console.error('❌ Task listener error (due today):', error)));
-
-  // Listener for all incomplete tasks for the user
-  const incompleteTasksQuery = query(
-    collection(db, 'tasks'),
-    where('userId', '==', uid),
-    where('completed', '==', false)
-  );
-  unsubscribes.push(onSnapshot(incompleteTasksQuery, (snapshot) => {
-    incompleteTasksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    updateSummary();
-  }, (error) => console.error('❌ Task listener error (incomplete):', error)));
+  }, (error) => console.error('❌ Task listener error (all tasks):', error)));
 
   return unsubscribes;
 };
@@ -646,6 +617,14 @@ export const createDailySummaryFromData = (
   };
 };
 
+// Shared cache to avoid multiple listeners for the same date
+const summaryCache = new Map<string, {
+  summary: DailySummaryData;
+  loading: boolean;
+  subscribers: Set<(data: DailySummaryData, loading: boolean) => void>;
+  unsubscribes: (() => void)[];
+}>();
+
 export const useDailySummary = (date: Date) => {
   const { user } = useAuth();
   const [summary, setSummary] = useState<DailySummaryData>(emptySummary);
@@ -656,23 +635,63 @@ export const useDailySummary = (date: Date) => {
       console.log('❌ useDailySummary - No user authenticated');
       setLoading(false);
       return;
-    }    console.log('🚀 useDailySummary - Setting up listeners for user:', user.uid, 'date:', date);
-    setLoading(true);
+    }
 
-    // Ejecutar test de permisos para debug
-    testFirestorePermissions(user.uid, date);
+    const cacheKey = `${user.uid}_${getLocalDateString(date)}`;
 
-    const handleDataUpdate = (data: DailySummaryData) => {
+    const updateCallback = (data: DailySummaryData, isLoading: boolean) => {
       setSummary(data);
-      setLoading(false);
+      setLoading(isLoading);
     };
 
-    const unsubscribes = createDayListeners(user.uid, date, handleDataUpdate);
+    // Check if we already have listeners for this date
+    if (summaryCache.has(cacheKey)) {
+      const cached = summaryCache.get(cacheKey)!;
+      cached.subscribers.add(updateCallback);
+      
+      // Immediately update with cached data
+      setSummary(cached.summary);
+      setLoading(cached.loading);
+    } else {
+      // Create new listeners
+      setLoading(true);
+
+      // Test de permisos comentado para evitar operaciones excesivas
+      // testFirestorePermissions(user.uid, date);
+
+      const handleDataUpdate = (data: DailySummaryData) => {
+        const cached = summaryCache.get(cacheKey);
+        if (cached) {
+          cached.summary = data;
+          cached.loading = false;
+          // Notify all subscribers
+          cached.subscribers.forEach(callback => callback(data, false));
+        }
+      };
+
+      const unsubscribes = createDayListeners(user.uid, date, handleDataUpdate);
+      
+      // Store in cache
+      summaryCache.set(cacheKey, {
+        summary: emptySummary,
+        loading: true,
+        subscribers: new Set([updateCallback]),
+        unsubscribes
+      });
+    }
     
     // Cleanup function
     return () => {
-      console.log('🧹 Cleaning up listeners');
-      unsubscribes.forEach(unsubscribe => unsubscribe());
+      const cached = summaryCache.get(cacheKey);
+      if (cached) {
+        cached.subscribers.delete(updateCallback);
+        
+        // If no more subscribers, cleanup listeners
+        if (cached.subscribers.size === 0) {
+          cached.unsubscribes.forEach(unsubscribe => unsubscribe());
+          summaryCache.delete(cacheKey);
+        }
+      }
     };
   }, [user, date]);
 

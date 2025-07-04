@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { renderMarkdown, getCheckboxProgress } from '@/utils/markdown';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -46,18 +46,44 @@ const buildDescription = (body: string, checklist: ChecklistItem[]) => {
 };
 
 
+// Random background colors based on task ID - darker tones for better text readability
+const getRandomBackground = (taskId: string) => {
+  const backgrounds = [
+    'bg-gradient-to-br from-slate-800 via-slate-900 to-black',
+    'bg-gradient-to-br from-blue-900 via-blue-950 to-slate-900',
+    'bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900',
+    'bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900',
+    'bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900',
+    'bg-gradient-to-br from-teal-900 via-cyan-900 to-slate-900',
+    'bg-gradient-to-br from-gray-900 via-slate-900 to-zinc-900',
+    'bg-gradient-to-br from-neutral-900 via-gray-900 to-black',
+    'bg-gradient-to-br from-stone-900 via-neutral-900 to-slate-900',
+    'bg-gradient-to-br from-zinc-900 via-gray-900 to-black'
+  ];
+  
+  // Use task ID as seed for consistent but random selection
+  let hash = 0;
+  if (taskId) {
+    for (let i = 0; i < taskId.length; i++) {
+      const char = taskId.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+  }
+  
+  const index = Math.abs(hash) % backgrounds.length;
+  return backgrounds[index];
+};
+
 export default function TaskRunPage() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-
-  const { body, checklist } = useMemo(() => parseDescription(description), [description]);
 
   const { 
     formattedTime, 
     isActive, 
     isPaused, 
+    taskData,
     startTimer, 
     pauseTimer, 
     resumeTimer, 
@@ -68,22 +94,20 @@ export default function TaskRunPage() {
     onComplete: () => navigate(-1) 
   });
 
-  useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'tasks', taskId as string), (snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        setTitle(data.title || '');
-        setDescription(data.description || '');
-      }
-    });
-    return () => unsub();
-  }, [taskId]);
+  const { body, checklist } = useMemo(() => 
+    parseDescription(taskData?.description || ''), 
+    [taskData?.description]
+  );
+
+  const backgroundClass = useMemo(() => 
+    getRandomBackground(taskId || ''), 
+    [taskId]
+  );
 
 
   const handleToggle = async (index: number) => {
     const updated = checklist.map((c, i) => i === index ? { ...c, checked: !c.checked } : c);
     const newDesc = buildDescription(body, updated);
-    setDescription(newDesc);
     await updateDoc(doc(db, 'tasks', taskId as string), {
       description: newDesc,
       progress: getCheckboxProgress(newDesc)
@@ -91,38 +115,38 @@ export default function TaskRunPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center gradient-bg-secondary text-white p-6">
-      <div className="w-full max-w-3xl space-y-6">
+    <div className={`min-h-screen flex flex-col items-center ${backgroundClass} text-white p-6`}>
+      <div className="w-full max-w-4xl space-y-8">
         <div className="flex justify-between items-center">
-          <Button variant="ghost" className="text-white" onClick={() => navigate(-1)}>
-            Volver
+          <Button variant="ghost" className="text-white hover:bg-white/20 text-lg font-semibold drop-shadow-lg px-6 py-3" onClick={() => navigate(-1)}>
+            ← Volver
           </Button>
-          <div className="text-2xl font-mono">{formattedTime}</div>
+          <div className="text-4xl font-mono font-bold drop-shadow-xl bg-black/30 px-6 py-2 rounded-lg backdrop-blur-sm border border-white/20">{formattedTime}</div>
         </div>
-        <h1 className="text-4xl font-bold break-words">{title}</h1>
+        <h1 className="text-5xl font-bold break-words drop-shadow-xl text-center leading-tight">{taskData?.title || ''}</h1>
         {body && (
-          <div className="prose prose-lg max-w-none text-white" dangerouslySetInnerHTML={{ __html: renderMarkdown(body) }} />
+          <div className="prose prose-xl max-w-none text-white drop-shadow-md prose-headings:drop-shadow-lg prose-headings:text-white prose-p:text-white prose-strong:text-white prose-em:text-white" dangerouslySetInnerHTML={{ __html: renderMarkdown(body) }} />
         )}
         {checklist.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {checklist.map((item, i) => (
-              <label key={i} className="flex items-center space-x-3 text-xl">
-                <Checkbox checked={item.checked} onCheckedChange={() => handleToggle(i)} />
-                <span className="select-none">{item.text}</span>
+              <label key={i} className="flex items-center space-x-4 text-2xl bg-black/20 p-4 rounded-lg backdrop-blur-sm">
+                <Checkbox checked={item.checked} onCheckedChange={() => handleToggle(i)} className="scale-125" />
+                <span className="select-none drop-shadow-md font-medium">{item.text}</span>
               </label>
             ))}
           </div>
         )}
         
         {/* Timer Controls */}
-        <div className="flex flex-col gap-4 mt-8">
-          <div className="flex gap-3 justify-center">
+        <div className="flex flex-col gap-6 mt-12">
+          <div className="flex gap-4 justify-center">
             {!isActive ? (
               <Button 
                 onClick={startTimer} 
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg"
+                className="bg-green-700 hover:bg-green-800 text-white px-8 py-4 text-xl font-semibold shadow-xl drop-shadow-lg border border-green-600"
               >
-                <Play className="w-5 h-5 mr-2" />
+                <Play className="w-6 h-6 mr-3" />
                 Iniciar
               </Button>
             ) : (
@@ -130,25 +154,25 @@ export default function TaskRunPage() {
                 {isPaused ? (
                   <Button 
                     onClick={resumeTimer} 
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg"
+                    className="bg-green-700 hover:bg-green-800 text-white px-8 py-4 text-xl font-semibold shadow-xl drop-shadow-lg border border-green-600"
                   >
-                    <Play className="w-5 h-5 mr-2" />
+                    <Play className="w-6 h-6 mr-3" />
                     Reanudar
                   </Button>
                 ) : (
                   <Button 
                     onClick={pauseTimer} 
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 text-lg"
+                    className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 text-xl font-semibold shadow-xl drop-shadow-lg border border-amber-500"
                   >
-                    <Pause className="w-5 h-5 mr-2" />
+                    <Pause className="w-6 h-6 mr-3" />
                     Pausar
                   </Button>
                 )}
                 <Button 
                   onClick={stopTimer} 
-                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 text-lg"
+                  className="bg-red-700 hover:bg-red-800 text-white px-8 py-4 text-xl font-semibold shadow-xl drop-shadow-lg border border-red-600"
                 >
-                  <Square className="w-5 h-5 mr-2" />
+                  <Square className="w-6 h-6 mr-3" />
                   Detener
                 </Button>
               </>
@@ -159,9 +183,9 @@ export default function TaskRunPage() {
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-lg w-full"
+                className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-4 text-xl font-semibold w-full shadow-xl drop-shadow-lg border border-blue-600"
               >
-                <CheckCircle className="w-5 h-5 mr-2" />
+                <CheckCircle className="w-6 h-6 mr-3" />
                 Completar Tarea
               </Button>
             </AlertDialogTrigger>

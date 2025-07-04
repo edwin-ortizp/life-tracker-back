@@ -16,6 +16,7 @@ export const useTaskTimer = ({ taskId, onComplete }: UseTaskTimerProps) => {
   const [isPaused, setIsPaused] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [baseElapsed, setBaseElapsed] = useState(0);
+  const [taskData, setTaskData] = useState<{ title: string; description: string } | null>(null);
   const intervalRef = useRef<number>();
   const isUpdating = useRef(false);
 
@@ -67,6 +68,12 @@ export const useTaskTimer = ({ taskId, onComplete }: UseTaskTimerProps) => {
         setIsPaused(data.timerPaused || false);
         setBaseElapsed(data.elapsedSeconds || 0);
         
+        // Actualizar datos de la tarea
+        setTaskData({
+          title: data.title || '',
+          description: data.description || ''
+        });
+        
         // Si el timer está activo, calcular el tiempo de inicio
         if (data.timerActive && !data.timerPaused && data.timerStartTime) {
           const currentTime = Date.now();
@@ -86,7 +93,7 @@ export const useTaskTimer = ({ taskId, onComplete }: UseTaskTimerProps) => {
     };
   }, [taskId, cleanupTimer]);
 
-  // Guardar estado en Firebase cada 5 minutos
+  // Guardar estado en Firebase cada 15 minutos
   useEffect(() => {
     if (!isActive || isPaused || isUpdating.current) return;
 
@@ -100,7 +107,7 @@ export const useTaskTimer = ({ taskId, onComplete }: UseTaskTimerProps) => {
       } catch (error) {
         console.error('Error saving timer progress:', error);
       }
-    }, 300000) as unknown as number; // 5 minutos
+    }, 900000) as unknown as number; // 15 minutos
 
     return () => clearInterval(saveInterval);
   }, [isActive, isPaused, taskId, calculateLocalTime]);
@@ -269,6 +276,7 @@ export const useTaskTimer = ({ taskId, onComplete }: UseTaskTimerProps) => {
     isActive,
     isPaused,
     formattedTime: formatTime(time),
+    taskData,
     startTimer,
     pauseTimer,
     resumeTimer,

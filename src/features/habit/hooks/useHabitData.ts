@@ -49,7 +49,7 @@ export const useHabitData = () => {
 
     // Subscribe to current month
     const currentMonthRef = doc(db, 'habits', `${user.uid}_${yearMonth}`);
-    const unsubscribe = onSnapshot(currentMonthRef, { includeMetadataChanges: true },
+    const unsubscribe = onSnapshot(currentMonthRef,
       (doc) => {
         if (doc.exists()) {
           const data = doc.data() as MonthlyHabits;

@@ -30,7 +30,7 @@ export const usePomodoroData = (selectedDate?: Date) => {
 
     const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
 
-    const unsubscribe = onSnapshot(docRef, { includeMetadataChanges: true },
+    const unsubscribe = onSnapshot(docRef,
       (doc) => {
         if (doc.exists()) {
           const pomodoroData = doc.data() as PomodoroData;
