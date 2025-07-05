@@ -1,6 +1,10 @@
 import { getLocalDateString, getDaysAgo } from '@/utils/dates';
 import { getAiConfig } from '@/config/ai';
 import { generateAiResponse } from '@/utils/ai';
+import { db } from '@/firebase';
+import { doc, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
+import { HABITS } from '@/features/habit/types';
+import { EXERCISES } from '@/features/exercise/types';
 
 // Types for data collection
 interface DayData {
@@ -47,45 +51,168 @@ interface WeeklyPattern {
 interface InsightResult {
   content: string;
   quickAction?: string;
+  prompt?: string;
 }
 
-// Data collectors (these would integrate with your existing hooks)
-const collectDayData = async (date: Date): Promise<DayData> => {
+// Data collectors integrated with real Firebase data
+const collectDayData = async (date: Date, userId: string): Promise<DayData> => {
   const dateStr = getLocalDateString(date);
   
-  // This is a placeholder - you'll need to integrate with your actual data hooks
-  // For now, returning mock data structure
-  return {
-    date: dateStr,
-    habits: {
-      completed: 0,
-      total: 0,
-      completedList: [],
-      missedList: []
-    },
-    mood: {
-      average: 0,
-      entries: []
-    },
-    exercise: {
-      minutes: 0,
-      calories: 0,
-      types: []
-    },
-    water: {
-      liters: 0,
-      entries: 0
-    },
-    tasks: {
-      completed: 0,
-      pending: 0,
-      completedTitles: []
-    },
-    journal: {
-      hasEntry: false,
-      wordCount: 0
+  try {
+    // Collect habits data
+    const [year, month] = dateStr.split('-');
+    const yearMonth = `${year}-${month}`;
+    const habitDocRef = doc(db, 'habits', `${userId}_${yearMonth}`);
+    const habitDoc = await getDoc(habitDocRef);
+    
+    let habitsData = { completed: 0, total: 0, completedList: [] as string[], missedList: [] as string[] };
+    if (habitDoc.exists()) {
+      const data = habitDoc.data();
+      const dayHabits = data.habits || {};
+      const totalHabits = HABITS.length;
+      
+      let completedCount = 0;
+      const completedList: string[] = [];
+      const missedList: string[] = [];
+      
+      HABITS.forEach(habit => {
+        const habitKey = `${dateStr}_${habit.id}`;
+        if (dayHabits[habitKey]) {
+          completedCount++;
+          completedList.push(habit.name);
+        } else {
+          missedList.push(habit.name);
+        }
+      });
+      
+      habitsData = {
+        completed: completedCount,
+        total: totalHabits,
+        completedList: completedList,
+        missedList: missedList
+      };
     }
-  };
+
+    // Collect mood data
+    const moodDocRef = doc(db, 'moods', `${userId}_${dateStr}`);
+    const moodDoc = await getDoc(moodDocRef);
+    
+    let moodData = { average: 0, entries: [] };
+    if (moodDoc.exists()) {
+      const data = moodDoc.data();
+      const entries = data.entries || [];
+      if (entries.length > 0) {
+        const average = entries.reduce((sum: number, entry: any) => sum + entry.mood, 0) / entries.length;
+        moodData = {
+          average,
+          entries: entries.map((entry: any) => ({
+            time: entry.time,
+            mood: entry.mood.toString(),
+            emoji: entry.emoji || ''
+          }))
+        };
+      }
+    }
+
+    // Collect exercise data
+    const exerciseDocRef = doc(db, 'exercises', `${userId}_${dateStr}`);
+    const exerciseDoc = await getDoc(exerciseDocRef);
+    
+    let exerciseData = { minutes: 0, calories: 0, types: [] as string[] };
+    if (exerciseDoc.exists()) {
+      const data = exerciseDoc.data();
+      const exercises = data.exercises || [];
+      
+      const totalMinutes = exercises.reduce((sum: number, ex: { duration?: number }) => sum + (ex.duration || 0), 0);
+      const totalCalories = exercises.reduce((sum: number, ex: { calories?: number }) => sum + (ex.calories || 0), 0);
+      const types = exercises.map((ex: { exerciseId: number }) => {
+        const exercise = EXERCISES.find(e => e.id === ex.exerciseId);
+        return exercise ? exercise.name : 'Unknown';
+      }).filter((name: string) => name !== 'Unknown');
+      
+      exerciseData = {
+        minutes: totalMinutes,
+        calories: totalCalories,
+        types: [...new Set(types)] as string[]
+      };
+    }
+
+    // Collect water data
+    const waterDocRef = doc(db, 'water', `${userId}_${dateStr}`);
+    const waterDoc = await getDoc(waterDocRef);
+    
+    let waterData = { liters: 0, entries: 0 };
+    if (waterDoc.exists()) {
+      const data = waterDoc.data();
+      const drinks = data.drinks || [];
+      
+      const totalLiters = drinks.reduce((sum: number, drink: { hydration?: number }) => sum + (drink.hydration || 0), 0);
+      
+      waterData = {
+        liters: totalLiters,
+        entries: drinks.length
+      };
+    }
+
+    // Collect tasks data
+    const tasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', userId),
+      where('dateCompleted', '>=', dateStr),
+      where('dateCompleted', '<=', dateStr + 'T23:59:59')
+    );
+    const tasksSnapshot = await getDocs(tasksQuery);
+    
+    let tasksData = { completed: 0, pending: 0, completedTitles: [] as string[] };
+    if (!tasksSnapshot.empty) {
+      const completedTasks = tasksSnapshot.docs.filter(doc => doc.data().status === 'completed');
+      const pendingTasks = tasksSnapshot.docs.filter(doc => doc.data().status === 'pending');
+      
+      tasksData = {
+        completed: completedTasks.length,
+        pending: pendingTasks.length,
+        completedTitles: completedTasks.map(doc => doc.data().title || '')
+      };
+    }
+
+    // Collect journal data
+    const journalDocRef = doc(db, 'journal', `${userId}_${dateStr}`);
+    const journalDoc = await getDoc(journalDocRef);
+    
+    let journalData = { hasEntry: false, wordCount: 0 };
+    if (journalDoc.exists()) {
+      const data = journalDoc.data();
+      const text = data.text || '';
+      
+      journalData = {
+        hasEntry: text.length > 0,
+        wordCount: text.split(/\s+/).filter((word: string) => word.length > 0).length
+      };
+    }
+
+    return {
+      date: dateStr,
+      habits: habitsData,
+      mood: moodData,
+      exercise: exerciseData,
+      water: waterData,
+      tasks: tasksData,
+      journal: journalData
+    };
+    
+  } catch (error) {
+    console.error('Error collecting day data:', error);
+    // Return empty data structure on error
+    return {
+      date: dateStr,
+      habits: { completed: 0, total: 0, completedList: [], missedList: [] },
+      mood: { average: 0, entries: [] },
+      exercise: { minutes: 0, calories: 0, types: [] },
+      water: { liters: 0, entries: 0 },
+      tasks: { completed: 0, pending: 0, completedTitles: [] },
+      journal: { hasEntry: false, wordCount: 0 }
+    };
+  }
 };
 
 const analyzeWeeklyPatterns = (weekData: DayData[]): WeeklyPattern => {
@@ -232,21 +359,22 @@ Genera UN consejo específico y accionable para HOY que:
 3. Sea realista para trabajo desde casa
 4. Incluya una acción específica que pueda hacer AHORA
 
-Responde en formato:
-{
-  "content": "Consejo específico y personalizado en 2-3 oraciones máximo",
-  "quickAction": "Acción específica de 5 palabras máximo (opcional)"
-}
+Responde ÚNICAMENTE en formato markdown limpio:
+- Usa **negrita** para enfatizar puntos clave
+- Usa *cursiva* para acciones específicas  
+- Máximo 3 oraciones en total
+- Sin encabezados, solo el consejo directo
+- Termina con una acción específica si es relevante
 `;
 };
 
-export const generateDailyInsight = async (date: Date): Promise<InsightResult | null> => {
+export const generateDailyInsight = async (date: Date, userId: string): Promise<InsightResult | null> => {
   try {
     // Collect data for the last 7 days
     const weekData: DayData[] = [];
     for (let i = 6; i >= 0; i--) {
       const dayDate = getDaysAgo(date, i);
-      const dayData = await collectDayData(dayDate);
+      const dayData = await collectDayData(dayDate, userId);
       weekData.push(dayData);
     }
 
@@ -265,19 +393,11 @@ export const generateDailyInsight = async (date: Date): Promise<InsightResult | 
     // Generate insight
     const response = await generateAiResponse(prompt, config);
     
-    // Try to parse JSON response
-    try {
-      const parsed = JSON.parse(response);
-      return {
-        content: parsed.content || response,
-        quickAction: parsed.quickAction
-      };
-    } catch {
-      // If not JSON, use as plain text
-      return {
-        content: response
-      };
-    }
+    // Return markdown response directly with prompt
+    return {
+      content: response.trim(),
+      prompt: prompt
+    };
 
   } catch (error) {
     console.error('Error generating daily insight:', error);
@@ -298,7 +418,8 @@ export const generateDailyInsight = async (date: Date): Promise<InsightResult | 
 
     return {
       content: fallbackInsights[dayName] || 'Enfócate en hidratación constante y mantén tus hábitos básicos.',
-      quickAction: 'Beber 300ml agua'
+      quickAction: 'Beber 300ml agua',
+      prompt: 'Insight generado automáticamente (modo fallback - no se utilizó IA)'
     };
   }
 };

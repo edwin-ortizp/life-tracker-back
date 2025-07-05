@@ -336,14 +336,21 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
         intake: waterSnap.exists() ? waterSnap.data().totalWater || 0 : 0,
         drinkDetails: waterSnap.exists() ? processDrinkDetails(waterSnap.data()) : [],
       },
-      exercise: {
-        minutes: exerciseSnap.exists()
-          ? exerciseSnap.data().summary?.totalDuration || 0
-          : 0,
-        calories: exerciseSnap.exists()
-          ? exerciseSnap.data().summary?.totalCalories || 0
-          : 0,
-      },      pomodoro: (() => {
+      exercise: (() => {
+        const exerciseData = exerciseSnap.exists() ? exerciseSnap.data() : null;
+        console.log('🏃 fetchDailySummary - Exercise data for', dateStr, ':', exerciseData);
+        console.log('🏃 fetchDailySummary - Exercise summary:', exerciseData?.summary);
+        
+        const minutes = exerciseData?.summary?.totalDuration || 0;
+        const calories = exerciseData?.summary?.totalCalories || 0;
+        
+        console.log('🏃 fetchDailySummary - extracted minutes:', minutes, 'calories:', calories);
+        
+        return {
+          minutes,
+          calories,
+        };
+      })(),      pomodoro: (() => {
         const data = pomodoroSnap.exists() ? pomodoroSnap.data() : null;
         console.log('🍅 fetchDailySummary - Pomodoro data for', dateStr, ':', data);
         
@@ -448,10 +455,20 @@ export const createDailySummaryFromData = (
       intake: waterData?.totalWater || 0,
       drinkDetails: processDrinkDetails(waterData),
     },
-    exercise: {
-      minutes: exerciseData?.summary?.totalDuration || 0,
-      calories: exerciseData?.summary?.totalCalories || 0,
-    },    pomodoro: (() => {
+    exercise: (() => {
+      console.log('🏃 createDailySummaryFromData - Exercise data for', dateStr, ':', exerciseData);
+      console.log('🏃 createDailySummaryFromData - Exercise summary:', exerciseData?.summary);
+      
+      const minutes = exerciseData?.summary?.totalDuration || 0;
+      const calories = exerciseData?.summary?.totalCalories || 0;
+      
+      console.log('🏃 createDailySummaryFromData - extracted minutes:', minutes, 'calories:', calories);
+      
+      return {
+        minutes,
+        calories,
+      };
+    })(),    pomodoro: (() => {
       const data = pomodoroData;
       console.log('🍅 Pomodoro data for', dateStr, ':', data);
       

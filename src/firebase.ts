@@ -3,7 +3,10 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import {
   getFirestore,
-  enableIndexedDbPersistence
+  enableIndexedDbPersistence,
+  clearIndexedDbPersistence,
+  disableNetwork,
+  enableNetwork
 } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -22,10 +25,42 @@ export const db = getFirestore(app);
 
 // Enable offline persistence for Firestore only once
 let persistenceInitialized = false;
+
+// Función para limpiar la persistencia offline
+export const clearOfflineCache = async (): Promise<void> => {
+  try {
+    console.log('Clearing Firestore offline cache...');
+    await disableNetwork(db);
+    await clearIndexedDbPersistence(db);
+    await enableNetwork(db);
+    console.log('Firestore offline cache cleared successfully');
+    // Recargar la página para reinicializar Firestore
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  } catch (error) {
+    console.error('Error clearing Firestore offline cache:', error);
+    throw error;
+  }
+};
+
+// Función para detectar errores de estado interno de Firestore
+export const isFirestoreInternalError = (error: any): boolean => {
+  return error?.message?.includes('INTERNAL ASSERTION FAILED') || 
+         error?.message?.includes('Unexpected state') ||
+         error?.code === 'internal';
+};
+
 if (typeof window !== 'undefined' && !persistenceInitialized) {
   persistenceInitialized = true;
-  enableIndexedDbPersistence(db).catch((err) => {
-    if (import.meta.env.DEV) {
+  enableIndexedDbPersistence(db, {
+    forceOwnership: true // Forzar la propiedad para evitar conflictos
+  }).catch((err) => {
+    if (err.code === 'failed-precondition') {
+      console.warn('Firestore persistence failed: Multiple tabs open');
+    } else if (err.code === 'unimplemented') {
+      console.warn('Firestore persistence not available in this browser');
+    } else {
       console.error('Firestore persistence error', err);
     }
   });

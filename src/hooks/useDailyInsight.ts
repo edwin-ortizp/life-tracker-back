@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getLocalDateString } from '@/utils/dates';
 import { generateDailyInsight } from '@/services/insightGenerator';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface DailyInsight {
   content: string;
@@ -8,6 +9,7 @@ export interface DailyInsight {
   generatedAt: string;
   date: string;
   isValid: boolean;
+  prompt?: string;
 }
 
 interface UseDailyInsightReturn {
@@ -15,6 +17,7 @@ interface UseDailyInsightReturn {
   loading: boolean;
   error: string | null;
   regenerateInsight: () => Promise<void>;
+  lastPrompt?: string;
 }
 
 const CACHE_KEY = 'daily_insight';
@@ -24,6 +27,7 @@ export const useDailyInsight = (date: Date): UseDailyInsightReturn => {
   const [insight, setInsight] = useState<DailyInsight | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const dateStr = getLocalDateString(date);
 
@@ -82,11 +86,16 @@ export const useDailyInsight = (date: Date): UseDailyInsightReturn => {
 
   // Generate new insight
   const generateNewInsight = useCallback(async (): Promise<DailyInsight | null> => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return null;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const generatedContent = await generateDailyInsight(date);
+      const generatedContent = await generateDailyInsight(date, user.uid);
       
       if (!generatedContent) {
         throw new Error('No se pudo generar el insight');
@@ -97,7 +106,8 @@ export const useDailyInsight = (date: Date): UseDailyInsightReturn => {
         quickAction: generatedContent.quickAction,
         generatedAt: new Date().toISOString(),
         date: dateStr,
-        isValid: true
+        isValid: true,
+        prompt: generatedContent.prompt
       };
 
       saveInsightToCache(newInsight);
@@ -111,7 +121,7 @@ export const useDailyInsight = (date: Date): UseDailyInsightReturn => {
     } finally {
       setLoading(false);
     }
-  }, [date, dateStr, saveInsightToCache]);
+  }, [date, dateStr, saveInsightToCache, user]);
 
   // Force regenerate insight
   const regenerateInsight = useCallback(async (): Promise<void> => {
@@ -175,6 +185,7 @@ export const useDailyInsight = (date: Date): UseDailyInsightReturn => {
     insight,
     loading,
     error,
-    regenerateInsight
+    regenerateInsight,
+    lastPrompt: insight?.prompt
   };
 };

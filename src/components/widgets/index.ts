@@ -7,6 +7,7 @@ export { QuickAccessPomodoro } from './QuickAccessPomodoro';
 export { QuickAccessExercise } from './QuickAccessExercise';
 export { QuickAccessJournal } from './QuickAccessJournal';
 export { QuickAccessMeal } from './QuickAccessMeal';
+export { QuickAccessEnergy } from './QuickAccessEnergy';
 export { DaySummary } from './DaySummary';
 export { DailyScore } from './DailyScore';
 export { DailyHabitsChecklist } from './DailyHabitsChecklist';

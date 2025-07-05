@@ -38,13 +38,17 @@ interface TaskListProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
+  status?: 'idle' | 'loading' | 'saving' | 'pending' | 'saved' | 'error';
+  error?: string | null;
 }
 
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
   onDelete,
   onEdit,
-  onView
+  onView,
+  status,
+  error
 }) => {  const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
   const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilter>('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -293,6 +297,35 @@ export const TaskList: React.FC<TaskListProps> = ({
               ? 'No hay tareas pendientes'
               : 'No hay tareas pendientes con los filtros seleccionados'
             }
+          </div>
+        )}
+
+        {/* Indicador de estado opcional */}
+        {(status && status !== 'idle') && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+              {status === 'loading' && (
+                <>
+                  <div className="w-3 h-3 border border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                  <span>Cargando tareas...</span>
+                </>
+              )}
+              {status === 'saving' && (
+                <>
+                  <div className="w-3 h-3 border border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                  <span>Guardando...</span>
+                </>
+              )}
+              {status === 'pending' && (
+                <span className="text-yellow-600">Pendiente de sincronizar</span>
+              )}
+              {status === 'saved' && (
+                <span className="text-green-600">✓ Sincronizado</span>
+              )}
+              {status === 'error' && error && (
+                <span className="text-red-600">⚠ Error de sincronización</span>
+              )}
+            </div>
           </div>
         )}
       </div>

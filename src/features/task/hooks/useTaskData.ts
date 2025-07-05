@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { db } from '@/firebase';
+import { db, isFirestoreInternalError, clearOfflineCache } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import {
   collection,
@@ -100,7 +100,14 @@ export const useTaskData = () => {
       setStatus('saved');
     } catch (error) {
       console.error('Error loading tasks:', error);
-      setError(error instanceof Error ? error.message : 'Error loading tasks');
+      
+      // Verificar si es un error interno de Firestore
+      if (isFirestoreInternalError(error)) {
+        console.warn('Firestore internal error detected. This may require cache clearing.');
+        setError('Error de sincronización detectado. Puedes intentar limpiar el cache offline si el problema persiste.');
+      } else {
+        setError(error instanceof Error ? error.message : 'Error loading tasks');
+      }
       setStatus('error');
     }
   }, [user]);
@@ -200,9 +207,20 @@ export const useTaskData = () => {
       }
     } catch (error) {
       console.error('Error al guardar:', error);
-      // Revertir actualización optimista en caso de error
-      setTasks(prev => prev.filter(task => task.id !== optimisticTask.id));
-      setError(error instanceof Error ? error.message : 'Error al guardar');
+      
+      // Verificar si es un error interno de Firestore
+      if (isFirestoreInternalError(error)) {
+        console.warn('Firestore internal error detected during task creation.');
+        setError('Error de sincronización. La tarea puede haberse guardado pero hay un problema con el cache local.');
+        // No revertir inmediatamente, dar oportunidad de que se sincronice
+        setTimeout(() => {
+          loadTasks(); // Recargar tareas después de un momento
+        }, 2000);
+      } else {
+        // Revertir actualización optimista en caso de error normal
+        setTasks(prev => prev.filter(task => task.id !== optimisticTask.id));
+        setError(error instanceof Error ? error.message : 'Error al guardar');
+      }
       setStatus('error');
     }
   }, [user]);
@@ -544,6 +562,19 @@ export const useTaskData = () => {
 
   const resync = useResync('Task data');
 
+  // Función para limpiar cache cuando hay errores de sincronización
+  const clearCacheAndReload = useCallback(async () => {
+    try {
+      setStatus('loading');
+      setError(null);
+      await clearOfflineCache();
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+      setError('Error al limpiar el cache. Intenta recargar la página manualmente.');
+      setStatus('error');
+    }
+  }, []);
+
   // Memoizar tareas públicas para evitar recálculos innecesarios
   const publicTasks = useMemo(() => tasks.filter(task => !task.isPrivate), [tasks]);
 
@@ -566,7 +597,8 @@ export const useTaskData = () => {
     openCreateModal,
     getPublicTasks,
     loadTasks, // Exponer función de recarga manual
-    resync
+    resync,
+    clearCacheAndReload
   }), [
     publicTasks,
     tasks,
@@ -584,6 +616,7 @@ export const useTaskData = () => {
     openCreateModal,
     getPublicTasks,
     loadTasks,
-    resync
+    resync,
+    clearCacheAndReload
   ]);
 };

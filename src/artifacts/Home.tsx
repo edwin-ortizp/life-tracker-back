@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Auth from '../components/Auth';
 import DateSelector from '../components/DateSelector';
 import PageLayout from '@/components/PageLayout';
+import { useFirestoreErrorHandler } from '@/hooks/useFirestoreErrorHandler';
 import { 
   QuickAccessWater, 
   QuickAccessMood, 
@@ -10,7 +11,7 @@ import {
   QuickAccessPomodoro,
   QuickAccessExercise,
   QuickAccessJournal,
-  QuickAccessMeal,
+  QuickAccessEnergy,
   DaySummary,
   DailyScore,
   DailyHabitsChecklist,
@@ -19,6 +20,9 @@ import {
 
 const DailyTrackerApp = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  // Inicializar el manejador global de errores de Firestore
+  useFirestoreErrorHandler();
 
   return (
     <PageLayout>
@@ -49,7 +53,7 @@ const DailyTrackerApp = () => {
         <QuickAccessPomodoro date={selectedDate} variant="compact" />
         <QuickAccessExercise date={selectedDate} variant="compact" />
         <QuickAccessJournal date={selectedDate} variant="compact" />
-        <QuickAccessMeal date={selectedDate} variant="compact" />
+        <QuickAccessEnergy date={selectedDate} variant="compact" />
       </div>
 
       {/* Summary Section */}

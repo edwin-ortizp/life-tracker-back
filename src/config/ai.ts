@@ -603,13 +603,14 @@ export const aiConfig: Record<string, AiModuleConfig> = {
       '4. **Patrones de mejora**: Aprovechar momentum positivo\n' +
       '5. **Prevención de retrocesos**: Identificar días de riesgo\n\n' +
       '### **{FORMATO REQUERIDO}**\n' +
-      'Responde ÚNICAMENTE en formato JSON válido:\n' +
-      '{\n' +
-      '  "content": "Consejo específico basado en patrones, máximo 2-3 oraciones",\n' +
-      '  "quickAction": "Acción específica en 3-5 palabras (opcional)"\n' +
-      '}\n\n' +
+      'Responde ÚNICAMENTE en formato markdown limpio:\n' +
+      '- Usa **negrita** para enfatizar puntos clave\n' +
+      '- Usa *cursiva* para acciones específicas\n' +
+      '- Máximo 3 oraciones en total\n' +
+      '- Sin encabezados, solo el consejo directo\n' +
+      '- Termina con una acción específica si es relevante\n\n' +
       '### **{EJEMPLOS DE CALIDAD}**\n' +
-      '**BUENO**: "Tus mejores días de productividad coinciden con hidratación temprana de 600ml antes de las 9 AM. Hoy es martes y sueles tener menos energía, así que prioriza agua ahora y elige tareas que requieran menos concentración."\n\n' +
+      '**BUENO**: "Tus mejores días de productividad coinciden con **hidratación temprana** de 600ml antes de las 9 AM. Hoy es martes y sueles tener menos energía, así que *bebe 300ml ahora* y elige tareas que requieran menos concentración."\n\n' +
       '**MALO**: "Es importante mantener hábitos saludables y beber suficiente agua durante el día."\n\n' +
       '### **{CONSIDERACIONES ESPECIALES}**\n' +
       '- Si hay patrones negativos, enfocar en soluciones inmediatas\n' +

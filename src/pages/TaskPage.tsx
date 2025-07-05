@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { FirestoreErrorHandler } from '@/components/ui/FirestoreErrorHandler';
 import {
   LineChart,
   Line,
@@ -251,6 +252,16 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
       />
       
       <div className="p-4">
+        {taskData.error && (
+          <div className="mb-4">
+            <FirestoreErrorHandler 
+              error={taskData.error} 
+              onRetry={taskData.loadTasks}
+              showClearCache={true}
+            />
+          </div>
+        )}
+        
         <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4">
 
         <TabsContent value="list" className="space-y-4">

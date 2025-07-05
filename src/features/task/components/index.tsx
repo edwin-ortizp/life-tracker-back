@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { TaskList } from './TaskList';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { FirestoreErrorHandler } from '@/components/ui/FirestoreErrorHandler';
 
 // Exports
 export * from './TaskKanban';
@@ -49,7 +50,8 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
     setShowRecurrenceModal,
     openEditModal,
     openCreateModal,
-    resync
+    resync,
+    clearCacheAndReload
   } = taskData;
   const { isOnline } = useNetworkStatus();
 
@@ -62,24 +64,24 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
       <Card>
         <CardContent className="p-8 text-center">
           <p>Inicia sesión para gestionar tus tareas</p>
-          </CardContent>
-          <CardFooter className="gap-2 text-xs p-2">
-            {status === 'saving' && (
-              <span className="text-blue-500">Guardando...</span>
-            )}
-            {status === 'pending' && (
-              <span className="text-yellow-600">Pendiente de sincronizar</span>
-            )}
-            {status === 'saved' && (
-              <span className="text-green-600">Sincronizado</span>
-            )}
-            {status === 'error' && (
-              <span className="text-red-600">Error de sincronización</span>
-            )}
-            {!isOnline && <span className="text-orange-600">Offline</span>}
-            <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
-          </CardFooter>
-        </Card>
+        </CardContent>
+        <CardFooter className="gap-2 text-xs p-2">
+          {status === 'saving' && (
+            <span className="text-blue-500">Guardando...</span>
+          )}
+          {status === 'pending' && (
+            <span className="text-yellow-600">Pendiente de sincronizar</span>
+          )}
+          {status === 'saved' && (
+            <span className="text-green-600">Sincronizado</span>
+          )}
+          {status === 'error' && (
+            <span className="text-red-600">Error de sincronización</span>
+          )}
+          {!isOnline && <span className="text-orange-600">Offline</span>}
+          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+        </CardFooter>
+      </Card>
     );
   }
 
@@ -93,15 +95,40 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
               onDelete={deleteTask}
               onEdit={openEditModal}
               onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
+              status={status}
+              error={error}
             />
 
             {error && (
-              <p className="text-sm text-red-500">
-                {error}
-              </p>
+              <FirestoreErrorHandler 
+                error={error} 
+                onRetry={resync}
+                showClearCache={true}
+              />
             )}
           </div>
         </CardContent>
+        <CardFooter className="gap-2 text-xs p-2 border-t">
+          {status === 'saving' && (
+            <span className="text-blue-500">Guardando...</span>
+          )}
+          {status === 'pending' && (
+            <span className="text-yellow-600">Pendiente de sincronizar</span>
+          )}
+          {status === 'saved' && (
+            <span className="text-green-600">Sincronizado</span>
+          )}
+          {status === 'error' && (
+            <span className="text-red-600">Error de sincronización</span>
+          )}
+          {!isOnline && <span className="text-orange-600">Offline</span>}
+          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
+          {(status === 'error' || !isOnline) && (
+            <Button onClick={clearCacheAndReload} variant="link" className="p-0 h-auto text-red-600">
+              Limpiar Cache
+            </Button>
+          )}
+        </CardFooter>
       </Card>
 
       {/* Botón flotante para móviles (estilo Material Design) - Solo en páginas dedicadas */}
