@@ -96,7 +96,6 @@ export const DailyHabitsChecklist: React.FC<DailyHabitsChecklistProps> = ({
       icon={CheckCircle}
       variant={variant}
       loading={loading}
-      onClick={() => navigate('/habit')}
       className={className}
     >
       <div className="space-y-4">

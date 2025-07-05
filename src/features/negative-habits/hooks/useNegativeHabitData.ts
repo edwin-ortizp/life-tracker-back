@@ -114,7 +114,7 @@ export const useNegativeHabitData = () => {
     const optimisticLog: NegativeHabitLog = {
       timestamp: Date.now(),
       habitId,
-      note
+      ...(note ? { note } : {})
     };
 
     const optimisticHabits = {
