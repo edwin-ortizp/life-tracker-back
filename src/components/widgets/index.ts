@@ -9,3 +9,4 @@ export { QuickAccessJournal } from './QuickAccessJournal';
 export { QuickAccessMeal } from './QuickAccessMeal';
 export { DaySummary } from './DaySummary';
 export { DailyScore } from './DailyScore';
+export { DailyHabitsChecklist } from './DailyHabitsChecklist';

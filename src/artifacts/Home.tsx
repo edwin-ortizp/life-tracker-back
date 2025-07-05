@@ -1,10 +1,7 @@
 import { useState } from 'react';
-import { Pomodoro } from '@/features/pomodoro/components';
-import { Journal } from '@/features/journal/components';
 import Auth from '../components/Auth';
 import DateSelector from '../components/DateSelector';
 import PageLayout from '@/components/PageLayout';
-import { ModernCard } from '@/components/ui/modern-card';
 import { 
   QuickAccessWater, 
   QuickAccessMood, 
@@ -15,7 +12,8 @@ import {
   QuickAccessJournal,
   QuickAccessMeal,
   DaySummary,
-  DailyScore
+  DailyScore,
+  DailyHabitsChecklist
 } from '@/components/widgets';
 
 const DailyTrackerApp = () => {
@@ -53,14 +51,9 @@ const DailyTrackerApp = () => {
         <DaySummary date={selectedDate} variant="detailed" />
       </div>
 
-      {/* Feature Modules */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <ModernCard variant="elevated" className="bg-card">
-          <Pomodoro selectedDate={selectedDate} />
-        </ModernCard>
-        <ModernCard variant="elevated" className="bg-card">
-          <Journal selectedDate={selectedDate} />
-        </ModernCard>
+      {/* Habits Checklist */}
+      <div className="mb-8">
+        <DailyHabitsChecklist date={selectedDate} />
       </div>
       
       <div className="mt-6">
