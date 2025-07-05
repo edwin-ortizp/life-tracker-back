@@ -2,7 +2,7 @@ import { getLocalDateString, getDaysAgo } from '@/utils/dates';
 import { getAiConfig } from '@/config/ai';
 import { generateAiResponse } from '@/utils/ai';
 import { db } from '@/firebase';
-import { doc, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, query, collection, where, getDocs, Timestamp } from 'firebase/firestore';
 import { HABITS } from '@/features/habit/types';
 import { EXERCISES } from '@/features/exercise/types';
 
@@ -18,6 +18,12 @@ interface DayData {
   mood: {
     average: number;
     entries: Array<{ time: string; mood: string; emoji: string }>;
+    count: number;
+  };
+  energy: {
+    average: number;
+    entries: Array<{ time: string; level: number; comment?: string }>;
+    count: number;
   };
   exercise: {
     minutes: number;
@@ -33,6 +39,15 @@ interface DayData {
     pending: number;
     completedTitles: string[];
   };
+  pomodoro: {
+    sessions: number;
+    minutes: number;
+    completionRate: number;
+  };
+  negativeHabits: {
+    count: number;
+    types: string[];
+  };
   journal: {
     hasEntry: boolean;
     wordCount: number;
@@ -42,9 +57,12 @@ interface DayData {
 interface WeeklyPattern {
   habitsPattern: string;
   moodPattern: string;
+  energyPattern: string;
   exercisePattern: string;
   hydrationPattern: string;
   productivityPattern: string;
+  pomodoroPattern: string;
+  negativeHabitsPattern: string;
   weeklyTrends: string;
 }
 
@@ -76,7 +94,7 @@ const collectDayData = async (date: Date, userId: string): Promise<DayData> => {
       const missedList: string[] = [];
       
       HABITS.forEach(habit => {
-        const habitKey = `${dateStr}_${habit.id}`;
+        const habitKey = `${habit.id}_${dateStr}`;
         if (dayHabits[habitKey]) {
           completedCount++;
           completedList.push(habit.name);
@@ -97,19 +115,71 @@ const collectDayData = async (date: Date, userId: string): Promise<DayData> => {
     const moodDocRef = doc(db, 'moods', `${userId}_${dateStr}`);
     const moodDoc = await getDoc(moodDocRef);
     
-    let moodData = { average: 0, entries: [] };
+    let moodData = { average: 0, entries: [], count: 0 };
     if (moodDoc.exists()) {
       const data = moodDoc.data();
+      const moods = data.moods || [];
+      if (moods.length > 0) {
+        // Use the helper function to calculate proper mood values
+        const average = moods.reduce((sum: number, mood: any) => {
+          // Use value if available, otherwise calculate from text
+          const moodValue = mood.value || (() => {
+            const MOODS = [
+              { emoji: '😍', text: 'Enamorado', value: 10 },
+              { emoji: '😊', text: 'Feliz', value: 10 },
+              { emoji: '🌟', text: 'Energético', value: 10 },
+              { emoji: '🧠', text: 'Productivo', value: 10 },
+              { emoji: '😎', text: 'Confiado', value: 9 },
+              { emoji: '😌', text: 'Tranquilo', value: 8 },
+              { emoji: '🤔', text: 'Pensativo', value: 6 },
+              { emoji: '🥱', text: 'Aburrido', value: 5 },
+              { emoji: '😴', text: 'Pereza', value: 4 },
+              { emoji: '😕', text: 'Confundido', value: 5 },
+              { emoji: '😬', text: 'Nervioso', value: 3 },
+              { emoji: '🤯', text: 'Abrumado', value: 3 },
+              { emoji: '😤', text: 'Frustración', value: 3 },
+              { emoji: '😰', text: 'Ansioso', value: 2 },
+              { emoji: '😪', text: 'Cansado', value: 2 },
+              { emoji: '😢', text: 'Triste', value: 1 },
+              { emoji: '😡', text: 'Enojado', value: 1 },
+              { emoji: '🤒', text: 'Enfermo', value: 1 }
+            ];
+            const foundMood = MOODS.find(m => m.text === mood.text);
+            return foundMood?.value ?? 5;
+          })();
+          return sum + moodValue;
+        }, 0) / moods.length;
+        
+        moodData = {
+          average: Math.round(average * 10) / 10, // Round to 1 decimal
+          entries: moods.map((mood: any) => ({
+            time: mood.time,
+            mood: mood.text || '',
+            emoji: mood.emoji || ''
+          })),
+          count: moods.length
+        };
+      }
+    }
+
+    // Collect energy data
+    const energyDocRef = doc(db, 'energy', `${userId}_${dateStr}`);
+    const energyDoc = await getDoc(energyDocRef);
+    
+    let energyData = { average: 0, entries: [], count: 0 };
+    if (energyDoc.exists()) {
+      const data = energyDoc.data();
       const entries = data.entries || [];
       if (entries.length > 0) {
-        const average = entries.reduce((sum: number, entry: any) => sum + entry.mood, 0) / entries.length;
-        moodData = {
-          average,
+        const average = entries.reduce((sum: number, entry: any) => sum + (entry.level || 0), 0) / entries.length;
+        energyData = {
+          average: Math.round(average * 10) / 10, // Round to 1 decimal
           entries: entries.map((entry: any) => ({
             time: entry.time,
-            mood: entry.mood.toString(),
-            emoji: entry.emoji || ''
-          }))
+            level: entry.level || 0,
+            comment: entry.comment || ''
+          })),
+          count: entries.length
         };
       }
     }
@@ -146,32 +216,64 @@ const collectDayData = async (date: Date, userId: string): Promise<DayData> => {
       const data = waterDoc.data();
       const drinks = data.drinks || [];
       
-      const totalLiters = drinks.reduce((sum: number, drink: { hydration?: number }) => sum + (drink.hydration || 0), 0);
+      // Use 'amount' field and convert from ml to liters
+      const totalMl = drinks.reduce((sum: number, drink: { amount?: number }) => sum + (drink.amount || 0), 0);
+      const totalLiters = totalMl / 1000; // Convert ml to liters
       
       waterData = {
-        liters: totalLiters,
+        liters: Math.round(totalLiters * 10) / 10, // Round to 1 decimal
         entries: drinks.length
       };
     }
 
-    // Collect tasks data
+    // Collect tasks data - get tasks completed on this specific date
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    
     const tasksQuery = query(
       collection(db, 'tasks'),
       where('userId', '==', userId),
-      where('dateCompleted', '>=', dateStr),
-      where('dateCompleted', '<=', dateStr + 'T23:59:59')
+      where('completed', '==', true),
+      where('updatedAt', '>=', Timestamp.fromDate(startOfDay)),
+      where('updatedAt', '<=', Timestamp.fromDate(endOfDay))
     );
     const tasksSnapshot = await getDocs(tasksQuery);
     
     let tasksData = { completed: 0, pending: 0, completedTitles: [] as string[] };
-    if (!tasksSnapshot.empty) {
-      const completedTasks = tasksSnapshot.docs.filter(doc => doc.data().status === 'completed');
-      const pendingTasks = tasksSnapshot.docs.filter(doc => doc.data().status === 'pending');
+    const completedTasks = tasksSnapshot.docs;
+    
+    tasksData = {
+      completed: completedTasks.length,
+      pending: 0, // We don't query pending tasks for daily insight
+      completedTitles: completedTasks.map(doc => doc.data().title || '').slice(0, 5) // Limit to 5 titles
+    };
+
+    // Collect pomodoro data
+    const pomodoroDocRef = doc(db, 'pomodoro', `${userId}_${dateStr}`);
+    const pomodoroDoc = await getDoc(pomodoroDocRef);
+    
+    let pomodoroData = { sessions: 0, minutes: 0, completionRate: 0 };
+    if (pomodoroDoc.exists()) {
+      const data = pomodoroDoc.data();
+      const sessions = data.sessions || [];
+      const sessionCount = sessions.length;
       
-      tasksData = {
-        completed: completedTasks.length,
-        pending: pendingTasks.length,
-        completedTitles: completedTasks.map(doc => doc.data().title || '')
+      // Calculate total work minutes from sessions
+      const totalMinutes = sessions.reduce((sum: number, session: any) => {
+        const sessionMinutes = session.duration ? Math.round(session.duration / 60) : 0;
+        return sum + sessionMinutes;
+      }, 0);
+      
+      // Expected work time (e.g., 8 sessions of 25 min = 200 min)
+      const expectedMinutes = sessionCount * 25;
+      const completionRate = expectedMinutes > 0 ? Math.min(100, (totalMinutes / expectedMinutes) * 100) : 0;
+      
+      pomodoroData = {
+        sessions: sessionCount,
+        minutes: totalMinutes,
+        completionRate: Math.round(completionRate * 10) / 10
       };
     }
 
@@ -190,13 +292,35 @@ const collectDayData = async (date: Date, userId: string): Promise<DayData> => {
       };
     }
 
+    // Collect negative habits data
+    const negativeHabitsDocRef = doc(db, 'negative-habits', `${userId}_${yearMonth}`);
+    const negativeHabitsDoc = await getDoc(negativeHabitsDocRef);
+    
+    let negativeHabitsData = { count: 0, types: [] as string[] };
+    if (negativeHabitsDoc.exists()) {
+      const data = negativeHabitsDoc.data();
+      const dayHabits = data.habits?.[dateStr] || {};
+      const habitEntries = Object.entries(dayHabits).filter(([_, value]) => value !== undefined);
+      
+      negativeHabitsData = {
+        count: habitEntries.length,
+        types: habitEntries.map(([habitId, _]) => {
+          // You might want to map habitId to actual habit names here
+          return `Hábito Negativo ${habitId}`;
+        }).slice(0, 3) // Limit to 3 most recent
+      };
+    }
+
     return {
       date: dateStr,
       habits: habitsData,
       mood: moodData,
+      energy: energyData,
       exercise: exerciseData,
       water: waterData,
       tasks: tasksData,
+      pomodoro: pomodoroData,
+      negativeHabits: negativeHabitsData,
       journal: journalData
     };
     
@@ -206,10 +330,13 @@ const collectDayData = async (date: Date, userId: string): Promise<DayData> => {
     return {
       date: dateStr,
       habits: { completed: 0, total: 0, completedList: [], missedList: [] },
-      mood: { average: 0, entries: [] },
+      mood: { average: 0, entries: [], count: 0 },
+      energy: { average: 0, entries: [], count: 0 },
       exercise: { minutes: 0, calories: 0, types: [] },
       water: { liters: 0, entries: 0 },
       tasks: { completed: 0, pending: 0, completedTitles: [] },
+      pomodoro: { sessions: 0, minutes: 0, completionRate: 0 },
+      negativeHabits: { count: 0, types: [] },
       journal: { hasEntry: false, wordCount: 0 }
     };
   }
@@ -222,7 +349,21 @@ const analyzeWeeklyPatterns = (weekData: DayData[]): WeeklyPattern => {
   const weekendHabits = (habitCompletions[5] + habitCompletions[6]) / 2; // Fri-Sat
   const weekdayHabits = habitCompletions.slice(0, 5).reduce((a, b) => a + b, 0) / 5;
   
+  // Get most frequently missed habits
+  const allMissedHabits = weekData.flatMap(d => d.habits.missedList);
+  const missedHabitsCount = allMissedHabits.reduce((acc, habit) => {
+    acc[habit] = (acc[habit] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const topMissedHabits = Object.entries(missedHabitsCount)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 2)
+    .map(([habit]) => habit);
+
   let habitsPattern = `Promedio semanal de hábitos: ${Math.round(avgHabits * 100)}%`;
+  if (topMissedHabits.length > 0) {
+    habitsPattern += `, más olvidados: ${topMissedHabits.join(', ')}`;
+  }
   if (weekendHabits < weekdayHabits - 0.2) {
     habitsPattern += ", con notable bajón en fines de semana";
   } else if (weekendHabits > weekdayHabits + 0.1) {
@@ -232,15 +373,31 @@ const analyzeWeeklyPatterns = (weekData: DayData[]): WeeklyPattern => {
   // Analyze mood pattern
   const moodAvgs = weekData.map(d => d.mood.average).filter(m => m > 0);
   const avgMood = moodAvgs.length > 0 ? moodAvgs.reduce((a, b) => a + b, 0) / moodAvgs.length : 0;
-  let moodPattern = `Estado de ánimo promedio: ${avgMood.toFixed(1)}/5`;
+  let moodPattern = `Estado de ánimo promedio: ${avgMood.toFixed(1)}/10`;
   
   const lowMoodDays = weekData
     .map((d, i) => ({ day: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'][i], mood: d.mood.average }))
-    .filter(d => d.mood > 0 && d.mood < 3)
+    .filter(d => d.mood > 0 && d.mood < 5)
     .map(d => d.day);
   
   if (lowMoodDays.length > 0) {
     moodPattern += `, días difíciles: ${lowMoodDays.join(', ')}`;
+  }
+
+  // Analyze energy pattern
+  const energyAvgs = weekData.map(d => d.energy.average).filter(e => e > 0);
+  const avgEnergy = energyAvgs.length > 0 ? energyAvgs.reduce((a, b) => a + b, 0) / energyAvgs.length : 0;
+  let energyPattern = `Nivel de energía promedio: ${avgEnergy.toFixed(1)}/5`;
+  
+  const lowEnergyDays = weekData
+    .map((d, i) => ({ day: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'][i], energy: d.energy.average }))
+    .filter(d => d.energy > 0 && d.energy < 2.5)
+    .map(d => d.day);
+  
+  if (lowEnergyDays.length > 0) {
+    energyPattern += `, días con baja energía: ${lowEnergyDays.join(', ')}`;
+  } else if (avgEnergy >= 4) {
+    energyPattern += " - excelente nivel energético";
   }
 
   // Analyze exercise pattern
@@ -248,7 +405,21 @@ const analyzeWeeklyPatterns = (weekData: DayData[]): WeeklyPattern => {
   const totalExercise = exerciseMinutes.reduce((a, b) => a + b, 0);
   const exerciseDays = exerciseMinutes.filter(m => m > 0).length;
   
+  // Get most common exercise types
+  const allExerciseTypes = weekData.flatMap(d => d.exercise.types);
+  const exerciseTypeCount = allExerciseTypes.reduce((acc, type) => {
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const topExercises = Object.entries(exerciseTypeCount)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 3)
+    .map(([type]) => type);
+  
   let exercisePattern = `${exerciseDays}/7 días con ejercicio (${totalExercise} min total)`;
+  if (topExercises.length > 0) {
+    exercisePattern += `, principales: ${topExercises.join(', ')}`;
+  }
   if (exerciseDays >= 5) {
     exercisePattern += " - excelente consistencia";
   } else if (exerciseDays >= 3) {
@@ -289,6 +460,42 @@ const analyzeWeeklyPatterns = (weekData: DayData[]): WeeklyPattern => {
     productivityPattern += `, mejores días: ${mostProductiveDays.join(', ')}`;
   }
 
+  // Analyze pomodoro pattern
+  const pomodoroSessions = weekData.map(d => d.pomodoro.sessions);
+  const totalSessions = pomodoroSessions.reduce((a, b) => a + b, 0);
+  const avgSessions = totalSessions / 7;
+  const pomodoroMinutes = weekData.map(d => d.pomodoro.minutes);
+  const totalPomodoroMinutes = pomodoroMinutes.reduce((a, b) => a + b, 0);
+  
+  let pomodoroPattern = `Pomodoros: ${avgSessions.toFixed(1)} sesiones/día promedio (${totalPomodoroMinutes} min total)`;
+  const activePomoroDays = pomodoroSessions.filter(s => s > 0).length;
+  if (activePomoroDays >= 5) {
+    pomodoroPattern += " - excelente consistencia en trabajo enfocado";
+  } else if (activePomoroDays >= 3) {
+    pomodoroPattern += " - buen uso de técnica Pomodoro";
+  } else if (activePomoroDays > 0) {
+    pomodoroPattern += " - uso ocasional de trabajo enfocado";
+  } else {
+    pomodoroPattern += " - sin trabajo enfocado registrado";
+  }
+
+  // Analyze negative habits pattern
+  const negativeHabitsCount = weekData.map(d => d.negativeHabits.count);
+  const totalNegativeHabits = negativeHabitsCount.reduce((a, b) => a + b, 0);
+  const avgNegativeHabits = totalNegativeHabits / 7;
+  
+  let negativeHabitsPattern = `Hábitos negativos: ${avgNegativeHabits.toFixed(1)} incidencias/día promedio`;
+  const problemDays = weekData
+    .map((d, i) => ({ day: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'][i], count: d.negativeHabits.count }))
+    .filter(d => d.count > 2)
+    .map(d => d.day);
+  
+  if (problemDays.length > 0) {
+    negativeHabitsPattern += `, días difíciles: ${problemDays.join(', ')}`;
+  } else if (totalNegativeHabits === 0) {
+    negativeHabitsPattern += " - excelente autocontrol esta semana";
+  }
+
   // Overall trends
   const recentDays = weekData.slice(-3); // Last 3 days
   const olderDays = weekData.slice(0, 4); // First 4 days
@@ -308,14 +515,17 @@ const analyzeWeeklyPatterns = (weekData: DayData[]): WeeklyPattern => {
   return {
     habitsPattern,
     moodPattern,
+    energyPattern,
     exercisePattern,
     hydrationPattern,
     productivityPattern,
+    pomodoroPattern,
+    negativeHabitsPattern,
     weeklyTrends
   };
 };
 
-const buildContextualPrompt = (targetDate: Date, weeklyPattern: WeeklyPattern): string => {
+const buildContextualPrompt = (targetDate: Date, weeklyPattern: WeeklyPattern, weekData: DayData[]): string => {
   const today = new Date();
   const dayNames = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
   const dayName = dayNames[targetDate.getDay()];
@@ -328,6 +538,47 @@ const buildContextualPrompt = (targetDate: Date, weeklyPattern: WeeklyPattern): 
     timeContext = "Es medio día, buen momento para ajustar el curso del día.";
   } else {
     timeContext = "Es tarde, momento de reflexionar y planificar.";
+  }
+
+  // Add specific details about recent performance
+  const yesterdayData = weekData[weekData.length - 2]; // Yesterday
+  
+  let recentDetails = "";
+  if (yesterdayData) {
+    const recentHabits = yesterdayData.habits.completedList.length > 0 
+      ? `Ayer completaste: ${yesterdayData.habits.completedList.slice(0, 3).join(', ')}`
+      : "Ayer no completaste hábitos";
+    
+    const recentMood = yesterdayData.mood.average > 0 
+      ? `Estado de ánimo ayer: ${yesterdayData.mood.average}/10`
+      : "Sin registro de estado de ánimo ayer";
+    
+    const recentEnergy = yesterdayData.energy.average > 0 
+      ? `Nivel de energía ayer: ${yesterdayData.energy.average}/5`
+      : "Sin registro de energía ayer";
+    
+    const recentExercise = yesterdayData.exercise.minutes > 0 
+      ? `Ejercicio ayer: ${yesterdayData.exercise.minutes}min (${yesterdayData.exercise.types.join(', ')})`
+      : "Sin ejercicio ayer";
+    
+    const recentPomodoro = yesterdayData.pomodoro.sessions > 0 
+      ? `Trabajo enfocado ayer: ${yesterdayData.pomodoro.sessions} pomodoros (${yesterdayData.pomodoro.minutes}min)`
+      : "Sin trabajo enfocado ayer";
+    
+    const recentNegativeHabits = yesterdayData.negativeHabits.count > 0 
+      ? `Hábitos negativos ayer: ${yesterdayData.negativeHabits.count} incidencias`
+      : "Sin hábitos negativos ayer";
+    
+    recentDetails = `
+### RENDIMIENTO RECIENTE
+${recentHabits}
+${recentMood}
+${recentEnergy}
+${recentExercise}
+${recentPomodoro}
+Hidratación ayer: ${yesterdayData.water.liters}L
+Tareas completadas ayer: ${yesterdayData.tasks.completed}
+${recentNegativeHabits}`;
   }
 
   return `
@@ -344,10 +595,14 @@ Se levanta a las 6 AM y necesita optimizar su día basándose en sus patrones re
 ### ANÁLISIS DE PATRONES (ÚLTIMOS 7 DÍAS)
 **Hábitos:** ${weeklyPattern.habitsPattern}
 **Estado de ánimo:** ${weeklyPattern.moodPattern}
+**Nivel de energía:** ${weeklyPattern.energyPattern}
 **Ejercicio:** ${weeklyPattern.exercisePattern}
 **Hidratación:** ${weeklyPattern.hydrationPattern}
 **Productividad:** ${weeklyPattern.productivityPattern}
+**Trabajo enfocado:** ${weeklyPattern.pomodoroPattern}
+**Hábitos negativos:** ${weeklyPattern.negativeHabitsPattern}
 **Tendencia general:** ${weeklyPattern.weeklyTrends}
+${recentDetails}
 
 ### CONTEXTO ACTUAL
 Hoy es ${dayName}. ${timeContext}
@@ -382,7 +637,7 @@ export const generateDailyInsight = async (date: Date, userId: string): Promise<
     const patterns = analyzeWeeklyPatterns(weekData);
 
     // Build prompt
-    const prompt = buildContextualPrompt(date, patterns);
+    const prompt = buildContextualPrompt(date, patterns, weekData);
 
     // Get AI config
     const config = getAiConfig('dailyInsight');

@@ -582,7 +582,6 @@ export const aiConfig: Record<string, AiModuleConfig> = {
       '- Ingeniero de sistemas de 31 años\n' +
       '- Trabajo sedentario desde casa, se levanta a las 6 AM\n' +
       '- Personalidad analítica, aprecia datos concretos y patrones\n' +
-      '- Metas críticas: reducir grasa visceral (nivel 11), hidratación 2.5L/día\n' +
       '- Busca optimizar productividad y mantener consistencia en hábitos\n\n' +
       '### **{RESULTADO ESPERADO}**\n' +
       'Basándote en los patrones de comportamiento de los últimos 7 días, genera:\n' +
