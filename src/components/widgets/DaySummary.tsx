@@ -30,7 +30,7 @@ export const DaySummary: React.FC<DaySummaryProps> = ({
     {
       label: 'Agua',
       value: `${summary.water.intake}ml`,
-      progress: Math.min((summary.water.intake / 2000) * 100, 100),
+      progress: Math.min((summary.water.intake / 2500) * 100, 100), // Meta 2.5L
       color: 'bg-blue-500'
     },
     {
@@ -38,6 +38,22 @@ export const DaySummary: React.FC<DaySummaryProps> = ({
       value: `${summary.tasks.completed}/${summary.tasks.todayPlanned}`,
       progress: summary.tasks.todayPlanned > 0 ? (summary.tasks.completed / summary.tasks.todayPlanned) * 100 : 0,
       color: 'bg-purple-500'
+    },
+    {
+      label: 'Tiempo Trabajado',
+      value: summary.pomodoro.workMinutes > 0 ? 
+        `${Math.floor(summary.pomodoro.workMinutes / 60)}h ${summary.pomodoro.workMinutes % 60}min` :
+        'Sin datos',
+      progress: Math.min((summary.pomodoro.workMinutes / 300) * 100, 100), // Meta 5h
+      color: 'bg-red-500'
+    },
+    {
+      label: 'Ejercicio',
+      value: summary.exercise.calories > 0 ? 
+        `${summary.exercise.calories}cal` : 
+        'Sin datos',
+      progress: Math.min((summary.exercise.calories / 500) * 100, 100), // Meta 500cal
+      color: 'bg-orange-500'
     },
     {
       label: 'Ánimo',
@@ -69,11 +85,11 @@ export const DaySummary: React.FC<DaySummaryProps> = ({
       ) : (
         <div className="space-y-2">
           {variant === 'compact' ? (
-            <div className="grid grid-cols-2 gap-2">
-              {metrics.slice(0, 4).map((metric, index) => (
-                <div key={index} className="text-center">
-                  <p className="text-xs text-gray-500">{metric.label}</p>
-                  <p className="text-sm font-medium">{metric.value}</p>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              {metrics.slice(0, 6).map((metric, index) => (
+                <div key={index}>
+                  <p className="text-xs text-gray-500 truncate">{metric.label}</p>
+                  <p className="text-sm font-medium truncate">{metric.value}</p>
                 </div>
               ))}
             </div>
@@ -94,17 +110,32 @@ export const DaySummary: React.FC<DaySummaryProps> = ({
                 </div>
               ))}
               
-              {summary.exercise.minutes > 0 && (
-                <div className="text-xs text-gray-600 p-2 bg-gray-50 rounded">
-                  <p>💪 {summary.exercise.minutes} min de ejercicio</p>
-                </div>
-              )}
-              
-              {summary.journal.words > 0 && (
-                <div className="text-xs text-gray-600 p-2 bg-gray-50 rounded">
-                  <p>📝 {summary.journal.words} palabras en el diario</p>
-                </div>
-              )}
+              {/* Información adicional */}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+                {summary.exercise.minutes > 0 && (
+                  <div className="text-xs text-gray-600 p-2 bg-gray-50 rounded">
+                    <p>⏱️ {summary.exercise.minutes} min ejercicio</p>
+                  </div>
+                )}
+                
+                {summary.journal.words > 0 && (
+                  <div className="text-xs text-gray-600 p-2 bg-gray-50 rounded">
+                    <p>📝 {summary.journal.words} palabras</p>
+                  </div>
+                )}
+                
+                {summary.pomodoro.count > 0 && (
+                  <div className="text-xs text-gray-600 p-2 bg-gray-50 rounded">
+                    <p>🍅 {summary.pomodoro.count} sesiones</p>
+                  </div>
+                )}
+                
+                {summary.negativeHabits.count > 0 && (
+                  <div className="text-xs text-red-600 p-2 bg-red-50 rounded">
+                    <p>⚠️ {summary.negativeHabits.count} hábitos negativos</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

@@ -132,3 +132,10 @@ export const getMonths = (year: number) => {
     number: i + 1
   }));
 };
+
+// Obtener fecha X días atrás
+export const getDaysAgo = (date: Date, daysAgo: number): Date => {
+  const result = new Date(date);
+  result.setDate(result.getDate() - daysAgo);
+  return result;
+};

@@ -10,3 +10,4 @@ export { QuickAccessMeal } from './QuickAccessMeal';
 export { DaySummary } from './DaySummary';
 export { DailyScore } from './DailyScore';
 export { DailyHabitsChecklist } from './DailyHabitsChecklist';
+export { DailyInsightWidget } from './DailyInsightWidget';

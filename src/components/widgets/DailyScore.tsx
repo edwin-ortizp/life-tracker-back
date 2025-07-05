@@ -92,35 +92,14 @@ export const DailyScore: React.FC<DailyScoreProps> = ({
         </div>
         
         {variant === 'detailed' && (
-          <div className="space-y-2">
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
-                className={`${getScoreBgColor(score)} h-3 rounded-full transition-all duration-300 flex items-center justify-end pr-2`}
-                style={{ width: `${score}%` }}
-              >
-                {score > 20 && (
-                  <TrendingUp className="w-3 h-3 text-white" />
-                )}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="text-center">
-                <p className="text-gray-500">Hábitos</p>
-                <p className="font-medium">{summary.habits.completed}/{summary.habits.total}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-gray-500">Agua</p>
-                <p className="font-medium">{summary.water.intake}ml</p>
-              </div>
-              <div className="text-center">
-                <p className="text-gray-500">Tareas</p>
-                <p className="font-medium">{summary.tasks.completed}/{summary.tasks.todayPlanned}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-gray-500">Ejercicio</p>
-                <p className="font-medium">{summary.exercise.calories}cal</p>
-              </div>
+          <div className="w-full bg-gray-200 rounded-full h-3">
+            <div 
+              className={`${getScoreBgColor(score)} h-3 rounded-full transition-all duration-300 flex items-center justify-end pr-2`}
+              style={{ width: `${score}%` }}
+            >
+              {score > 20 && (
+                <TrendingUp className="w-3 h-3 text-white" />
+              )}
             </div>
           </div>
         )}

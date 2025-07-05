@@ -13,7 +13,8 @@ import {
   QuickAccessMeal,
   DaySummary,
   DailyScore,
-  DailyHabitsChecklist
+  DailyHabitsChecklist,
+  DailyInsightWidget
 } from '@/components/widgets';
 
 const DailyTrackerApp = () => {
@@ -29,6 +30,11 @@ const DailyTrackerApp = () => {
       {/* Daily Score Prominently Displayed */}
       <div className="mb-8">
         <DailyScore date={selectedDate} variant="detailed" />
+      </div>
+
+      {/* Daily AI Insight */}
+      <div className="mb-8">
+        <DailyInsightWidget date={selectedDate} variant="detailed" />
       </div>
 
       {/* Widget Grid */}
