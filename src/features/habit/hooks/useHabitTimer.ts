@@ -6,7 +6,7 @@ interface UseHabitTimerProps {
 
 export const useHabitTimer = ({ autoStart = true }: UseHabitTimerProps = {}) => {
   const [time, setTime] = useState(0);
-  const [isActive, setIsActive] = useState(autoStart);
+  const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [baseElapsed, setBaseElapsed] = useState(0);
@@ -20,14 +20,6 @@ export const useHabitTimer = ({ autoStart = true }: UseHabitTimerProps = {}) => 
     return parts.join(':');
   }, []);
 
-  const calculateCurrentTime = useCallback(() => {
-    if (!isActive || isPaused || !startTime) return baseElapsed;
-    
-    const currentTime = Date.now();
-    const sessionElapsed = Math.floor((currentTime - startTime) / 1000);
-    return baseElapsed + sessionElapsed;
-  }, [isActive, isPaused, startTime, baseElapsed]);
-
   const startTimer = useCallback(() => {
     setIsActive(true);
     setIsPaused(false);
@@ -35,11 +27,13 @@ export const useHabitTimer = ({ autoStart = true }: UseHabitTimerProps = {}) => 
   }, []);
 
   const pauseTimer = useCallback(() => {
-    if (isActive && !isPaused) {
+    if (isActive && !isPaused && startTime) {
       setIsPaused(true);
-      setBaseElapsed(calculateCurrentTime());
+      const currentTime = Date.now();
+      const sessionElapsed = Math.floor((currentTime - startTime) / 1000);
+      setBaseElapsed(prev => prev + sessionElapsed);
     }
-  }, [isActive, isPaused, calculateCurrentTime]);
+  }, [isActive, isPaused, startTime]);
 
   const resumeTimer = useCallback(() => {
     if (isActive && isPaused) {
@@ -49,6 +43,10 @@ export const useHabitTimer = ({ autoStart = true }: UseHabitTimerProps = {}) => 
   }, [isActive, isPaused]);
 
   const stopTimer = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
     setIsActive(false);
     setIsPaused(false);
     setBaseElapsed(0);
@@ -65,9 +63,11 @@ export const useHabitTimer = ({ autoStart = true }: UseHabitTimerProps = {}) => 
 
   // Update display time every second
   useEffect(() => {
-    if (isActive && !isPaused) {
+    if (isActive && !isPaused && startTime) {
       intervalRef.current = setInterval(() => {
-        setTime(calculateCurrentTime());
+        const currentTime = Date.now();
+        const sessionElapsed = Math.floor((currentTime - startTime) / 1000);
+        setTime(baseElapsed + sessionElapsed);
       }, 1000);
     } else {
       if (intervalRef.current) {
@@ -79,27 +79,24 @@ export const useHabitTimer = ({ autoStart = true }: UseHabitTimerProps = {}) => 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-  }, [isActive, isPaused, calculateCurrentTime]);
+  }, [isActive, isPaused, startTime, baseElapsed]);
 
   // Auto-start timer on mount if enabled
   useEffect(() => {
-    if (autoStart && !isActive && !isPaused) {
+    if (autoStart) {
       startTimer();
     }
-  }, [autoStart, isActive, isPaused, startTimer]);
-
-  // Update time immediately when state changes
-  useEffect(() => {
-    setTime(calculateCurrentTime());
-  }, [calculateCurrentTime]);
+  }, [autoStart, startTimer]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
   }, []);
