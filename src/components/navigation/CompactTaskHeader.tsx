@@ -41,6 +41,8 @@ interface TaskAction {
   icon: React.ReactNode;
   onClick: () => void;
   tooltip: string;
+  className?: string;
+  showLabel?: boolean;
   dropdown?: Array<{
     label: string;
     onClick: () => void;
@@ -120,9 +122,20 @@ export const CompactTaskHeader: React.FC<CompactTaskHeaderProps> = ({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className={cn(
+                                  action.showLabel ? "h-8 px-3 gap-2" : "h-8 w-8 p-0", 
+                                  action.className
+                                )}
+                              >
                                 {action.icon}
-                                <span className="sr-only">{action.label}</span>
+                                {action.showLabel ? (
+                                  <span className="text-sm font-medium">{action.label}</span>
+                                ) : (
+                                  <span className="sr-only">{action.label}</span>
+                                )}
                               </Button>
                             </DropdownMenuTrigger>
                           </TooltipTrigger>
@@ -141,9 +154,21 @@ export const CompactTaskHeader: React.FC<CompactTaskHeaderProps> = ({
                     ) : (
                       <Tooltip key={action.id}>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={action.onClick}>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className={cn(
+                              action.showLabel ? "h-8 px-3 gap-2" : "h-8 w-8 p-0", 
+                              action.className
+                            )} 
+                            onClick={action.onClick}
+                          >
                             {action.icon}
-                            <span className="sr-only">{action.label}</span>
+                            {action.showLabel ? (
+                              <span className="text-sm font-medium">{action.label}</span>
+                            ) : (
+                              <span className="sr-only">{action.label}</span>
+                            )}
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>

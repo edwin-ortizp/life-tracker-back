@@ -203,13 +203,6 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
 
   const taskActions = [
     {
-      id: 'new',
-      label: 'Nueva Tarea',
-      icon: <Plus className="h-4 w-4" />,
-      onClick: handleNewTask,
-      tooltip: 'Crear nueva tarea'
-    },
-    {
       id: 'import',
       label: 'Importar',
       icon: <Upload className="h-4 w-4" />,
@@ -239,6 +232,15 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
           onClick: () => setShowAiReprioritize(true)
         }
       ]
+    },
+    {
+      id: 'new',
+      label: 'Nuevo',
+      icon: <Plus className="h-4 w-4" />,
+      onClick: handleNewTask,
+      tooltip: 'Crear nueva tarea',
+      className: 'bg-black text-white hover:bg-gray-800',
+      showLabel: true
     }
   ];
 
