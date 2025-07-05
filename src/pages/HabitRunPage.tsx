@@ -2,9 +2,10 @@ import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronLeft, ChevronRight, CheckCircle, ArrowLeft } from 'lucide-react';
+import { CheckCircle, ArrowLeft, Play, Pause } from 'lucide-react';
 import { HABITS } from '@/features/habit/types';
 import { useHabitDataDaily } from '@/features/habit/hooks/useHabitDataDaily';
+import { useHabitTimer } from '@/features/habit/hooks/useHabitTimer';
 import { getLocalDateString } from '@/utils/dates';
 import {
   AlertDialog,
@@ -42,8 +43,8 @@ export default function HabitRunPage() {
   const date = new Date(location.state?.date || new Date());
   
   const { completedHabits, toggleHabit } = useHabitDataDaily(date);
-  const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<boolean[]>([]);
+  const { formattedTime, isActive, isPaused, startTimer, pauseTimer, resumeTimer, stopTimer } = useHabitTimer();
   
   const habit = HABITS.find(h => h.id === Number(habitId));
   const dateStr = getLocalDateString(date);
@@ -54,6 +55,15 @@ export default function HabitRunPage() {
     getRandomBackground(Number(habitId)), 
     [habitId]
   );
+
+  const steps = habit?.steps || [];
+  const totalSteps = steps.length;
+
+  useEffect(() => {
+    if (completedSteps.length === 0 && totalSteps > 0) {
+      setCompletedSteps(new Array(totalSteps).fill(false));
+    }
+  }, [completedSteps.length, totalSteps]);
 
   if (!habit) {
     return (
@@ -68,35 +78,25 @@ export default function HabitRunPage() {
     );
   }
 
-  const steps = habit.steps || [];
-  const totalSteps = steps.length;
-
-  useEffect(() => {
-    if (completedSteps.length === 0) {
-      setCompletedSteps(new Array(totalSteps).fill(false));
-    }
-  }, [completedSteps.length, totalSteps]);
-
   const handleStepToggle = (stepIndex: number) => {
     const newCompletedSteps = [...completedSteps];
     newCompletedSteps[stepIndex] = !newCompletedSteps[stepIndex];
     setCompletedSteps(newCompletedSteps);
   };
 
-  const handleNext = () => {
-    if (currentStep < totalSteps - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+  const handleTimerToggle = () => {
+    if (!isActive) {
+      startTimer();
+    } else if (isPaused) {
+      resumeTimer();
+    } else {
+      pauseTimer();
     }
   };
 
   const handleCompleteHabit = async () => {
     try {
+      stopTimer();
       await toggleHabit(Number(habitId), dateStr);
       navigate(-1);
     } catch (error) {
@@ -120,10 +120,23 @@ export default function HabitRunPage() {
             <ArrowLeft className="w-5 h-5 mr-2" />
             Volver
           </Button>
-          <div className="text-right">
-            <div className="text-sm text-white/80">Progreso</div>
-            <div className="text-2xl font-bold drop-shadow-lg">
-              {completedStepsCount}/{totalSteps}
+          <div className="text-center">
+            <div className="text-6xl font-mono font-bold drop-shadow-xl bg-black/30 px-6 py-3 rounded-lg backdrop-blur-sm border border-white/20">
+              {formattedTime}
+            </div>
+            <div className="mt-2">
+              <Button
+                onClick={handleTimerToggle}
+                className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 text-sm font-semibold backdrop-blur-sm"
+              >
+                {!isActive ? (
+                  <><Play className="w-4 h-4 mr-2" />Iniciar</>
+                ) : isPaused ? (
+                  <><Play className="w-4 h-4 mr-2" />Reanudar</>
+                ) : (
+                  <><Pause className="w-4 h-4 mr-2" />Pausar</>
+                )}
+              </Button>
             </div>
           </div>
         </div>
@@ -148,64 +161,45 @@ export default function HabitRunPage() {
           </div>
         </div>
 
-        {/* Current Step */}
+        {/* Steps List */}
         {totalSteps > 0 && (
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="text-center mb-8">
-              <div className="text-lg text-white/80 mb-2">
-                Paso {currentStep + 1} de {totalSteps}
-              </div>
-              <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-8 mx-auto max-w-2xl">
-                <div className="flex items-center justify-center mb-6">
-                  <Checkbox
-                    checked={completedSteps[currentStep] || false}
-                    onCheckedChange={() => handleStepToggle(currentStep)}
-                    className="scale-150 mr-4"
-                  />
-                  <h2 className="text-2xl font-semibold drop-shadow-lg">
-                    {steps[currentStep]}
-                  </h2>
-                </div>
-              </div>
-            </div>
-
-            {/* Navigation */}
-            <div className="flex justify-between items-center mb-8">
-              <Button
-                onClick={handlePrevious}
-                disabled={currentStep === 0}
-                className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 text-lg font-semibold backdrop-blur-sm disabled:opacity-50"
-              >
-                <ChevronLeft className="w-5 h-5 mr-2" />
-                Anterior
-              </Button>
-              
-              <div className="flex space-x-2">
-                {steps.map((_, index) => (
-                  <button
+          <div className="flex-1 mb-8">
+            <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 mx-auto max-w-3xl">
+              <h2 className="text-2xl font-semibold drop-shadow-lg mb-6 text-center">
+                Pasos a seguir
+              </h2>
+              <div className="space-y-4">
+                {steps.map((step, index) => (
+                  <div
                     key={index}
-                    type="button"
-                    onClick={() => setCurrentStep(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                      index === currentStep
-                        ? 'bg-white scale-125'
-                        : completedSteps[index]
-                        ? 'bg-green-400'
-                        : 'bg-white/30'
+                    className={`flex items-center gap-4 p-4 rounded-lg transition-all duration-200 ${
+                      completedSteps[index] 
+                        ? 'bg-green-500/20 border border-green-400/30' 
+                        : 'bg-white/10 border border-white/20 hover:bg-white/20'
                     }`}
-                    title={`Ir al paso ${index + 1}`}
-                  />
+                  >
+                    <div className="flex-shrink-0">
+                      <Checkbox
+                        checked={completedSteps[index] || false}
+                        onCheckedChange={() => handleStepToggle(index)}
+                        className="scale-125"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-white/60 min-w-[60px]">
+                          Paso {index + 1}
+                        </span>
+                        <p className={`text-lg font-medium drop-shadow-lg ${
+                          completedSteps[index] ? 'line-through text-white/70' : 'text-white'
+                        }`}>
+                          {step}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
-
-              <Button
-                onClick={handleNext}
-                disabled={currentStep === totalSteps - 1}
-                className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 text-lg font-semibold backdrop-blur-sm disabled:opacity-50"
-              >
-                Siguiente
-                <ChevronRight className="w-5 h-5 ml-2" />
-              </Button>
             </div>
           </div>
         )}
