@@ -1,4 +1,6 @@
 // Utility to log Firestore operations for debugging quota issues
+import { firestoreWriteMonitor } from './firestore-write-monitor';
+
 interface FirestoreOperation {
   type: 'read' | 'write' | 'delete';
   collection: string;
@@ -51,6 +53,11 @@ class FirestoreLogger {
     
     this.operations.push(operation);
     console.log(`✏️ [Firestore Write] ${collection}${documentId ? `/${documentId}` : ''} from ${source}`, operation);
+    
+    // Monitor writes for excessive patterns
+    if (import.meta.env.DEV) {
+      firestoreWriteMonitor.logWrite(collection, 'setDoc', source, documentId);
+    }
   }
 
   logDelete(collection: string, source: string, documentId?: string) {

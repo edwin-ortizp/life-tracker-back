@@ -4,6 +4,7 @@ import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { createFormattedTimestamp, getLocalDateString } from '@/utils/dates';
+import { useDebouncedFirestoreWrite } from '@/hooks/useDebouncedFirestoreWrite';
 import type { ActivePomodoro } from '../types';
 
 const DEVICE_ID = crypto.randomUUID();
@@ -27,8 +28,19 @@ export const usePomodoroTimer = ({
   const [isStopping, setIsStopping] = useState(false);
   const animationFrameRef = useRef<number>();
   const isResetting = useRef(false);
+  const lastWriteTimestamp = useRef<number>(0);
   
   const date = selectedDate ? getLocalDateString(selectedDate) : getLocalDateString(new Date());
+
+  // Debounced write function para evitar escrituras excesivas
+  const debouncedPomodoroWrite = useDebouncedFirestoreWrite(
+    async (data: any) => {
+      if (!user) return;
+      const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
+      await setDoc(docRef, data, { merge: true });
+    },
+    1000 // 1 segundo de debounce
+  );
 
   // Limpieza del timer
   const cleanupTimer = useCallback(() => {
@@ -120,7 +132,16 @@ export const usePomodoroTimer = ({
       const remaining = calculateRemaining(currentPomodoro.startTime.timestamp);
 
       if (remaining <= 0) {
-        setDoc(docRef, { activePomodoro: null }, { merge: true });
+        // Prevenir escrituras duplicadas usando timestamp
+        const now = Date.now();
+        if (now - lastWriteTimestamp.current > 5000) { // 5 segundos mínimo entre escrituras
+          lastWriteTimestamp.current = now;
+          debouncedPomodoroWrite.debouncedWrite({ 
+            activePomodoro: null, 
+            updatedAt: serverTimestamp() 
+          });
+        }
+        
         if (currentPomodoro.deviceId === DEVICE_ID) {
           onComplete(POMODORO_DURATION);
         }
@@ -136,8 +157,9 @@ export const usePomodoroTimer = ({
     return () => {
       unsubscribe();
       cleanupTimer();
+      debouncedPomodoroWrite.cleanup();
     };
-  }, [user, date, isActive, isStopping, calculateRemaining, cleanupTimer, resetState, onComplete]);
+  }, [user, date, isActive, isStopping, calculateRemaining, cleanupTimer, resetState, onComplete, debouncedPomodoroWrite]);
 
   const startTimer = useCallback(async () => {
     if (!user || isActive) return;
@@ -185,12 +207,11 @@ export const usePomodoroTimer = ({
     try {
       setIsStopping(true);
       
-      // Primero guardamos el documento actual
-      const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
-      await setDoc(docRef, { 
+      // Usar debounced write para evitar escrituras excesivas
+      debouncedPomodoroWrite.debouncedWrite({ 
         activePomodoro: null,
         updatedAt: serverTimestamp()
-      }, { merge: true });
+      });
 
       // Notificamos la cancelación con el tiempo actual
       const elapsedTime = POMODORO_DURATION - time;
@@ -204,7 +225,7 @@ export const usePomodoroTimer = ({
       console.error('Error stopping timer:', error);
       setIsStopping(false);
     }
-  }, [user, date, activePomodoro, isStopping, time, onCancel, resetState]);
+  }, [user, date, activePomodoro, isStopping, time, onCancel, resetState, debouncedPomodoroWrite]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);

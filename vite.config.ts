@@ -10,7 +10,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 1500, // Aumentar a 1.5MB para chart-vendor
     rollupOptions: {
       output: {
-        chunkFileNames: 'chunks/[name]-[hash].js',        manualChunks: {
+        chunkFileNames: 'chunks/[name]-[hash].js',
+        manualChunks: {
           // Separar las dependencias de React
           'react-vendor': ['react', 'react-dom'],
           
@@ -38,7 +39,8 @@ export default defineConfig({
     Pages({
       dirs: [{ dir: 'src/artifacts', baseRoute: '' }],
       extensions: ['jsx', 'tsx'],   
-    }),    VitePWA({
+    }),
+    VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       devOptions: {
@@ -58,7 +60,8 @@ export default defineConfig({
         orientation: 'portrait-primary',
         scope: '/life-tracker/',
         lang: 'es',
-        id: '/life-tracker/',        icons: [
+        id: '/life-tracker/',
+        icons: [
           {
             src: '/life-tracker/icons/icon-72x72.png',
             sizes: '72x72',
@@ -106,7 +109,7 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png'
           }
-        ],
+        ]
       }
     })
   ],

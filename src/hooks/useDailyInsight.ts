@@ -175,8 +175,8 @@ export const useDailyInsight = (date: Date): UseDailyInsightReturn => {
     // Check immediately
     checkForAutoGeneration();
 
-    // Set up interval to check every minute
-    const interval = setInterval(checkForAutoGeneration, 60000);
+    // Set up interval to check every 15 minutes to reduce overhead
+    const interval = setInterval(checkForAutoGeneration, 900000); // 15 minutos
 
     return () => clearInterval(interval);
   }, [dateStr, loadCachedInsight, shouldGenerateNewInsight, regenerateInsight]);

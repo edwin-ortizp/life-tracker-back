@@ -101,7 +101,7 @@ export const useTaskTimer = ({ taskId, onComplete }: UseTaskTimerProps) => {
     return cleanupTimer;
   }, [taskId, cleanupTimer]);
 
-  // Guardar estado en Firebase cada 30 segundos (con debouncing)
+  // Guardar estado en Firebase cada 5 minutos (reducido de 30s para evitar escrituras excesivas)
   useEffect(() => {
     if (!isActive || isPaused || isUpdating.current) {
       if (saveIntervalRef.current) {
@@ -114,15 +114,18 @@ export const useTaskTimer = ({ taskId, onComplete }: UseTaskTimerProps) => {
     saveIntervalRef.current = setInterval(async () => {
       try {
         const currentElapsed = calculateLocalTime();
-        firestoreLogger.logWrite('tasks', 'useTaskTimer.autoSave', taskId);
-        await updateDoc(doc(db, 'tasks', taskId), {
-          elapsedSeconds: currentElapsed
-        });
-        setBaseElapsed(currentElapsed);
+        // Solo guardar si ha pasado tiempo significativo (más de 30 segundos desde la última actualización)
+        if (currentElapsed - baseElapsed > 30) {
+          firestoreLogger.logWrite('tasks', 'useTaskTimer.autoSave', taskId);
+          await updateDoc(doc(db, 'tasks', taskId), {
+            elapsedSeconds: currentElapsed
+          });
+          setBaseElapsed(currentElapsed);
+        }
       } catch (error) {
         console.error('Error saving timer progress:', error);
       }
-    }, 30000) as unknown as number; // 30 segundos
+    }, 300000) as unknown as number; // 5 minutos para reducir escrituras excesivas
 
     return () => {
       if (saveIntervalRef.current) {
@@ -130,7 +133,7 @@ export const useTaskTimer = ({ taskId, onComplete }: UseTaskTimerProps) => {
         saveIntervalRef.current = undefined;
       }
     };
-  }, [isActive, isPaused, taskId, calculateLocalTime]);
+  }, [isActive, isPaused, taskId, calculateLocalTime, baseElapsed]);
 
   // Iniciar timer
   const startTimer = useCallback(async () => {

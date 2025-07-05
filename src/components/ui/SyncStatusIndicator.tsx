@@ -31,7 +31,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
     };
 
     checkOfflineData();
-    const interval = setInterval(checkOfflineData, 5000); // Verificar cada 5 segundos
+    const interval = setInterval(checkOfflineData, 300000); // Verificar cada 5 minutos
 
     return () => {
       window.removeEventListener('online', handleOnline);

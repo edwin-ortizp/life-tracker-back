@@ -1,5 +1,5 @@
 // src/pages/ExercisePage.tsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Exercise, { ExerciseCalendar } from '@/features/exercise/components';
 
 import DateSelector from '@/components/DateSelector';
@@ -21,7 +21,10 @@ const ExercisePage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { user } = useAuth();
   const exerciseRef = useRef<ExerciseRef>(null);
-  const { settings, saveSettings } = useModuleSettings('exercise', { dailyCalories: 500 });
+  
+  // Memoize defaults to prevent re-renders
+  const exerciseDefaults = useMemo(() => ({ dailyCalories: 500 }), []);
+  const { settings, saveSettings } = useModuleSettings('exercise', exerciseDefaults);
   const [caloriesInput, setCaloriesInput] = useState(settings.dailyCalories);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import DateSelector from '@/components/DateSelector';
 import { StatsPeriodSelector } from '@/features/water/components/StatsPeriodSelector';
 import { RangeStats } from '@/features/water/components/RangeStats';
@@ -24,7 +24,10 @@ const WaterPage: React.FC = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const { user } = useAuth();
-  const { settings, saveSettings } = useModuleSettings('water', { dailyGoal: 2000 });
+  
+  // Memoize defaults to prevent re-renders
+  const waterDefaults = useMemo(() => ({ dailyGoal: 2000 }), []);
+  const { settings, saveSettings } = useModuleSettings('water', waterDefaults);
   const [goalInput, setGoalInput] = useState(settings.dailyGoal);
 
   useEffect(() => {
