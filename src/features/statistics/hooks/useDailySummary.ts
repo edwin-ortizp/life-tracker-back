@@ -165,6 +165,7 @@ export interface DailySummaryData {
   };
   exercise: {
     minutes: number;
+    calories: number;
   };
   tasks: {
     completed: number; // Tasks completed on this specific day
@@ -339,6 +340,9 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
         minutes: exerciseSnap.exists()
           ? exerciseSnap.data().summary?.totalDuration || 0
           : 0,
+        calories: exerciseSnap.exists()
+          ? exerciseSnap.data().summary?.totalCalories || 0
+          : 0,
       },      pomodoro: (() => {
         const data = pomodoroSnap.exists() ? pomodoroSnap.data() : null;
         console.log('🍅 fetchDailySummary - Pomodoro data for', dateStr, ':', data);
@@ -395,7 +399,7 @@ const emptySummary: DailySummaryData = {
   mood: { count: 0, average: 0, highest: 0, lowest: 0, details: [] },
   habits: { completed: 0, total: HABITS.length, incompletedByTimeOfDay: [] },
   negativeHabits: { count: 0 },
-  exercise: { minutes: 0 },  tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },
+  exercise: { minutes: 0, calories: 0 },  tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },
   pomodoro: { count: 0, expectedMinutes: 0, workMinutes: 0, completionRate: 0, averageSessionLength: 0 },
   water: { intake: 0, drinkDetails: [] }
 };
@@ -446,6 +450,7 @@ export const createDailySummaryFromData = (
     },
     exercise: {
       minutes: exerciseData?.summary?.totalDuration || 0,
+      calories: exerciseData?.summary?.totalCalories || 0,
     },    pomodoro: (() => {
       const data = pomodoroData;
       console.log('🍅 Pomodoro data for', dateStr, ':', data);

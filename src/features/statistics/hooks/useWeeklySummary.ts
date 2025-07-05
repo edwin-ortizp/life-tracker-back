@@ -16,7 +16,7 @@ const emptySummary: DailySummaryData = {
   mood: { count: 0, average: 0, highest: 0, lowest: 0 },
   habits: { completed: 0, total: 18, incompletedByTimeOfDay: [] }, // Total hardcoded to avoid import issue
   negativeHabits: { count: 0 },
-  exercise: { minutes: 0 },
+  exercise: { minutes: 0, calories: 0 },
   tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },
   pomodoro: { count: 0, expectedMinutes: 0, workMinutes: 0, completionRate: 0, averageSessionLength: 0 },
   water: { intake: 0, drinkDetails: [] }
@@ -72,6 +72,7 @@ export const useWeeklySummary = (startDate: Date) => {
         totals.habits.completed += daySummary.habits.completed;
         totals.negativeHabits.count += daySummary.negativeHabits.count;
         totals.exercise.minutes += daySummary.exercise.minutes;
+        totals.exercise.calories += daySummary.exercise.calories;
         totals.water.intake += daySummary.water.intake;
         
         // Sumar totales de tareas

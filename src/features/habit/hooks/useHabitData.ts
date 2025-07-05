@@ -162,13 +162,15 @@ export const useHabitData = () => {
 
 // Helper function to get the months we need to fetch data for
 const getVisibleMonths = (currentDate: Date): string[] => {
-  const months: string[] = [];
   const currentYear = currentDate.getFullYear();
-  
-  // Add all months of current year up to current month
-  for (let month = 1; month <= 12; month++) {
-    months.push(`${currentYear}-${String(month).padStart(2, '0')}`);
+  const currentMonth = currentDate.getMonth() + 1; // getMonth() returns 0-11
+  const months: string[] = [];
+
+  // Only add months from January up to the current month
+  for (let month = 1; month <= currentMonth; month++) {
+    const monthStr = String(month).padStart(2, '0');
+    months.push(`${currentYear}-${monthStr}`);
   }
-  
+
   return months;
 };

@@ -55,7 +55,10 @@ export default defineConfig({
         start_url: '/life-tracker/',
         display: 'standalone',
         background_color: '#ffffff',
-        orientation: 'portrait-primary',        icons: [
+        orientation: 'portrait-primary',
+        scope: '/life-tracker/',
+        lang: 'es',
+        id: '/life-tracker/',        icons: [
           {
             src: '/life-tracker/icons/icon-72x72.png',
             sizes: '72x72',
