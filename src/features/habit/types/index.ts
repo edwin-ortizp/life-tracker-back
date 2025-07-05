@@ -5,6 +5,7 @@ export interface Habit {
     icon: string;
     timeOfDay: 'morning' | 'afternoon' | 'night' | 'anytime';
     goal: string;
+    steps?: string[];
   }
   
   export interface HabitProps {
@@ -12,25 +13,25 @@ export interface Habit {
   }
   
 export const HABITS: Habit[] = [
-    { id: 1, name: 'Tomar Agua', icon: '💧', timeOfDay: 'morning', goal: '5 min' },
+    { id: 1, name: 'Tomar Agua', icon: '💧', timeOfDay: 'morning', goal: '5 min', steps: ['Llenar un vaso con agua', 'Beber lentamente', 'Sentir la hidratación'] },
     /* { id: 19, name: 'Trotar 1km', icon: '🏃‍♀️‍➡️', timeOfDay: 'morning', goal: '10 min' }, */
-    { id: 2, name: 'Ejercicio', icon: '🎾', timeOfDay: 'morning', goal: '40 min' },
-    { id: 3, name: 'Ducha fria', icon: '🚿', timeOfDay: 'morning', goal: '10 min' },
-    { id: 4, name: 'Desayuno', icon: '🍳', timeOfDay: 'morning', goal: '30 min' },
-    { id: 5, name: 'Lavarme los dientes', icon: '🪥', timeOfDay: 'morning', goal: '2 min' },
-    { id: 6, name: 'Seda Dental', icon: '🦷', timeOfDay: 'morning', goal: '2 min' },
-    { id: 7, name: 'Tender la cama', icon: '🛏️', timeOfDay: 'morning', goal: '3 min' },
-    { id: 8, name: 'Almuerzo', icon: '🍽️', timeOfDay: 'afternoon', goal: '60 min' },
-    { id: 9, name: 'Siesta', icon: '🛌', timeOfDay: 'afternoon', goal: '15 min' },
-    { id: 10, name: 'Lavarme los dientes', icon: '🪥', timeOfDay: 'afternoon', goal: '2 min' },
-    { id: 11, name: 'Seda Dental', icon: '🦷', timeOfDay: 'afternoon', goal: '2 min' },
-    { id: 12, name: 'Cena', icon: '🍽️', timeOfDay: 'night', goal: '30 min' },
-    { id: 13, name: 'Lavarme los dientes', icon: '🪥', timeOfDay: 'night', goal: '2 min' },
-    { id: 14, name: 'Seda Dental', icon: '🦷', timeOfDay: 'night', goal: '2 min' },
-    { id: 15, name: 'Llevar el diario', icon: '📓', timeOfDay: 'anytime', goal: '10 min' },
-    { id: 16, name: 'Botar algo que no sirva', icon: '🗑️', timeOfDay: 'night', goal: '10 min' },
-    { id: 17, name: 'Organizar la cocina', icon: '🍴', timeOfDay: 'night', goal: '15 min' },
-    { id: 18, name: 'Lectura', icon: '📚', timeOfDay: 'night', goal: '5 min' }
+    { id: 2, name: 'Ejercicio', icon: '🎾', timeOfDay: 'morning', goal: '40 min', steps: ['Preparar el equipo', 'Hacer calentamiento', 'Realizar ejercicio principal', 'Hacer enfriamiento', 'Estirar músculos'] },
+    { id: 3, name: 'Ducha fria', icon: '🚿', timeOfDay: 'morning', goal: '10 min', steps: ['Preparar toalla', 'Graduar temperatura del agua', 'Entrar lentamente', 'Respirar profundamente', 'Secar completamente'] },
+    { id: 4, name: 'Desayuno', icon: '🍳', timeOfDay: 'morning', goal: '30 min', steps: ['Preparar ingredientes', 'Cocinar alimentos', 'Servir en plato', 'Comer sin distracciones', 'Lavar los platos'] },
+    { id: 5, name: 'Lavarme los dientes', icon: '🪥', timeOfDay: 'morning', goal: '2 min', steps: ['Preparar cepillo y pasta', 'Cepillar durante 2 minutos', 'Enjuagar boca', 'Limpiar cepillo'] },
+    { id: 6, name: 'Seda Dental', icon: '🦷', timeOfDay: 'morning', goal: '2 min', steps: ['Tomar hilo dental', 'Limpiar entre cada diente', 'Enjuagar boca', 'Guardar hilo dental'] },
+    { id: 7, name: 'Tender la cama', icon: '🛏️', timeOfDay: 'morning', goal: '3 min', steps: ['Estirar sábanas', 'Acomodar almohadas', 'Doblar cobijas', 'Verificar que esté ordenada'] },
+    { id: 8, name: 'Almuerzo', icon: '🍽️', timeOfDay: 'afternoon', goal: '60 min', steps: ['Planificar el menú', 'Preparar ingredientes', 'Cocinar platos', 'Servir comida', 'Comer tranquilamente', 'Lavar platos'] },
+    { id: 9, name: 'Siesta', icon: '🛌', timeOfDay: 'afternoon', goal: '15 min', steps: ['Encontrar lugar cómodo', 'Cerrar ojos', 'Respirar profundamente', 'Relajarse completamente'] },
+    { id: 10, name: 'Lavarme los dientes', icon: '🪥', timeOfDay: 'afternoon', goal: '2 min', steps: ['Preparar cepillo y pasta', 'Cepillar durante 2 minutos', 'Enjuagar boca', 'Limpiar cepillo'] },
+    { id: 11, name: 'Seda Dental', icon: '🦷', timeOfDay: 'afternoon', goal: '2 min', steps: ['Tomar hilo dental', 'Limpiar entre cada diente', 'Enjuagar boca', 'Guardar hilo dental'] },
+    { id: 12, name: 'Cena', icon: '🍽️', timeOfDay: 'night', goal: '30 min', steps: ['Elegir alimentos ligeros', 'Cocinar sin prisa', 'Cenar temprano', 'Lavar platos'] },
+    { id: 13, name: 'Lavarme los dientes', icon: '🪥', timeOfDay: 'night', goal: '2 min', steps: ['Preparar cepillo y pasta', 'Cepillar durante 2 minutos', 'Enjuagar boca', 'Limpiar cepillo'] },
+    { id: 14, name: 'Seda Dental', icon: '🦷', timeOfDay: 'night', goal: '2 min', steps: ['Tomar hilo dental', 'Limpiar entre cada diente', 'Enjuagar boca', 'Guardar hilo dental'] },
+    { id: 15, name: 'Llevar el diario', icon: '📓', timeOfDay: 'anytime', goal: '10 min', steps: ['Abrir el diario', 'Reflexionar sobre el día', 'Escribir pensamientos', 'Cerrar y guardar'] },
+    { id: 16, name: 'Botar algo que no sirva', icon: '🗑️', timeOfDay: 'night', goal: '10 min', steps: ['Buscar objetos innecesarios', 'Evaluar si sirven', 'Desechar responsablemente', 'Limpiar el área'] },
+    { id: 17, name: 'Organizar la cocina', icon: '🍴', timeOfDay: 'night', goal: '15 min', steps: ['Lavar platos pendientes', 'Guardar utensilios', 'Limpiar superficies', 'Organizar despensa'] },
+    { id: 18, name: 'Lectura', icon: '📚', timeOfDay: 'night', goal: '5 min', steps: ['Elegir libro', 'Encontrar lugar cómodo', 'Leer sin distracciones', 'Marcar página'] }
 ] as const;
   
 export const HABIT_COLORS: Record<number, string> = {

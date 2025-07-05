@@ -19,6 +19,7 @@ import NegativeHabitsPage from './pages/NegativeHabitsPage';
 import StatisticsPage from './pages/StatisticsPage';
 import SettingsPage from './pages/SettingsPage';
 import TaskRunPage from './pages/TaskRunPage';
+import HabitRunPage from './pages/HabitRunPage';
 
 // Loader reutilizable para componentes cargados de forma diferida
 export const PageLoader = () => (
@@ -50,6 +51,7 @@ function App() {
       <Route path="settings" element={<SettingsPage />} />
     </Route>
     <Route path="task/:taskId/run" element={<TaskRunPage />} />
+    <Route path="habit/:habitId/run" element={<HabitRunPage />} />
   </Routes>
   );
 }

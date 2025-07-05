@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, Circle, Clock, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
+import { CheckCircle, Circle, Clock, Loader2, ChevronDown, ChevronRight, Play } from 'lucide-react';
 import { DailyWidget } from './DailyWidget';
 import { useNavigate } from 'react-router-dom';
 import { useHabitDataDaily } from '@/features/habit/hooks/useHabitDataDaily';
@@ -193,46 +193,63 @@ export const DailyHabitsChecklist: React.FC<DailyHabitsChecklistProps> = ({
                     const isToggling = toggleLoading === habit.id;
                     
                     return (
-                      <button
-                        key={habit.id}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggle(habit.id);
-                        }}
-                        disabled={isToggling}
-                        className={cn(
-                          "w-full flex items-center gap-3 p-2 rounded-md transition-all duration-200 text-left",
-                          isCompleted 
-                            ? "bg-green-100 text-green-800 hover:bg-green-200" 
-                            : "bg-gray-50 text-gray-700 hover:bg-gray-100",
-                          isToggling && "opacity-50 cursor-not-allowed"
-                        )}
-                      >
-                        <div className="flex-shrink-0">
-                          {isToggling ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : isCompleted ? (
-                            <CheckCircle className="w-4 h-4 text-green-600" />
-                          ) : (
-                            <Circle className="w-4 h-4 text-gray-400" />
+                      <div key={habit.id} className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggle(habit.id);
+                          }}
+                          disabled={isToggling}
+                          className={cn(
+                            "flex-1 flex items-center gap-3 p-2 rounded-md transition-all duration-200 text-left",
+                            isCompleted 
+                              ? "bg-green-100 text-green-800 hover:bg-green-200" 
+                              : "bg-gray-50 text-gray-700 hover:bg-gray-100",
+                            isToggling && "opacity-50 cursor-not-allowed"
                           )}
-                        </div>
+                        >
+                          <div className="flex-shrink-0">
+                            {isToggling ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : isCompleted ? (
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                            ) : (
+                              <Circle className="w-4 h-4 text-gray-400" />
+                            )}
+                          </div>
+                          
+                          <span className="text-lg mr-2">{habit.icon}</span>
+                          
+                          <div className="flex-1 min-w-0">
+                            <p className={cn(
+                              "text-sm font-medium truncate",
+                              isCompleted && "line-through"
+                            )}>
+                              {habit.name}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {habit.goal}
+                            </p>
+                          </div>
+                        </button>
                         
-                        <span className="text-lg mr-2">{habit.icon}</span>
-                        
-                        <div className="flex-1 min-w-0">
-                          <p className={cn(
-                            "text-sm font-medium truncate",
-                            isCompleted && "line-through"
-                          )}>
-                            {habit.name}
-                          </p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {habit.goal}
-                          </p>
-                        </div>
-                      </button>
+                        {habit.steps && habit.steps.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/habit/${habit.id}/run`, {
+                                state: { date: date.toISOString() }
+                              });
+                            }}
+                            className="flex-shrink-0 p-2 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                            title="Iniciar hábito paso a paso"
+                          >
+                            <Play className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     );
                   })}
                   </div>
