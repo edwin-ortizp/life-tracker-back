@@ -16,9 +16,7 @@ import {
   BookOpen,
   ChevronRight,
   UtensilsCrossed,
-  LogOut,
-  Dumbbell,
-  User
+  Dumbbell
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { MenuItem } from './types';
@@ -42,7 +40,7 @@ export const menuItems: MenuItem[] = [
 const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: (path: string) => void }) => {
   const { user } = useAuth();
   
-  const getUserInitials = (name: string | null) => {
+  const getUserInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
     return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2);
   };
@@ -113,7 +111,6 @@ const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: 
 const DesktopNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
   const [isExpanded, setIsExpanded] = useState(() => {
     // Recordar el estado de la navegación en desktop
     const saved = localStorage.getItem('desktop-nav-expanded');
@@ -128,16 +125,7 @@ const DesktopNavigation = () => {
       '--desktop-nav-width', 
       isExpanded ? '256px' : '64px'
     );
-  }, [isExpanded]);
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      navigate('/login');
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    }
-  };const DesktopMenuItem = ({ icon: Icon, label, path, onClick }: MenuItem) => {
+  }, [isExpanded]);const DesktopMenuItem = ({ icon: Icon, label, path, onClick }: MenuItem) => {
     const isActive = location.pathname === path;
     
     const buttonContent = (

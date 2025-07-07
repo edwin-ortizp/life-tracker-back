@@ -1,17 +1,19 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
+import { usePomodoroData } from '@/features/pomodoro/hooks/usePomodoroData'
 import { 
   Wifi, 
   WifiOff, 
   CheckCircle, 
-  Clock, 
-  AlertCircle,
-  Activity
+  Timer,
+  AlertCircle
 } from 'lucide-react'
 
 const AppFooter = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const { isOnline } = useNetworkStatus()
+  const { data: pomodoroData, status: dataStatus } = usePomodoroData()
   
   const getPageName = (pathname: string) => {
     const routes: Record<string, string> = {
@@ -32,11 +34,47 @@ const AppFooter = () => {
     return routes[pathname] || 'Life Tracker'
   }
 
-  const getCurrentTime = () => {
-    return new Date().toLocaleTimeString('es-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    })
+  // Verificar si hay un pomodoro activo
+  const hasActivePomodoro = pomodoroData?.activePomodoro
+  
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+
+  const getRemainingTime = () => {
+    if (!hasActivePomodoro) return 0
+    const now = Date.now()
+    const startTime = hasActivePomodoro.startTime.seconds * 1000
+    const elapsed = Math.floor((now - startTime) / 1000)
+    const remaining = Math.max(0, hasActivePomodoro.duration - elapsed)
+    return remaining
+  }
+
+  const isTimerRunning = hasActivePomodoro && !hasActivePomodoro.pausedAt
+
+  const getSyncStatus = () => {
+    const statusMap = {
+      'idle': 'Inactivo',
+      'saving': 'Guardando...',
+      'pending': 'Pendiente',
+      'saved': 'Sincronizado',
+      'error': 'Error'
+    }
+    return statusMap[dataStatus] || 'Sincronizado'
+  }
+
+  const getSyncIcon = () => {
+    switch (dataStatus) {
+      case 'saving':
+      case 'pending':
+        return <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+      case 'error':
+        return <AlertCircle className="w-3 h-3" />
+      default:
+        return <CheckCircle className="w-3 h-3" />
+    }
   }
 
   return (
@@ -60,15 +98,21 @@ const AppFooter = () => {
         
         {/* Sync Status */}
         <div className="flex items-center space-x-1">
-          <CheckCircle className="w-3 h-3" />
-          <span>Sincronizado</span>
+          {getSyncIcon()}
+          <span>{getSyncStatus()}</span>
         </div>
         
-        {/* Activity Status */}
-        <div className="flex items-center space-x-1">
-          <Activity className="w-3 h-3" />
-          <span>Activo</span>
-        </div>
+        {/* Pomodoro Status */}
+        {hasActivePomodoro && (
+          <button 
+            onClick={() => navigate('/pomodoro')}
+            className="flex items-center space-x-2 bg-[#005a9e] px-2 py-1 rounded hover:bg-[#007ACC] transition-colors"
+          >
+            <Timer className="w-3 h-3" />
+            <span className="font-mono">{formatTime(getRemainingTime())}</span>
+            <span className="text-xs">{isTimerRunning ? 'Corriendo' : 'Pausado'}</span>
+          </button>
+        )}
       </div>
       
       {/* Center Section */}
@@ -81,11 +125,16 @@ const AppFooter = () => {
       
       {/* Right Section */}
       <div className="flex items-center space-x-4">
-        {/* Current Time */}
-        <div className="flex items-center space-x-1">
-          <Clock className="w-3 h-3" />
-          <span>{getCurrentTime()}</span>
-        </div>
+        {/* Pomodoro Quick Access */}
+        {!hasActivePomodoro && (
+          <button 
+            onClick={() => navigate('/pomodoro')}
+            className="flex items-center space-x-1 hover:bg-[#005a9e] px-2 py-1 rounded transition-colors"
+          >
+            <Timer className="w-3 h-3" />
+            <span>Pomodoro</span>
+          </button>
+        )}
         
         {/* App Version */}
         <div className="flex items-center space-x-1">
