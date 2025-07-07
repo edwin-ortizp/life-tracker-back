@@ -48,13 +48,13 @@ const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: 
   };
 
   const profileContent = (
-    <div className="flex items-center space-x-3">
-      <div className="relative">
+    <div className="flex items-center space-x-3 w-full">
+      <div className="relative flex-shrink-0">
         {user?.photoURL ? (
           <img 
             src={user.photoURL} 
             alt="Profile" 
-            className="w-10 h-10 rounded-full border-2 border-white/20"
+            className="w-10 h-10 rounded-full border-2 border-white/20 object-cover"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling?.classList.remove('hidden');
@@ -85,7 +85,7 @@ const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: 
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full p-3 hover:bg-white/20 rounded-xl transition-colors duration-150"
+              className="w-full h-auto p-3 hover:bg-white/20 rounded-xl transition-colors duration-150 flex items-center justify-center"
               onClick={() => navigate('/settings')}
             >
               {profileContent}
@@ -102,7 +102,7 @@ const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: 
   return (
     <Button
       variant="ghost"
-      className="w-full p-4 hover:bg-white/20 rounded-xl transition-colors duration-150"
+      className="w-full h-auto p-4 hover:bg-white/20 rounded-xl transition-colors duration-150 flex items-center justify-start"
       onClick={() => navigate('/settings')}
     >
       {profileContent}
@@ -213,8 +213,8 @@ const DesktopNavigation = () => {
         </div>
       </nav>
       
-      {/* Bottom Section - Expand/Collapse + Logout */}
-      <div className="p-3 border-t border-white/20 space-y-2">
+      {/* Bottom Section - Expand/Collapse */}
+      <div className="p-3 border-t border-white/20">
         {/* Expand/Collapse Button */}
         <Button
           variant="ghost"
@@ -226,14 +226,6 @@ const DesktopNavigation = () => {
           <ChevronRight className={`w-4 h-4 transform transition-transform duration-200 
             ${isExpanded ? 'rotate-180' : ''}`} />
         </Button>
-        
-        {/* Logout Button */}
-        <DesktopMenuItem 
-          icon={LogOut} 
-          label="Salir" 
-          path="/logout" 
-          onClick={handleLogout} 
-        />
       </div>
     </aside>
   );
