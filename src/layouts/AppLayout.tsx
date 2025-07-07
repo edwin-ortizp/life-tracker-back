@@ -3,6 +3,7 @@ import Navigation from '../components/navigation/Navigation';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import PWAStatus from '../components/PWAStatus';
 import MobileGestures from '../components/MobileGestures';
+import AppFooter from '../components/AppFooter';
 import { Toaster } from '@/components/ui/sonner';
 
 const AppLayout = () => {
@@ -20,6 +21,8 @@ const AppLayout = () => {
               <Outlet />
             </main>
           </div>
+          {/* VS Code-style Footer */}
+          <AppFooter />
           {/* Espaciado para navegación móvil */}
           <div className="pb-16 md:pb-0" />
         </div>
