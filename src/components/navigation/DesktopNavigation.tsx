@@ -45,6 +45,9 @@ const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: 
     return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2);
   };
 
+  const avatarSize = isExpanded ? "w-10 h-10" : "w-8 h-8";
+  const textSize = isExpanded ? "text-sm" : "text-xs";
+
   const profileContent = (
     <div className="flex items-center space-x-3 w-full">
       <div className="relative flex-shrink-0">
@@ -52,14 +55,14 @@ const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: 
           <img 
             src={user.photoURL} 
             alt="Profile" 
-            className="w-10 h-10 rounded-full border-2 border-white/20 object-cover"
+            className={`${avatarSize} rounded-full border-2 border-white/20 object-cover`}
             onError={(e) => {
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling?.classList.remove('hidden');
             }}
           />
         ) : null}
-        <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm border-2 border-white/20 ${user?.photoURL ? 'hidden' : ''}`}>
+        <div className={`${avatarSize} rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold ${textSize} border-2 border-white/20 ${user?.photoURL ? 'hidden' : ''}`}>
           {getUserInitials(user?.displayName || user?.email)}
         </div>
       </div>
@@ -83,7 +86,7 @@ const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: 
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full h-auto p-3 hover:bg-white/20 rounded-xl transition-colors duration-150 flex items-center justify-center"
+              className="w-full h-auto p-1.5 hover:bg-white/20 rounded-xl transition-colors duration-150 flex items-center justify-center"
               onClick={() => navigate('/settings')}
             >
               {profileContent}
@@ -188,7 +191,7 @@ const DesktopNavigation = () => {
       ${isExpanded ? 'w-64' : 'w-16'}`}>
       
       {/* User Profile Section - Top */}
-      <div className="p-4 border-b border-white/20">
+      <div className={`border-b border-white/20 ${isExpanded ? 'p-4' : 'p-1.5'}`}>
         <UserProfile isExpanded={isExpanded} navigate={navigate} />
       </div>
       

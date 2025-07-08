@@ -220,133 +220,122 @@ const TaskCalendarActions = memo<{
   const buttonClassName = "h-5 w-5 p-0 rounded-full hover:bg-muted";
 
   return (
-    <div className="space-y-0.5">
+    <div className="flex items-center justify-center gap-0.5">
       {/* Date Actions */}
       {onMove && (
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">Fecha:</span>
-          <div className="flex gap-0.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={buttonClassName}
-              title="Asignar para hoy"
-              onClick={handleSetToday}
-            >
-              <span role="img" aria-label="hoy" className="text-xs">📅</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={buttonClassName}
-              title="Asignar para mañana"
-              onClick={handleSetTomorrow}
-            >
-              <span role="img" aria-label="mañana" className="text-xs">🌅</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={buttonClassName}
-              title="Quitar fecha"
-              onClick={handleRemoveDate}
-            >
-              <span role="img" aria-label="sin fecha" className="text-xs">❌</span>
-            </Button>
-          </div>
-        </div>
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={buttonClassName}
+            title="Asignar para hoy"
+            onClick={handleSetToday}
+          >
+            <span role="img" aria-label="hoy" className="text-xs">📅</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={buttonClassName}
+            title="Asignar para mañana"
+            onClick={handleSetTomorrow}
+          >
+            <span role="img" aria-label="mañana" className="text-xs">🌅</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={buttonClassName}
+            title="Quitar fecha"
+            onClick={handleRemoveDate}
+          >
+            <span role="img" aria-label="sin fecha" className="text-xs">❌</span>
+          </Button>
+        </>
       )}
 
       {/* Time of Day Actions */}
       {onAssignTimeOfDay && (
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">Momento:</span>
-          <div className="flex gap-0.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={buttonClassName}
-              title="Asignar a mañana"
-              onClick={handleAssignMorning}
-            >
-              <span role="img" aria-label="mañana" className="text-xs">🌅</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={buttonClassName}
-              title="Asignar a tarde"
-              onClick={handleAssignAfternoon}
-            >
-              <span role="img" aria-label="tarde" className="text-xs">🏙️</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={buttonClassName}
-              title="Asignar a noche"
-              onClick={handleAssignEvening}
-            >
-              <span role="img" aria-label="noche" className="text-xs">🌙</span>
-            </Button>
-          </div>
-        </div>
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={buttonClassName}
+            title="Asignar a mañana"
+            onClick={handleAssignMorning}
+          >
+            <span role="img" aria-label="mañana" className="text-xs">🌅</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={buttonClassName}
+            title="Asignar a tarde"
+            onClick={handleAssignAfternoon}
+          >
+            <span role="img" aria-label="tarde" className="text-xs">🏙️</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={buttonClassName}
+            title="Asignar a noche"
+            onClick={handleAssignEvening}
+          >
+            <span role="img" aria-label="noche" className="text-xs">🌙</span>
+          </Button>
+        </>
       )}
 
       {/* Main Actions */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">Acciones:</span>
-        <div className="flex gap-0.5">
+      <Button
+        variant="ghost"
+        size="icon"
+        className={buttonClassName}
+        title="Ejecutar"
+        onClick={handleRun}
+      >
+        <Play className="w-3 h-3 text-green-600" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className={buttonClassName}
+        title="Editar tarea"
+        onClick={handleEdit}
+      >
+        <Edit className="w-3 h-3 text-muted-foreground" />
+      </Button>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
-            className={buttonClassName}
-            title="Ejecutar"
-            onClick={handleRun}
+            className={cn(buttonClassName, 'hover:bg-red-50')}
+            title="Eliminar tarea"
+            onClick={(e) => e.stopPropagation()}
           >
-            <Play className="w-3 h-3 text-green-600" />
+            <X className="w-3 h-3 text-red-500" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={buttonClassName}
-            title="Editar tarea"
-            onClick={handleEdit}
-          >
-            <Edit className="w-3 h-3 text-muted-foreground" />
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(buttonClassName, 'hover:bg-red-50')}
-                title="Eliminar tarea"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <X className="w-3 h-3 text-red-500" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>¿Eliminar tarea?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Esta acción no se puede deshacer. La tarea "{task.title}" será eliminada permanentemente.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  Eliminar
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </div>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar tarea?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. La tarea "{task.title}" será eliminada permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 });
