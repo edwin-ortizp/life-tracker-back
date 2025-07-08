@@ -13,7 +13,8 @@ const AppFooter = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const { isOnline } = useNetworkStatus()
-  const { data: pomodoroData, status: dataStatus } = usePomodoroData()
+  const pomodoroData = usePomodoroData()
+  const dataStatus = pomodoroData.status
   
   const getPageName = (pathname: string) => {
     const routes: Record<string, string> = {
@@ -34,8 +35,8 @@ const AppFooter = () => {
     return routes[pathname] || 'Life Tracker'
   }
 
-  // Verificar si hay un pomodoro activo
-  const hasActivePomodoro = pomodoroData?.activePomodoro
+  // Note: Active pomodoro functionality temporarily removed due to architecture mismatch
+  const hasActivePomodoro = false
   
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
@@ -44,15 +45,10 @@ const AppFooter = () => {
   }
 
   const getRemainingTime = () => {
-    if (!hasActivePomodoro) return 0
-    const now = Date.now()
-    const startTime = hasActivePomodoro.startTime.seconds * 1000
-    const elapsed = Math.floor((now - startTime) / 1000)
-    const remaining = Math.max(0, hasActivePomodoro.duration - elapsed)
-    return remaining
+    return 0
   }
 
-  const isTimerRunning = hasActivePomodoro && !hasActivePomodoro.pausedAt
+  const isTimerRunning = false
 
   const getSyncStatus = () => {
     const statusMap = {

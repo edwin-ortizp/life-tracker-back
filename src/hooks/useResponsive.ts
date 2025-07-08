@@ -11,6 +11,7 @@ interface ResponsiveState {
   isDesktop: boolean;
   screenWidth: number;
   screenHeight: number;
+  shouldShowDesktopNav: boolean;
 }
 
 export const useResponsive = (): ResponsiveState => {
@@ -23,21 +24,27 @@ export const useResponsive = (): ResponsiveState => {
         isTablet: false,
         isDesktop: true,
         screenWidth: 1920,
-        screenHeight: 1080
+        screenHeight: 1080,
+        shouldShowDesktopNav: true
       };
     }
 
     const width = window.innerWidth;
     const height = window.innerHeight;
+    const isMobile = width < 768;
+    const isTablet = width >= 768 && width < 1024;
+    const isDesktop = width >= 1024;
+    const shouldShowDesktopNav = width >= 768;
     
     return {
       deviceType: width < 768 ? 'mobile' : width < 1024 ? 'tablet' : 'desktop',
       orientation: width < height ? 'portrait' : 'landscape',
-      isMobile: width < 768,
-      isTablet: width >= 768 && width < 1024,
-      isDesktop: width >= 1024,
+      isMobile,
+      isTablet,
+      isDesktop,
       screenWidth: width,
-      screenHeight: height
+      screenHeight: height,
+      shouldShowDesktopNav
     };
   });
 
@@ -45,15 +52,20 @@ export const useResponsive = (): ResponsiveState => {
     const handleResize = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
+      const isMobile = width < 768;
+      const isTablet = width >= 768 && width < 1024;
+      const isDesktop = width >= 1024;
+      const shouldShowDesktopNav = width >= 768;
       
       setState({
         deviceType: width < 768 ? 'mobile' : width < 1024 ? 'tablet' : 'desktop',
         orientation: width < height ? 'portrait' : 'landscape',
-        isMobile: width < 768,
-        isTablet: width >= 768 && width < 1024,
-        isDesktop: width >= 1024,
+        isMobile,
+        isTablet,
+        isDesktop,
         screenWidth: width,
-        screenHeight: height
+        screenHeight: height,
+        shouldShowDesktopNav
       });
     };
 

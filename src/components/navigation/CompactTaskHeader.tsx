@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { MoreVertical } from 'lucide-react';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface NavigationItem {
   tab: string;
@@ -64,10 +65,13 @@ export const CompactTaskHeader: React.FC<CompactTaskHeaderProps> = ({
   currentTab = 'list',
   onTabChange
 }) => {
-
+  const { shouldShowDesktopNav } = useResponsive();
+  
   return (
     <div className={cn("", className)}>
-      <div className="container mx-auto">
+      <div className={cn(
+        shouldShowDesktopNav ? "container mx-auto" : "mx-auto px-4 w-full"
+      )}>
         <div className="bg-background/50 flex items-center justify-between gap-2 py-4 backdrop-blur-md lg:mt-4 lg:rounded-2xl lg:border lg:px-4">
           <div className="flex items-center gap-5">
             <div className="flex items-center gap-12">

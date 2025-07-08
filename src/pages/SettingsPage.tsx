@@ -62,7 +62,7 @@ const SettingsPage = () => {
               />
             ) : null}
             <div className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl border-2 border-gray-200 ${user?.photoURL ? 'hidden' : ''}`}>
-              {getUserInitials(user?.displayName || user?.email)}
+              {getUserInitials(user?.displayName || user?.email || null)}
             </div>
           </div>
           <div className="flex flex-col">

@@ -3,10 +3,10 @@ import DesktopNavigation from './DesktopNavigation';
 import MobileNavigation from './MobileNavigation';
 
 const Navigation = () => {
-  const { isMobile, isTablet, screenWidth } = useResponsive();
+  const { shouldShowDesktopNav } = useResponsive();
 
-  // Para tablets, decidir qué navegación usar basado en orientación y preferencias
-  const shouldUseMobileNav = isMobile || (isTablet && screenWidth < 900);
+  // Usar navegación móvil cuando no se debe mostrar la navegación de escritorio
+  const shouldUseMobileNav = !shouldShowDesktopNav;
 
   return (
     <>
