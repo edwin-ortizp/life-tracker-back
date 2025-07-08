@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { usePomodoroData } from '@/features/pomodoro/hooks/usePomodoroData'
+import { useGlobalPomodoroTimer } from '@/hooks/useGlobalPomodoroTimer'
 import { 
   Wifi, 
   WifiOff, 
@@ -15,6 +16,7 @@ const AppFooter = () => {
   const { isOnline } = useNetworkStatus()
   const pomodoroData = usePomodoroData()
   const dataStatus = pomodoroData.status
+  const { isActive, formattedTime } = useGlobalPomodoroTimer()
   
   const getPageName = (pathname: string) => {
     const routes: Record<string, string> = {
@@ -35,20 +37,8 @@ const AppFooter = () => {
     return routes[pathname] || 'Life Tracker'
   }
 
-  // Note: Active pomodoro functionality temporarily removed due to architecture mismatch
-  const hasActivePomodoro = false
-  
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
-
-  const getRemainingTime = () => {
-    return 0
-  }
-
-  const isTimerRunning = false
+  // Usar el hook global para detectar timer activo
+  const hasActivePomodoro = isActive
 
   const getSyncStatus = () => {
     const statusMap = {
@@ -98,17 +88,6 @@ const AppFooter = () => {
           <span>{getSyncStatus()}</span>
         </div>
         
-        {/* Pomodoro Status */}
-        {hasActivePomodoro && (
-          <button 
-            onClick={() => navigate('/pomodoro')}
-            className="flex items-center space-x-2 bg-[#005a9e] px-2 py-1 rounded hover:bg-[#007ACC] transition-colors"
-          >
-            <Timer className="w-3 h-3" />
-            <span className="font-mono">{formatTime(getRemainingTime())}</span>
-            <span className="text-xs">{isTimerRunning ? 'Corriendo' : 'Pausado'}</span>
-          </button>
-        )}
       </div>
       
       {/* Center Section */}
@@ -121,9 +100,23 @@ const AppFooter = () => {
       
       {/* Right Section */}
       <div className="flex items-center space-x-4">
+        {/* Pomodoro Status - Active Timer */}
+        {hasActivePomodoro && (
+          <button 
+            type="button"
+            onClick={() => navigate('/pomodoro')}
+            className="flex items-center space-x-2 bg-[#005a9e] px-2 py-1 rounded hover:bg-[#007ACC] transition-colors"
+          >
+            <Timer className="w-3 h-3" />
+            <span className="font-mono">{formattedTime}</span>
+            <span className="text-xs">Transcurrido</span>
+          </button>
+        )}
+        
         {/* Pomodoro Quick Access */}
         {!hasActivePomodoro && (
           <button 
+            type="button"
             onClick={() => navigate('/pomodoro')}
             className="flex items-center space-x-1 hover:bg-[#005a9e] px-2 py-1 rounded transition-colors"
           >

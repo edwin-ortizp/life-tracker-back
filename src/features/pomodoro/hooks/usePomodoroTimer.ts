@@ -5,6 +5,7 @@ import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { createFormattedTimestamp, getLocalDateString } from '@/utils/dates';
 import { useDebouncedFirestoreWrite } from '@/hooks/useDebouncedFirestoreWrite';
+import { useGlobalPomodoroTimer } from '@/hooks/useGlobalPomodoroTimer';
 import type { ActivePomodoro } from '../types';
 
 const DEVICE_ID = crypto.randomUUID();
@@ -22,13 +23,14 @@ export const usePomodoroTimer = ({
   selectedDate 
 }: UsePomodoroTimerProps) => {
   const { user } = useAuth();
-  const [time, setTime] = useState(POMODORO_DURATION);
-  const [isActive, setIsActive] = useState(false);
   const [activePomodoro, setActivePomodoro] = useState<ActivePomodoro | null>(null);
   const [isStopping, setIsStopping] = useState(false);
   const animationFrameRef = useRef<number>();
   const isResetting = useRef(false);
   const lastWriteTimestamp = useRef<number>(0);
+  
+  // Usar el hook global para el estado del timer
+  const globalTimer = useGlobalPomodoroTimer();
   
   const date = selectedDate ? getLocalDateString(selectedDate) : getLocalDateString(new Date());
 
@@ -56,15 +58,14 @@ export const usePomodoroTimer = ({
     isResetting.current = true;
     
     cleanupTimer();
-    setTime(POMODORO_DURATION);
-    setIsActive(false);
+    globalTimer.stopTimer();
     setActivePomodoro(null);
     setIsStopping(false);
     
     setTimeout(() => {
       isResetting.current = false;
     }, 100);
-  }, [cleanupTimer]);
+  }, [cleanupTimer, globalTimer]);
 
   // Calcular tiempo restante
   const calculateRemaining = useCallback((startTimestamp: number): number => {
@@ -72,36 +73,16 @@ export const usePomodoroTimer = ({
     return Math.max(0, POMODORO_DURATION - elapsed);
   }, []);
 
-  // Efecto para manejar la actualización del timer
+  // Efecto para detectar cuando el timer global termina
   useEffect(() => {
-    if (!isActive || !activePomodoro || isStopping) {
-      cleanupTimer();
-      return;
-    }
-
-    const startTimestampMs = activePomodoro.startTime.timestamp;
-
-    const updateTimer = () => {
-      const elapsedSeconds = (Date.now() - startTimestampMs) / 1000;
-      const remaining = Math.max(0, POMODORO_DURATION - elapsedSeconds);
-      
-      if (remaining <= 0) {
-        cleanupTimer();
-        if (activePomodoro.deviceId === DEVICE_ID) {
-          onComplete(POMODORO_DURATION);
-        }
-        resetState();
-        return;
+    if (!globalTimer.isActive && activePomodoro && !isStopping) {
+      // El timer global terminó, completar la sesión
+      if (activePomodoro.deviceId === DEVICE_ID) {
+        onComplete(POMODORO_DURATION);
       }
-
-      setTime(remaining);
-      animationFrameRef.current = requestAnimationFrame(updateTimer);
-    };
-
-    animationFrameRef.current = requestAnimationFrame(updateTimer);
-
-    return cleanupTimer;
-  }, [isActive, activePomodoro, isStopping, cleanupTimer, resetState, onComplete, calculateRemaining]);
+      resetState();
+    }
+  }, [globalTimer.isActive, activePomodoro, isStopping, onComplete, resetState]);
 
   // Efecto para la sincronización con Firebase
   useEffect(() => {
@@ -150,8 +131,10 @@ export const usePomodoroTimer = ({
       }
 
       setActivePomodoro(currentPomodoro);
-      setTime(remaining);
-      setIsActive(true);
+      // Solo iniciar el timer global si no está ya activo
+      if (!globalTimer.isActive) {
+        globalTimer.startTimer();
+      }
     });
 
     return () => {
@@ -159,10 +142,10 @@ export const usePomodoroTimer = ({
       cleanupTimer();
       debouncedPomodoroWrite.cleanup();
     };
-  }, [user, date, isActive, isStopping, calculateRemaining, cleanupTimer, resetState, onComplete, debouncedPomodoroWrite]);
+  }, [user, date, globalTimer.isActive, isStopping, calculateRemaining, cleanupTimer, resetState, onComplete, debouncedPomodoroWrite]);
 
   const startTimer = useCallback(async () => {
-    if (!user || isActive) return;
+    if (!user || globalTimer.isActive) return;
 
     const now = new Date();
     const timestampDetails = createFormattedTimestamp(
@@ -178,9 +161,10 @@ export const usePomodoroTimer = ({
     };
 
     setActivePomodoro(newPomodoro);
-    setTime(POMODORO_DURATION);
-    setIsActive(true);
     setIsStopping(false);
+    
+    // Iniciar el timer global
+    globalTimer.startTimer();
 
     try {
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
@@ -199,7 +183,7 @@ export const usePomodoroTimer = ({
       console.error('Error starting timer:', error);
       resetState();
     }
-  }, [user, date, isActive, selectedDate, resetState]);
+  }, [user, date, globalTimer.isActive, selectedDate, resetState, globalTimer]);
 
   const stopTimer = useCallback(async () => {
     if (!user || !activePomodoro || isStopping) return;
@@ -213,8 +197,8 @@ export const usePomodoroTimer = ({
         updatedAt: serverTimestamp()
       });
 
-      // Notificamos la cancelación con el tiempo actual
-      const elapsedTime = POMODORO_DURATION - time;
+      // Notificamos la cancelación con el tiempo transcurrido del timer global
+      const elapsedTime = globalTimer.time;
       if (elapsedTime > 0) {
         onCancel(elapsedTime);
       }
@@ -225,7 +209,7 @@ export const usePomodoroTimer = ({
       console.error('Error stopping timer:', error);
       setIsStopping(false);
     }
-  }, [user, date, activePomodoro, isStopping, time, onCancel, resetState, debouncedPomodoroWrite]);
+  }, [user, date, activePomodoro, isStopping, globalTimer.time, onCancel, resetState, debouncedPomodoroWrite]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -234,9 +218,9 @@ export const usePomodoroTimer = ({
   };
 
   return {
-    time,
-    isActive,
-    formattedTime: formatTime(time),
+    time: POMODORO_DURATION - globalTimer.time, // tiempo restante para UI
+    isActive: globalTimer.isActive,
+    formattedTime: formatTime(POMODORO_DURATION - globalTimer.time),
     startTimer,
     stopTimer
   };
