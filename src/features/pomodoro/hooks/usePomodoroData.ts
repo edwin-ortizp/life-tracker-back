@@ -307,6 +307,10 @@ export const usePomodoroData = (selectedDate?: Date) => {
   
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
       await setDoc(docRef, updatedData);
+      
+      // Recargar datos después de guardar
+      await loadPomodoroData();
+      
       if (import.meta.env.DEV) {
         console.log('Pomodoro session updated locally');
       }
