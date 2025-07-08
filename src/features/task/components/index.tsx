@@ -95,6 +95,8 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
               onDelete={deleteTask}
               onEdit={openEditModal}
               onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
+              onMove={(id, dueDate) => editTask(id, { dueDate: dueDate || undefined })}
+              onAssignTimeOfDay={(id, timeOfDay) => editTask(id, { timeOfDay })}
               status={status}
               error={error}
             />

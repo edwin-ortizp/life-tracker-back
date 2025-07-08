@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Task, TASK_CATEGORIES, CATEGORY_LABELS } from '../types';
-import { TaskItem } from './TaskItem';
+import { TaskItemKanban } from './TaskItemKanban';
 import {
   isBefore,
   startOfDay,
@@ -633,13 +633,12 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
                 onDragStart={() => setDragging(task)}
                 onDragEnd={() => setDragging(null)}
               >
-                <TaskItem
+                <TaskItemKanban
                   task={task}
                   onDelete={onDelete}
                   onEdit={onEdit}
                   onView={onView}
                   onMove={onMove}
-                  variant="kanban"
                   showCategoryLabel={selectedCategory === 'all'}
                 />
               </div>

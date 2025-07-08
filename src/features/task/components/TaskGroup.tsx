@@ -1,6 +1,6 @@
 import React from 'react';
 import { Task } from '../types';
-import { TaskItem } from './TaskItem';
+import { TaskItemList } from './TaskItemList';
 
 interface TaskGroupProps {
   title: string;
@@ -8,6 +8,8 @@ interface TaskGroupProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
+  onMove?: (taskId: string, dueDate: Date | null) => void;
+  onAssignTimeOfDay?: (taskId: string, timeOfDay: any) => void;
 }
 
 export const TaskGroup: React.FC<TaskGroupProps> = ({ 
@@ -15,7 +17,9 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
   tasks, 
   onDelete,
   onEdit,
-  onView
+  onView,
+  onMove,
+  onAssignTimeOfDay
 }) => {
   if (tasks.length === 0) return null;
 
@@ -46,13 +50,14 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
         {title}
       </h3>
       {sortedTasks.map(task => (
-        <TaskItem
+        <TaskItemList
           key={task.id}
           task={task}
           onDelete={onDelete}
           onEdit={onEdit}
           onView={onView}
-          variant="list"
+          onMove={onMove}
+          onAssignTimeOfDay={onAssignTimeOfDay}
         />
       ))}
     </div>

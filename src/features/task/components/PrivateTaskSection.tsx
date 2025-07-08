@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { TaskItem } from './TaskItem';
+import { TaskItemList } from './TaskItemList';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { RecurrenceModal } from './RecurrenceModal';
 import { useTaskData } from '../hooks/useTaskData';
@@ -166,13 +166,14 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
             </h4>
             <div className="space-y-2">
               {todaysPrivateTasks.map(task => (
-                <TaskItem
+                <TaskItemList
                   key={task.id}
                   task={task}
                   onDelete={deleteTask}
                   onEdit={openEditModal}
                   onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
-                  variant="list"
+                  onMove={(id, dueDate) => editTask(id, { dueDate: dueDate || undefined })}
+                  onAssignTimeOfDay={(id, timeOfDay) => editTask(id, { timeOfDay })}
                 />
               ))}
             </div>
@@ -187,13 +188,14 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
             </h4>
             <div className="space-y-2">
               {pendingPrivateTasks.map(task => (
-                <TaskItem
+                <TaskItemList
                   key={task.id}
                   task={task}
                   onDelete={deleteTask}
                   onEdit={openEditModal}
                   onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
-                  variant="list"
+                  onMove={(id, dueDate) => editTask(id, { dueDate: dueDate || undefined })}
+                  onAssignTimeOfDay={(id, timeOfDay) => editTask(id, { timeOfDay })}
                 />
               ))}
             </div>
