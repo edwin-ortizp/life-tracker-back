@@ -35,6 +35,16 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, o
 
   const unassigned: Task[] = [];
 
+  // Función para ordenar tareas por prioridad
+  const sortByPriority = (tasks: Task[]): Task[] => {
+    const priorityOrder = { 'do': 1, 'decide': 2, 'delegate': 3, 'delete': 4, 'none': 5 };
+    return tasks.sort((a, b) => {
+      const aPriority = priorityOrder[a.priority as keyof typeof priorityOrder] || 5;
+      const bPriority = priorityOrder[b.priority as keyof typeof priorityOrder] || 5;
+      return aPriority - bPriority;
+    });
+  };
+
   tasks.forEach(t => {
     if (!t.dueDate) {
       unassigned.push(t);
@@ -55,6 +65,14 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, o
     } else {
       byColumn.future[t.timeOfDay].push(t);
     }
+  });
+
+  // Ordenar todas las tareas por prioridad dentro de cada slot
+  Object.keys(byColumn).forEach(columnKey => {
+    const column = byColumn[columnKey as keyof typeof byColumn];
+    Object.keys(column).forEach(slotKey => {
+      column[slotKey as TimeOfDay] = sortByPriority(column[slotKey as TimeOfDay]);
+    });
   });
 
   // Filter unassigned tasks to only show those without timeOfDay

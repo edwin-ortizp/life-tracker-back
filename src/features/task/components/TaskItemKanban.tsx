@@ -177,6 +177,11 @@ const TaskKanbanActions = memo<{
     onMove?.(task.id, toNoon(addDays(new Date(), 1)));
   }, [onMove, task.id]);
 
+  const handleSetDayAfterTomorrow = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMove?.(task.id, toNoon(addDays(new Date(), 2)));
+  }, [onMove, task.id]);
+
   const handleRemoveDate = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onMove?.(task.id, null);
@@ -232,6 +237,15 @@ const TaskKanbanActions = memo<{
         onClick={handleSetTomorrow}
       >
         <span role="img" aria-label="mañana" className="text-xs">🌅</span>
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className={buttonClassName}
+        title="Asignar para pasado mañana"
+        onClick={handleSetDayAfterTomorrow}
+      >
+        <span role="img" aria-label="pasado mañana" className="text-xs">🚀</span>
       </Button>
       <Button
         variant="ghost"
