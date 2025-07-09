@@ -16,7 +16,8 @@ import {
   BookOpen,
   ChevronRight,
   UtensilsCrossed,
-  Dumbbell
+  Dumbbell,
+  Flag
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { MenuItem } from './types';
@@ -33,6 +34,7 @@ export const menuItems: MenuItem[] = [
   { icon: UtensilsCrossed, label: 'Comidas', path: '/meal' },
   { icon: ClipboardList, label: 'Tareas', path: '/task' },
   { icon: KanbanIcon, label: 'Kanban', path: '/kanban' },
+  { icon: Flag, label: 'Objetivos', path: '/goals' },
   { icon: BarChart, label: 'Estadísticas', path: '/stats' },
   { icon: ThumbsDown, label: 'Hábitos Negativos', path: '/negative' }
 ];
