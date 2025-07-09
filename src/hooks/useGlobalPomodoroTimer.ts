@@ -16,6 +16,7 @@ export const useGlobalPomodoroTimer = () => {
   const [isActive, setIsActive] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout>();
   const completionHandledRef = useRef(false);
+  const onCompletionRef = useRef<((duration: number) => void) | null>(null);
   
   // Hook de notificaciones
   const { 
@@ -104,6 +105,12 @@ export const useGlobalPomodoroTimer = () => {
     if (completionHandledRef.current) return;
     completionHandledRef.current = true;
     
+    // Primero notificar al hook de Firebase si está registrado
+    if (onCompletionRef.current) {
+      console.log('Notificando completación a usePomodoroTimer...');
+      onCompletionRef.current(POMODORO_DURATION);
+    }
+    
     // Reproducir sonido
     playCompletionSound();
     
@@ -115,15 +122,13 @@ export const useGlobalPomodoroTimer = () => {
       });
     }
     
-    // Limpiar timer
-    localStorage.removeItem(STORAGE_KEY);
-    setIsActive(false);
-    setTime(0);
-    
-    // Resetear flag después de un momento
+    // Limpiar el estado local después de un delay para permitir el guardado
     setTimeout(() => {
+      localStorage.removeItem(STORAGE_KEY);
+      setIsActive(false);
+      setTime(0);
       completionHandledRef.current = false;
-    }, 1000);
+    }, 500);
   };
 
   // Inicializar desde localStorage
@@ -165,6 +170,11 @@ export const useGlobalPomodoroTimer = () => {
       }
     };
   }, [isActive]);
+
+  // Función para registrar callback de finalización
+  const setOnCompletion = (callback: (duration: number) => void) => {
+    onCompletionRef.current = callback;
+  };
 
   // Función para iniciar timer (llamada desde el componente Pomodoro)
   const startTimer = () => {
@@ -212,6 +222,7 @@ export const useGlobalPomodoroTimer = () => {
     isActive,
     formattedTime: formatTime(time),
     startTimer,
-    stopTimer
+    stopTimer,
+    setOnCompletion
   };
 };

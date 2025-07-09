@@ -32,6 +32,14 @@ export const usePomodoroTimer = ({
   // Usar el hook global para el estado del timer
   const globalTimer = useGlobalPomodoroTimer();
   
+  // Registrar callback de finalización en el hook global
+  useEffect(() => {
+    globalTimer.setOnCompletion((duration: number) => {
+      console.log('Callback de finalización llamado, guardando sesión...');
+      onComplete(duration);
+    });
+  }, [globalTimer, onComplete]);
+  
   const date = selectedDate ? getLocalDateString(selectedDate) : getLocalDateString(new Date());
 
   // Debounced write function para evitar escrituras excesivas
@@ -73,16 +81,6 @@ export const usePomodoroTimer = ({
     return Math.max(0, POMODORO_DURATION - elapsed);
   }, []);
 
-  // Efecto para detectar cuando el timer global termina
-  useEffect(() => {
-    if (!globalTimer.isActive && activePomodoro && !isStopping) {
-      // El timer global terminó, completar la sesión
-      if (activePomodoro.deviceId === DEVICE_ID) {
-        onComplete(POMODORO_DURATION);
-      }
-      resetState();
-    }
-  }, [globalTimer.isActive, activePomodoro, isStopping, onComplete, resetState]);
 
   // Efecto para la sincronización con Firebase
   useEffect(() => {
