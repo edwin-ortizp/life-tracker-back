@@ -20,14 +20,13 @@ import StatisticsPage from './pages/StatisticsPage';
 import SettingsPage from './pages/SettingsPage';
 import TaskRunPage from './pages/TaskRunPage';
 import HabitRunPage from './pages/HabitRunPage';
+import GoalsPage from './pages/GoalsPage';
 
-// Loader reutilizable para componentes cargados de forma diferida
 export const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[50vh]">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
   </div>
 );
-
 
 function App() {
   return (
@@ -47,13 +46,13 @@ function App() {
         <Route path="meal" element={<MealPage />} />
         <Route path="shopping-list" element={<ShoppingListPage />} />
         <Route path="recipes" element={<RecipesPage />} />
-      <Route path="prepared-meals" element={<PreparedMealsPage />} />
-      <Route path="settings" element={<SettingsPage />} />
-    </Route>
-    <Route path="task/:taskId/run" element={<TaskRunPage />} />
-    <Route path="habit/:habitId/run" element={<HabitRunPage />} />
-  </Routes>
+        <Route path="prepared-meals" element={<PreparedMealsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="goals" element={<GoalsPage />} />
+      </Route>
+      <Route path="task/:taskId/run" element={<TaskRunPage />} />
+      <Route path="habit/:habitId/run" element={<HabitRunPage />} />
+    </Routes>
   );
 }
-
 export default App;
