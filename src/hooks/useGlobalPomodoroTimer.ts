@@ -1,5 +1,6 @@
 // src/hooks/useGlobalPomodoroTimer.ts
 import { useState, useEffect, useRef } from 'react';
+import { useNotifications } from '@/features/pomodoro/hooks/useNotifications';
 
 const POMODORO_DURATION = 30 * 60; // 30 minutos en segundos
 const STORAGE_KEY = 'active-pomodoro-timer';
@@ -14,6 +15,14 @@ export const useGlobalPomodoroTimer = () => {
   const [time, setTime] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout>();
+  const completionHandledRef = useRef(false);
+  
+  // Hook de notificaciones
+  const { 
+    preferences: notificationPrefs, 
+    permission: notificationPermission, 
+    sendNotification 
+  } = useNotifications();
 
   // Función para leer del localStorage
   const readFromStorage = (): StoredTimer | null => {
@@ -44,17 +53,77 @@ export const useGlobalPomodoroTimer = () => {
     return Math.floor((Date.now() - startTime) / 1000);
   };
 
-  // Función para calcular tiempo restante
-  const calculateRemaining = (startTime: number, duration: number): number => {
-    const elapsed = (Date.now() - startTime) / 1000;
-    return Math.max(0, duration - elapsed);
-  };
 
   // Función para formatear tiempo
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  // Función para reproducir sonido de finalización
+  const playCompletionSound = () => {
+    if (!notificationPrefs.sound) return;
+    
+    try {
+      // Crear un contexto de audio
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Crear un oscilador para generar el sonido
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      // Configurar el oscilador
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Sonido de campanada agradable
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5
+      oscillator.frequency.setValueAtTime(660, audioContext.currentTime + 0.1); // E5
+      oscillator.frequency.setValueAtTime(523, audioContext.currentTime + 0.2); // C5
+      
+      // Configurar el volumen
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+      
+      // Reproducir el sonido
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.8);
+      
+      // Limpiar el contexto después de un tiempo
+      setTimeout(() => {
+        audioContext.close();
+      }, 1000);
+    } catch (error) {
+      console.warn('No se pudo reproducir el sonido de finalización:', error);
+    }
+  };
+
+  // Función para manejar la finalización del timer
+  const handleTimerCompletion = () => {
+    if (completionHandledRef.current) return;
+    completionHandledRef.current = true;
+    
+    // Reproducir sonido
+    playCompletionSound();
+    
+    // Enviar notificación si está habilitada
+    if (notificationPrefs.enabled && notificationPermission === 'granted') {
+      sendNotification('¡Pomodoro completado! 🎉', {
+        body: 'Has completado exitosamente tu sesión de concentración',
+        requireInteraction: true
+      });
+    }
+    
+    // Limpiar timer
+    localStorage.removeItem(STORAGE_KEY);
+    setIsActive(false);
+    setTime(0);
+    
+    // Resetear flag después de un momento
+    setTimeout(() => {
+      completionHandledRef.current = false;
+    }, 1000);
   };
 
   // Inicializar desde localStorage
@@ -77,9 +146,7 @@ export const useGlobalPomodoroTimer = () => {
           
           // Verificar si el timer terminó
           if (elapsed >= stored.duration) {
-            setIsActive(false);
-            setTime(0);
-            localStorage.removeItem(STORAGE_KEY);
+            handleTimerCompletion();
           }
         } else {
           setIsActive(false);
@@ -110,6 +177,7 @@ export const useGlobalPomodoroTimer = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(timerData));
     setIsActive(true);
     setTime(0);
+    completionHandledRef.current = false; // Resetear flag de finalización
   };
 
   // Función para detener timer (llamada desde el componente Pomodoro)
@@ -117,6 +185,7 @@ export const useGlobalPomodoroTimer = () => {
     localStorage.removeItem(STORAGE_KEY);
     setIsActive(false);
     setTime(0);
+    completionHandledRef.current = false; // Resetear flag de finalización
   };
 
   // Escuchar cambios en localStorage (para sincronizar entre pestañas)

@@ -106,7 +106,7 @@ export const usePomodoroTimer = ({
       }
 
       // Si el pomodoro es de otro dispositivo y no está activo, ignorar
-      if (currentPomodoro.deviceId !== DEVICE_ID && !isActive) {
+      if (currentPomodoro.deviceId !== DEVICE_ID && !globalTimer.isActive) {
         return;
       }
 
