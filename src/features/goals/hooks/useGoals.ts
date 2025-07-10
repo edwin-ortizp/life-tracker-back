@@ -12,7 +12,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { firestoreLogger } from '@/utils/firestore-logger';
-import type { Goal, GoalEntry, GoalTask, GoalsHook } from '../types';
+import type { Goal, GoalEntry, GoalTask, GoalsHook, NumericEntry } from '../types';
 
 export const useGoals = (): GoalsHook => {
   const { user } = useAuth();
@@ -42,6 +42,8 @@ export const useGoals = (): GoalsHook => {
           entries: data.entries || [],
           positiveCount: data.positiveCount || 0,
           negativeCount: data.negativeCount || 0,
+          numericGoal: data.numericGoal || undefined,
+          numericEntries: data.numericEntries || [],
           createdAt: data.createdAt,
           updatedAt: data.updatedAt
         } as Goal;
@@ -72,6 +74,7 @@ export const useGoals = (): GoalsHook => {
         userId: user.uid,
         positiveCount: 0,
         negativeCount: 0,
+        numericEntries: [],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
@@ -85,6 +88,7 @@ export const useGoals = (): GoalsHook => {
           userId: user.uid,
           positiveCount: 0,
           negativeCount: 0,
+          numericEntries: [],
           createdAt: '',
           updatedAt: ''
         }
@@ -165,6 +169,28 @@ export const useGoals = (): GoalsHook => {
     await updateGoal(goalId, { negativeCount: newCount });
   };
 
+  const addNumericEntry = async (goalId: string, entry: Omit<NumericEntry, 'date'> & { date?: string }) => {
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal || !user) return;
+    const newEntry: NumericEntry = {
+      value: entry.value,
+      date: entry.date || new Date().toISOString(),
+      note: entry.note
+    };
+    const numericEntries = [...(goal.numericEntries || []), newEntry].sort((a, b) => a.date.localeCompare(b.date));
+    
+    // Update current value in numeric goal
+    const updatedNumericGoal = goal.numericGoal ? {
+      ...goal.numericGoal,
+      currentValue: entry.value
+    } : undefined;
+    
+    await updateGoal(goalId, { 
+      numericEntries, 
+      numericGoal: updatedNumericGoal 
+    });
+  };
+
   return {
     goals,
     status,
@@ -176,6 +202,7 @@ export const useGoals = (): GoalsHook => {
     addEntry,
     incrementPositiveCount,
     incrementNegativeCount,
+    addNumericEntry,
     loadGoals
   };
 };

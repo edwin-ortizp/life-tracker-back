@@ -7,7 +7,7 @@ interface JournalLockContextValue {
 
 const defaultValue: JournalLockContextValue = {
   isUnlocked: false,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+   
   setUnlocked: () => {}
 };
 

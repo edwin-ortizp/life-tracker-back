@@ -1,6 +1,7 @@
 import React from 'react';
 import { Task } from '../types';
 import { TaskItemList } from './TaskItemList';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface TaskGroupProps {
   title: string;
@@ -49,17 +50,53 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
       <h3 className="font-medium text-sm text-gray-500 uppercase tracking-wider pt-4">
         {title}
       </h3>
-      {sortedTasks.map(task => (
-        <TaskItemList
-          key={task.id}
-          task={task}
-          onDelete={onDelete}
-          onEdit={onEdit}
-          onView={onView}
-          onMove={onMove}
-          onAssignTimeOfDay={onAssignTimeOfDay}
-        />
-      ))}
+      
+      {/* Desktop Table with Headers */}
+      <div className="hidden md:block">
+        <Card>
+          <CardContent className="p-0">
+            {/* Table Header */}
+            <div className="grid grid-cols-12 gap-4 p-4 bg-gray-50 border-b text-sm font-medium text-gray-700">
+              <div className="col-span-4">Tarea</div>
+              <div className="col-span-2 text-center">Estado</div>
+              <div className="col-span-1 text-center">Prioridad</div>
+              <div className="col-span-1 text-center">Tiempo</div>
+              <div className="col-span-2 text-center">Fecha</div>
+              <div className="col-span-2 text-center">Acciones</div>
+            </div>
+            
+            {/* Table Rows */}
+            <div className="divide-y divide-gray-100">
+              {sortedTasks.map(task => (
+                <TaskItemList
+                  key={task.id}
+                  task={task}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                  onView={onView}
+                  onMove={onMove}
+                  onAssignTimeOfDay={onAssignTimeOfDay}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {sortedTasks.map(task => (
+          <TaskItemList
+            key={task.id}
+            task={task}
+            onDelete={onDelete}
+            onEdit={onEdit}
+            onView={onView}
+            onMove={onMove}
+            onAssignTimeOfDay={onAssignTimeOfDay}
+          />
+        ))}
+      </div>
     </div>
   );
 };

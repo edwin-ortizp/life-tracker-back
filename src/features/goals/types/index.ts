@@ -11,6 +11,20 @@ export interface GoalEntry {
   isMilestone?: boolean;
 }
 
+export interface NumericGoal {
+  enabled: boolean;
+  targetValue: number;
+  currentValue: number;
+  unit: string;
+  unitType: 'currency' | 'weight' | 'quantity' | 'percentage' | 'custom';
+}
+
+export interface NumericEntry {
+  value: number;
+  date: string;
+  note?: string;
+}
+
 export interface Goal {
   id: string;
   userId: string;
@@ -23,6 +37,8 @@ export interface Goal {
   entries: GoalEntry[];
   positiveCount?: number;
   negativeCount?: number;
+  numericGoal?: NumericGoal;
+  numericEntries?: NumericEntry[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -38,5 +54,6 @@ export interface GoalsHook {
   addEntry: (goalId: string, entry: Omit<GoalEntry, 'date'> & { date?: string }) => Promise<void>;
   incrementPositiveCount: (goalId: string) => Promise<void>;
   incrementNegativeCount: (goalId: string) => Promise<void>;
+  addNumericEntry: (goalId: string, entry: Omit<NumericEntry, 'date'> & { date?: string }) => Promise<void>;
   loadGoals: () => Promise<void>;
 }

@@ -9,14 +9,14 @@ import { formatCategory } from '../utils/categories';
 import ShoppingFilters from './ShoppingFilters';
 import { useResponsive } from '@/hooks/useResponsive';
 
-interface ListViewProps {
+interface HybridListViewProps {
   items: ShoppingItem[];
   onEdit: (item: ShoppingItem) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, data: Partial<ShoppingItem>) => void;
 }
 
-export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onUpdate }) => {
+export const HybridListView: React.FC<HybridListViewProps> = ({ items, onEdit, onDelete, onUpdate }) => {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'az' | 'za' | 'category'>('az');
   const [placeFilter, setPlaceFilter] = useState('');
@@ -102,6 +102,32 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
     }, 0);
   }, [filtered]);
 
+  const getStatusVariant = (status: ItemStatus) => {
+    switch (status) {
+      case 'in-stock':
+        return 'default';
+      case 'low-stock':
+        return 'secondary';
+      case 'to-buy':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
+
+  const getStatusText = (status: ItemStatus) => {
+    switch (status) {
+      case 'in-stock':
+        return 'En Stock';
+      case 'low-stock':
+        return 'Poco Stock';
+      case 'to-buy':
+        return 'Por Comprar';
+      default:
+        return status;
+    }
+  };
+
   const handleQuantityDecrease = (item: ShoppingItem) => {
     const newQuantity = item.quantity - 1;
     if (newQuantity === 0) {
@@ -175,42 +201,16 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
             
             {/* Table Rows */}
             <div className="divide-y divide-gray-100">
-              {filtered.map((item, index) => {
-                const getStatusVariant = (status: ItemStatus) => {
-                  switch (status) {
-                    case 'in-stock':
-                      return 'default';
-                    case 'low-stock':
-                      return 'secondary';
-                    case 'to-buy':
-                      return 'destructive';
-                    default:
-                      return 'outline';
-                  }
-                };
-
-                const getStatusText = (status: ItemStatus) => {
-                  switch (status) {
-                    case 'in-stock':
-                      return 'En Stock';
-                    case 'low-stock':
-                      return 'Poco Stock';
-                    case 'to-buy':
-                      return 'Por Comprar';
-                    default:
-                      return status;
-                  }
-                };
-
-                return (
-                  <div
-                    key={item.id}
-                    className={`p-4 hover:bg-gray-50 transition-colors ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                    }`}
-                  >
-                    {/* Mobile Layout */}
-                    <div className="md:hidden space-y-3">
+              {filtered.map((item, index) => (
+                <div
+                  key={item.id}
+                  className={`hover:bg-gray-50 transition-colors ${
+                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                  }`}
+                >
+                  {/* Mobile Layout - Card */}
+                  <div className="md:hidden p-4">
+                    <div className="space-y-3">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h3 className="text-sm font-medium text-gray-900">
@@ -292,111 +292,111 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
                         </div>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Desktop Layout */}
-                    <div className="hidden md:grid grid-cols-12 gap-4">
-                      {/* Producto Column */}
-                      <div className="col-span-3">
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-medium text-gray-900">
-                            {item.name}
-                          </h3>
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            {item.place && (
-                              <span className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                {item.place}
-                              </span>
-                            )}
-                            {item.consumeBy && (
-                              <span className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {item.consumeBy}
-                              </span>
-                            )}
-                          </div>
+                  {/* Desktop Layout - Table Row */}
+                  <div className="hidden md:grid grid-cols-12 gap-4 p-4">
+                    {/* Producto Column */}
+                    <div className="col-span-3">
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          {item.name}
+                        </h3>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          {item.place && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {item.place}
+                            </span>
+                          )}
+                          {item.consumeBy && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {item.consumeBy}
+                            </span>
+                          )}
                         </div>
                       </div>
+                    </div>
 
-                      {/* Categoría Column */}
-                      <div className="col-span-2 flex justify-center items-center">
-                        {item.category ? (
-                          <Badge variant="outline" className="text-xs">
-                            {formatCategory(item.category)}
-                          </Badge>
-                        ) : (
-                          <span className="text-xs text-gray-400">Sin categoría</span>
-                        )}
-                      </div>
-
-                      {/* Estado Column */}
-                      <div className="col-span-2 flex justify-center items-center">
-                        <Badge variant={getStatusVariant(item.status)} className="text-xs">
-                          {getStatusText(item.status)}
+                    {/* Categoría Column */}
+                    <div className="col-span-2 flex justify-center items-center">
+                      {item.category ? (
+                        <Badge variant="outline" className="text-xs">
+                          {formatCategory(item.category)}
                         </Badge>
-                      </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">Sin categoría</span>
+                      )}
+                    </div>
 
-                      {/* Cantidad Column */}
-                      <div className="col-span-2 flex justify-center items-center">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleQuantityDecrease(item)}
-                            className="h-6 w-6 p-0"
-                          >
-                            <ChevronDown className="h-3 w-3" />
-                          </Button>
-                          <span className="text-sm font-medium min-w-[2rem] text-center">
-                            {item.quantity}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onUpdate(item.id, { quantity: item.quantity + 1 })}
-                            className="h-6 w-6 p-0"
-                          >
-                            <ChevronUp className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
+                    {/* Estado Column */}
+                    <div className="col-span-2 flex justify-center items-center">
+                      <Badge variant={getStatusVariant(item.status)} className="text-xs">
+                        {getStatusText(item.status)}
+                      </Badge>
+                    </div>
 
-                      {/* Precio Column */}
-                      <div className="col-span-2 flex justify-center items-center">
-                        {item.price !== undefined ? (
-                          <span className="text-sm font-medium text-green-600">
-                            {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(item.price)}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-400">Sin precio</span>
-                        )}
-                      </div>
-
-                      {/* Acciones Column */}
-                      <div className="col-span-1 flex justify-center items-center gap-1">
+                    {/* Cantidad Column */}
+                    <div className="col-span-2 flex justify-center items-center">
+                      <div className="flex items-center gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onEdit(item)}
-                          className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                          title="Editar producto"
+                          onClick={() => handleQuantityDecrease(item)}
+                          className="h-6 w-6 p-0"
                         >
-                          <Edit className="h-3 w-3" />
+                          <ChevronDown className="h-3 w-3" />
                         </Button>
+                        <span className="text-sm font-medium min-w-[2rem] text-center">
+                          {item.quantity}
+                        </span>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onDelete(item.id)}
-                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          title="Eliminar producto"
+                          onClick={() => onUpdate(item.id, { quantity: item.quantity + 1 })}
+                          className="h-6 w-6 p-0"
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <ChevronUp className="h-3 w-3" />
                         </Button>
                       </div>
                     </div>
+
+                    {/* Precio Column */}
+                    <div className="col-span-2 flex justify-center items-center">
+                      {item.price !== undefined ? (
+                        <span className="text-sm font-medium text-green-600">
+                          {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(item.price)}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">Sin precio</span>
+                      )}
+                    </div>
+
+                    {/* Acciones Column */}
+                    <div className="col-span-1 flex justify-center items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(item)}
+                        className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        title="Editar producto"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDelete(item.id)}
+                        className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        title="Eliminar producto"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -405,4 +405,4 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
   );
 };
 
-export default ListView;
+export default HybridListView;

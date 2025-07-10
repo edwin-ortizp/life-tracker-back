@@ -11,7 +11,7 @@ import { useShoppingList } from '../hooks/useShoppingList';
 import { ShoppingItem } from '../types';
 import ItemModal from './ItemModal';
 import KanbanView from './KanbanView';
-import ListView from './ListView';
+import HybridListView from './HybridListView';
 import { CompactMealHeader } from '@/components/navigation/CompactMealHeader';
 
 export const ShoppingList: React.FC = () => {
@@ -161,7 +161,7 @@ export const ShoppingList: React.FC = () => {
             }
           />
         ) : (
-          <ListView
+          <HybridListView
             items={items}
             onEdit={setEditingItem}
             onDelete={deleteItem}

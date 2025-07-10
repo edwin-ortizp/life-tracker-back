@@ -7,7 +7,7 @@ interface JournalEntryContextValue {
 
 const defaultContext: JournalEntryContextValue = {
   entry: '',
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+   
   setEntry: () => {}
 };
 

@@ -49,6 +49,7 @@ function App() {
         <Route path="prepared-meals" element={<PreparedMealsPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="goals" element={<GoalsPage />} />
+        <Route path="goals/:goalId" element={<GoalsPage />} />
       </Route>
       <Route path="task/:taskId/run" element={<TaskRunPage />} />
       <Route path="habit/:habitId/run" element={<HabitRunPage />} />

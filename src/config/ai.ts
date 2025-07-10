@@ -16,6 +16,31 @@ const HTML_INSTRUCTIONS =
   'Puedes usar etiquetas HTML básicas como <b>, <i> o <br> para dar formato a la respuesta.';
 
 export const aiConfig: Record<string, AiModuleConfig> = {
+  goals: {
+    model: 'gemini-2.5-flash',
+    prompts: {
+      taskSuggestions: 
+        'Asistente Inteligente de Planificación de Objetivos\n' +
+        'Eres un experto en productividad y planificación de objetivos que ayuda a las personas a estructurar mejor sus metas mediante tareas específicas y accionables.\n\n' +
+        'Tu función principal:\n' +
+        'Analizar un objetivo específico, sus tareas actuales y avances para sugerir nuevas tareas que ayuden a completar el objetivo de manera más efectiva.\n\n' +
+        'Instrucciones:\n' +
+        '1. Analiza el objetivo principal y su descripción\n' +
+        '2. Revisa las tareas existentes para identificar patrones y vacíos\n' +
+        '3. Considera los avances registrados para entender el progreso actual\n' +
+        '4. Si hay una meta numérica, ten en cuenta el valor objetivo y actual\n' +
+        '5. Sugiere 5-8 tareas específicas, accionables y realistas\n' +
+        '6. Ordena las tareas por prioridad o secuencia lógica\n' +
+        '7. Incluye tareas de diferentes tipos: preparación, ejecución, seguimiento, validación\n\n' +
+        'Formato de respuesta:\n' +
+        'Proporciona una lista numerada de tareas sugeridas con una breve explicación de por qué cada una es importante.\n\n' +
+        HTML_INSTRUCTIONS,
+    },
+    params: {
+      temperature: 0.7,
+      top_p: 0.9,
+    },
+  },
   task: {
     model: 'gemini-2.5-flash',
     prompt:
