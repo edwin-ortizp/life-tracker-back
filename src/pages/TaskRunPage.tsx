@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
@@ -99,6 +99,14 @@ export default function TaskRunPage() {
     [taskData?.description]
   );
 
+  // Estado local para checklist con actualización optimista
+  const [localChecklist, setLocalChecklist] = useState<ChecklistItem[]>([]);
+
+  // Sincronizar estado local con taskData cuando cambie
+  useEffect(() => {
+    setLocalChecklist(checklist);
+  }, [checklist]);
+
   const backgroundClass = useMemo(() => 
     getRandomBackground(taskId || ''), 
     [taskId]
@@ -106,7 +114,11 @@ export default function TaskRunPage() {
 
 
   const handleToggle = async (index: number) => {
-    const updated = checklist.map((c, i) => i === index ? { ...c, checked: !c.checked } : c);
+    // Actualización optimista inmediata del estado local
+    const updated = localChecklist.map((c, i) => i === index ? { ...c, checked: !c.checked } : c);
+    setLocalChecklist(updated);
+    
+    // Actualizar Firebase en background
     const newDesc = buildDescription(body, updated);
     await updateDoc(doc(db, 'tasks', taskId as string), {
       description: newDesc,
@@ -127,9 +139,9 @@ export default function TaskRunPage() {
         {body && (
           <div className="prose prose-xl max-w-none text-white drop-shadow-md prose-headings:drop-shadow-lg prose-headings:text-white prose-p:text-white prose-strong:text-white prose-em:text-white" dangerouslySetInnerHTML={{ __html: renderMarkdown(body) }} />
         )}
-        {checklist.length > 0 && (
+        {localChecklist.length > 0 && (
           <div className="space-y-6">
-            {checklist.map((item, i) => (
+            {localChecklist.map((item, i) => (
               <label key={i} className="flex items-center space-x-4 text-2xl bg-black/20 p-4 rounded-lg backdrop-blur-sm">
                 <Checkbox checked={item.checked} onCheckedChange={() => handleToggle(i)} className="scale-125" />
                 <span className="select-none drop-shadow-md font-medium">{item.text}</span>
