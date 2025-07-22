@@ -424,7 +424,6 @@ export const createDailySummaryFromData = (
   habitData: any,
   negativeData: any,
   completedTasksTodayData: any[],
-  dueTodayTasksData: any[],
   incompleteTasksData: any[]
 ): DailySummaryData => {
   const todayStart = startOfDay(date);

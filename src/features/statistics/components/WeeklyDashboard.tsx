@@ -35,7 +35,7 @@ export const WeeklyDashboard: React.FC<Props> = ({ startDate }) => {
     },
     {
       name: 'Pendientes',
-      value: summary.totals.tasks.pending + summary.totals.tasks.overdue
+      value: summary.totals.tasks.todayPending + summary.totals.tasks.overdue
     }
   ];
 
