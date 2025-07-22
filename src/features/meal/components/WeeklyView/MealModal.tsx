@@ -78,7 +78,7 @@ export const MealModal: React.FC<MealModalProps> = ({
             </div>
 
 
-            <div className="space-y-1 sm:col-span-2">
+            <div className="space-y-1">
               <Label htmlFor="mealNotes">Notas Adicionales</Label>
               <Input
                 id="mealNotes"
@@ -86,6 +86,19 @@ export const MealModal: React.FC<MealModalProps> = ({
                 value={formData.notes}
                 onChange={(e) => onFormChange('notes', e.target.value)}
                 placeholder="Ej: Sin crutones"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="mealCalories">Calorías Aproximadas</Label>
+              <Input
+                id="mealCalories"
+                type="number"
+                min="0"
+                max="9999"
+                value={formData.calories || ''}
+                onChange={(e) => onFormChange('calories', e.target.value ? parseInt(e.target.value).toString() : '')}
+                placeholder="450"
               />
             </div>
 
@@ -105,6 +118,7 @@ export const MealModal: React.FC<MealModalProps> = ({
                 selectedMeal={selectedMealInfo}
                 onFormChange={onFormChange}
                 onOverwriteDay={(meals) => onOverwriteDay(selectedMealInfo.date, meals)}
+                mealName={formData.name}
               />
             </div>
           </div>

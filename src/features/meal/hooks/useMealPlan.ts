@@ -128,7 +128,8 @@ export const useMealPlan = () => {
           ...originalMonthPlan[date],
           [type]: {
             id: mealId,
-            ...meal
+            ...meal,
+            calories: meal.calories
           }
         }
       };
@@ -249,7 +250,8 @@ export const useMealPlan = () => {
           mealAcc[type] = {
             ...meal,
             id: mealId,
-            type: type as Meal['type']
+            type: type as Meal['type'],
+            calories: meal.calories
           };
           return mealAcc;
         }, {} as MealPlanEntry);

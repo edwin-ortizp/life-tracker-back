@@ -24,7 +24,8 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
     type: 'breakfast',
     name: '',
     notes: '',
-    recipe: ''
+    recipe: '',
+    calories: undefined
   });  const weekDays = getWeekDays(currentDate);
 
   const openModal = (date: string, type: MealFormData['type'], meal?: MealModalState['meal']) => {
@@ -33,7 +34,8 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
       type: meal?.type || type,
       name: meal?.name || '',
       notes: meal?.notes || '',
-      recipe: meal?.recipe || ''
+      recipe: meal?.recipe || '',
+      calories: meal?.calories
     });
     setShowModal(true);
   };
@@ -41,7 +43,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
   const handleFormChange = (field: keyof MealFormData, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: field === 'calories' ? (value ? parseInt(value) : undefined) : value
     }));
   };
 
@@ -58,7 +60,8 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
         type: formData.type,
         name: formData.name,
         notes: formData.notes,
-        recipe: formData.recipe
+        recipe: formData.recipe,
+        calories: formData.calories
       });
       
       setShowModal(false);
@@ -93,7 +96,8 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
           type: selectedMealInfo.type,
           name: current.name,
           notes: current.notes || '',
-          recipe: current.recipe || ''
+          recipe: current.recipe || '',
+          calories: current.calories
         });
       }
     }

@@ -27,6 +27,7 @@ export interface MealFormData {
   name: string;
   notes: string;
   recipe: string;
+  calories?: number;
 }
 
 export interface MobileDayProps {

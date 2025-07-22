@@ -22,6 +22,7 @@ interface MealAiButtonsProps {
   selectedMeal: MealModalState;
   onFormChange: (field: keyof MealFormData, value: string) => void;
   onOverwriteDay: (meals: Record<Meal['type'], Omit<Meal, 'id'>>) => Promise<void>;
+  mealName?: string;
 }
 
 const mealConfig = getAiConfig('meal');
@@ -29,10 +30,11 @@ const API_URL = mealConfig
   ? `https://generativelanguage.googleapis.com/v1beta/models/${mealConfig.model}:generateContent`
   : '';
 
-export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFormChange, onOverwriteDay }) => {
+export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFormChange, onOverwriteDay, mealName }) => {
   const { items } = useShoppingList();
   const [loadingMeal, setLoadingMeal] = useState(false);
   const [loadingDay, setLoadingDay] = useState(false);
+  const [loadingCalories, setLoadingCalories] = useState(false);
   const [promptDialog, setPromptDialog] = useState<'meal' | 'day' | null>(null);
   const [prompt, setPrompt] = useState('');
   const [preference, setPreference] = useState('');
@@ -219,6 +221,39 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
     setGeneratedData(null);
   };
 
+  const estimateCalories = async () => {
+    if (!mealName || !apiKey) return;
+    
+    setLoadingCalories(true);
+    
+    try {
+      const prompt = `Estima las calorías aproximadas para una porción normal de: "${mealName}". Responde solo con el número de calorías, sin texto adicional ni explicaciones.`;
+      
+      const res = await fetch(`${API_URL}?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          ...params
+        })
+      });
+      
+      const data = await res.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      
+      // Extract number from response
+      const caloriesMatch = text.match(/(\d+)/);
+      if (caloriesMatch) {
+        const calories = parseInt(caloriesMatch[1]);
+        onFormChange('calories', calories.toString());
+      }
+    } catch (error) {
+      console.error('Error estimating calories:', error);
+    } finally {
+      setLoadingCalories(false);
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col gap-2">
@@ -246,7 +281,18 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
         >
           {loadingDay && <Loader2 className="w-4 h-4 animate-spin" />}<RefreshCw className="w-4 h-4" /> Regenerar día
         </Button>
-        {(loadingMeal || loadingDay) && <AiLoadingBar className="mt-2" />}
+        {mealName && (
+          <Button
+            type="button"
+            onClick={estimateCalories}
+            disabled={loadingCalories || !apiKey || !mealName.trim()}
+            variant="outline"
+            className="w-full flex items-center gap-2"
+          >
+            {loadingCalories && <Loader2 className="w-4 h-4 animate-spin" />}<Sparkles className="w-4 h-4" /> Estimar calorías
+          </Button>
+        )}
+        {(loadingMeal || loadingDay || loadingCalories) && <AiLoadingBar className="mt-2" />}
       </div>
       <Dialog open={promptDialog !== null} onOpenChange={(o) => (o ? null : closeDialog())}>
         <DialogContent className="w-[95vw] h-[90vh] max-w-none max-h-none overflow-hidden flex flex-col sm:w-[90vw] sm:h-[85vh]">

@@ -6,6 +6,7 @@ export interface Meal {
   name: string;
   notes?: string;
   recipe?: string;
+  calories?: number;
 }
 
 export interface MealPlanEntry {

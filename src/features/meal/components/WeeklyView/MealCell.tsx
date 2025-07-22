@@ -42,6 +42,9 @@ export const MealCell: React.FC<MealCellProps> = ({
       onClick={() => onOpenModal(date, type, meal)}
     >
       <p className="text-sm font-medium line-clamp-2">{meal.name}</p>
+      {meal.calories && (
+        <p className="text-xs text-blue-600 mt-1 font-medium">Calorías aproximadas: {meal.calories} kcal</p>
+      )}
       {meal.notes && (
         <p className="text-xs text-gray-600 mt-1 line-clamp-2">{meal.notes}</p>
       )}

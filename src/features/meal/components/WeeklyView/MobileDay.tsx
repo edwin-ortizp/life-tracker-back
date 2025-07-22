@@ -6,6 +6,16 @@ import { Meal, MEAL_TYPES } from '../../types';
 import { MEAL_HOURS } from '../../utils/dateUtils';
 import { MobileDayProps } from './types';
 
+// Utility function to calculate daily calories total
+const calculateDayCalories = (mealPlan: MobileDayProps['mealPlan'], date: string): number => {
+  const dayMeals = mealPlan[date];
+  if (!dayMeals) return 0;
+  
+  return Object.values(dayMeals).reduce((total, meal) => {
+    return total + (meal.calories || 0);
+  }, 0);
+};
+
 export const MobileDay: React.FC<MobileDayProps> = ({
   day,
   mealPlan,
@@ -23,6 +33,9 @@ export const MobileDay: React.FC<MobileDayProps> = ({
   // Contar comidas agregadas
   const mealsCount = Object.keys(mealPlan[day.fullDate] || {}).length;
   const totalMeals = Object.keys(MEAL_TYPES).length;
+  
+  // Calcular total de calorías
+  const totalCalories = calculateDayCalories(mealPlan, day.fullDate);
   
   return (
     <div className={`mx-2 my-3 rounded-xl shadow-sm border transition-all duration-200 ${
@@ -99,6 +112,13 @@ export const MobileDay: React.FC<MobileDayProps> = ({
                       }`}>
                         {meal.name}
                       </div>
+                      {meal.calories && (
+                        <div className={`text-xs mb-1 font-medium ${
+                          isPastDay ? 'text-gray-400' : 'text-blue-600'
+                        }`}>
+                          Calorías aproximadas: {meal.calories} kcal
+                        </div>
+                      )}
                       {meal.notes && (
                         <div className={`text-xs line-clamp-2 mb-2 ${
                           isPastDay ? 'text-gray-400' : 'text-gray-600'
@@ -139,6 +159,19 @@ export const MobileDay: React.FC<MobileDayProps> = ({
                 </div>
               );
           })}
+          
+          {/* Daily calories total */}
+          {totalCalories > 0 && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div className="text-center">
+                <div className={`text-sm font-medium ${
+                  isPastDay ? 'text-gray-500' : 'text-blue-600'
+                }`}>
+                  Total del día: {totalCalories} kcal
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
