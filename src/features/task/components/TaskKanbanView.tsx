@@ -5,6 +5,7 @@ import { TaskKanban, TaskDetailsModal } from './index';
 import { PriorityLegend } from './PriorityLegend';
 import { RecurrenceModal } from './RecurrenceModal';
 import { useTaskData } from '../hooks/useTaskData';
+import { useTaskKeyboardShortcuts } from '../hooks/useTaskKeyboardShortcuts';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import type { Task } from '../types';
 
@@ -30,6 +31,12 @@ export const TaskKanbanView: React.FC = () => {
 
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // Initialize global keyboard shortcuts for task module
+  useTaskKeyboardShortcuts({
+    openCreateModal,
+    isModalOpen: showRecurrenceModal || showDetailModal
+  });
 
   return (
     <div className="space-y-8">

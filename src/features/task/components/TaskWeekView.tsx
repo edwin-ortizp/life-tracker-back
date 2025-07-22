@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useTaskData } from '../hooks/useTaskData';
+import { useTaskKeyboardShortcuts } from '../hooks/useTaskKeyboardShortcuts';
 import { TaskWeeklyCalendar } from './TaskWeeklyCalendar';
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
@@ -31,6 +32,12 @@ export const TaskWeekView: React.FC = () => {
 
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // Initialize global keyboard shortcuts for task module
+  useTaskKeyboardShortcuts({
+    openCreateModal,
+    isModalOpen: showRecurrenceModal || showDetailModal
+  });
 
   return (
     <div className="space-y-8">

@@ -30,6 +30,7 @@ export * from "./UnassignedTaskItem";
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { useTaskData } from '../hooks/useTaskData';
+import { useTaskKeyboardShortcuts } from '../hooks/useTaskKeyboardShortcuts';
 import type { TaskProps, Task as TaskType } from '../types';
 
 export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
@@ -57,6 +58,12 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
 
   const [detailTask, setDetailTask] = useState<TaskType | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // Initialize global keyboard shortcuts for task module
+  useTaskKeyboardShortcuts({
+    openCreateModal,
+    isModalOpen: showRecurrenceModal || showDetailModal
+  });
 
 
   if (!user) {

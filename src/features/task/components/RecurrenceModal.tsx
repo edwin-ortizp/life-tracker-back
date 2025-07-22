@@ -21,6 +21,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { TaskRecurrenceConfig } from './TaskRecurrenceConfig';
 import { useRecurrenceLogic } from '../hooks/useRecurrenceLogic';
+import { useTaskKeyboardShortcuts } from '../hooks/useTaskKeyboardShortcuts';
 import type { RecurrenceModalProps, TaskFormData } from '../types';
 
 export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
@@ -133,6 +134,13 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
       onConfirm({ ...formData, priority, size: sizeState });
     }
   };
+
+  // Initialize keyboard shortcuts with Ctrl+S functionality
+  useTaskKeyboardShortcuts({
+    openCreateModal: () => {}, // Not needed in modal
+    onSave: handleConfirm,
+    isModalOpen: isOpen
+  });
 
   const getModalTitle = () => {
     switch (mode) {
