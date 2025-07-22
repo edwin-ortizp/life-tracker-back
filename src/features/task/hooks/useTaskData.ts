@@ -23,6 +23,7 @@ type ModalMode = 'create' | 'edit' | 'complete';
 
 export const useTaskData = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [showRecurrenceModal, setShowRecurrenceModal] = useState(false);
@@ -57,7 +58,7 @@ export const useTaskData = () => {
       );
 
       const snapshot = await getDocs(q);
-      const taskList = snapshot.docs
+      const allTaskList = snapshot.docs
         .map(doc => {
           const data = doc.data();
           return {
@@ -67,6 +68,7 @@ export const useTaskData = () => {
             description: data.description || '',
             completed: data.completed,
             createdAt: data.createdAt,
+            updatedAt: data.updatedAt?.toDate(),
             dueDate: data.dueDate?.toDate(),
             isRecurrent: data.isRecurrent || false,
             isPrivate: data.isPrivate || false,
@@ -87,7 +89,13 @@ export const useTaskData = () => {
               nextDate: data.recurrence.nextDate?.toDate()
             } : undefined
           } as Task;
-        })
+        });
+
+      // Guardar todas las tareas (incluyendo completadas)
+      setAllTasks(allTaskList);
+      
+      // Filtrar solo tareas no completadas para la vista principal
+      const taskList = allTaskList
         .filter(task => !task.completed)
         .sort((a, b) => {
           if (a.dueDate && b.dueDate) {
@@ -603,7 +611,7 @@ export const useTaskData = () => {
   // Memoizar objeto de retorno para evitar re-renders innecesarios
   return useMemo(() => ({
     tasks: publicTasks, // Solo devolver tareas públicas por defecto
-    allTasks: tasks, // Disponible para casos especiales como PrivateTaskSection
+    allTasks: allTasks, // Todas las tareas (incluyendo completadas) para widgets
     status,
     error,
     showRecurrenceModal,
@@ -624,6 +632,7 @@ export const useTaskData = () => {
   }), [
     publicTasks,
     tasks,
+    allTasks,
     status,
     error,
     showRecurrenceModal,

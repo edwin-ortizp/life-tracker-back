@@ -35,8 +35,8 @@ export const DaySummary: React.FC<DaySummaryProps> = ({
     },
     {
       label: 'Tareas',
-      value: `${summary.tasks.completed}/${summary.tasks.todayPlanned}`,
-      progress: summary.tasks.todayPlanned > 0 ? (summary.tasks.completed / summary.tasks.todayPlanned) * 100 : 0,
+      value: `${summary.tasks.completed}/${summary.tasks.activeAndOverdue}`,
+      progress: summary.tasks.activeAndOverdue > 0 ? (summary.tasks.completed / summary.tasks.activeAndOverdue) * 100 : 0,
       color: 'bg-purple-500'
     },
     {

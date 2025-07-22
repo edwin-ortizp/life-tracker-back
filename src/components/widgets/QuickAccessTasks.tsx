@@ -16,26 +16,37 @@ export const QuickAccessTasks: React.FC<QuickAccessTasksProps> = ({
   variant = 'compact'
 }) => {
   const navigate = useNavigate();
-  const { tasks, status } = useTaskData();
+  const { allTasks, status } = useTaskData();
   const loading = status === 'loading';
 
   const todayStart = startOfDay(date);
   const todayEnd = endOfDay(date);
 
-  const todayTasks = tasks.filter(task => {
-    if (!task.dueDate) return false;
-    const dueDate = task.dueDate;
-    return dueDate >= todayStart && dueDate <= todayEnd;
-  });
+  // Numerador (X): Tareas completadas hoy (basado en updatedAt)
+  const tasksCompletedToday = allTasks.filter(task => {
+    if (!task.completed || !task.updatedAt) return false;
+    const updateDate = task.updatedAt;
+    return updateDate >= todayStart && updateDate <= todayEnd;
+  }).length;
 
-  const completedToday = todayTasks.filter(task => task.completed).length;
-  const totalToday = todayTasks.length;
-  const pendingToday = totalToday - completedToday;
-
-  const overdueTasks = tasks.filter(task => {
-    if (!task.dueDate || task.completed) return false;
+  // Denominador (Y): Tareas activas y vencidas hasta hoy (basado en dueDate)
+  const activeAndOverdueTasks = allTasks.filter(task => {
+    if (task.completed || !task.dueDate) return false;
     const dueDate = task.dueDate;
-    return dueDate < todayStart;
+    return dueDate <= todayEnd; // dueDate menor o igual a hoy
+  }).length;
+
+  // Campos adicionales para mostrar
+  const pendingToday = allTasks.filter(task => {
+    if (task.completed || !task.dueDate) return false;
+    const dueDate = task.dueDate;
+    return dueDate >= todayStart && dueDate <= todayEnd; // tareas para hoy
+  }).length;
+
+  const overdueTasks = allTasks.filter(task => {
+    if (task.completed || !task.dueDate) return false;
+    const dueDate = task.dueDate;
+    return dueDate < todayStart; // tareas vencidas (antes de hoy)
   }).length;
 
   const handleQuickAdd = () => {
@@ -54,10 +65,10 @@ export const QuickAccessTasks: React.FC<QuickAccessTasksProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-lg font-bold text-purple-600">
-              {completedToday}/{totalToday}
+              {tasksCompletedToday}/{activeAndOverdueTasks}
             </p>
             <p className="text-xs text-gray-500">
-              {pendingToday} pendientes
+              {pendingToday} hoy
               {overdueTasks > 0 && (
                 <span className="text-red-500 ml-1">
                   • {overdueTasks} vencidas
@@ -84,14 +95,15 @@ export const QuickAccessTasks: React.FC<QuickAccessTasksProps> = ({
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-purple-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${totalToday > 0 ? (completedToday / totalToday) * 100 : 0}%` }}
+                style={{ width: `${activeAndOverdueTasks > 0 ? (tasksCompletedToday / activeAndOverdueTasks) * 100 : 0}%` }}
               />
             </div>
-            {totalToday > 0 && (
-              <p className="text-xs text-gray-600">
-                {((completedToday / totalToday) * 100).toFixed(0)}% completado hoy
-              </p>
-            )}
+            <p className="text-xs text-gray-600">
+              {activeAndOverdueTasks > 0 ? 
+                `${((tasksCompletedToday / activeAndOverdueTasks) * 100).toFixed(0)}% progreso diario` :
+                'Sin tareas pendientes'
+              }
+            </p>
           </div>
         )}
       </div>

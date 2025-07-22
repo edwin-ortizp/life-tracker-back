@@ -74,6 +74,7 @@ export const useTaskByCode = (taskCode: number | string) => {
         description: data.description || '',
         completed: data.completed,
         createdAt: data.createdAt,
+        updatedAt: data.updatedAt?.toDate(),
         dueDate: data.dueDate?.toDate(),
         isRecurrent: data.isRecurrent || false,
         isPrivate: data.isPrivate || false,

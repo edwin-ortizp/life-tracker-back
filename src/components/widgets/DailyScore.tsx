@@ -32,8 +32,8 @@ export const DailyScore: React.FC<DailyScoreProps> = ({
     maxScore += 20;
 
     // Tasks score (25% weight)
-    const tasksScore = summary.tasks.todayPlanned > 0 ? 
-      (summary.tasks.completed / summary.tasks.todayPlanned) * 25 : 0;
+    const tasksScore = summary.tasks.activeAndOverdue > 0 ? 
+      (summary.tasks.completed / summary.tasks.activeAndOverdue) * 25 : 0;
     totalScore += tasksScore;
     maxScore += 25;
 

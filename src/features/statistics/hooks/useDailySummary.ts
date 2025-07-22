@@ -168,9 +168,9 @@ export interface DailySummaryData {
     calories: number;
   };
   tasks: {
-    completed: number; // Tasks completed on this specific day
-    todayPlanned: number; // Tasks due today (completed or not)
-    pending: number; // Incomplete tasks due today or in the future
+    completed: number; // Tasks completed on this specific day (by updatedAt)
+    activeAndOverdue: number; // Incomplete tasks due today or in the past (dueDate <= today)
+    todayPending: number; // Incomplete tasks due today only
     overdue: number; // Incomplete tasks due in the past
   };
   pomodoro: {
@@ -290,40 +290,36 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
     const completedTaskDocs = await getDocs(completedTasksQuery);
     const tasksCompletedCount = completedTaskDocs.size;
 
-    // Tasks: Today Planned
-    const dueTodayTasksQuery = query(
+    // Tasks: Active and Overdue - Incomplete tasks due today or in the past (dueDate <= today)
+    const activeAndOverdueTasksQuery = query(
       collection(db, 'tasks'),
       where('userId', '==', uid),
-      // Assuming dueDate is a Timestamp. Adjust if it's a string.
+      where('completed', '==', false),
+      where('dueDate', '<=', todayEndTimestamp)
+    );
+    const activeAndOverdueTaskDocs = await getDocs(activeAndOverdueTasksQuery);
+    const tasksActiveAndOverdueCount = activeAndOverdueTaskDocs.size;
+
+    // Tasks: Today Pending - Incomplete tasks due today only
+    const todayPendingTasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', uid),
+      where('completed', '==', false),
       where('dueDate', '>=', todayStartTimestamp),
       where('dueDate', '<=', todayEndTimestamp)
     );
-    const dueTodayTaskDocs = await getDocs(dueTodayTasksQuery);
-    const tasksTodayPlannedCount = dueTodayTaskDocs.size;
+    const todayPendingTaskDocs = await getDocs(todayPendingTasksQuery);
+    const tasksTodayPendingCount = todayPendingTaskDocs.size;
     
-    // Tasks: Pending and Overdue (from all incomplete tasks for the user)
-    let tasksPendingCount = 0;
-    let tasksOverdueCount = 0;
-    const incompleteTasksQuery = query(
+    // Tasks: Overdue - Incomplete tasks due in the past (dueDate < today)
+    const overdueTasksQuery = query(
       collection(db, 'tasks'),
       where('userId', '==', uid),
-      where('completed', '==', false)
+      where('completed', '==', false),
+      where('dueDate', '<', todayStartTimestamp)
     );
-    const incompleteTaskDocs = await getDocs(incompleteTasksQuery);
-    incompleteTaskDocs.forEach(taskDoc => {
-      const task = taskDoc.data();
-      if (task.dueDate && typeof task.dueDate.toDate === 'function') {
-        const dueDate = startOfDay(task.dueDate.toDate()); // Normalize to compare dates only
-        if (dueDate < startOfDay(date)) {
-          tasksOverdueCount++;
-        } else { // Due today or in the future
-          tasksPendingCount++;
-        }
-      } else {
-        // If no due date, consider it pending (or handle as per your logic)
-        tasksPendingCount++;
-      }
-    });
+    const overdueTaskDocs = await getDocs(overdueTasksQuery);
+    const tasksOverdueCount = overdueTaskDocs.size;
 
     const result: DailySummaryData = {
       journal: {
@@ -387,8 +383,8 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
       },
       tasks: {
         completed: tasksCompletedCount,
-        todayPlanned: tasksTodayPlannedCount,
-        pending: tasksPendingCount,
+        activeAndOverdue: tasksActiveAndOverdueCount,
+        todayPending: tasksTodayPendingCount,
         overdue: tasksOverdueCount
       }
     };
@@ -406,7 +402,7 @@ const emptySummary: DailySummaryData = {
   mood: { count: 0, average: 0, highest: 0, lowest: 0, details: [] },
   habits: { completed: 0, total: HABITS.length, incompletedByTimeOfDay: [] },
   negativeHabits: { count: 0 },
-  exercise: { minutes: 0, calories: 0 },  tasks: { completed: 0, todayPlanned: 0, pending: 0, overdue: 0 },
+  exercise: { minutes: 0, calories: 0 },  tasks: { completed: 0, activeAndOverdue: 0, todayPending: 0, overdue: 0 },
   pomodoro: { count: 0, expectedMinutes: 0, workMinutes: 0, completionRate: 0, averageSessionLength: 0 },
   water: { intake: 0, drinkDetails: [] }
 };
@@ -431,21 +427,33 @@ export const createDailySummaryFromData = (
   dueTodayTasksData: any[],
   incompleteTasksData: any[]
 ): DailySummaryData => {
-  const todayStartOfDay = startOfDay(date);
+  const todayStart = startOfDay(date);
+  const todayEnd = endOfDay(date);
 
-  let pendingCount = 0;
+  let activeAndOverdueCount = 0;
+  let todayPendingCount = 0;
   let overdueCount = 0;
+  
   incompleteTasksData.forEach(task => {
     if (task.dueDate && typeof task.dueDate.toDate === 'function') {
       const dueDate = startOfDay(task.dueDate.toDate());
-      if (dueDate < todayStartOfDay) {
-        overdueCount++;
-      } else {
-        pendingCount++;
+      
+      // Active and Overdue: tasks due today or in the past (dueDate <= today)
+      if (dueDate <= todayEnd) {
+        activeAndOverdueCount++;
       }
-    } else {
-      pendingCount++;
+      
+      // Today Pending: tasks due today only 
+      if (dueDate >= todayStart && dueDate <= todayEnd) {
+        todayPendingCount++;
+      }
+      
+      // Overdue: tasks due in the past (dueDate < today)
+      if (dueDate < todayStart) {
+        overdueCount++;
+      }
     }
+    // Tasks without dueDate are not counted in any category to match widget logic
   });
 
   return {
@@ -510,8 +518,8 @@ export const createDailySummaryFromData = (
     },
     tasks: {
       completed: completedTasksTodayData.length,
-      todayPlanned: dueTodayTasksData.length,
-      pending: pendingCount,
+      activeAndOverdue: activeAndOverdueCount,
+      todayPending: todayPendingCount,
       overdue: overdueCount
     }
   };

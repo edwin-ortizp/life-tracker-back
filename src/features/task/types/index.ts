@@ -58,6 +58,7 @@ export interface Task {
   createdAt: {
     seconds: number;
   };
+  updatedAt?: Date;
   dueDate?: Date;
   isRecurrent?: boolean;
   isPrivate?: boolean;

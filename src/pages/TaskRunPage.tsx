@@ -7,7 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { useTaskTimer } from '@/features/task/hooks/useTaskTimer';
 import { useTaskByCode } from '@/features/task/hooks/useTaskByCode';
-import { Play, Pause, Square, CheckCircle } from 'lucide-react';
+import { useTaskData } from '@/features/task/hooks/useTaskData';
+import { Play, Pause, Square, CheckCircle, Edit } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { RecurrenceModal } from '@/features/task/components/RecurrenceModal';
 
 interface ChecklistItem {
   text: string;
@@ -72,7 +74,19 @@ export default function TaskRunPage() {
   const navigate = useNavigate();
 
   // Get task data by taskCode first
-  const { task: taskData, loading: taskLoading, error: taskError } = useTaskByCode(taskCode || '');
+  const { task: taskData, loading: taskLoading, error: taskError, refetch: refetchTask } = useTaskByCode(taskCode || '');
+  
+  // Get task editing functionality
+  const {
+    showRecurrenceModal,
+    currentTask,
+    modalMode,
+    addTask,
+    editTask,
+    completeRecurrentTask,
+    setShowRecurrenceModal,
+    openEditModal
+  } = useTaskData();
 
   const { 
     formattedTime, 
@@ -250,7 +264,42 @@ export default function TaskRunPage() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          
+          {/* Edit Task Button */}
+          <Button 
+            onClick={() => openEditModal(currentTaskData)}
+            className="bg-gray-700 hover:bg-gray-800 text-white px-8 py-4 text-xl font-semibold w-full shadow-xl drop-shadow-lg border border-gray-600"
+          >
+            <Edit className="w-6 h-6 mr-3" />
+            Editar
+          </Button>
         </div>
+        
+        {/* Edit Modal */}
+        <RecurrenceModal
+          isOpen={showRecurrenceModal}
+          onClose={() => setShowRecurrenceModal()}
+          onConfirm={async (data) => {
+            if (modalMode === 'complete') {
+              await completeRecurrentTask(data);
+            } else if (modalMode === 'edit') {
+              await editTask(currentTask!.id, data);
+              // Refresh task data after editing to reflect changes
+              refetchTask();
+            } else {
+              await addTask(data);
+            }
+          }}
+          task={currentTask || currentTaskData || {
+            id: '',
+            taskCode: 0,
+            title: '',
+            completed: false,
+            category: 'personal',
+            createdAt: { seconds: Date.now() / 1000 }
+          }}
+          mode={modalMode}
+        />
       </div>
     </div>
   );
