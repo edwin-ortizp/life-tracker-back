@@ -160,6 +160,7 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
         }}
         task={currentTask || {
           id: '',
+          taskCode: 0,
           title: '',
           completed: false,
           category: 'personal',

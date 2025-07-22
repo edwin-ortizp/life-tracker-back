@@ -51,7 +51,7 @@ function App() {
         <Route path="goals" element={<GoalsPage />} />
         <Route path="goals/:goalId" element={<GoalsPage />} />
       </Route>
-      <Route path="task/:taskId/run" element={<TaskRunPage />} />
+      <Route path="task/:taskCode/run" element={<TaskRunPage />} />
       <Route path="habit/:habitId/run" element={<HabitRunPage />} />
     </Routes>
   );

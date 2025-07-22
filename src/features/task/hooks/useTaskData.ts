@@ -17,6 +17,7 @@ import { useResync } from '@/hooks/useResync';
 import { firestoreLogger } from '@/utils/firestore-logger';
 import type { Task, TaskFormData } from '../types';
 import { getCheckboxProgress } from '@/utils/markdown';
+import { generateTaskCode } from '@/utils/taskCode';
 
 type ModalMode = 'create' | 'edit' | 'complete';
 
@@ -61,6 +62,7 @@ export const useTaskData = () => {
           const data = doc.data();
           return {
             id: doc.id,
+            taskCode: data.taskCode || 0, // Manejar tareas existentes sin taskCode
             title: data.title,
             description: data.description || '',
             completed: data.completed,
@@ -122,39 +124,44 @@ export const useTaskData = () => {
     setStatus('saving');
     setError(null);
 
-    // Crear optimistically la nueva tarea
-    const optimisticTask: Task = {
-      id: `temp-${Date.now()}`, // ID temporal
-      title: formData.title.trim(),
-      description: formData.description?.trim() || '',
-      completed: false,
-      createdAt: { seconds: Date.now() / 1000 },
-      dueDate: formData.dueDate || undefined,
-      category: formData.category || 'other',
-      priority: formData.priority || 'delete',
-      size: formData.size || 'pequeña',
-      elapsedSeconds: 0,
-      progress: getCheckboxProgress(formData.description || ''),
-      isRecurrent: formData.isRecurrent || false,
-      isPrivate: formData.isPrivate || false,
-      ...(formData.timeOfDay && { timeOfDay: formData.timeOfDay }),
-      ...(formData.estimatedTime !== undefined && { estimatedTime: formData.estimatedTime }),
-      ...(formData.recurrence && { recurrence: formData.recurrence })
-    };
-
-    // Actualización optimista
-    setTasks(prev => [...prev, optimisticTask].sort((a, b) => {
-      if (a.dueDate && b.dueDate) {
-        return a.dueDate.getTime() - b.dueDate.getTime();
-      }
-      if (a.dueDate) return -1;
-      if (b.dueDate) return 1;
-      return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
-    }));
-
     try {
+      // Generar taskCode único
+      const taskCode = await generateTaskCode(user.uid);
+
+      // Crear optimistically la nueva tarea
+      const optimisticTask: Task = {
+        id: `temp-${Date.now()}`, // ID temporal
+        taskCode: taskCode,
+        title: formData.title.trim(),
+        description: formData.description?.trim() || '',
+        completed: false,
+        createdAt: { seconds: Date.now() / 1000 },
+        dueDate: formData.dueDate || undefined,
+        category: formData.category || 'other',
+        priority: formData.priority || 'delete',
+        size: formData.size || 'pequeña',
+        elapsedSeconds: 0,
+        progress: getCheckboxProgress(formData.description || ''),
+        isRecurrent: formData.isRecurrent || false,
+        isPrivate: formData.isPrivate || false,
+        ...(formData.timeOfDay && { timeOfDay: formData.timeOfDay }),
+        ...(formData.estimatedTime !== undefined && { estimatedTime: formData.estimatedTime }),
+        ...(formData.recurrence && { recurrence: formData.recurrence })
+      };
+
+      // Actualización optimista
+      setTasks(prev => [...prev, optimisticTask].sort((a, b) => {
+        if (a.dueDate && b.dueDate) {
+          return a.dueDate.getTime() - b.dueDate.getTime();
+        }
+        if (a.dueDate) return -1;
+        if (b.dueDate) return 1;
+        return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+      }));
+
       const taskData: any = {
         userId: user.uid,
+        taskCode: taskCode,
         title: formData.title.trim(),
         completed: false,
         createdAt: serverTimestamp(),
@@ -203,10 +210,10 @@ export const useTaskData = () => {
       
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Task added with ID:', docRef.id);
+        console.log('Task added with ID:', docRef.id, 'and taskCode:', taskCode);
       }
     } catch (error) {
-      console.error('Error al guardar:', error);
+      console.error('Error al guardar tarea:', error);
       
       // Verificar si es un error interno de Firestore
       if (isFirestoreInternalError(error)) {
@@ -218,8 +225,13 @@ export const useTaskData = () => {
         }, 2000);
       } else {
         // Revertir actualización optimista en caso de error normal
-        setTasks(prev => prev.filter(task => task.id !== optimisticTask.id));
-        setError(error instanceof Error ? error.message : 'Error al guardar');
+        // Solo revertir si optimisticTask está definido
+        if (error instanceof Error && error.message.includes('taskCode')) {
+          setError('Error al generar código de tarea único');
+        } else {
+          setTasks(prev => prev.filter(task => task.id.startsWith('temp-')));
+          setError(error instanceof Error ? error.message : 'Error al guardar');
+        }
       }
       setStatus('error');
     }
@@ -424,32 +436,36 @@ export const useTaskData = () => {
 
     setStatus('saving');
     
-    // Crear la siguiente tarea optimistically
-    const nextTask: Task = {
-      id: `temp-${Date.now()}`,
-      title: currentTask.title,
-      description: data.description?.trim() || currentTask.description || '',
-      completed: false,
-      createdAt: { seconds: Date.now() / 1000 },
-      dueDate: data.dueDate || undefined,
-      isRecurrent: true,
-      category: currentTask.category,
-      priority: currentTask.priority || 'delete',
-      size: currentTask.size || 'pequeña',
-      elapsedSeconds: 0,
-      progress: getCheckboxProgress(data.description?.trim() || currentTask.description || ''),
-      isPrivate: currentTask.isPrivate || false,
-      ...(data.timeOfDay && { timeOfDay: data.timeOfDay }),
-      recurrence: {
-        pattern: currentTask.recurrence?.pattern || 'daily',
-        frequency: currentTask.recurrence?.frequency || 1,
-        ...(currentTask.recurrence?.pattern === 'custom' && {
-          customDays: currentTask.recurrence.customDays
-        })
-      }
-    };
-
     try {
+      // Generar taskCode único para la nueva tarea recurrente
+      const nextTaskCode = await generateTaskCode(user.uid);
+
+      // Crear la siguiente tarea optimistically
+      const nextTask: Task = {
+        id: `temp-${Date.now()}`,
+        taskCode: nextTaskCode,
+        title: currentTask.title,
+        description: data.description?.trim() || currentTask.description || '',
+        completed: false,
+        createdAt: { seconds: Date.now() / 1000 },
+        dueDate: data.dueDate || undefined,
+        isRecurrent: true,
+        category: currentTask.category,
+        priority: currentTask.priority || 'delete',
+        size: currentTask.size || 'pequeña',
+        elapsedSeconds: 0,
+        progress: getCheckboxProgress(data.description?.trim() || currentTask.description || ''),
+        isPrivate: currentTask.isPrivate || false,
+        ...(data.timeOfDay && { timeOfDay: data.timeOfDay }),
+        recurrence: {
+          pattern: currentTask.recurrence?.pattern || 'daily',
+          frequency: currentTask.recurrence?.frequency || 1,
+          ...(currentTask.recurrence?.pattern === 'custom' && {
+            customDays: currentTask.recurrence.customDays
+          })
+        }
+      };
+
       // Actualización optimista - remover tarea actual y agregar siguiente
       setTasks(prev => {
         const filtered = prev.filter(t => t.id !== currentTask.id);
@@ -475,6 +491,7 @@ export const useTaskData = () => {
       // Creamos la siguiente ocurrencia
       const nextTaskData: any = {
         userId: user.uid,
+        taskCode: nextTaskCode,
         title: currentTask.title,
         completed: false,
         createdAt: serverTimestamp(),
@@ -512,25 +529,29 @@ export const useTaskData = () => {
       
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Recurrent task completed and next created with ID:', docRef.id);
+        console.log('Recurrent task completed and next created with ID:', docRef.id, 'and taskCode:', nextTaskCode);
       }
 
       handleCloseModal();
     } catch (error) {
       console.error('Error al procesar tarea recurrente:', error);
       // Revertir actualización optimista en caso de error
-      setTasks(prev => {
-        const filtered = prev.filter(t => t.id !== nextTask.id);
-        return [...filtered, currentTask].sort((a, b) => {
-          if (a.dueDate && b.dueDate) {
-            return a.dueDate.getTime() - b.dueDate.getTime();
-          }
-          if (a.dueDate) return -1;
-          if (b.dueDate) return 1;
-          return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+      if (error instanceof Error && error.message.includes('taskCode')) {
+        setError('Error al generar código de tarea recurrente');
+      } else {
+        setTasks(prev => {
+          const filtered = prev.filter(t => t.id.startsWith('temp-'));
+          return [...filtered, currentTask].sort((a, b) => {
+            if (a.dueDate && b.dueDate) {
+              return a.dueDate.getTime() - b.dueDate.getTime();
+            }
+            if (a.dueDate) return -1;
+            if (b.dueDate) return 1;
+            return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+          });
         });
-      });
-      setError(error instanceof Error ? error.message : 'Error al actualizar tarea recurrente');
+        setError(error instanceof Error ? error.message : 'Error al actualizar tarea recurrente');
+      }
       setStatus('error');
     }
   }, [currentTask, user, handleCloseModal]);
@@ -539,6 +560,7 @@ export const useTaskData = () => {
     setModalMode('create');
     setCurrentTask({
       id: '',
+      taskCode: 0, // Se generará al guardar
       title: '',
       completed: false,
       category: 'personal',

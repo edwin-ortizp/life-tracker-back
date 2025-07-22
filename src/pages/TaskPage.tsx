@@ -392,6 +392,7 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
         }}
         task={currentTask || {
           id: '',
+          taskCode: 0,
           title: '',
           completed: false,
           category: 'personal',

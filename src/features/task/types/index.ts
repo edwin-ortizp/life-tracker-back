@@ -51,6 +51,7 @@ export const TIME_OF_DAY_LABELS: Record<TimeOfDay, string> = {
 
 export interface Task {
   id: string;
+  taskCode: number;
   title: string;
   description?: string;
   completed: boolean;
@@ -106,6 +107,7 @@ export interface TaskFormData {
   isRecurrent?: boolean;
   isPrivate?: boolean;
   category: TaskCategory;
+  taskCode?: number;
   recurrence?: {
     frequency: number;
     pattern: 'daily' | 'weekly' | 'monthly' | 'custom';

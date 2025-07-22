@@ -219,8 +219,8 @@ const TaskCalendarActions = memo<{
 
   const handleRun = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/task/${task.id}/run`);
-  }, [navigate, task.id]);
+    navigate(`/task/${task.taskCode}/run`);
+  }, [navigate, task.taskCode]);
 
   const buttonClassName = "h-5 w-5 p-0 rounded-full hover:bg-muted";
 
@@ -387,11 +387,12 @@ export const TaskItemCalendar = memo<TaskItemCalendarProps>(({
           <div className="flex items-center gap-1">
             {task.isPrivate && <span className="text-xs">🔒</span>}
             <span className={cn(
-              'text-sm font-medium leading-tight line-clamp-1',
+              'text-sm font-medium leading-tight line-clamp-1 flex-1',
               task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
             )}>
               {task.title}
             </span>
+            <span className="text-xs font-mono text-gray-400 flex-shrink-0">#{task.taskCode}</span>
           </div>
           
           {task.description && (

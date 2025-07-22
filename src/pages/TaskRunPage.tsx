@@ -6,6 +6,7 @@ import { renderMarkdown, getCheckboxProgress } from '@/utils/markdown';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { useTaskTimer } from '@/features/task/hooks/useTaskTimer';
+import { useTaskByCode } from '@/features/task/hooks/useTaskByCode';
 import { Play, Pause, Square, CheckCircle } from 'lucide-react';
 import {
   AlertDialog,
@@ -46,8 +47,8 @@ const buildDescription = (body: string, checklist: ChecklistItem[]) => {
 };
 
 
-// Random background colors based on task ID - darker tones for better text readability
-const getRandomBackground = (taskId: string) => {
+// Random background colors based on task code - darker tones for better text readability
+const getRandomBackground = (taskCode: number) => {
   const backgrounds = [
     'bg-gradient-to-br from-slate-800 via-slate-900 to-black',
     'bg-gradient-to-br from-blue-900 via-blue-950 to-slate-900',
@@ -61,42 +62,38 @@ const getRandomBackground = (taskId: string) => {
     'bg-gradient-to-br from-zinc-900 via-gray-900 to-black'
   ];
   
-  // Use task ID as seed for consistent but random selection
-  let hash = 0;
-  if (taskId) {
-    for (let i = 0; i < taskId.length; i++) {
-      const char = taskId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-  }
-  
-  const index = Math.abs(hash) % backgrounds.length;
+  // Use task code as seed for consistent but random selection
+  const index = taskCode % backgrounds.length;
   return backgrounds[index];
 };
 
 export default function TaskRunPage() {
-  const { taskId } = useParams<{ taskId: string }>();
+  const { taskCode } = useParams<{ taskCode: string }>();
   const navigate = useNavigate();
+
+  // Get task data by taskCode first
+  const { task: taskData, loading: taskLoading, error: taskError } = useTaskByCode(taskCode || '');
 
   const { 
     formattedTime, 
     isActive, 
     isPaused, 
-    taskData,
     startTimer, 
     pauseTimer, 
     resumeTimer, 
     stopTimer, 
     completeTask 
   } = useTaskTimer({ 
-    taskId: taskId as string, 
+    taskId: taskData?.id || '', 
     onComplete: () => navigate(-1) 
   });
 
+  // Use taskData from useTaskByCode as primary source
+  const currentTaskData = taskData;
+
   const { body, checklist } = useMemo(() => 
-    parseDescription(taskData?.description || ''), 
-    [taskData?.description]
+    parseDescription(currentTaskData?.description || ''), 
+    [currentTaskData?.description]
   );
 
   // Estado local para checklist con actualización optimista
@@ -108,23 +105,52 @@ export default function TaskRunPage() {
   }, [checklist]);
 
   const backgroundClass = useMemo(() => 
-    getRandomBackground(taskId || ''), 
-    [taskId]
+    getRandomBackground(currentTaskData?.taskCode || 0), 
+    [currentTaskData?.taskCode]
   );
 
 
   const handleToggle = async (index: number) => {
+    if (!currentTaskData?.id) return;
+    
     // Actualización optimista inmediata del estado local
     const updated = localChecklist.map((c, i) => i === index ? { ...c, checked: !c.checked } : c);
     setLocalChecklist(updated);
     
     // Actualizar Firebase en background
     const newDesc = buildDescription(body, updated);
-    await updateDoc(doc(db, 'tasks', taskId as string), {
+    await updateDoc(doc(db, 'tasks', currentTaskData.id), {
       description: newDesc,
       progress: getCheckboxProgress(newDesc)
     });
   };
+
+  // Show loading state
+  if (taskLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white p-6">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
+        <p className="text-xl">Cargando tarea...</p>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (taskError || !currentTaskData) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white p-6">
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-bold">Tarea no encontrada</h1>
+          <p className="text-xl text-gray-300">
+            {taskError || 'No se pudo encontrar la tarea solicitada'}
+          </p>
+          <Button variant="outline" className="text-white border-white hover:bg-white/20" onClick={() => navigate(-1)}>
+            ← Volver
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen flex flex-col items-center ${backgroundClass} text-white p-6`}>
@@ -133,9 +159,14 @@ export default function TaskRunPage() {
           <Button variant="ghost" className="text-white hover:bg-white/20 text-lg font-semibold drop-shadow-lg px-6 py-3" onClick={() => navigate(-1)}>
             ← Volver
           </Button>
-          <div className="text-4xl font-mono font-bold drop-shadow-xl bg-black/30 px-6 py-2 rounded-lg backdrop-blur-sm border border-white/20">{formattedTime}</div>
+          <div className="flex items-center gap-4">
+            <div className="text-lg font-mono font-semibold drop-shadow-lg bg-black/30 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/20">
+              #{currentTaskData.taskCode}
+            </div>
+            <div className="text-4xl font-mono font-bold drop-shadow-xl bg-black/30 px-6 py-2 rounded-lg backdrop-blur-sm border border-white/20">{formattedTime}</div>
+          </div>
         </div>
-        <h1 className="text-5xl font-bold break-words drop-shadow-xl text-center leading-tight">{taskData?.title || ''}</h1>
+        <h1 className="text-5xl font-bold break-words drop-shadow-xl text-center leading-tight">{currentTaskData?.title || ''}</h1>
         {body && (
           <div className="prose prose-xl max-w-none text-white drop-shadow-md prose-headings:drop-shadow-lg prose-headings:text-white prose-p:text-white prose-strong:text-white prose-em:text-white" dangerouslySetInnerHTML={{ __html: renderMarkdown(body) }} />
         )}

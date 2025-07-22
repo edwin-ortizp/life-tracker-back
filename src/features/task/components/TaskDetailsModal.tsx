@@ -98,9 +98,14 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                   <DialogTitle className="text-2xl font-semibold leading-tight break-words text-gray-900">
                     {task.title}
                   </DialogTitle>
-                  <p className="text-sm text-gray-500 mt-1">
-                    en lista <span className="font-medium">{CATEGORY_LABELS[task.category]}</span>
-                  </p>
+                  <div className="flex items-center gap-3 mt-1">
+                    <p className="text-sm text-gray-500">
+                      en lista <span className="font-medium">{CATEGORY_LABELS[task.category]}</span>
+                    </p>
+                    <div className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 text-gray-700">
+                      <span className="text-xs font-mono">#{task.taskCode}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </DialogHeader>
@@ -224,7 +229,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                   </Button>
                 )}
                 <Button
-                  onClick={() => navigate(`/task/${task.id}/run`)}
+                  onClick={() => navigate(`/task/${task.taskCode}/run`)}
                   variant="outline"
                   className="w-full justify-start gap-2"
                 >

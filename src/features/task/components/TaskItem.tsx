@@ -260,7 +260,7 @@ const TaskActions = memo<{
 
   const handleRun = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/task/${task.id}/run`);
+    navigate(`/task/${task.taskCode}/run`);
   }, [navigate, task.id]);
 
   const buttonClassName = cn(

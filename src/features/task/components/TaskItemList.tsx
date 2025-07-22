@@ -94,8 +94,8 @@ const CompactTaskActions = memo<{
 
   const handleRun = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/task/${task.id}/run`);
-  }, [navigate, task.id]);
+    navigate(`/task/${task.taskCode}/run`);
+  }, [navigate, task.taskCode]);
 
   const handleDelete = useCallback(() => {
     onDelete(task.id);
@@ -240,12 +240,15 @@ export const TaskItemList = memo<TaskItemListProps>(({
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <h3 className={cn(
-                      'text-sm font-medium text-gray-900',
-                      task.completed && 'line-through text-gray-500'
-                    )}>
-                      {task.title}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className={cn(
+                        'text-sm font-medium text-gray-900 flex-1',
+                        task.completed && 'line-through text-gray-500'
+                      )}>
+                        {task.title}
+                      </h3>
+                      <span className="text-xs font-mono text-gray-400">#{task.taskCode}</span>
+                    </div>
                     {task.description && (
                       <p className={cn(
                         'text-xs text-gray-500 mt-1 line-clamp-2',
@@ -301,7 +304,7 @@ export const TaskItemList = memo<TaskItemListProps>(({
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/task/${task.id}/run`);
+                      navigate(`/task/${task.taskCode}/run`);
                     }}
                     className="h-6 w-6 p-0 text-green-600"
                   >
@@ -336,12 +339,15 @@ export const TaskItemList = memo<TaskItemListProps>(({
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <h3 className={cn(
-                'text-sm font-medium text-gray-900',
-                task.completed && 'line-through text-gray-500'
-              )}>
-                {task.title}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className={cn(
+                  'text-sm font-medium text-gray-900 flex-1',
+                  task.completed && 'line-through text-gray-500'
+                )}>
+                  {task.title}
+                </h3>
+                <span className="text-xs font-mono text-gray-400">#{task.taskCode}</span>
+              </div>
               {task.description && (
                 <p className={cn(
                   'text-xs text-gray-500 mt-1 line-clamp-1',

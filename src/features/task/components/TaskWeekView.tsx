@@ -90,6 +90,7 @@ export const TaskWeekView: React.FC = () => {
         }}
         task={currentTask || {
           id: '',
+          taskCode: 0,
           title: '',
           completed: false,
           category: 'personal',
