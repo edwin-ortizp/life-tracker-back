@@ -97,10 +97,10 @@ const TaskBadges = memo<{
   const recurrenceDescription = getRecurrenceDescription(task.recurrence);
 
   return (
-    <div className="flex flex-wrap gap-0.5">
+    <div className="flex flex-wrap gap-0.5 leading-none">
       {/* Category Badge */}
       {showCategoryLabel && (
-        <Badge className={cn('text-xs px-1 py-0.5 h-auto', categoryStyle.bg, categoryStyle.text)}>
+        <Badge className={cn('text-xs px-1 py-0 h-auto', categoryStyle.bg, categoryStyle.text)}>
           <Tag className="w-3 h-3 mr-0.5" />
           {CATEGORY_LABELS[task.category]}
         </Badge>
@@ -108,7 +108,7 @@ const TaskBadges = memo<{
 
       {/* Due Date */}
       {task.dueDate && (
-        <Badge variant={overdue ? "destructive" : "secondary"} className="text-xs px-1 py-0.5 h-auto">
+        <Badge variant={overdue ? "destructive" : "secondary"} className="text-xs px-1 py-0 h-auto">
           <Calendar className="w-3 h-3 mr-0.5" />
           {formatDateToSpanish(task.dueDate)}
           {overdue && " (vencida)"}
@@ -121,7 +121,7 @@ const TaskBadges = memo<{
           <TooltipTrigger asChild>
             <Badge
               className={cn(
-                'text-xs px-1 py-0.5 h-auto gap-0.5',
+                'text-xs px-1 py-0 h-auto gap-0.5',
                 PRIORITY_BADGES[(task.priority || 'none') as keyof typeof PRIORITY_BADGES].style
               )}
             >
@@ -137,7 +137,7 @@ const TaskBadges = memo<{
 
       {/* Estimated time */}
       {task.estimatedTime !== undefined && (
-        <Badge variant="outline" className="text-xs px-1 py-0.5 h-auto">
+        <Badge variant="outline" className="text-xs px-1 py-0 h-auto">
           <Clock className="w-3 h-3 mr-0.5" />
           {task.estimatedTime}m
         </Badge>
@@ -145,7 +145,7 @@ const TaskBadges = memo<{
 
       {/* Recurrence */}
       {task.isRecurrent && recurrenceDescription && (
-        <Badge variant="outline" className="text-xs px-1 py-0.5 h-auto">
+        <Badge variant="outline" className="text-xs px-1 py-0 h-auto">
           <Repeat className="w-3 h-3 mr-0.5" />
           {recurrenceDescription}
         </Badge>
@@ -153,7 +153,7 @@ const TaskBadges = memo<{
 
       {/* Size when category is hidden */}
       {!showCategoryLabel && task.size && (
-        <Badge variant="outline" className="text-xs px-1 py-0.5 h-auto">
+        <Badge variant="outline" className="text-xs px-1 py-0 h-auto">
           {task.size}
         </Badge>
       )}
@@ -222,13 +222,13 @@ const TaskCalendarActions = memo<{
     navigate(`/task/${task.taskCode}/run`);
   }, [navigate, task.taskCode]);
 
-  const buttonClassName = "h-5 w-5 p-0 rounded-full hover:bg-muted";
+  const buttonClassName = "h-4 w-4 p-0 rounded-full hover:bg-muted";
 
   return (
-    <div className="flex items-center justify-center gap-0.5">
-      {/* Date Actions */}
+    <div className="flex items-center justify-center gap-0.5 py-0.5">
+      {/* Date Actions - con bordes para diferenciar */}
       {onMove && (
-        <>
+        <div className="flex gap-0.5 pr-1 border-r border-gray-200">
           <Button
             variant="ghost"
             size="icon"
@@ -236,7 +236,7 @@ const TaskCalendarActions = memo<{
             title="Asignar para hoy"
             onClick={handleSetToday}
           >
-            <span role="img" aria-label="hoy" className="text-xs">📅</span>
+            <span role="img" aria-label="hoy" className="text-[10px]">📆</span>
           </Button>
           <Button
             variant="ghost"
@@ -245,7 +245,7 @@ const TaskCalendarActions = memo<{
             title="Asignar para mañana"
             onClick={handleSetTomorrow}
           >
-            <span role="img" aria-label="mañana" className="text-xs">🌅</span>
+            <span role="img" aria-label="mañana" className="text-[10px]">📋</span>
           </Button>
           <Button
             variant="ghost"
@@ -254,7 +254,7 @@ const TaskCalendarActions = memo<{
             title="Asignar para pasado mañana"
             onClick={handleSetDayAfterTomorrow}
           >
-            <span role="img" aria-label="pasado mañana" className="text-xs">🚀</span>
+            <span role="img" aria-label="pasado mañana" className="text-[10px]">📊</span>
           </Button>
           <Button
             variant="ghost"
@@ -263,42 +263,42 @@ const TaskCalendarActions = memo<{
             title="Quitar fecha"
             onClick={handleRemoveDate}
           >
-            <span role="img" aria-label="sin fecha" className="text-xs">❌</span>
+            <span role="img" aria-label="sin fecha" className="text-[10px]">🚫</span>
           </Button>
-        </>
+        </div>
       )}
 
-      {/* Time of Day Actions */}
+      {/* Time of Day Actions - con fondo para diferenciar */}
       {onAssignTimeOfDay && (
-        <>
+        <div className="flex gap-0.5 pl-1">
           <Button
             variant="ghost"
             size="icon"
-            className={buttonClassName}
-            title="Asignar a mañana"
+            className={cn(buttonClassName, "bg-amber-50 hover:bg-amber-100")}
+            title="Horario: Mañana (6AM-12PM)"
             onClick={handleAssignMorning}
           >
-            <span role="img" aria-label="mañana" className="text-xs">🌅</span>
+            <span role="img" aria-label="horario mañana" className="text-[10px]">🌅</span>
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className={buttonClassName}
-            title="Asignar a tarde"
+            className={cn(buttonClassName, "bg-blue-50 hover:bg-blue-100")}
+            title="Horario: Tarde (12PM-6PM)"
             onClick={handleAssignAfternoon}
           >
-            <span role="img" aria-label="tarde" className="text-xs">🏙️</span>
+            <span role="img" aria-label="horario tarde" className="text-[10px]">🏙️</span>
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className={buttonClassName}
-            title="Asignar a noche"
+            className={cn(buttonClassName, "bg-purple-50 hover:bg-purple-100")}
+            title="Horario: Noche (6PM-12AM)"
             onClick={handleAssignEvening}
           >
-            <span role="img" aria-label="noche" className="text-xs">🌙</span>
+            <span role="img" aria-label="horario noche" className="text-[10px]">🌙</span>
           </Button>
-        </>
+        </div>
       )}
 
       {/* Main Actions */}
@@ -309,7 +309,7 @@ const TaskCalendarActions = memo<{
         title="Ejecutar"
         onClick={handleRun}
       >
-        <Play className="w-3 h-3 text-green-600" />
+        <Play className="w-2.5 h-2.5 text-green-600" />
       </Button>
       <Button
         variant="ghost"
@@ -318,7 +318,7 @@ const TaskCalendarActions = memo<{
         title="Editar tarea"
         onClick={handleEdit}
       >
-        <Edit className="w-3 h-3 text-muted-foreground" />
+        <Edit className="w-2.5 h-2.5 text-muted-foreground" />
       </Button>
       <AlertDialog>
         <AlertDialogTrigger asChild>
@@ -329,7 +329,7 @@ const TaskCalendarActions = memo<{
             title="Eliminar tarea"
             onClick={(e) => e.stopPropagation()}
           >
-            <X className="w-3 h-3 text-red-500" />
+            <X className="w-2.5 h-2.5 text-red-500" />
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
@@ -382,27 +382,19 @@ export const TaskItemCalendar = memo<TaskItemCalendarProps>(({
 
   return (
     <Card onClick={handleCardClick} className={cardClassName}>
-      <CardContent className="p-1 space-y-0.5">
+      <CardContent className="px-1 py-0.5 space-y-0.5">
         <div className="space-y-0">
           <div className="flex items-center gap-1">
-            {task.isPrivate && <span className="text-xs">🔒</span>}
+            {task.isPrivate && <span className="text-[10px]">🔒</span>}
             <span className={cn(
-              'text-sm font-medium leading-tight line-clamp-1 flex-1',
+              'text-xs font-medium leading-none line-clamp-1 flex-1',
               task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
             )}>
               {task.title}
             </span>
-            <span className="text-xs font-mono text-gray-400 flex-shrink-0">#{task.taskCode}</span>
+            <span className="text-[10px] font-mono text-gray-400 flex-shrink-0">#{task.taskCode}</span>
           </div>
           
-          {task.description && (
-            <p className={cn(
-              'text-xs text-muted-foreground line-clamp-1 leading-tight',
-              task.completed && 'line-through'
-            )}>
-              {task.description}
-            </p>
-          )}
         </div>
 
         <TaskBadges
@@ -413,15 +405,15 @@ export const TaskItemCalendar = memo<TaskItemCalendarProps>(({
 
         {total > 0 && (
           <div className="space-y-0">
-            <Progress value={checkboxProgress} className="h-1" />
-            <p className="text-xs text-right text-muted-foreground">
+            <Progress value={checkboxProgress} className="h-0.5" />
+            <p className="text-[10px] text-right text-muted-foreground leading-none">
               {checked} de {total}
             </p>
           </div>
         )}
       </CardContent>
       
-      <CardFooter className="!p-0.5 bg-gray-50/50 border-t border-gray-100">
+      <CardFooter className="!px-0.5 !py-0.5 bg-gray-50/50 border-t border-gray-100">
         <div className="w-full">
           <TaskCalendarActions
             task={task}

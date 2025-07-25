@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import { useTaskData } from '../hooks/useTaskData';
 import { useTaskKeyboardShortcuts } from '../hooks/useTaskKeyboardShortcuts';
 import { TaskWeeklyCalendar } from './TaskWeeklyCalendar';
@@ -42,17 +41,6 @@ export const TaskWeekView: React.FC = () => {
   return (
     <div className="space-y-8">
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Calendario</CardTitle>
-            <div className="flex items-center gap-4 text-xs">
-              <Button onClick={() => openCreateModal()} size="sm" disabled={status === 'saving' || !isOnline}>
-                <Plus className="w-4 h-4 mr-2" />
-                Nueva Tarea
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
         <CardContent>
           <TaskWeeklyCalendar
             tasks={tasks}

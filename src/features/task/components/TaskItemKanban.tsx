@@ -219,7 +219,7 @@ const TaskKanbanActions = memo<{
   const buttonClassName = "h-6 w-6 md:h-5 md:w-5 p-0 rounded-full hover:bg-muted";
 
   const quickActions = onMove && (
-    <div className="flex gap-1">
+    <div className="flex gap-1 pr-2 border-r border-gray-200">
       <Button
         variant="ghost"
         size="icon"
@@ -227,7 +227,7 @@ const TaskKanbanActions = memo<{
         title="Asignar para hoy"
         onClick={handleSetToday}
       >
-        <span role="img" aria-label="hoy" className="text-xs">📅</span>
+        <span role="img" aria-label="hoy" className="text-xs">📆</span>
       </Button>
       <Button
         variant="ghost"
@@ -236,7 +236,7 @@ const TaskKanbanActions = memo<{
         title="Asignar para mañana"
         onClick={handleSetTomorrow}
       >
-        <span role="img" aria-label="mañana" className="text-xs">🌅</span>
+        <span role="img" aria-label="mañana" className="text-xs">📋</span>
       </Button>
       <Button
         variant="ghost"
@@ -245,7 +245,7 @@ const TaskKanbanActions = memo<{
         title="Asignar para pasado mañana"
         onClick={handleSetDayAfterTomorrow}
       >
-        <span role="img" aria-label="pasado mañana" className="text-xs">🚀</span>
+        <span role="img" aria-label="pasado mañana" className="text-xs">📊</span>
       </Button>
       <Button
         variant="ghost"
@@ -254,39 +254,39 @@ const TaskKanbanActions = memo<{
         title="Quitar fecha"
         onClick={handleRemoveDate}
       >
-        <span role="img" aria-label="sin fecha" className="text-xs">❌</span>
+        <span role="img" aria-label="sin fecha" className="text-xs">🚫</span>
       </Button>
     </div>
   );
 
   const timeActions = onAssignTimeOfDay && (
-    <div className="flex gap-1">
+    <div className="flex gap-1 pl-2">
       <Button
         variant="ghost"
         size="icon"
-        className={buttonClassName}
-        title="Asignar a mañana"
+        className={cn(buttonClassName, "bg-amber-50 hover:bg-amber-100")}
+        title="Horario: Mañana (6AM-12PM)"
         onClick={handleAssignMorning}
       >
-        <span role="img" aria-label="mañana" className="text-xs">🌅</span>
+        <span role="img" aria-label="horario mañana" className="text-xs">🌅</span>
       </Button>
       <Button
         variant="ghost"
         size="icon"
-        className={buttonClassName}
-        title="Asignar a tarde"
+        className={cn(buttonClassName, "bg-blue-50 hover:bg-blue-100")}
+        title="Horario: Tarde (12PM-6PM)"
         onClick={handleAssignAfternoon}
       >
-        <span role="img" aria-label="tarde" className="text-xs">🏙️</span>
+        <span role="img" aria-label="horario tarde" className="text-xs">🏙️</span>
       </Button>
       <Button
         variant="ghost"
         size="icon"
-        className={buttonClassName}
-        title="Asignar a noche"
+        className={cn(buttonClassName, "bg-purple-50 hover:bg-purple-100")}
+        title="Horario: Noche (6PM-12AM)"
         onClick={handleAssignEvening}
       >
-        <span role="img" aria-label="noche" className="text-xs">🌙</span>
+        <span role="img" aria-label="horario noche" className="text-xs">🌙</span>
       </Button>
     </div>
   );
@@ -393,14 +393,6 @@ export const TaskItemKanban = memo<TaskItemKanbanProps>(({
               <span className="text-xs font-mono text-gray-400 flex-shrink-0">#{task.taskCode}</span>
             </div>
             
-            {task.description && (
-              <p className={cn(
-                'text-xs text-muted-foreground line-clamp-2 break-words leading-relaxed',
-                task.completed && 'line-through'
-              )}>
-                {task.description}
-              </p>
-            )}
 
             <div className="flex flex-wrap gap-1 pt-0.5">
               <TaskBadges

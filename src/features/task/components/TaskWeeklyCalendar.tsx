@@ -75,6 +75,28 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, o
     });
   });
 
+  // Calcular resumen por columna
+  const getColumnSummary = (column: Record<TimeOfDay, Task[]>) => {
+    const morningCount = column.morning.length;
+    const afternoonCount = column.afternoon.length;
+    const eveningCount = column.evening.length;
+    const totalTasks = morningCount + afternoonCount + eveningCount;
+    
+    const totalEstimatedTime = slots.reduce((total, slot) => {
+      return total + column[slot].reduce((slotTotal, task) => {
+        return slotTotal + (task.estimatedTime || 0);
+      }, 0);
+    }, 0);
+
+    return {
+      morningCount,
+      afternoonCount,
+      eveningCount,
+      totalTasks,
+      totalEstimatedTime
+    };
+  };
+
   // Filter unassigned tasks to only show those without timeOfDay
   const unassignedWithoutTimeOfDay = unassigned.filter(t => !t.timeOfDay);
 
@@ -88,11 +110,25 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, o
             { key: 'tomorrow', label: 'Mañana' },
             { key: 'future', label: 'Futuras' }
           ] as const
-        ).map(({ key, label }) => (
+        ).map(({ key, label }) => {
+          const summary = getColumnSummary(byColumn[key]);
+          return (
           <div key={key} className="w-[500px] flex-shrink-0 space-y-2">
-            <div className="text-center text-sm font-medium sticky top-0 bg-white py-1 z-10">{label}</div>
+            <div className="text-center sticky top-0 bg-white py-1 z-10 space-y-1">
+              <div className="text-sm font-medium">{label}</div>
+              <div className="text-xs text-gray-600 space-y-0.5">
+                <div className="flex justify-center gap-3">
+                  <span>🌅 {summary.morningCount}</span>
+                  <span>🏙️ {summary.afternoonCount}</span>
+                  <span>🌙 {summary.eveningCount}</span>
+                </div>
+                <div className="text-[10px] text-gray-500">
+                  Total: {summary.totalTasks} tareas • {summary.totalEstimatedTime}min
+                </div>
+              </div>
+            </div>
             {slots.map((slot) => (
-              <div key={slot} className="min-h-[6rem] border rounded p-2 space-y-1 bg-white">
+              <div key={slot} className="min-h-[3rem] border rounded p-2 space-y-1 bg-white">
                 <div className="text-xs font-semibold text-gray-500">
                   {TIME_OF_DAY_LABELS[slot]}
                 </div>
@@ -110,11 +146,12 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, o
               </div>
             ))}
           </div>
-        ))}
+          );
+        })}
         {unassignedWithoutTimeOfDay.length > 0 && (
           <div className="w-[500px] flex-shrink-0 space-y-2">
             <h3 className="text-sm font-medium text-center sticky top-0 bg-white py-1 z-10">Sin asignar</h3>
-            <div className="min-h-[6rem] border rounded p-2 space-y-1 bg-white">
+            <div className="min-h-[3rem] border rounded p-2 space-y-1 bg-white">
               {unassignedWithoutTimeOfDay.map((task) => (
                 <UnassignedTaskItem
                   key={task.id}
