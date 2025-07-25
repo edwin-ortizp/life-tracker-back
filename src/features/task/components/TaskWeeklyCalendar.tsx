@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   startOfDay,
   endOfDay,
@@ -8,6 +8,9 @@ import {
 import { Task, TimeOfDay, TIME_OF_DAY_LABELS } from '../types';
 import { TaskItemCalendar } from './TaskItemCalendar';
 import { UnassignedTaskItem } from './UnassignedTaskItem';
+import { Search, X } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from '@/components/ui/input';
 
 interface TaskWeeklyCalendarProps {
   tasks: Task[];
@@ -21,10 +24,25 @@ interface TaskWeeklyCalendarProps {
 const slots: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
 
 export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, onDelete, onEdit, onView, onAssignTimeOfDay, onMove }) => {
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  
   const today = startOfDay(new Date());
   const endToday = endOfDay(today);
   const tomorrow = addDays(today, 1);
   const endTomorrow = endOfDay(tomorrow);
+
+  // Filter tasks by search query
+  const filteredTasks = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return tasks;
+    }
+    
+    const query = searchQuery.toLowerCase().trim();
+    return tasks.filter(task => 
+      task.title.toLowerCase().includes(query) ||
+      (task.description && task.description.toLowerCase().includes(query))
+    );
+  }, [tasks, searchQuery]);
 
   const byColumn: Record<'overdue' | 'today' | 'tomorrow' | 'future', Record<TimeOfDay, Task[]>> = {
     overdue: { morning: [], afternoon: [], evening: [] },
@@ -45,7 +63,7 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, o
     });
   };
 
-  tasks.forEach(t => {
+  filteredTasks.forEach(t => {
     if (!t.dueDate) {
       unassigned.push(t);
       return;
@@ -101,8 +119,31 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, o
   const unassignedWithoutTimeOfDay = unassigned.filter(t => !t.timeOfDay);
 
   return (
-    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-      <div className="flex gap-3 min-w-fit pb-2">
+    <div className="space-y-4">
+      {/* Search Bar */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <Input
+          placeholder="Buscar tareas por nombre o descripción..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 pr-10"
+        />
+        {searchQuery && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSearchQuery('')}
+            className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
+          >
+            <X className="w-3 h-3" />
+          </Button>
+        )}
+      </div>
+
+      {/* Calendar */}
+      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        <div className="flex gap-3 min-w-fit pb-2">
         {(
           [
             { key: 'overdue', label: 'Vencidas' },
@@ -163,6 +204,7 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, o
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
