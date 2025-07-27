@@ -1,5 +1,5 @@
 // src/features/exercise/components/ExerciseFormModal.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import {
   Dialog,
@@ -51,16 +51,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
 
   const [calculatedCalories, setCalculatedCalories] = React.useState<number>(0);
 
-  useEffect(() => {
-    calculateCalories();
-    if (selectedExercise?.stepsPerKm && formData.distance) {
-      const distance = parseFloat(formData.distance);
-      const steps = Math.round(distance * selectedExercise.stepsPerKm);
-      setFormData(prev => ({ ...prev, steps: steps.toString() }));
-    }
-  }, [formData.distance, formData.duration, formData.weight, selectedExercise]);
-
-  const calculateCalories = () => {
+  const calculateCalories = useCallback(() => {
     if (!selectedExercise?.caloriesPerHour) return;
 
     let duration = parseInt(formData.duration) || 0;
@@ -79,7 +70,16 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
     const total = Math.round(calories);
     setCalculatedCalories(total);
     setFormData(prev => ({ ...prev, calories: total.toString() }));
-  };
+  }, [selectedExercise, formData.duration, formData.sets, formData.reps, formData.weight, setFormData]);
+
+  useEffect(() => {
+    calculateCalories();
+    if (selectedExercise?.stepsPerKm && formData.distance) {
+      const distance = parseFloat(formData.distance);
+      const steps = Math.round(distance * selectedExercise.stepsPerKm);
+      setFormData(prev => ({ ...prev, steps: steps.toString() }));
+    }
+  }, [calculateCalories, formData.distance, formData.duration, formData.weight, selectedExercise]);
 
   const handleSelectExercise = (exercise: typeof EXERCISES[number]) => {
     setSelectedExercise(exercise);

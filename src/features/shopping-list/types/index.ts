@@ -4,7 +4,7 @@ export type ItemStatus = typeof ITEM_STATUSES[number];
 export interface ShoppingItem {
   id: string;
   name: string;
-  quantity: number;
+  stock: number;
   price?: number;
   category?: string;
   place?: string;

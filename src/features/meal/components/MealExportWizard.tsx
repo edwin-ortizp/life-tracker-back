@@ -116,7 +116,7 @@ export const MealExportWizard: React.FC<MealExportWizardProps> = ({
               if (!acc[key]) acc[key] = [];
               
               const itemData = includeQuantities 
-                ? { name: item.name, quantity: item.quantity }
+                ? { name: item.name, quantity: item.stock }
                 : { name: item.name };
               
               acc[key].push(itemData);
@@ -127,7 +127,7 @@ export const MealExportWizard: React.FC<MealExportWizardProps> = ({
           } else {
             const itemList = filtered.map(item => 
               includeQuantities 
-                ? { name: item.name, quantity: item.quantity, status: item.status }
+                ? { name: item.name, quantity: item.stock, status: item.status }
                 : { name: item.name, status: item.status }
             );
             return { ingredientes: itemList };

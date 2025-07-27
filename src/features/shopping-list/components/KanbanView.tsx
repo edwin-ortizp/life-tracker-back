@@ -120,7 +120,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
     };
     filtered.forEach(item => {
       if (item.price !== undefined) {
-        totals[item.status] += item.price * item.quantity;
+        totals[item.status] += item.price * item.stock;
       }
     });
     return totals;
@@ -193,7 +193,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                     <div className="font-medium text-sm leading-tight mb-1">{item.name}</div>
                     
                     <div className="flex items-center justify-between text-xs text-gray-600">
-                      <span className="font-medium">{item.quantity}</span>
+                      <span className="font-medium">{item.stock}</span>
                       {item.category && (
                         <span className="bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded text-xs">
                           {formatCategory(item.category)}

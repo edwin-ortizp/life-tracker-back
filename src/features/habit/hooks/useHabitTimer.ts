@@ -10,7 +10,7 @@ export const useHabitTimer = ({ autoStart = true }: UseHabitTimerProps = {}) => 
   const [isPaused, setIsPaused] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [baseElapsed, setBaseElapsed] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<number | null>(null);
 
   const formatTime = useCallback((seconds: number): string => {
     const h = Math.floor(seconds / 3600);
@@ -64,21 +64,21 @@ export const useHabitTimer = ({ autoStart = true }: UseHabitTimerProps = {}) => 
   // Update display time every second
   useEffect(() => {
     if (isActive && !isPaused && startTime) {
-      intervalRef.current = setInterval(() => {
+      intervalRef.current = window.setInterval(() => {
         const currentTime = Date.now();
         const sessionElapsed = Math.floor((currentTime - startTime) / 1000);
         setTime(baseElapsed + sessionElapsed);
       }, 1000);
     } else {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+        window.clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
     }
 
     return () => {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+        window.clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
     };
@@ -95,7 +95,7 @@ export const useHabitTimer = ({ autoStart = true }: UseHabitTimerProps = {}) => 
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+        window.clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
     };

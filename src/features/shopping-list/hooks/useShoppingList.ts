@@ -54,7 +54,7 @@ export const useShoppingList = () => {
         const item: ShoppingItem = {
           id: docSnap.id,
           name: data.name || '',
-          quantity: data.quantity || 0,
+          stock: data.stock || 0,
           status: (data.status as ItemStatus) || 'to-buy',
           // Campos opcionales
           ...(data.price !== undefined && { price: data.price }),
@@ -103,14 +103,14 @@ export const useShoppingList = () => {
       );
 
       if (existing) {
-        const newQuantity = existing.quantity + Number(item.quantity);
+        const newStock = existing.stock + Number(item.stock);
 
         if (existing.status === 'low-stock') {
-          await updateItem(existing.id, { quantity: newQuantity });
+          await updateItem(existing.id, { stock: newStock });
         } else if (existing.status === 'to-buy') {
-          await updateItem(existing.id, { quantity: newQuantity, status: 'in-stock' });
+          await updateItem(existing.id, { stock: newStock, status: 'in-stock' });
         } else {
-          await updateItem(existing.id, { quantity: newQuantity });
+          await updateItem(existing.id, { stock: newStock });
         }
 
         setStatus('idle');
@@ -121,7 +121,7 @@ export const useShoppingList = () => {
       const docData: any = {
         userId: user.uid,
         name: item.name,
-        quantity: Number(item.quantity),
+        stock: Number(item.stock),
         status: item.status,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -176,7 +176,7 @@ export const useShoppingList = () => {
       
       // Solo incluir campos que tienen valor válido
       if (data.name !== undefined) updateData.name = data.name;
-      if (data.quantity !== undefined) updateData.quantity = Number(data.quantity);
+      if (data.stock !== undefined) updateData.stock = Number(data.stock);
       if (data.status !== undefined) updateData.status = data.status;
       
       if (data.price !== undefined && data.price !== null && !isNaN(Number(data.price))) {

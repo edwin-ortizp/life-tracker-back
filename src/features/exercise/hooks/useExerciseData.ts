@@ -1,5 +1,5 @@
 // src/features/exercise/hooks/useExerciseData.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { getLocalDateString } from '@/utils/dates';
@@ -53,7 +53,7 @@ export const useExerciseData = (selectedDate: Date) => {
   };
 
   // Cargar datos de ejercicios (carga única)
-  const loadExerciseData = async () => {
+  const loadExerciseData = useCallback(async () => {
     if (!user) return;
 
     setStatus('loading');
@@ -75,11 +75,11 @@ export const useExerciseData = (selectedDate: Date) => {
       setError(error instanceof Error ? error.message : 'Error al cargar ejercicios');
       setStatus('error');
     }
-  };
+  }, [user, selectedDate]);
 
   useEffect(() => {
     loadExerciseData();
-  }, [user, selectedDate]);
+  }, [loadExerciseData]);
 
   const logExercise = async (newExercise: ExerciseLog) => {
     if (!user) return;

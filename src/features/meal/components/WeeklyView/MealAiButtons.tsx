@@ -70,7 +70,7 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
       return item.status === 'in-stock' || item.status === 'low-stock';
     });
     
-    return foodItems.map(i => `${i.name} (${i.quantity})`).join(', ');
+    return foodItems.map(i => `${i.name} (${i.stock})`).join(', ');
   };
 
   const openDialog = (type: 'meal' | 'day') => {

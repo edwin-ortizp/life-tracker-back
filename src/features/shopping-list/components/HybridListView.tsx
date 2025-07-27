@@ -96,7 +96,7 @@ export const HybridListView: React.FC<HybridListViewProps> = ({ items, onEdit, o
   const totalPending = useMemo(() => {
     return filtered.reduce((sum, item) => {
       if (item.status === 'to-buy' && item.price !== undefined) {
-        return sum + item.price * item.quantity;
+        return sum + item.price * item.stock;
       }
       return sum;
     }, 0);
@@ -128,17 +128,17 @@ export const HybridListView: React.FC<HybridListViewProps> = ({ items, onEdit, o
     }
   };
 
-  const handleQuantityDecrease = (item: ShoppingItem) => {
-    const newQuantity = item.quantity - 1;
-    if (newQuantity === 0) {
-      // Si la cantidad llega a 0, cambiar estado a "to-buy" y mantener cantidad en 1
+  const handleStockDecrease = (item: ShoppingItem) => {
+    const newStock = item.stock - 1;
+    if (newStock === 0) {
+      // Si el stock llega a 0, cambiar estado a "to-buy" y mantener stock en 1
       onUpdate(item.id, { 
-        quantity: 1, 
+        stock: 1, 
         status: 'to-buy' as ItemStatus 
       });
-    } else if (newQuantity > 0) {
-      // Si la cantidad es mayor a 0, solo actualizar la cantidad
-      onUpdate(item.id, { quantity: newQuantity });
+    } else if (newStock > 0) {
+      // Si el stock es mayor a 0, solo actualizar el stock
+      onUpdate(item.id, { stock: newStock });
     }
   };
 
@@ -240,7 +240,7 @@ export const HybridListView: React.FC<HybridListViewProps> = ({ items, onEdit, o
                         <div className="flex items-center gap-4 text-xs text-gray-500">
                           <span className="flex items-center gap-1">
                             <Package className="h-3 w-3" />
-                            {item.quantity}
+                            {item.stock}
                           </span>
                           {item.place && (
                             <span className="flex items-center gap-1">
@@ -259,16 +259,16 @@ export const HybridListView: React.FC<HybridListViewProps> = ({ items, onEdit, o
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => onUpdate(item.id, { quantity: item.quantity + 1 })}
+                            onClick={() => onUpdate(item.id, { stock: item.stock + 1 })}
                             className="h-6 w-6 p-0"
                           >
                             <ChevronUp className="h-3 w-3" />
                           </Button>
-                          <span className="text-xs min-w-[1.5rem] text-center">{item.quantity}</span>
+                          <span className="text-xs min-w-[1.5rem] text-center">{item.stock}</span>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleQuantityDecrease(item)}
+                            onClick={() => handleStockDecrease(item)}
                             className="h-6 w-6 p-0"
                           >
                             <ChevronDown className="h-3 w-3" />
@@ -343,18 +343,18 @@ export const HybridListView: React.FC<HybridListViewProps> = ({ items, onEdit, o
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleQuantityDecrease(item)}
+                          onClick={() => handleStockDecrease(item)}
                           className="h-6 w-6 p-0"
                         >
                           <ChevronDown className="h-3 w-3" />
                         </Button>
                         <span className="text-sm font-medium min-w-[2rem] text-center">
-                          {item.quantity}
+                          {item.stock}
                         </span>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onUpdate(item.id, { quantity: item.quantity + 1 })}
+                          onClick={() => onUpdate(item.id, { stock: item.stock + 1 })}
                           className="h-6 w-6 p-0"
                         >
                           <ChevronUp className="h-3 w-3" />

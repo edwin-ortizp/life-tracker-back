@@ -114,7 +114,7 @@ export const ShoppingExportWizard: React.FC<ShoppingExportWizardProps> = ({
             const result: any = { name: item.name };
 
             if (selectedFields.includes('withQuantities')) {
-              result.quantity = item.quantity;
+              result.quantity = item.stock;
             }
             if (selectedFields.includes('withPrices') && item.price) {
               result.price = item.price;
