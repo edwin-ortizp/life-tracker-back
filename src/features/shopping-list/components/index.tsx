@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, LayoutList, Kanban, Plus, Download } from 'lucide-react';
+import { MoreVertical, LayoutList, Kanban, Plus, Download, Play } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar, ChefHat, ShoppingCart, Package } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ShoppingExportWizard } from './ShoppingExportWizard';
 import { useShoppingList } from '../hooks/useShoppingList';
@@ -18,6 +18,7 @@ export const ShoppingList: React.FC = () => {
   const { items, addItem, updateItem, deleteItem, moveItem } = useShoppingList();
   const [showModal, setShowModal] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
   const [view, setView] = useState<'kanban' | 'list'>('kanban');
   const [showExportWizard, setShowExportWizard] = useState(false);
@@ -88,6 +89,18 @@ export const ShoppingList: React.FC = () => {
                 <p>Exportar</p>
               </TooltipContent>
             </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigate('/shopping/run')}>
+                  <Play className="h-4 w-4" />
+                  <span className="sr-only">Ir de compras</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Ir de compras</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </TooltipProvider>
 
@@ -107,6 +120,10 @@ export const ShoppingList: React.FC = () => {
             <DropdownMenuItem onClick={() => setShowExportWizard(true)}>
               <Download className="mr-2 h-4 w-4" />
               Exportar ingredientes
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/shopping/run')}>
+              <Play className="mr-2 h-4 w-4" />
+              Ir de compras
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             {location.pathname !== '/meal' && (
@@ -159,6 +176,9 @@ export const ShoppingList: React.FC = () => {
             onToggleNext={item =>
               updateItem(item.id, { nextPurchase: !item.nextPurchase })
             }
+            onUpdateQuantity={(id, field, value) => {
+              updateItem(id, { [field]: value });
+            }}
           />
         ) : (
           <HybridListView

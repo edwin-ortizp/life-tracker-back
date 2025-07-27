@@ -34,6 +34,7 @@ interface ItemModalProps {
 export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave, onDelete, item }) => {
   const [names, setNames] = useState('');
   const [stock, setStock] = useState(1);
+  const [toBuy, setToBuy] = useState(0);
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
   const [place, setPlace] = useState('');
@@ -44,6 +45,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
     if (item) {
       setNames(item.name);
       setStock(item.stock);
+      setToBuy(item.toBuy);
       setPrice(item.price ? String(item.price) : '');
       setCategory(item.category || '');
       setPlace(item.place || '');
@@ -52,6 +54,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
     } else {
       setNames('');
       setStock(1);
+      setToBuy(0);
       setPrice('');
       setCategory('');
       setPlace('');
@@ -69,6 +72,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
   const handleSave = () => {
     const baseData: any = {
       stock: Number(stock),
+      toBuy: Number(toBuy),
       status,
     };
 
@@ -122,10 +126,14 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
               />
             )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-1">
               <Label htmlFor="stock">Stock</Label>
               <Input id="stock" type="number" value={stock} onChange={e => setStock(Number(e.target.value))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="toBuy">A Comprar</Label>
+              <Input id="toBuy" type="number" value={toBuy} onChange={e => setToBuy(Number(e.target.value))} />
             </div>
             <div className="space-y-1">
               <Label htmlFor="price">Precio</Label>

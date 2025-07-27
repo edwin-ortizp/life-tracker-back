@@ -20,6 +20,7 @@ import StatisticsPage from './pages/StatisticsPage';
 import SettingsPage from './pages/SettingsPage';
 import TaskRunPage from './pages/TaskRunPage';
 import HabitRunPage from './pages/HabitRunPage';
+import ShoppingRunPage from './pages/ShoppingRunPage';
 import GoalsPage from './pages/GoalsPage';
 
 export const PageLoader = () => (
@@ -53,6 +54,7 @@ function App() {
       </Route>
       <Route path="task/:taskCode/run" element={<TaskRunPage />} />
       <Route path="habit/:habitId/run" element={<HabitRunPage />} />
+      <Route path="shopping/run" element={<ShoppingRunPage />} />
     </Routes>
   );
 }

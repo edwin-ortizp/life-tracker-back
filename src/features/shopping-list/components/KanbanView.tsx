@@ -15,7 +15,9 @@ import {
   AlertTriangle,
   Check,
   Eye,
-  Star
+  Star,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import ShoppingFilters from './ShoppingFilters';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -25,6 +27,7 @@ interface KanbanViewProps {
   onMove: (id: string, status: ItemStatus) => void;
   onView: (item: ShoppingItem) => void;
   onToggleNext: (item: ShoppingItem) => void;
+  onUpdateQuantity: (id: string, field: 'stock' | 'toBuy', value: number) => void;
 }
 
 const columns: { key: ItemStatus; title: string }[] = [
@@ -43,7 +46,8 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
   items,
   onMove,
   onView,
-  onToggleNext
+  onToggleNext,
+  onUpdateQuantity
 }) => {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'az' | 'za' | 'category'>('az');
@@ -120,13 +124,81 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
     };
     filtered.forEach(item => {
       if (item.price !== undefined) {
-        totals[item.status] += item.price * item.stock;
+        totals[item.status] += item.price * item.toBuy;
       }
     });
     return totals;
   }, [filtered]);
 
   const formatter = useMemo(() => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }), []);
+
+  const UnifiedQuantityControl: React.FC<{
+    stockValue: number;
+    toBuyValue: number;
+    onStockIncrease: () => void;
+    onStockDecrease: () => void;
+    onToBuyIncrease: () => void;
+    onToBuyDecrease: () => void;
+  }> = ({ stockValue, toBuyValue, onStockIncrease, onStockDecrease, onToBuyIncrease, onToBuyDecrease }) => (
+    <div className="flex items-center justify-between text-xs">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
+          <span className="text-gray-600">Stock:</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-4 w-4 p-0 text-gray-500 hover:text-gray-700"
+            onClick={(e) => {
+              e.stopPropagation();
+              onStockDecrease();
+            }}
+          >
+            <ChevronDown className="h-2.5 w-2.5" />
+          </Button>
+          <span className="font-medium min-w-[1rem] text-center">{stockValue}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-4 w-4 p-0 text-gray-500 hover:text-gray-700"
+            onClick={(e) => {
+              e.stopPropagation();
+              onStockIncrease();
+            }}
+          >
+            <ChevronUp className="h-2.5 w-2.5" />
+          </Button>
+        </div>
+        
+        <div className="flex items-center gap-1">
+          <span className="text-gray-600">Comprar:</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-4 w-4 p-0 text-gray-500 hover:text-gray-700"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToBuyDecrease();
+            }}
+          >
+            <ChevronDown className="h-2.5 w-2.5" />
+          </Button>
+          <span className="font-medium min-w-[1rem] text-center">{toBuyValue}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-4 w-4 p-0 text-gray-500 hover:text-gray-700"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToBuyIncrease();
+            }}
+          >
+            <ChevronUp className="h-2.5 w-2.5" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <TooltipProvider>
       <div className="space-y-4">
@@ -190,19 +262,28 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                   onClick={() => onView(item)}
                 >
                   <CardContent className="p-2 pb-1 md:p-2 md:pb-1">
-                    <div className="font-medium text-sm leading-tight mb-1">{item.name}</div>
-                    
-                    <div className="flex items-center justify-between text-xs text-gray-600">
-                      <span className="font-medium">{item.stock}</span>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="font-medium text-sm leading-tight">{item.name}</span>
                       {item.category && (
-                        <span className="bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded text-xs">
+                        <span className="bg-gray-100 text-gray-700 px-1 py-0.5 rounded text-xs whitespace-nowrap">
                           {formatCategory(item.category)}
                         </span>
                       )}
                     </div>
                     
+                    <div className="mb-2">
+                      <UnifiedQuantityControl
+                        stockValue={item.stock}
+                        toBuyValue={item.toBuy}
+                        onStockIncrease={() => onUpdateQuantity(item.id, 'stock', item.stock + 1)}
+                        onStockDecrease={() => onUpdateQuantity(item.id, 'stock', Math.max(0, item.stock - 1))}
+                        onToBuyIncrease={() => onUpdateQuantity(item.id, 'toBuy', item.toBuy + 1)}
+                        onToBuyDecrease={() => onUpdateQuantity(item.id, 'toBuy', Math.max(0, item.toBuy - 1))}
+                      />
+                    </div>
+                    
                     {item.consumeBy && (
-                      <div className={`text-xs mt-1 ${isExpired ? 'text-red-600 font-medium' : isSoon ? 'text-orange-600' : 'text-gray-500'}`}>
+                      <div className={`text-xs mt-1 text-center ${isExpired ? 'text-red-600 font-medium' : isSoon ? 'text-orange-600' : 'text-gray-500'}`}>
                         {isExpired ? '⚠️ Vencido' : isSoon ? '⏰ Por vencer' : 'Hasta'} {item.consumeBy}
                       </div>
                     )}

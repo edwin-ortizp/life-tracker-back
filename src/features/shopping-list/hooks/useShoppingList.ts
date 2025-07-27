@@ -55,6 +55,7 @@ export const useShoppingList = () => {
           id: docSnap.id,
           name: data.name || '',
           stock: data.stock || 0,
+          toBuy: data.toBuy || 0,
           status: (data.status as ItemStatus) || 'to-buy',
           // Campos opcionales
           ...(data.price !== undefined && { price: data.price }),
@@ -122,6 +123,7 @@ export const useShoppingList = () => {
         userId: user.uid,
         name: item.name,
         stock: Number(item.stock),
+        toBuy: Number(item.toBuy),
         status: item.status,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -177,6 +179,7 @@ export const useShoppingList = () => {
       // Solo incluir campos que tienen valor válido
       if (data.name !== undefined) updateData.name = data.name;
       if (data.stock !== undefined) updateData.stock = Number(data.stock);
+      if (data.toBuy !== undefined) updateData.toBuy = Number(data.toBuy);
       if (data.status !== undefined) updateData.status = data.status;
       
       if (data.price !== undefined && data.price !== null && !isNaN(Number(data.price))) {

@@ -5,6 +5,7 @@ export interface ShoppingItem {
   id: string;
   name: string;
   stock: number;
+  toBuy: number;
   price?: number;
   category?: string;
   place?: string;
