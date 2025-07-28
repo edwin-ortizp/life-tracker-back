@@ -108,7 +108,6 @@ export interface TaskFormData {
   isRecurrent?: boolean;
   isPrivate?: boolean;
   category: TaskCategory;
-  taskCode?: number;
   recurrence?: {
     frequency: number;
     pattern: 'daily' | 'weekly' | 'monthly' | 'custom';
