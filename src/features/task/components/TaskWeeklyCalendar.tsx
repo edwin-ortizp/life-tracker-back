@@ -19,12 +19,27 @@ interface TaskWeeklyCalendarProps {
   onView?: (task: Task) => void;
   onAssignTimeOfDay: (id: string, slot: TimeOfDay) => void;
   onMove?: (taskId: string, dueDate: Date | null) => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
 const slots: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
 
-export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ tasks, onDelete, onEdit, onView, onAssignTimeOfDay, onMove }) => {
-  const [searchQuery, setSearchQuery] = useState<string>('');
+export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({ 
+  tasks, 
+  onDelete, 
+  onEdit, 
+  onView, 
+  onAssignTimeOfDay, 
+  onMove, 
+  searchQuery: externalSearchQuery,
+  onSearchChange
+}) => {
+  const [internalSearchQuery, setInternalSearchQuery] = useState<string>('');
+  
+  // Use external search query if provided, otherwise use internal state
+  const searchQuery = externalSearchQuery !== undefined ? externalSearchQuery : internalSearchQuery;
+  const setSearchQuery = onSearchChange || setInternalSearchQuery;
   
   const today = startOfDay(new Date());
   const endToday = endOfDay(today);

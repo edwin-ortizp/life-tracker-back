@@ -8,6 +8,7 @@ import PomodoroPage from './pages/PomodoroPage';
 import MoodPage from './pages/MoodPage';
 import JournalPage from './pages/JournalPage';
 import TaskPage from './pages/TaskPage';
+import TaskCalendarPage from './pages/TaskCalendarPage';
 import KanbanPage from './pages/KanbanPage';
 import HabitPage from './pages/HabitPage';
 import MealPage from './pages/MealPage';
@@ -36,6 +37,7 @@ function App() {
         <Route index element={<Home />} />
         <Route path="habit" element={<HabitPage />} />
         <Route path="task" element={<TaskPage />} />
+        <Route path="tasks/calendar" element={<TaskCalendarPage />} />
         <Route path="kanban" element={<KanbanPage />} />
         <Route path="journal" element={<JournalPage />} />
         <Route path="mood" element={<MoodPage />} />

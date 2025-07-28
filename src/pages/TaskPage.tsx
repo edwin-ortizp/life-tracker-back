@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Task, TaskWeekView, TaskKanbanView, TaskAiSuggestion, TaskAiReprioritize } from '@/features/task/components';
+import { Task, TaskKanbanView, TaskAiSuggestion, TaskAiReprioritize } from '@/features/task/components';
 import RecurrenceModal from '@/features/task/components/RecurrenceModal';
 import { CompactTaskHeader } from '@/components/navigation/CompactTaskHeader';
-import { Plus, Upload, Download, Brain } from 'lucide-react';
+import { Plus, Upload, Download, Brain, Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ interface TaskPageProps {
 }
 
 const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
+  const navigate = useNavigate();
   const [taskStats, setTaskStats] = useState<any[]>([]);
   const [completionStats, setCompletionStats] = useState<any[]>([]);
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -43,8 +45,20 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
   const [showAiSuggestion, setShowAiSuggestion] = useState(false);
   const [showAiReprioritize, setShowAiReprioritize] = useState(false);
   const [currentTab, setCurrentTab] = useState<'list' | 'kanban' | 'analytics' | 'week'>(defaultTab);
+
+  // Redirect to calendar if default tab is 'week'
+  useEffect(() => {
+    if (defaultTab === 'week') {
+      navigate('/tasks/calendar');
+    }
+  }, [defaultTab, navigate]);
   
   const handleTabChange = (tab: string) => {
+    if (tab === 'week') {
+      // Redirect to the new calendar route
+      navigate('/tasks/calendar');
+      return;
+    }
     setCurrentTab(tab as 'list' | 'kanban' | 'analytics' | 'week');
   };
   const { user } = useAuth();
@@ -203,6 +217,13 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
 
   const taskActions = [
     {
+      id: 'calendar',
+      label: 'Calendario',
+      icon: <Calendar className="h-4 w-4" />,
+      onClick: () => navigate('/tasks/calendar'),
+      tooltip: 'Vista de calendario'
+    },
+    {
       id: 'import',
       label: 'Importar',
       icon: <Upload className="h-4 w-4" />,
@@ -271,9 +292,6 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
         </TabsContent>
         <TabsContent value="kanban" className="space-y-4">
           <TaskKanbanView />
-        </TabsContent>
-        <TabsContent value="week" className="space-y-4">
-          <TaskWeekView />
         </TabsContent>
         <TabsContent value="analytics" className="space-y-4">
           <div className="grid md:grid-cols-2 xl:grid-cols-2 gap-4 lg:gap-6 xl:gap-8 desktop-grid-responsive">
