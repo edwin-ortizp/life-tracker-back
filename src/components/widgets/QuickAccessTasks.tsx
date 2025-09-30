@@ -50,7 +50,7 @@ export const QuickAccessTasks: React.FC<QuickAccessTasksProps> = ({
   }).length;
 
   const handleQuickAdd = () => {
-    navigate('/task');
+    navigate('/task/list');
   };
 
   return (
@@ -59,7 +59,7 @@ export const QuickAccessTasks: React.FC<QuickAccessTasksProps> = ({
       icon={ListTodo}
       variant={variant}
       loading={loading}
-      onClick={() => navigate('/task')}
+      onClick={() => navigate('/task/list')}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between">

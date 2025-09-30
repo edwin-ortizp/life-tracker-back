@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
 
 // Importación directa de páginas para carga inicial más rápida
@@ -9,7 +9,6 @@ import MoodPage from './pages/MoodPage';
 import JournalPage from './pages/JournalPage';
 import TaskPage from './pages/TaskPage';
 import TaskCalendarPage from './pages/TaskCalendarPage';
-import KanbanPage from './pages/KanbanPage';
 import HabitPage from './pages/HabitPage';
 import MealPage from './pages/MealPage';
 import ShoppingListPage from './pages/ShoppingListPage';
@@ -36,9 +35,14 @@ function App() {
       <Route path="/" element={<AppLayout />}>
         <Route index element={<Home />} />
         <Route path="habit" element={<HabitPage />} />
-        <Route path="task" element={<TaskPage />} />
-        <Route path="tasks/calendar" element={<TaskCalendarPage />} />
-        <Route path="kanban" element={<KanbanPage />} />
+        {/* Task routes - independent views */}
+        <Route path="task" element={<Navigate to="/task/list" replace />} />
+        <Route path="task/list" element={<TaskPage />} />
+        <Route path="task/kanban" element={<TaskPage />} />
+        <Route path="task/calendar" element={<TaskCalendarPage />} />
+        {/* Legacy redirects */}
+        <Route path="tasks/calendar" element={<Navigate to="/task/calendar" replace />} />
+        <Route path="kanban" element={<Navigate to="/task/kanban" replace />} />
         <Route path="journal" element={<JournalPage />} />
         <Route path="mood" element={<MoodPage />} />
         <Route path="water" element={<WaterPage />} />

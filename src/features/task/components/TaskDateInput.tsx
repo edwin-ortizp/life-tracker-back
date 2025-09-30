@@ -1,8 +1,10 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Calendar } from 'lucide-react';
+import { Calendar, X } from 'lucide-react';
 import { getLocalDateString } from '@/utils/dates';
+import { NativeMobileDatePicker } from '@/components/ui/native-mobile-date-picker';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface TaskDateInputProps {
   value?: Date;
@@ -17,6 +19,8 @@ export const TaskDateInput: React.FC<TaskDateInputProps> = ({
   showClearButton = false,
   label = "Fecha límite"
 }) => {
+  const isMobile = useIsMobile();
+
   // Formatear la fecha para el input usando la utilidad getLocalDateString
   const formatDateForInput = (date: Date): string => {
     return getLocalDateString(date);
@@ -32,6 +36,36 @@ export const TaskDateInput: React.FC<TaskDateInputProps> = ({
     return date;
   };
 
+  // Mobile: Use native drawer picker
+  if (isMobile) {
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            {label}
+          </label>
+          {showClearButton && value && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onChange(undefined)}
+              className="h-8 px-2"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+        <NativeMobileDatePicker
+          value={value}
+          onChange={onChange}
+          placeholder="Seleccionar fecha"
+        />
+      </div>
+    );
+  }
+
+  // Desktop: Use native HTML date input
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">

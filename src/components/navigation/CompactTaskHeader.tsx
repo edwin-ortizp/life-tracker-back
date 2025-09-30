@@ -82,8 +82,8 @@ export const CompactTaskHeader: React.FC<CompactTaskHeaderProps> = ({
                 <h2 className="text-lg font-bold text-foreground">{title}</h2>
               </div>
               
-              {/* Navigation - Desktop */}
-              <nav className="hidden md:flex gap-2 lg:gap-4">
+              {/* Navigation - Desktop only */}
+              <nav className="hidden lg:flex gap-2 lg:gap-4">
                 {navigationItems.map((item) => {
                   const isActive = currentTab === item.tab;
                   return (
@@ -100,8 +100,8 @@ export const CompactTaskHeader: React.FC<CompactTaskHeaderProps> = ({
                     >
                       <span className={cn(
                         "p-1.5 rounded-lg transition-colors",
-                        isActive 
-                          ? "bg-blue-100 text-blue-600" 
+                        isActive
+                          ? "bg-blue-100 text-blue-600"
                           : "bg-gray-100 text-gray-600 group-hover:bg-gray-200"
                       )}>
                         {item.icon}
@@ -119,7 +119,7 @@ export const CompactTaskHeader: React.FC<CompactTaskHeaderProps> = ({
             <>
               {/* Desktop: Icon buttons */}
               <TooltipProvider>
-                <div className="hidden md:flex items-center gap-2">
+                <div className="hidden lg:flex items-center gap-2">
                   {actions.map((action) => (
                     action.dropdown ? (
                       <DropdownMenu key={action.id}>
@@ -184,15 +184,34 @@ export const CompactTaskHeader: React.FC<CompactTaskHeaderProps> = ({
                 </div>
               </TooltipProvider>
 
-              {/* Mobile: Three dots menu */}
+              {/* Mobile/Tablet: Kebab menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 md:hidden">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 lg:hidden">
                     <MoreVertical className="h-4 w-4" />
                     <span className="sr-only">Opciones</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-56">
+                  {/* Navigation items in mobile */}
+                  {navigationItems.map((item) => (
+                    <DropdownMenuItem
+                      key={item.tab}
+                      onClick={() => onTabChange?.(item.tab)}
+                      className={cn(
+                        "flex items-center gap-2",
+                        currentTab === item.tab && "bg-accent font-medium"
+                      )}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </DropdownMenuItem>
+                  ))}
+
+                  {/* Separator between navigation and actions */}
+                  <DropdownMenuSeparator />
+
+                  {/* Action items */}
                   {actions.map((action) => (
                     action.dropdown ? (
                       <DropdownMenuSub key={action.id}>
@@ -214,13 +233,6 @@ export const CompactTaskHeader: React.FC<CompactTaskHeaderProps> = ({
                         <span className="ml-2">{action.label}</span>
                       </DropdownMenuItem>
                     )
-                  ))}
-                  <DropdownMenuSeparator />
-                  {navigationItems.filter(item => item.tab !== currentTab).map((item) => (
-                    <DropdownMenuItem key={item.tab} onClick={() => onTabChange?.(item.tab)}>
-                      <span className="mr-2">{item.icon}</span>
-                      {item.label}
-                    </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>

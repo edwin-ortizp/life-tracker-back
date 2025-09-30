@@ -14,6 +14,8 @@ import { FirestoreErrorHandler } from '@/components/ui/FirestoreErrorHandler';
 import { useAuth } from '@/hooks/useAuth';
 import { useTaskData } from '@/features/task/hooks/useTaskData';
 import { Task } from '@/features/task/types';
+import { CompactTaskHeader } from '@/components/navigation/CompactTaskHeader';
+import { cn } from '@/lib/utils';
 
 const TaskCalendarPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -166,7 +168,7 @@ const TaskCalendarPage: React.FC = () => {
       size: task.size || null,
       completed: task.completed
     }));
-    
+
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
@@ -175,79 +177,124 @@ const TaskCalendarPage: React.FC = () => {
     link.download = `tareas_${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    
+
     toast.success('Tareas exportadas correctamente');
   };
 
+  // Define actions for the header
+  const calendarActions = [
+    {
+      id: 'back',
+      label: 'Volver',
+      icon: <ArrowLeft className="h-4 w-4" />,
+      onClick: () => navigate('/task/list'),
+      tooltip: 'Volver a tareas'
+    },
+    {
+      id: 'import',
+      label: 'Importar',
+      icon: <Upload className="h-4 w-4" />,
+      onClick: handleImportTasks,
+      tooltip: 'Importar tareas'
+    },
+    {
+      id: 'export',
+      label: 'Exportar',
+      icon: <Download className="h-4 w-4" />,
+      onClick: handleExportTasks,
+      tooltip: 'Exportar tareas'
+    },
+    {
+      id: 'ai',
+      label: 'AI Assistant',
+      icon: <Brain className="h-4 w-4" />,
+      onClick: () => {},
+      tooltip: 'Asistente IA',
+      dropdown: [
+        {
+          label: 'Sugerir tareas',
+          onClick: () => setShowAiSuggestion(true)
+        },
+        {
+          label: 'Repriorizar visibles',
+          onClick: () => setShowAiReprioritize(true)
+        }
+      ]
+    },
+    {
+      id: 'new',
+      label: 'Nuevo',
+      icon: <Plus className="h-4 w-4" />,
+      onClick: handleNewTask,
+      tooltip: 'Crear nueva tarea',
+      className: 'bg-black text-white hover:bg-gray-800',
+      showLabel: true
+    }
+  ];
+
+  const handleTabChange = (tab: string) => {
+    if (tab === 'list') {
+      navigate('/task/list');
+    } else if (tab === 'kanban') {
+      navigate('/task/kanban');
+    } else if (tab === 'week') {
+      navigate('/task/calendar');
+    } else if (tab === 'analytics') {
+      navigate('/task/list'); // Analytics is part of list view
+    }
+  };
+
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen relative">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/task')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver
-          </Button>
-          <h1 className="text-2xl font-bold">Calendario de Tareas</h1>
-          {searchQuery && (
-            <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
-              Buscando: "{searchQuery}"
-            </span>
-          )}
-        </div>
-        
-        {/* Action buttons */}
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleImportTasks}>
-            <Upload className="w-4 h-4 mr-2" />
-            Importar
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleExportTasks}>
-            <Download className="w-4 h-4 mr-2" />
-            Exportar
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setShowAiSuggestion(true)}>
-            <Brain className="w-4 h-4 mr-2" />
-            IA
-          </Button>
-          <Button onClick={handleNewTask} className="bg-black text-white hover:bg-gray-800">
-            <Plus className="w-4 h-4 mr-2" />
-            Nueva Tarea
-          </Button>
-        </div>
+      <CompactTaskHeader
+        title={searchQuery ? `Calendario - Buscando: "${searchQuery}"` : "Calendario de Tareas"}
+        actions={calendarActions}
+        currentTab="week"
+        onTabChange={handleTabChange}
+      />
+
+      {/* FAB - Floating Action Button (mobile only) */}
+      <Button
+        onClick={handleNewTask}
+        className={cn(
+          "fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl",
+          "transition-shadow z-50 lg:hidden bg-black text-white hover:bg-gray-800"
+        )}
+        size="icon"
+        title="Crear nueva tarea"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
+
+      <div className="p-4">
+        {/* Error Handler */}
+        {error && (
+          <div className="mb-4">
+            <FirestoreErrorHandler
+              error={error}
+              onRetry={resync}
+              showClearCache={true}
+            />
+          </div>
+        )}
+
+        {/* Calendar */}
+        <Card>
+          <CardContent className="p-6">
+            <TaskWeeklyCalendar
+              tasks={filteredTasks}
+              onDelete={deleteTask}
+              onEdit={openEditModal}
+              onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
+              onMove={(id, dueDate) => editTask(id, { dueDate: dueDate || undefined })}
+              onAssignTimeOfDay={(id, timeOfDay) => editTask(id, { timeOfDay })}
+              searchQuery={searchQuery}
+              onSearchChange={handleSearchChange}
+            />
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Error Handler */}
-      {error && (
-        <div className="mb-4">
-          <FirestoreErrorHandler 
-            error={error} 
-            onRetry={resync}
-            showClearCache={true}
-          />
-        </div>
-      )}
-
-      {/* Calendar */}
-      <Card>
-        <CardContent className="p-6">
-          <TaskWeeklyCalendar
-            tasks={filteredTasks}
-            onDelete={deleteTask}
-            onEdit={openEditModal}
-            onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
-            onMove={(id, dueDate) => editTask(id, { dueDate: dueDate || undefined })}
-            onAssignTimeOfDay={(id, timeOfDay) => editTask(id, { timeOfDay })}
-            searchQuery={searchQuery}
-            onSearchChange={handleSearchChange}
-          />
-        </CardContent>
-      </Card>
 
       {/* AI Components */}
       <TaskAiSuggestion 

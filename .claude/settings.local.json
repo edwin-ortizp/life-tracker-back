@@ -5,7 +5,8 @@
       "Bash(npm run build:*)",
       "Bash(grep:*)",
       "Bash(sed:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "WebSearch"
     ],
     "deny": []
   }

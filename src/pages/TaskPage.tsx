@@ -1,17 +1,18 @@
 // src/pages/TaskPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Task, TaskKanbanView, TaskAiSuggestion, TaskAiReprioritize } from '@/features/task/components';
 import RecurrenceModal from '@/features/task/components/RecurrenceModal';
 import { CompactTaskHeader } from '@/components/navigation/CompactTaskHeader';
 import { Plus, Upload, Download, Brain, Calendar } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { FirestoreErrorHandler } from '@/components/ui/FirestoreErrorHandler';
+import { cn } from '@/lib/utils';
 import {
   LineChart,
   Line,
@@ -32,34 +33,48 @@ import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-interface TaskPageProps {
-  defaultTab?: 'list' | 'kanban' | 'analytics' | 'week';
-}
-
-const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
+const TaskPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [taskStats, setTaskStats] = useState<any[]>([]);
   const [completionStats, setCompletionStats] = useState<any[]>([]);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importJson, setImportJson] = useState('');
   const [showAiSuggestion, setShowAiSuggestion] = useState(false);
   const [showAiReprioritize, setShowAiReprioritize] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'list' | 'kanban' | 'analytics' | 'week'>(defaultTab);
 
-  // Redirect to calendar if default tab is 'week'
-  useEffect(() => {
-    if (defaultTab === 'week') {
-      navigate('/tasks/calendar');
-    }
-  }, [defaultTab, navigate]);
-  
+  // Determine current view from URL path
+  const currentTab = useMemo(() => {
+    const path = location.pathname;
+    if (path.includes('/task/kanban')) return 'kanban';
+    if (path.includes('/task/list')) return 'list';
+    if (path.includes('/task/calendar')) return 'week';
+    return 'list'; // default
+  }, [location.pathname]);
+
+  // Internal tab for analytics (remains as internal state for list view)
+  const [internalTab, setInternalTab] = useState<'list' | 'analytics'>('list');
+
   const handleTabChange = (tab: string) => {
     if (tab === 'week') {
-      // Redirect to the new calendar route
-      navigate('/tasks/calendar');
+      navigate('/task/calendar');
       return;
     }
-    setCurrentTab(tab as 'list' | 'kanban' | 'analytics' | 'week');
+    if (tab === 'kanban') {
+      navigate('/task/kanban');
+      return;
+    }
+    if (tab === 'list') {
+      navigate('/task/list');
+      setInternalTab('list');
+      return;
+    }
+    if (tab === 'analytics') {
+      // Analytics is part of list view
+      navigate('/task/list');
+      setInternalTab('analytics');
+      return;
+    }
   };
   const { user } = useAuth();
   const taskData = useTaskData();
@@ -266,14 +281,27 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
   ];
 
   return (
-    <div className="min-h-screen">
-      <CompactTaskHeader 
+    <div className="min-h-screen relative">
+      <CompactTaskHeader
         title="Tareas"
         actions={taskActions}
         currentTab={currentTab}
         onTabChange={handleTabChange}
       />
-      
+
+      {/* FAB - Floating Action Button (mobile only) */}
+      <Button
+        onClick={handleNewTask}
+        className={cn(
+          "fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl",
+          "transition-shadow z-50 lg:hidden bg-black text-white hover:bg-gray-800"
+        )}
+        size="icon"
+        title="Crear nueva tarea"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
+
       <div className="p-4">
         {taskData.error && (
           <div className="mb-4">
@@ -285,15 +313,13 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
           </div>
         )}
         
-        <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4">
-
-        <TabsContent value="list" className="space-y-4">
-          <Task />
-        </TabsContent>
-        <TabsContent value="kanban" className="space-y-4">
-          <TaskKanbanView />
-        </TabsContent>
-        <TabsContent value="analytics" className="space-y-4">
+        {/* Render view based on current route */}
+        {currentTab === 'list' && (
+          <Tabs value={internalTab} onValueChange={(tab) => handleTabChange(tab)} className="space-y-4">
+            <TabsContent value="list" className="space-y-4">
+              <Task />
+            </TabsContent>
+            <TabsContent value="analytics" className="space-y-4">
           <div className="grid md:grid-cols-2 xl:grid-cols-2 gap-4 lg:gap-6 xl:gap-8 desktop-grid-responsive">
             <Card className="desktop-card-enhanced">
               <CardContent className="pt-6">
@@ -378,8 +404,15 @@ const TaskPage: React.FC<TaskPageProps> = ({ defaultTab = 'list' }) => {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        )}
+
+        {currentTab === 'kanban' && (
+          <div className="space-y-4">
+            <TaskKanbanView />
+          </div>
+        )}
       </div>
 
       {/* Task AI Components */}
