@@ -69,14 +69,14 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   const recurrenceDescription =
     task.isRecurrent && task.recurrence
       ? getRecurrenceText(
-          task.dueDate || new Date(),
+          task.startDate || new Date(),
           task.recurrence.pattern,
           task.recurrence.customDays
         )
       : '';
   const overdue =
-    task.dueDate &&
-    isBefore(startOfDay(task.dueDate), startOfDay(new Date()));
+    task.startDate &&
+    isBefore(startOfDay(task.startDate), startOfDay(new Date()));
   const { total, checked } = getCheckboxStats(task.description || '');
   const hasCheckboxes = total > 0;
   const progress = hasCheckboxes ? task.progress ?? (checked / total) * 100 : 0;
@@ -114,14 +114,14 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             <div className="flex flex-wrap gap-3">
 
               {/* Fecha límite */}
-              {task.dueDate && (
+              {task.startDate && (
                 <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
                   overdue 
                     ? 'bg-red-100 text-red-800' 
                     : 'bg-blue-100 text-blue-800'
                 }`}>
                   <span>📅</span>
-                  {formatDateToSpanish(task.dueDate)}
+                  {formatDateToSpanish(task.startDate)}
                   {overdue && ' (Vencida)'}
                 </div>
               )}

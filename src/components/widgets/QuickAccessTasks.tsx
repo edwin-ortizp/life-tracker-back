@@ -31,21 +31,21 @@ export const QuickAccessTasks: React.FC<QuickAccessTasksProps> = ({
 
   // Denominador (Y): Tareas activas y vencidas hasta hoy (basado en dueDate)
   const activeAndOverdueTasks = allTasks.filter(task => {
-    if (task.completed || !task.dueDate) return false;
-    const dueDate = task.dueDate;
+    if (task.completed || !task.startDate) return false;
+    const dueDate = task.startDate;
     return dueDate <= todayEnd; // dueDate menor o igual a hoy
   }).length;
 
   // Campos adicionales para mostrar
   const pendingToday = allTasks.filter(task => {
-    if (task.completed || !task.dueDate) return false;
-    const dueDate = task.dueDate;
+    if (task.completed || !task.startDate) return false;
+    const dueDate = task.startDate;
     return dueDate >= todayStart && dueDate <= todayEnd; // tareas para hoy
   }).length;
 
   const overdueTasks = allTasks.filter(task => {
-    if (task.completed || !task.dueDate) return false;
-    const dueDate = task.dueDate;
+    if (task.completed || !task.startDate) return false;
+    const dueDate = task.startDate;
     return dueDate < todayStart; // tareas vencidas (antes de hoy)
   }).length;
 

@@ -59,7 +59,8 @@ export interface Task {
     seconds: number;
   };
   updatedAt?: Date;
-  dueDate?: Date;
+  startDate?: Date; // Renamed from dueDate - fecha/hora de inicio (opcional)
+  endDate?: Date; // Nueva - fecha/hora de fin (opcional)
   isRecurrent?: boolean;
   isPrivate?: boolean;
   category: TaskCategory;
@@ -72,7 +73,7 @@ export interface Task {
   priority?: 'do' | 'decide' | 'delegate' | 'delete';
   size?: 'pequeña' | 'mediana' | 'grande';
   estimatedTime?: number;
-  timeOfDay?: TimeOfDay;
+  timeOfDay?: TimeOfDay; // Deprecated - mantener por compatibilidad
   progress?: number;
   elapsedSeconds?: number;
   // Timer-related fields
@@ -104,7 +105,8 @@ export interface RecurrenceModalProps {
 export interface TaskFormData {
   title: string;
   description?: string;
-  dueDate?: Date;
+  startDate?: Date; // Renamed from dueDate
+  endDate?: Date; // Nueva - fecha/hora de fin
   isRecurrent?: boolean;
   isPrivate?: boolean;
   category: TaskCategory;
@@ -117,7 +119,7 @@ export interface TaskFormData {
   priority?: 'do' | 'decide' | 'delegate' | 'delete';
   size?: 'peque\u00f1a' | 'mediana' | 'grande';
   estimatedTime?: number;
-  timeOfDay?: TimeOfDay;
+  timeOfDay?: TimeOfDay; // Deprecated
   elapsedSeconds?: number;
   // Timer-related fields
   timerStartTime?: {

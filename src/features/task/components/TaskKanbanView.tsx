@@ -50,7 +50,7 @@ export const TaskKanbanView: React.FC = () => {
               setDetailTask(task);
               setShowDetailModal(true);
             }}
-            onMove={(id, due) => editTask(id, { dueDate: due ?? undefined })}
+            onMove={(id, due) => editTask(id, { startDate: due ?? undefined })}
             onAdd={(due) => openCreateModal(due ?? undefined)}
             onFilteredTasksChange={() => {}}
           />

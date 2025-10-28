@@ -72,7 +72,7 @@ interface TaskItemProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
-  onMove?: (taskId: string, dueDate: Date | null) => void;
+  onMove?: (taskId: string, startDate: Date | null) => void;
   onAssignTimeOfDay?: (taskId: string, timeOfDay: TimeOfDay) => void;
   variant?: 'list' | 'kanban';
   showCategoryLabel?: boolean;
@@ -147,10 +147,10 @@ const TaskBadges = memo<{
       )}
 
       {/* Due Date */}
-      {task.dueDate && (
+      {task.startDate && (
         <Badge variant={overdue ? "destructive" : "secondary"} className={badgeSize}>
           <Calendar className={cn(iconSize, 'mr-1')} />
-          {formatDateToSpanish(task.dueDate)}
+          {formatDateToSpanish(task.startDate)}
           {overdue && " (vencida)"}
         </Badge>
       )}
@@ -229,7 +229,7 @@ const TaskActions = memo<{
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
-  onMove?: (taskId: string, dueDate: Date | null) => void;
+  onMove?: (taskId: string, startDate: Date | null) => void;
   onAssignTimeOfDay?: (taskId: string, timeOfDay: TimeOfDay) => void;
   variant: 'list' | 'kanban';
 }>(({ task, onEdit, onDelete, onMove, onAssignTimeOfDay, variant }) => {
@@ -434,7 +434,7 @@ export const TaskItem = memo<TaskItemProps>(({
   variant = 'list',
   showCategoryLabel = true
 }) => {
-  const overdue = isTaskOverdue(task.dueDate ?? null);
+  const overdue = isTaskOverdue(task.startDate ?? null);
   const { total, checked } = getCheckboxStats(task.description || '');
   const checkboxProgress = total ? (task.progress ?? (checked / total) * 100) : 0;
 

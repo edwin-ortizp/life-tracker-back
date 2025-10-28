@@ -117,22 +117,36 @@ const TaskCalendarPage: React.FC = () => {
       
       tasksToImport.forEach((taskData: Record<string, unknown>) => {
         if (typeof taskData.title === 'string') {
-          let dueDate = undefined;
-          
-          if (taskData.dueDate) {
-            const parsedDate = new Date(taskData.dueDate as string);
+          let startDate = undefined;
+          let endDate = undefined;
+
+          // Migración: soportar tanto dueDate (legacy) como startDate
+          if (taskData.startDate || taskData.dueDate) {
+            const dateStr = (taskData.startDate || taskData.dueDate) as string;
+            const parsedDate = new Date(dateStr);
             if (!isNaN(parsedDate.getTime())) {
-              dueDate = parsedDate;
+              startDate = parsedDate;
             } else {
               invalidDatesCount++;
-              console.warn(`Fecha inválida para tarea "${taskData.title}": ${taskData.dueDate}`);
+              console.warn(`Fecha inválida para tarea "${taskData.title}": ${dateStr}`);
             }
           }
-          
+
+          if (taskData.endDate) {
+            const parsedDate = new Date(taskData.endDate as string);
+            if (!isNaN(parsedDate.getTime())) {
+              endDate = parsedDate;
+            } else {
+              invalidDatesCount++;
+              console.warn(`Fecha de fin inválida para tarea "${taskData.title}": ${taskData.endDate}`);
+            }
+          }
+
           addTask({
             title: taskData.title,
             description: (taskData.description as string) || '',
-            dueDate: dueDate,
+            startDate: startDate,
+            endDate: endDate,
             category: (taskData.category as 'personal' | 'work' | 'health') || 'personal',
             priority: taskData.priority as 'do' | 'decide' | 'delegate' | 'delete' || undefined,
             isPrivate: false,
@@ -161,7 +175,8 @@ const TaskCalendarPage: React.FC = () => {
     const exportData = tasks.map(task => ({
       title: task.title,
       description: task.description || '',
-      dueDate: task.dueDate?.toISOString() || null,
+      startDate: task.startDate?.toISOString() || null,
+      endDate: task.endDate?.toISOString() || null,
       category: task.category,
       priority: task.priority || null,
       isRecurrent: task.isRecurrent || false,
@@ -287,8 +302,7 @@ const TaskCalendarPage: React.FC = () => {
               onDelete={deleteTask}
               onEdit={openEditModal}
               onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
-              onMove={(id, dueDate) => editTask(id, { dueDate: dueDate || undefined })}
-              onAssignTimeOfDay={(id, timeOfDay) => editTask(id, { timeOfDay })}
+              onMove={(id, startDate) => editTask(id, { startDate: startDate || undefined })}
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
             />

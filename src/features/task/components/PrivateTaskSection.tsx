@@ -52,12 +52,12 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
   
   // Tareas privadas del día seleccionado
   const todaysPrivateTasks = privateTasks.filter(task => 
-    task.dueDate && isSameDay(task.dueDate, selectedDate)
+    task.startDate && isSameDay(task.startDate, selectedDate)
   );
   
   // Tareas privadas pendientes (sin fecha o de otros días no completadas)
   const pendingPrivateTasks = privateTasks.filter(task => 
-    !task.completed && (!task.dueDate || !isSameDay(task.dueDate, selectedDate))
+    !task.completed && (!task.startDate || !isSameDay(task.startDate, selectedDate))
   );
 
   const handleCreatePrivateTask = () => {
@@ -77,23 +77,24 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
       
       tasksToImport.forEach((taskData: any) => {
         if (taskData.title) {
-          let dueDate = undefined;
-          
-          // Manejo mejorado de fechas
-          if (taskData.dueDate) {
-            const parsedDate = new Date(taskData.dueDate);
+          let parsedStartDate = undefined;
+
+          // Manejo mejorado de fechas - soportar tanto startDate como dueDate (legacy)
+          if (taskData.startDate || taskData.dueDate) {
+            const dateStr = taskData.startDate || taskData.dueDate;
+            const parsedDate = new Date(dateStr);
             if (!isNaN(parsedDate.getTime())) {
-              dueDate = parsedDate;
+              parsedStartDate = parsedDate;
             } else {
               invalidDatesCount++;
-              console.warn(`Fecha inválida para tarea "${taskData.title}": ${taskData.dueDate}`);
+              console.warn(`Fecha inválida para tarea "${taskData.title}": ${dateStr}`);
             }
           }
-          
+
           addTask({
             title: taskData.title,
             description: taskData.description || '',
-            dueDate: dueDate, // Usar la fecha parseada o undefined si no hay fecha válida
+            startDate: parsedStartDate,
             category: taskData.category || 'personal',
             priority: taskData.priority || undefined,
             isPrivate: true, // Siempre privada
@@ -122,7 +123,8 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
     const exportData = privateTasks.map(task => ({
       title: task.title,
       description: task.description || '',
-      dueDate: task.dueDate?.toISOString(),
+      startDate: task.startDate?.toISOString(),
+      endDate: task.endDate?.toISOString(),
       category: task.category,
       priority: task.priority,
       size: task.size,
@@ -172,7 +174,7 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
                   onDelete={deleteTask}
                   onEdit={openEditModal}
                   onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
-                  onMove={(id, dueDate) => editTask(id, { dueDate: dueDate || undefined })}
+                  onMove={(id, startDate) => editTask(id, { startDate: startDate || undefined })}
                   onAssignTimeOfDay={(id, timeOfDay) => editTask(id, { timeOfDay })}
                 />
               ))}
@@ -194,7 +196,7 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
                   onDelete={deleteTask}
                   onEdit={openEditModal}
                   onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
-                  onMove={(id, dueDate) => editTask(id, { dueDate: dueDate || undefined })}
+                  onMove={(id, startDate) => editTask(id, { startDate: startDate || undefined })}
                   onAssignTimeOfDay={(id, timeOfDay) => editTask(id, { timeOfDay })}
                 />
               ))}

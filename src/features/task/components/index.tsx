@@ -27,6 +27,12 @@ export * from "./TaskWeeklyCalendar";
 export * from "./TaskWeekView";
 export * from "./TaskKanbanView";
 export * from "./UnassignedTaskItem";
+export * from "./TaskDateTimeRangeInput";
+export * from "./TasksOverdue";
+export * from "./TasksTodayCalendar";
+export * from "./TasksFuture";
+export * from "./TasksNoDate";
+export * from "./TaskCalendarCompact";
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { useTaskData } from '../hooks/useTaskData';
@@ -102,7 +108,7 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
               onDelete={deleteTask}
               onEdit={openEditModal}
               onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
-              onMove={(id, dueDate) => editTask(id, { dueDate: dueDate || undefined })}
+              onMove={(id, startDate) => editTask(id, { startDate: startDate || undefined })}
               onAssignTimeOfDay={(id, timeOfDay) => editTask(id, { timeOfDay })}
               status={status}
               error={error}

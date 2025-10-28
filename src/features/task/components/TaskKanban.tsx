@@ -33,7 +33,7 @@ interface TaskKanbanProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
-  onMove: (taskId: string, dueDate: Date | null) => void;
+  onMove: (taskId: string, startDate: Date | null) => void;
   onAdd: (dueDate?: Date | null) => void;
   onFilteredTasksChange?: (tasks: Task[]) => void;
 }
@@ -183,24 +183,24 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     switch (selectedDateFilter) {
       case 'today':
         return filtered.filter(task =>
-          task.dueDate && isWithinInterval(task.dueDate, { start: today, end: endOfDay(now) })
+          task.startDate && isWithinInterval(task.startDate, { start: today, end: endOfDay(now) })
         );
       case 'tomorrow':
         return filtered.filter(task =>
-          task.dueDate && isWithinInterval(task.dueDate, { start: tomorrowStart, end: tomorrowEnd })
+          task.startDate && isWithinInterval(task.startDate, { start: tomorrowStart, end: tomorrowEnd })
         );
       case 'week':
         return filtered.filter(task =>
-          task.dueDate && isWithinInterval(task.dueDate, { start: weekStart, end: weekEnd })
+          task.startDate && isWithinInterval(task.startDate, { start: weekStart, end: weekEnd })
         );
       case 'month':
         return filtered.filter(task =>
-          task.dueDate && isWithinInterval(task.dueDate, { start: monthStart, end: monthEnd })
+          task.startDate && isWithinInterval(task.startDate, { start: monthStart, end: monthEnd })
         );
       case 'overdue':
-        return filtered.filter(task => task.dueDate && isBefore(task.dueDate, today));
+        return filtered.filter(task => task.startDate && isBefore(task.startDate, today));
       case 'noDate':
-        return filtered.filter(task => !task.dueDate);
+        return filtered.filter(task => !task.startDate);
       default:
         return filtered;
     }
@@ -253,15 +253,15 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
     };
 
     const grouped = filteredTasks.reduce((acc, task) => {
-      if (task.dueDate && isBefore(task.dueDate, today)) {
+      if (task.startDate && isBefore(task.startDate, today)) {
         acc.overdue.push(task);
-      } else if (!task.dueDate) {
+      } else if (!task.startDate) {
         acc.noDate.push(task);
-      } else if (isBefore(task.dueDate, endToday)) {
+      } else if (isBefore(task.startDate, endToday)) {
         acc.today.push(task);
-      } else if (isBefore(task.dueDate, endTomorrow)) {
+      } else if (isBefore(task.startDate, endTomorrow)) {
         acc.tomorrow.push(task);
-      } else if (isBefore(task.dueDate, endWeek)) {
+      } else if (isBefore(task.startDate, endWeek)) {
         acc.thisWeek.push(task);
       } else {
         acc.future.push(task);
@@ -299,13 +299,13 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
           if (pa !== pb) return pa - pb;
       }
 
-      if (a.dueDate && b.dueDate) {
-        return a.dueDate.getTime() - b.dueDate.getTime();
+      if (a.startDate && b.startDate) {
+        return a.startDate.getTime() - b.startDate.getTime();
       }
-      if (!a.dueDate && !b.dueDate) {
+      if (!a.startDate && !b.startDate) {
         return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
       }
-      return a.dueDate ? -1 : 1;
+      return a.startDate ? -1 : 1;
     };
 
     Object.values(grouped).forEach(list => {
@@ -381,7 +381,7 @@ export const TaskKanban: React.FC<TaskKanbanProps> = ({
       categoria: CATEGORY_LABELS[t.category],
       prioridad: t.priority || 'sin prioridad',
       tamaño: t.size || 'sin tamaño',
-      fecha: t.dueDate ? new Date(t.dueDate).toLocaleDateString('es-ES') : 'sin fecha',
+      fecha: t.startDate ? new Date(t.startDate).toLocaleDateString('es-ES') : 'sin fecha',
       completada: t.completed ? 'Sí' : 'No'
     }));
     

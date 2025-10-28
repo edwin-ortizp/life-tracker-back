@@ -46,8 +46,7 @@ export const TaskWeekView: React.FC = () => {
             tasks={tasks}
             onDelete={deleteTask}
             onEdit={openEditModal}
-            onAssignTimeOfDay={(id, slot) => editTask(id, { timeOfDay: slot })}
-            onMove={(id, dueDate) => editTask(id, { dueDate: dueDate || undefined })}
+            onMove={(id, startDate) => editTask(id, { startDate: startDate || undefined })}
             onView={(t) => { setDetailTask(t); setShowDetailModal(true); }}
           />
           {error && (

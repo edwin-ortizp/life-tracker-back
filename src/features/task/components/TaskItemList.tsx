@@ -50,7 +50,7 @@ interface TaskItemListProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
-  onMove?: (taskId: string, dueDate: Date | null) => void;
+  onMove?: (taskId: string, startDate: Date | null) => void;
   onAssignTimeOfDay?: (taskId: string, timeOfDay: TimeOfDay) => void;
   showCategoryLabel?: boolean;
 }
@@ -77,7 +77,7 @@ const CompactTaskActions = memo<{
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
   onView?: (task: Task) => void;
-  onMove?: (taskId: string, dueDate: Date | null) => void;
+  onMove?: (taskId: string, startDate: Date | null) => void;
   onAssignTimeOfDay?: (taskId: string, timeOfDay: TimeOfDay) => void;
 }>(({ task, onEdit, onDelete, onView }) => {
   const navigate = useNavigate();
@@ -186,7 +186,7 @@ export const TaskItemList = memo<TaskItemListProps>(({
   showCategoryLabel = true
 }) => {
   const navigate = useNavigate();
-  const overdue = isTaskOverdue(task.dueDate ?? null);
+  const overdue = isTaskOverdue(task.startDate ?? null);
   const pInfo = getPriorityInfo(task.priority);
 
   const handleCardClick = useCallback(() => {
@@ -208,13 +208,13 @@ export const TaskItemList = memo<TaskItemListProps>(({
   const getStatusText = () => {
     if (task.completed) return 'Completada';
     if (overdue) return 'Vencida';
-    if (task.dueDate) {
+    if (task.startDate) {
       const today = startOfDay(new Date());
       const tomorrow = addDays(today, 1);
       
-      if (isBefore(task.dueDate, startOfDay(addDays(today, 1)))) {
+      if (isBefore(task.startDate, startOfDay(addDays(today, 1)))) {
         return 'Hoy';
-      } else if (isBefore(task.dueDate, startOfDay(addDays(tomorrow, 1)))) {
+      } else if (isBefore(task.startDate, startOfDay(addDays(tomorrow, 1)))) {
         return 'Mañana';
       }
     }
@@ -285,10 +285,10 @@ export const TaskItemList = memo<TaskItemListProps>(({
                       <span>{task.estimatedTime}m</span>
                     </>
                   )}
-                  {task.dueDate && (
+                  {task.startDate && (
                     <>
                       <span>•</span>
-                      <span>{formatDateToSpanish(task.dueDate)}</span>
+                      <span>{formatDateToSpanish(task.startDate)}</span>
                     </>
                   )}
                   {pInfo.label && (
@@ -412,10 +412,10 @@ export const TaskItemList = memo<TaskItemListProps>(({
 
         {/* Fecha Column */}
         <div className="col-span-2 flex justify-center items-center">
-          {task.dueDate ? (
+          {task.startDate ? (
             <div className="flex items-center gap-1 text-xs text-gray-600">
               <Calendar className="h-3 w-3" />
-              <span>{formatDateToSpanish(task.dueDate)}</span>
+              <span>{formatDateToSpanish(task.startDate)}</span>
             </div>
           ) : (
             <span className="text-xs text-gray-400">Sin fecha</span>

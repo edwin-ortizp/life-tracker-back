@@ -13,10 +13,9 @@ import { TaskDescriptionInput } from './TaskDescriptionInput';
 import TaskAiBreakdown from './TaskAiBreakdown';
 import TaskAiImproveDescription from './TaskAiImproveDescription';
 import TaskAiIdeas from './TaskAiIdeas';
-import { TaskDateInput } from './TaskDateInput';
+import { TaskDateTimeRangeInput } from './TaskDateTimeRangeInput';
 import { TaskCategorySelect } from './TaskCategorySelect';
 import TaskEstimatedTimeInput from './TaskEstimatedTimeInput';
-import TaskTimeOfDaySelect from './TaskTimeOfDaySelect';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { TaskRecurrenceConfig } from './TaskRecurrenceConfig';
@@ -33,7 +32,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
 }) => {
   const { calculateNextDate } = useRecurrenceLogic({
     initialConfig: task.recurrence,
-    initialDate: task.dueDate
+    initialDate: task.startDate
   });
   const [formData, setFormData] = useState<TaskFormData>(() => {
     if (mode === 'create') {
@@ -53,7 +52,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
     return {
       title: task.title || '',
       description: task.description || '',
-      dueDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.dueDate || undefined),
+      startDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.startDate || undefined),
+      endDate: task.endDate || undefined,
       isRecurrent: task.isRecurrent ?? false,
       isPrivate: task.isPrivate ?? false,
       category: task.category || 'personal',
@@ -94,7 +94,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
         setFormData({
             title: task.title || '',
             description: task.description || '',
-            dueDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.dueDate || undefined),
+            startDate: mode === 'complete' ? calculateNextDate(new Date(), task.recurrence) : (task.startDate || undefined),
+            endDate: task.endDate || undefined,
             isRecurrent: task.isRecurrent || false,
             isPrivate: task.isPrivate || false,
             category: task.category || 'personal',
@@ -222,32 +223,13 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
               />
             )}
 
-            {mode === 'edit' ? (
-              <TaskDateInput
-                value={formData.dueDate}
-                onChange={(dueDate) => setFormData({ ...formData, dueDate })}
-                showClearButton
-              />
-            ) : mode === 'create' ? (
-              <TaskDateInput
-                value={formData.dueDate}
-                onChange={(dueDate) => setFormData({ ...formData, dueDate })}
-                showClearButton
-              />
-            ) : (
-              task.isRecurrent && (
-                <TaskDateInput
-                  value={formData.dueDate}
-                  onChange={(dueDate) => setFormData({ ...formData, dueDate })}
-                  label="Próxima fecha"
-                />
-              )
-            )}
-
             {mode !== 'complete' && (
-              <TaskTimeOfDaySelect
-                value={formData.timeOfDay}
-                onChange={(v) => setFormData({ ...formData, timeOfDay: v })}
+              <TaskDateTimeRangeInput
+                startDate={formData.startDate}
+                endDate={formData.endDate}
+                onStartDateChange={(startDate) => setFormData({ ...formData, startDate })}
+                onEndDateChange={(endDate) => setFormData({ ...formData, endDate })}
+                showClearButton
               />
             )}
 

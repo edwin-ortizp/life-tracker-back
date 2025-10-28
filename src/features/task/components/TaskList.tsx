@@ -38,7 +38,7 @@ interface TaskListProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
-  onMove?: (taskId: string, dueDate: Date | null) => void;
+  onMove?: (taskId: string, startDate: Date | null) => void;
   onAssignTimeOfDay?: (taskId: string, timeOfDay: any) => void;
   status?: 'idle' | 'loading' | 'saving' | 'pending' | 'saved' | 'error';
   error?: string | null;
@@ -82,22 +82,22 @@ export const TaskList: React.FC<TaskListProps> = ({
     switch (selectedDateFilter) {
       case 'today':
         return filtered.filter(task => 
-          task.dueDate && isWithinInterval(task.dueDate, { start: today, end: endOfDay(now) })
+          task.startDate && isWithinInterval(task.startDate, { start: today, end: endOfDay(now) })
         );
       case 'week':
         return filtered.filter(task => 
-          task.dueDate && isWithinInterval(task.dueDate, { start: weekStart, end: weekEnd })
+          task.startDate && isWithinInterval(task.startDate, { start: weekStart, end: weekEnd })
         );
       case 'month':
         return filtered.filter(task => 
-          task.dueDate && isWithinInterval(task.dueDate, { start: monthStart, end: monthEnd })
+          task.startDate && isWithinInterval(task.startDate, { start: monthStart, end: monthEnd })
         );
       case 'overdue':
         return filtered.filter(task => 
-          task.dueDate && isBefore(task.dueDate, today)
+          task.startDate && isBefore(task.startDate, today)
         );
       case 'noDate':
-        return filtered.filter(task => !task.dueDate);
+        return filtered.filter(task => !task.startDate);
       default:
         return filtered;
     }
@@ -127,13 +127,13 @@ export const TaskList: React.FC<TaskListProps> = ({
     const endWeek = endOfWeek(now);
 
     return filteredTasks.reduce((groups, task) => {
-      if (task.dueDate && isBefore(task.dueDate, today)) {
+      if (task.startDate && isBefore(task.startDate, today)) {
         groups.overdue.push(task);
-      } else if (!task.dueDate) {
+      } else if (!task.startDate) {
         groups.noDate.push(task);
-      } else if (isBefore(task.dueDate, endToday)) {
+      } else if (isBefore(task.startDate, endToday)) {
         groups.today.push(task);
-      } else if (isBefore(task.dueDate, endWeek)) {
+      } else if (isBefore(task.startDate, endWeek)) {
         groups.thisWeek.push(task);
       } else {
         groups.future.push(task);

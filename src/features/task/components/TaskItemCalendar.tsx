@@ -2,7 +2,7 @@ import React, { memo, useCallback } from 'react';
 import { isBefore, startOfDay, format, addDays } from 'date-fns';
 import { toNoon } from '@/utils/dates';
 import { X, Repeat, Calendar, Edit, Tag, Clock, Play } from 'lucide-react';
-import { Task, TimeOfDay, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
+import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -61,8 +61,7 @@ interface TaskItemCalendarProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
-  onMove?: (taskId: string, dueDate: Date | null) => void;
-  onAssignTimeOfDay?: (taskId: string, timeOfDay: TimeOfDay) => void;
+  onMove?: (taskId: string, startDate: Date | null) => void;
   showCategoryLabel?: boolean;
 }
 
@@ -78,8 +77,17 @@ const getPriorityInfo = (priority: string = 'none') => {
   return PRIORITY_CONFIG[priority as Priority] || PRIORITY_CONFIG.none;
 };
 
-const isTaskOverdue = (dueDate: Date | null): boolean => {
-  return dueDate ? isBefore(startOfDay(dueDate), startOfDay(new Date())) : false;
+const isTaskOverdue = (startDate: Date | null): boolean => {
+  return startDate ? isBefore(startOfDay(startDate), startOfDay(new Date())) : false;
+};
+
+const formatTimeRange = (startDate: Date, endDate?: Date): string => {
+  const start = format(startDate, 'HH:mm');
+  if (endDate) {
+    const end = format(endDate, 'HH:mm');
+    return `${start} - ${end}`;
+  }
+  return start;
 };
 
 // Badge component for calendar view
@@ -106,12 +114,20 @@ const TaskBadges = memo<{
         </Badge>
       )}
 
-      {/* Due Date */}
-      {task.dueDate && (
+      {/* Start Date and Time Range */}
+      {task.startDate && (
         <Badge variant={overdue ? "destructive" : "secondary"} className="text-xs px-1 py-0 h-auto">
           <Calendar className="w-3 h-3 mr-0.5" />
-          {formatDateToSpanish(task.dueDate)}
+          {formatDateToSpanish(task.startDate)}
           {overdue && " (vencida)"}
+        </Badge>
+      )}
+
+      {/* Time Range */}
+      {task.startDate && (task.startDate.getHours() !== 12 || task.startDate.getMinutes() !== 0) && (
+        <Badge variant="outline" className="text-xs px-1 py-0 h-auto bg-blue-50 text-blue-700">
+          <Clock className="w-3 h-3 mr-0.5" />
+          {formatTimeRange(task.startDate, task.endDate)}
         </Badge>
       )}
 
@@ -168,9 +184,8 @@ const TaskCalendarActions = memo<{
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
-  onMove?: (taskId: string, dueDate: Date | null) => void;
-  onAssignTimeOfDay?: (taskId: string, timeOfDay: TimeOfDay) => void;
-}>(({ task, onEdit, onDelete, onMove, onAssignTimeOfDay }) => {
+  onMove?: (taskId: string, startDate: Date | null) => void;
+}>(({ task, onEdit, onDelete, onMove }) => {
   const navigate = useNavigate();
   
   const handleSetToday = useCallback((e: React.MouseEvent) => {
@@ -193,21 +208,6 @@ const TaskCalendarActions = memo<{
     onMove?.(task.id, null);
   }, [onMove, task.id]);
 
-  const handleAssignMorning = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onAssignTimeOfDay?.(task.id, 'morning');
-  }, [onAssignTimeOfDay, task.id]);
-
-  const handleAssignAfternoon = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onAssignTimeOfDay?.(task.id, 'afternoon');
-  }, [onAssignTimeOfDay, task.id]);
-
-  const handleAssignEvening = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onAssignTimeOfDay?.(task.id, 'evening');
-  }, [onAssignTimeOfDay, task.id]);
-
   const handleEdit = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onEdit(task);
@@ -226,7 +226,7 @@ const TaskCalendarActions = memo<{
 
   return (
     <div className="flex items-center justify-center gap-0.5 py-0.5">
-      {/* Date Actions - con bordes para diferenciar */}
+      {/* Date Actions */}
       {onMove && (
         <div className="flex gap-0.5 pr-1 border-r border-gray-200">
           <Button
@@ -264,39 +264,6 @@ const TaskCalendarActions = memo<{
             onClick={handleRemoveDate}
           >
             <span role="img" aria-label="sin fecha" className="text-[10px]">🚫</span>
-          </Button>
-        </div>
-      )}
-
-      {/* Time of Day Actions - con fondo para diferenciar */}
-      {onAssignTimeOfDay && (
-        <div className="flex gap-0.5 pl-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(buttonClassName, "bg-amber-50 hover:bg-amber-100")}
-            title="Horario: Mañana (6AM-12PM)"
-            onClick={handleAssignMorning}
-          >
-            <span role="img" aria-label="horario mañana" className="text-[10px]">🌅</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(buttonClassName, "bg-blue-50 hover:bg-blue-100")}
-            title="Horario: Tarde (12PM-6PM)"
-            onClick={handleAssignAfternoon}
-          >
-            <span role="img" aria-label="horario tarde" className="text-[10px]">🏙️</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(buttonClassName, "bg-purple-50 hover:bg-purple-100")}
-            title="Horario: Noche (6PM-12AM)"
-            onClick={handleAssignEvening}
-          >
-            <span role="img" aria-label="horario noche" className="text-[10px]">🌙</span>
           </Button>
         </div>
       )}
@@ -363,10 +330,9 @@ export const TaskItemCalendar = memo<TaskItemCalendarProps>(({
   onEdit,
   onView,
   onMove,
-  onAssignTimeOfDay,
   showCategoryLabel = true
 }) => {
-  const overdue = isTaskOverdue(task.dueDate ?? null);
+  const overdue = isTaskOverdue(task.startDate ?? null);
   const { total, checked } = getCheckboxStats(task.description || '');
   const checkboxProgress = total ? (task.progress ?? (checked / total) * 100) : 0;
 
@@ -420,7 +386,6 @@ export const TaskItemCalendar = memo<TaskItemCalendarProps>(({
             onEdit={onEdit}
             onDelete={onDelete}
             onMove={onMove}
-            onAssignTimeOfDay={onAssignTimeOfDay}
           />
         </div>
       </CardFooter>

@@ -9,7 +9,7 @@ interface TaskGroupProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
-  onMove?: (taskId: string, dueDate: Date | null) => void;
+  onMove?: (taskId: string, startDate: Date | null) => void;
   onAssignTimeOfDay?: (taskId: string, timeOfDay: any) => void;
 }
 
@@ -36,13 +36,13 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
     const pa = priorityOrder[a.priority || 'none'] ?? 4;
     const pb = priorityOrder[b.priority || 'none'] ?? 4;
     if (pa !== pb) return pa - pb;
-    if (a.dueDate && b.dueDate) {
-      return a.dueDate.getTime() - b.dueDate.getTime();
+    if (a.startDate && b.startDate) {
+      return a.startDate.getTime() - b.startDate.getTime();
     }
-    if (!a.dueDate && !b.dueDate) {
+    if (!a.startDate && !b.startDate) {
       return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
     }
-    return a.dueDate ? -1 : 1;
+    return a.startDate ? -1 : 1;
   });
 
   return (

@@ -45,9 +45,9 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks, open:
   useEffect(() => {
     if (selectedMood) {
       const tasksList = tasks
-        .sort((a, b) => (a.dueDate?.getTime() || Infinity) - (b.dueDate?.getTime() || Infinity))
+        .sort((a, b) => (a.startDate?.getTime() || Infinity) - (b.startDate?.getTime() || Infinity))
         .slice(0, 15)
-        .map(t => `- ${t.title}${t.dueDate ? ` (vence ${format(t.dueDate, 'yyyy-MM-dd')})` : ''} - ${CATEGORY_LABELS[t.category]}`)
+        .map(t => `- ${t.title}${t.startDate ? ` (vence ${format(t.startDate, 'yyyy-MM-dd')})` : ''} - ${CATEGORY_LABELS[t.category]}`)
         .join('\n');
       setPrompt(`${basePrompt}\nEstado de ánimo: ${selectedMood.text}\nTareas pendientes:\n${tasksList}`);
     } else {

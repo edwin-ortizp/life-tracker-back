@@ -60,7 +60,7 @@ interface TaskItemKanbanProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onView?: (task: Task) => void;
-  onMove?: (taskId: string, dueDate: Date | null) => void;
+  onMove?: (taskId: string, startDate: Date | null) => void;
   onAssignTimeOfDay?: (taskId: string, timeOfDay: TimeOfDay) => void;
   showCategoryLabel?: boolean;
 }
@@ -107,10 +107,10 @@ const TaskBadges = memo<{
       )}
 
       {/* Due Date */}
-      {task.dueDate && (
+      {task.startDate && (
         <Badge variant={overdue ? "destructive" : "secondary"} className={badgeSize}>
           <Calendar className="w-3 h-3 mr-1" />
-          {formatDateToSpanish(task.dueDate)}
+          {formatDateToSpanish(task.startDate)}
           {overdue && " (vencida)"}
         </Badge>
       )}
@@ -162,7 +162,7 @@ const TaskKanbanActions = memo<{
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
-  onMove?: (taskId: string, dueDate: Date | null) => void;
+  onMove?: (taskId: string, startDate: Date | null) => void;
   onAssignTimeOfDay?: (taskId: string, timeOfDay: TimeOfDay) => void;
 }>(({ task, onEdit, onDelete, onMove, onAssignTimeOfDay }) => {
   const navigate = useNavigate();
@@ -363,7 +363,7 @@ export const TaskItemKanban = memo<TaskItemKanbanProps>(({
   onAssignTimeOfDay,
   showCategoryLabel = true
 }) => {
-  const overdue = isTaskOverdue(task.dueDate ?? null);
+  const overdue = isTaskOverdue(task.startDate ?? null);
   const { total, checked } = getCheckboxStats(task.description || '');
   const checkboxProgress = total ? (task.progress ?? (checked / total) * 100) : 0;
 

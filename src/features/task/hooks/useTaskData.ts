@@ -69,7 +69,9 @@ export const useTaskData = () => {
             completed: data.completed,
             createdAt: data.createdAt,
             updatedAt: data.updatedAt?.toDate(),
-            dueDate: data.dueDate?.toDate(),
+            // Migración: startDate → startDate (si existe dueDate legacy, usarlo como startDate)
+            startDate: data.startDate?.toDate() || data.startDate?.toDate(),
+            endDate: data.endDate?.toDate(),
             isRecurrent: data.isRecurrent || false,
             isPrivate: data.isPrivate || false,
             category: data.category || 'other',
@@ -98,11 +100,11 @@ export const useTaskData = () => {
       const taskList = allTaskList
         .filter(task => !task.completed)
         .sort((a, b) => {
-          if (a.dueDate && b.dueDate) {
-            return a.dueDate.getTime() - b.dueDate.getTime();
+          if (a.startDate && b.startDate) {
+            return a.startDate.getTime() - b.startDate.getTime();
           }
-          if (a.dueDate) return -1;
-          if (b.dueDate) return 1;
+          if (a.startDate) return -1;
+          if (b.startDate) return 1;
           return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
         });
       
@@ -133,6 +135,13 @@ export const useTaskData = () => {
     setError(null);
 
     try {
+      // Validación: endDate > startDate si ambos existen
+      if (formData.startDate && formData.endDate && formData.endDate <= formData.startDate) {
+        setError('La fecha de fin debe ser posterior a la fecha de inicio');
+        setStatus('error');
+        return;
+      }
+
       // Generar taskCode único
       const taskCode = await generateTaskCode(user.uid);
 
@@ -144,7 +153,8 @@ export const useTaskData = () => {
         description: formData.description?.trim() || '',
         completed: false,
         createdAt: { seconds: Date.now() / 1000 },
-        dueDate: formData.dueDate || undefined,
+        startDate: formData.startDate || undefined,
+        endDate: formData.endDate || undefined,
         category: formData.category || 'other',
         priority: formData.priority || 'delete',
         size: formData.size || 'pequeña',
@@ -159,11 +169,11 @@ export const useTaskData = () => {
 
       // Actualización optimista
       setTasks(prev => [...prev, optimisticTask].sort((a, b) => {
-        if (a.dueDate && b.dueDate) {
-          return a.dueDate.getTime() - b.dueDate.getTime();
+        if (a.startDate && b.startDate) {
+          return a.startDate.getTime() - b.startDate.getTime();
         }
-        if (a.dueDate) return -1;
-        if (b.dueDate) return 1;
+        if (a.startDate) return -1;
+        if (b.startDate) return 1;
         return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
       }));
 
@@ -186,8 +196,12 @@ export const useTaskData = () => {
         taskData.description = formData.description.trim();
       }
 
-      if (formData.dueDate) {
-        taskData.dueDate = Timestamp.fromDate(formData.dueDate);
+      if (formData.startDate) {
+        taskData.startDate = Timestamp.fromDate(formData.startDate);
+      }
+
+      if (formData.endDate) {
+        taskData.endDate = Timestamp.fromDate(formData.endDate);
       }
 
       if (formData.isPrivate) {
@@ -249,18 +263,29 @@ export const useTaskData = () => {
     if (!user) return;
 
     setStatus('saving');
-    
+
     // Guardar tarea original para revertir si falla
     const originalTask = tasks.find(t => t.id === taskId);
     if (!originalTask) return;
 
     try {
+      // Validación: endDate > startDate si ambos están presentes
+      const newStartDate = updates.startDate !== undefined ? updates.startDate : originalTask.startDate;
+      const newEndDate = updates.endDate !== undefined ? updates.endDate : originalTask.endDate;
+
+      if (newStartDate && newEndDate && newEndDate <= newStartDate) {
+        setError('La fecha de fin debe ser posterior a la fecha de inicio');
+        setStatus('error');
+        return;
+      }
+
       // Actualización optimista
       const updatedTask: Task = {
         ...originalTask,
         ...(updates.title?.trim() && { title: updates.title.trim() }),
         ...(typeof updates.description === 'string' && { description: updates.description.trim() }),
-        ...(updates.dueDate !== undefined && { dueDate: updates.dueDate || undefined }),
+        ...(updates.startDate !== undefined && { startDate: updates.startDate || undefined }),
+        ...(updates.endDate !== undefined && { endDate: updates.endDate || undefined }),
         ...(updates.category && { category: updates.category }),
         ...(updates.priority && { priority: updates.priority }),
         ...(updates.size && { size: updates.size }),
@@ -279,14 +304,14 @@ export const useTaskData = () => {
       );
 
       // Actualizar localmente
-      setTasks(prev => prev.map(task => 
+      setTasks(prev => prev.map(task =>
         task.id === taskId ? updatedTask : task
       ).sort((a, b) => {
-        if (a.dueDate && b.dueDate) {
-          return a.dueDate.getTime() - b.dueDate.getTime();
+        if (a.startDate && b.startDate) {
+          return a.startDate.getTime() - b.startDate.getTime();
         }
-        if (a.dueDate) return -1;
-        if (b.dueDate) return 1;
+        if (a.startDate) return -1;
+        if (b.startDate) return 1;
         return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
       }));
 
@@ -294,13 +319,16 @@ export const useTaskData = () => {
       const updateData: any = {
         updatedAt: serverTimestamp()
       };
-      
+
       if (updates.title?.trim()) updateData.title = updates.title.trim();
       if (typeof updates.description === 'string') {
         updateData.description = updates.description.trim() || null;
       }
-      if (updates.dueDate !== undefined) {
-        updateData.dueDate = updates.dueDate ? Timestamp.fromDate(updates.dueDate) : null;
+      if (updates.startDate !== undefined) {
+        updateData.startDate = updates.startDate ? Timestamp.fromDate(updates.startDate) : null;
+      }
+      if (updates.endDate !== undefined) {
+        updateData.endDate = updates.endDate ? Timestamp.fromDate(updates.endDate) : null;
       }
       if (updates.category) {
         updateData.category = updates.category;
@@ -427,11 +455,11 @@ export const useTaskData = () => {
       console.error('Error al eliminar:', error);
       // Revertir actualización optimista en caso de error
       setTasks(prev => [...prev, taskToDelete].sort((a, b) => {
-        if (a.dueDate && b.dueDate) {
-          return a.dueDate.getTime() - b.dueDate.getTime();
+        if (a.startDate && b.startDate) {
+          return a.startDate.getTime() - b.startDate.getTime();
         }
-        if (a.dueDate) return -1;
-        if (b.dueDate) return 1;
+        if (a.startDate) return -1;
+        if (b.startDate) return 1;
         return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
       }));
       setError(error instanceof Error ? error.message : 'Error al eliminar');
@@ -456,7 +484,8 @@ export const useTaskData = () => {
         description: data.description?.trim() || currentTask.description || '',
         completed: false,
         createdAt: { seconds: Date.now() / 1000 },
-        dueDate: data.dueDate || undefined,
+        startDate: data.startDate || undefined,
+        endDate: data.endDate || undefined,
         isRecurrent: true,
         category: currentTask.category,
         priority: currentTask.priority || 'delete',
@@ -478,11 +507,11 @@ export const useTaskData = () => {
       setTasks(prev => {
         const filtered = prev.filter(t => t.id !== currentTask.id);
         return [...filtered, nextTask].sort((a, b) => {
-          if (a.dueDate && b.dueDate) {
-            return a.dueDate.getTime() - b.dueDate.getTime();
+          if (a.startDate && b.startDate) {
+            return a.startDate.getTime() - b.startDate.getTime();
           }
-          if (a.dueDate) return -1;
-          if (b.dueDate) return 1;
+          if (a.startDate) return -1;
+          if (b.startDate) return 1;
           return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
         });
       });
@@ -504,7 +533,8 @@ export const useTaskData = () => {
         completed: false,
         createdAt: serverTimestamp(),
         elapsedSeconds: 0,
-        dueDate: data.dueDate ? Timestamp.fromDate(data.dueDate) : null,
+        startDate: data.startDate ? Timestamp.fromDate(data.startDate) : null,
+        endDate: data.endDate ? Timestamp.fromDate(data.endDate) : null,
         isRecurrent: true,
         category: currentTask.category,
         priority: currentTask.priority || 'delete',
@@ -548,13 +578,13 @@ export const useTaskData = () => {
         setError('Error al generar código de tarea recurrente');
       } else {
         setTasks(prev => {
-          const filtered = prev.filter(t => t.id.startsWith('temp-'));
+          const filtered = prev.filter(t => !t.id.startsWith('temp-'));
           return [...filtered, currentTask].sort((a, b) => {
-            if (a.dueDate && b.dueDate) {
-              return a.dueDate.getTime() - b.dueDate.getTime();
+            if (a.startDate && b.startDate) {
+              return a.startDate.getTime() - b.startDate.getTime();
             }
-            if (a.dueDate) return -1;
-            if (b.dueDate) return 1;
+            if (a.startDate) return -1;
+            if (b.startDate) return 1;
             return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
           });
         });
@@ -564,7 +594,7 @@ export const useTaskData = () => {
     }
   }, [currentTask, user, handleCloseModal]);
 
-  const openCreateModal = useCallback((dueDate?: Date | null, isPrivate?: boolean) => {
+  const openCreateModal = useCallback((startDate?: Date | null, isPrivate?: boolean) => {
     setModalMode('create');
     setCurrentTask({
       id: '',
@@ -575,7 +605,7 @@ export const useTaskData = () => {
       priority: 'delete',
       size: 'pequeña',
       createdAt: { seconds: Date.now() / 1000 },
-      ...(dueDate ? { dueDate } : {}),
+      ...(startDate ? { startDate } : {}),
       ...(isPrivate ? { isPrivate: true } : {}),
       timeOfDay: undefined,
       progress: 0
