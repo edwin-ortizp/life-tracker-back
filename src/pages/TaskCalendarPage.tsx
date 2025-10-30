@@ -16,6 +16,7 @@ import { useTaskData } from '@/features/task/hooks/useTaskData';
 import { Task } from '@/features/task/types';
 import { CompactTaskHeader } from '@/components/navigation/CompactTaskHeader';
 import { cn } from '@/lib/utils';
+import { adjustEndDateToStartDate } from '@/utils/dates';
 
 const TaskCalendarPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -301,8 +302,35 @@ const TaskCalendarPage: React.FC = () => {
               tasks={filteredTasks}
               onDelete={deleteTask}
               onEdit={openEditModal}
+              onQuickUpdate={(task) => {
+                // Actualización rápida de duración sin abrir modal
+                editTask(task.id, { endDate: task.endDate });
+              }}
               onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
-              onMove={(id, startDate) => editTask(id, { startDate: startDate || undefined })}
+              onMove={(id, startDate) => {
+                // Encontrar la tarea actual para obtener sus fechas originales
+                const task = tasks.find(t => t.id === id);
+                if (!task) return;
+
+                // Si se está quitando la fecha (startDate es null)
+                if (!startDate) {
+                  editTask(id, { startDate: undefined, endDate: undefined });
+                  return;
+                }
+
+                // Calcular la nueva endDate preservando la duración original
+                const newEndDate = adjustEndDateToStartDate(
+                  task.startDate,
+                  task.endDate,
+                  startDate
+                );
+
+                // Actualizar ambas fechas
+                editTask(id, {
+                  startDate,
+                  endDate: newEndDate
+                });
+              }}
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
             />

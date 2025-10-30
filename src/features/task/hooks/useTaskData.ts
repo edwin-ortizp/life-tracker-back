@@ -136,7 +136,7 @@ export const useTaskData = () => {
 
     try {
       // Validación: endDate > startDate si ambos existen
-      if (formData.startDate && formData.endDate && formData.endDate <= formData.startDate) {
+      if (formData.startDate && formData.endDate && formData.endDate < formData.startDate) {
         setError('La fecha de fin debe ser posterior a la fecha de inicio');
         setStatus('error');
         return;
@@ -273,7 +273,7 @@ export const useTaskData = () => {
       const newStartDate = updates.startDate !== undefined ? updates.startDate : originalTask.startDate;
       const newEndDate = updates.endDate !== undefined ? updates.endDate : originalTask.endDate;
 
-      if (newStartDate && newEndDate && newEndDate <= newStartDate) {
+      if (newStartDate && newEndDate && newEndDate < newStartDate) {
         setError('La fecha de fin debe ser posterior a la fecha de inicio');
         setStatus('error');
         return;

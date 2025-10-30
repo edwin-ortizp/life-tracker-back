@@ -176,5 +176,88 @@ export const adjustEndDateToStartDate = (
 
   // Aplicar la misma duración a la nueva fecha de inicio
   const newEndDate = new Date(newStartDate.getTime() + originalDuration);
+
+  // Safeguard: garantizar que endDate siempre sea posterior a startDate
+  // Si la duración resultó en 0 o negativa, establecer mínimo 30 minutos
+  if (newEndDate.getTime() <= newStartDate.getTime()) {
+    newEndDate.setMinutes(newEndDate.getMinutes() + 30);
+  }
+
   return newEndDate;
+};
+
+/**
+ * Convierte una posición en pixels a minutos desde una hora base
+ * @param pixels - Posición vertical en pixels
+ * @param pixelsPerSlot - Pixels por slot (default 50px = 30 min)
+ * @param minutesPerSlot - Minutos por slot (default 30)
+ * @returns Minutos desde la hora base
+ */
+export const pixelsToMinutes = (
+  pixels: number,
+  pixelsPerSlot: number = 50,
+  minutesPerSlot: number = 30
+): number => {
+  return (pixels / pixelsPerSlot) * minutesPerSlot;
+};
+
+/**
+ * Convierte minutos desde una hora base a posición en pixels
+ * @param minutes - Minutos desde la hora base
+ * @param pixelsPerSlot - Pixels por slot (default 50px = 30 min)
+ * @param minutesPerSlot - Minutos por slot (default 30)
+ * @returns Posición vertical en pixels
+ */
+export const minutesToPixels = (
+  minutes: number,
+  pixelsPerSlot: number = 50,
+  minutesPerSlot: number = 30
+): number => {
+  return (minutes / minutesPerSlot) * pixelsPerSlot;
+};
+
+/**
+ * Calcula una nueva fecha/hora desde una posición en pixels en el calendario
+ * @param topPixels - Posición vertical en pixels desde el inicio del calendario
+ * @param baseDate - Fecha base para mantener día/mes/año
+ * @param startHour - Hora de inicio del calendario (default 6 = 6:00 AM)
+ * @returns Nueva fecha con la hora calculada
+ */
+export const pixelsToTime = (
+  topPixels: number,
+  baseDate: Date = new Date(),
+  startHour: number = 6
+): Date => {
+  const minutesFromStart = pixelsToMinutes(topPixels);
+  const newDate = new Date(baseDate);
+  newDate.setHours(startHour, 0, 0, 0);
+  newDate.setMinutes(minutesFromStart);
+  return newDate;
+};
+
+/**
+ * Redondea una fecha al intervalo más cercano
+ * @param date - Fecha a redondear
+ * @param intervalMinutes - Intervalo en minutos (default 15)
+ * @returns Fecha redondeada
+ */
+export const snapToInterval = (date: Date, intervalMinutes: number = 15): Date => {
+  const minutes = date.getMinutes();
+  const roundedMinutes = Math.round(minutes / intervalMinutes) * intervalMinutes;
+  const newDate = new Date(date);
+  newDate.setMinutes(roundedMinutes, 0, 0);
+  return newDate;
+};
+
+/**
+ * Calcula la posición en pixels para una fecha en el calendario
+ * @param date - Fecha a convertir
+ * @param startHour - Hora de inicio del calendario (default 6 = 6:00 AM)
+ * @returns Posición vertical en pixels
+ */
+export const timeToPixels = (date: Date, startHour: number = 6): number => {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const totalMinutesFromStart = (hours - startHour) * 60 + minutes;
+  return minutesToPixels(totalMinutesFromStart);
 };

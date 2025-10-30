@@ -12,6 +12,7 @@ interface TaskWeeklyCalendarProps {
   tasks: Task[];
   onDelete: (id: string) => void;
   onEdit: (task: Task) => void;
+  onQuickUpdate?: (task: Task) => void;
   onView?: (task: Task) => void;
   onMove?: (taskId: string, startDate: Date | null) => void;
   searchQuery?: string;
@@ -22,6 +23,7 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({
   tasks,
   onDelete,
   onEdit,
+  onQuickUpdate,
   onView,
   onMove,
   searchQuery: externalSearchQuery,
@@ -146,6 +148,7 @@ export const TaskWeeklyCalendar: React.FC<TaskWeeklyCalendarProps> = ({
                 tasks={filteredTasks}
                 onDelete={onDelete}
                 onEdit={onEdit}
+                onQuickUpdate={onQuickUpdate}
                 onView={onView}
                 onMove={onMove}
               />

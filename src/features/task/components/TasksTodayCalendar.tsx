@@ -1,14 +1,17 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import { isSameDay, format } from 'date-fns';
+import { DndContext, DragEndEvent, DragMoveEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { Task } from '../types';
 import { TaskCalendarCompact } from './TaskCalendarCompact';
 import { TaskItemCalendar } from './TaskItemCalendar';
 import { cn } from '@/lib/utils';
+import { pixelsToTime, snapToInterval, adjustEndDateToStartDate } from '@/utils/dates';
 
 interface TasksTodayCalendarProps {
   tasks: Task[];
   onDelete: (id: string) => void;
   onEdit: (task: Task) => void;
+  onQuickUpdate?: (task: Task) => void;
   onView?: (task: Task) => void;
   onMove?: (taskId: string, startDate: Date | null) => void;
 }
@@ -29,12 +32,22 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
   tasks,
   onDelete,
   onEdit,
+  onQuickUpdate,
   onView,
   onMove,
 }) => {
   const today = new Date();
   const timeSlots = useMemo(() => generateTimeSlots(), []);
   const gridRef = useRef<HTMLDivElement>(null);
+
+  // Configurar sensores para drag-and-drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // Requiere mover 5px antes de iniciar drag (evita activación accidental)
+      },
+    })
+  );
 
   // Auto-scroll a la hora actual al cargar (como Google Calendar)
   useEffect(() => {
@@ -209,11 +222,67 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
 
   const totalTodayTasks = tasksWithTime.length + tasksWithoutTime.length;
 
+  // Handlers para drag-and-drop
+  const handleDragStart = () => {
+    // Opcional: agregar lógica adicional al iniciar drag
+  };
+
+  const handleDragMove = (_event: DragMoveEvent) => {
+    // Opcional: agregar preview visual durante el drag
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, delta } = event;
+
+    if (!active.data.current?.task || !onMove) return;
+
+    const task: Task = active.data.current.task;
+    if (!task.startDate) return;
+
+    // Calcular nueva posición basada en el delta Y
+    const originalTop = calculateTopPosition(task.startDate);
+    const newTop = Math.max(0, originalTop + delta.y);
+
+    // Convertir pixels a tiempo
+    const newStartDate = pixelsToTime(newTop, task.startDate);
+
+    // Snap a intervalos de 15 minutos
+    const snappedStartDate = snapToInterval(newStartDate, 15);
+
+    // Validar que esté dentro del rango 6:00 - 22:00
+    const newHour = snappedStartDate.getHours();
+    if (newHour < 6 || newHour >= 22) {
+      // Fuera de rango, no hacer nada
+      return;
+    }
+
+    // Ajustar endDate preservando la duración
+    const newEndDate = adjustEndDateToStartDate(task.startDate, task.endDate, snappedStartDate);
+
+    // Validar que endDate también esté en rango
+    if (newEndDate) {
+      const endHour = newEndDate.getHours();
+      if (endHour > 22) {
+        // EndDate fuera de rango, no hacer nada
+        return;
+      }
+    }
+
+    // Actualizar la tarea
+    onMove(task.id, snappedStartDate);
+  };
+
   if (totalTodayTasks === 0) {
     return null;
   }
 
   return (
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
+      onDragEnd={handleDragEnd}
+    >
     <div className="space-y-4">
       <div className="sticky top-0 bg-white py-2 z-10">
         <h3 className="text-sm font-semibold text-blue-600 flex items-center gap-2">
@@ -291,6 +360,7 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
                     task={task}
                     onDelete={onDelete}
                     onEdit={onEdit}
+                    onQuickUpdate={onQuickUpdate}
                     className="pointer-events-auto"
                     style={{
                       position: 'absolute',
@@ -333,5 +403,6 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
         </div>
       )}
     </div>
+    </DndContext>
   );
 };
