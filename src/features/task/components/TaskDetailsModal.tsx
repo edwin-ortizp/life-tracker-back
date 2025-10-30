@@ -6,6 +6,17 @@ import {
   DialogFooter,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Play } from 'lucide-react';
@@ -21,6 +32,7 @@ interface TaskDetailsModalProps {
   onClose: () => void;
   onEdit: (task: Task) => void;
   onToggle?: (taskId: string, completed: boolean) => void;
+  onDelete?: (taskId: string) => void;
 }
 
 // Función para obtener información de prioridad
@@ -58,7 +70,8 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   isOpen,
   onClose,
   onEdit,
-  onToggle
+  onToggle,
+  onDelete
 }) => {
   if (!task) return null;
 
@@ -244,6 +257,39 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                   <span>✏️</span>
                   Editar
                 </Button>
+                {onDelete && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <span>🗑️</span>
+                        Eliminar
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar tarea?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta acción no se puede deshacer. La tarea "{task.title}" será eliminada permanentemente.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            onDelete(task.id);
+                            onClose();
+                          }}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Eliminar
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </div>
             </div>
 

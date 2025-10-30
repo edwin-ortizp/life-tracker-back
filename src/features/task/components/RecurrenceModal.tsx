@@ -171,13 +171,13 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
               <TaskTitleInput
                 multiline={mode === 'create'}
                 value={formData.title}
-                onChange={(title) => setFormData({ ...formData, title })}
+                onChange={(title) => setFormData(prev => ({ ...prev, title }))}
               />
             )}
 
             <TaskDescriptionInput
               value={formData.description || ''}
-              onChange={(description) => setFormData({ ...formData, description })}
+              onChange={(description) => setFormData(prev => ({ ...prev, description }))}
             />
             {mode === 'edit' && (
               <>
@@ -185,30 +185,30 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                   title={formData.title}
                   description={formData.description || ''}
                   onInsert={(text) =>
-                    setFormData({
-                      ...formData,
-                      description: (formData.description ? formData.description + '\n' : '') + text
-                    })
+                    setFormData(prev => ({
+                      ...prev,
+                      description: (prev.description ? prev.description + '\n' : '') + text
+                    }))
                   }
                 />
                 <TaskAiImproveDescription
                   title={formData.title}
                   description={formData.description || ''}
                   onInsert={(text) =>
-                    setFormData({
-                      ...formData,
-                      description: (formData.description ? formData.description + '\n' : '') + text
-                    })
+                    setFormData(prev => ({
+                      ...prev,
+                      description: (prev.description ? prev.description + '\n' : '') + text
+                    }))
                   }
                 />
                 <TaskAiIdeas
                   title={formData.title}
                   description={formData.description || ''}
                   onInsert={(text) =>
-                    setFormData({
-                      ...formData,
-                      description: (formData.description ? formData.description + '\n' : '') + text
-                    })
+                    setFormData(prev => ({
+                      ...prev,
+                      description: (prev.description ? prev.description + '\n' : '') + text
+                    }))
                   }
                 />
               </>
@@ -219,7 +219,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
             {mode !== 'complete' && (
               <TaskCategorySelect
                 value={formData.category}
-                onChange={(category) => setFormData({ ...formData, category })}
+                onChange={(category) => setFormData(prev => ({ ...prev, category }))}
               />
             )}
 
@@ -227,8 +227,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
               <TaskDateTimeRangeInput
                 startDate={formData.startDate}
                 endDate={formData.endDate}
-                onStartDateChange={(startDate) => setFormData({ ...formData, startDate })}
-                onEndDateChange={(endDate) => setFormData({ ...formData, endDate })}
+                onStartDateChange={(startDate) => setFormData(prev => ({ ...prev, startDate }))}
+                onEndDateChange={(endDate) => setFormData(prev => ({ ...prev, endDate }))}
                 showClearButton
               />
             )}
@@ -236,25 +236,25 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
             {mode !== 'complete' && (
               <TaskRecurrenceConfig
                 isRecurrent={formData.isRecurrent ?? false}
-                onRecurrentChange={(isRecurrent) => setFormData({
-                  ...formData,
+                onRecurrentChange={(isRecurrent) => setFormData(prev => ({
+                  ...prev,
                   isRecurrent,
                   recurrence: isRecurrent ? {
                     pattern: 'daily',
                     frequency: 1
                   } : undefined
-                })}
+                }))}
                 config={formData.recurrence}
-                onConfigChange={(recurrence) => setFormData({
-                  ...formData,
+                onConfigChange={(recurrence) => setFormData(prev => ({
+                  ...prev,
                   recurrence
-                })}
+                }))}
               />
             )}
             {mode !== 'complete' && (
               <TaskEstimatedTimeInput
                 value={formData.estimatedTime}
-                onChange={(value) => setFormData({ ...formData, estimatedTime: value })}
+                onChange={(value) => setFormData(prev => ({ ...prev, estimatedTime: value }))}
               />
             )}
             {mode !== 'complete' && (
@@ -268,9 +268,9 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                   Importante
                 </label>
                 <label className="flex items-center gap-2 text-sm">
-                  <Checkbox 
-                    checked={formData.isPrivate ?? false} 
-                    onCheckedChange={(v) => setFormData({ ...formData, isPrivate: Boolean(v) })} 
+                  <Checkbox
+                    checked={formData.isPrivate ?? false}
+                    onCheckedChange={(v) => setFormData(prev => ({ ...prev, isPrivate: Boolean(v) }))}
                   />
                   🔒 Privada (solo en Journal)
                 </label>

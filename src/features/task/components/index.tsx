@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { TaskList } from './TaskList';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { FirestoreErrorHandler } from '@/components/ui/FirestoreErrorHandler';
+import { adjustEndDateToStartDate } from '@/utils/dates';
 
 // Exports
 export * from './TaskKanban';
@@ -108,7 +109,30 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
               onDelete={deleteTask}
               onEdit={openEditModal}
               onView={(task) => { setDetailTask(task); setShowDetailModal(true); }}
-              onMove={(id, startDate) => editTask(id, { startDate: startDate || undefined })}
+              onMove={(id, startDate) => {
+                // Encontrar la tarea actual para obtener sus fechas originales
+                const task = tasks.find(t => t.id === id);
+                if (!task) return;
+
+                // Si se está quitando la fecha (startDate es null)
+                if (!startDate) {
+                  editTask(id, { startDate: undefined, endDate: undefined });
+                  return;
+                }
+
+                // Calcular la nueva endDate preservando la duración original
+                const newEndDate = adjustEndDateToStartDate(
+                  task.startDate,
+                  task.endDate,
+                  startDate
+                );
+
+                // Actualizar ambas fechas
+                editTask(id, {
+                  startDate,
+                  endDate: newEndDate
+                });
+              }}
               onAssignTimeOfDay={(id, timeOfDay) => editTask(id, { timeOfDay })}
               status={status}
               error={error}

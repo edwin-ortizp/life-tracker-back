@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Calendar, X, Clock } from 'lucide-react';
-import { getLocalDateString } from '@/utils/dates';
+import { getLocalDateString, adjustEndDateToStartDate } from '@/utils/dates';
 import { NativeMobileDatePicker } from '@/components/ui/native-mobile-date-picker';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -73,16 +73,30 @@ export const TaskDateTimeRangeInput: React.FC<TaskDateTimeRangeInputProps> = ({
     }
 
     const timeString = startDate ? getTimeString(startDate) : undefined;
-    const newDate = createDateFromInputs(dateString, timeString);
-    onStartDateChange(newDate);
+    const newStartDate = createDateFromInputs(dateString, timeString);
+
+    // Ajustar endDate si es necesario para preservar la duración
+    if (endDate) {
+      const newEndDate = adjustEndDateToStartDate(startDate, endDate, newStartDate);
+      onEndDateChange(newEndDate);
+    }
+
+    onStartDateChange(newStartDate);
   };
 
   const handleStartTimeChange = (timeString: string) => {
     if (!startDate) return;
 
     const dateString = formatDateForInput(startDate);
-    const newDate = createDateFromInputs(dateString, timeString);
-    onStartDateChange(newDate);
+    const newStartDate = createDateFromInputs(dateString, timeString);
+
+    // Ajustar endDate si es necesario para preservar la duración
+    if (endDate) {
+      const newEndDate = adjustEndDateToStartDate(startDate, endDate, newStartDate);
+      onEndDateChange(newEndDate);
+    }
+
+    onStartDateChange(newStartDate);
   };
 
   // Handlers para fecha de fin

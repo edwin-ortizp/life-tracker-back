@@ -139,3 +139,42 @@ export const getDaysAgo = (date: Date, daysAgo: number): Date => {
   result.setDate(result.getDate() - daysAgo);
   return result;
 };
+
+/**
+ * Ajusta la fecha de fin cuando se cambia la fecha de inicio, preservando la duración original
+ * @param originalStartDate - Fecha de inicio original
+ * @param originalEndDate - Fecha de fin original (puede ser undefined)
+ * @param newStartDate - Nueva fecha de inicio
+ * @returns Nueva fecha de fin que preserva la duración, o undefined si no había fecha de fin
+ */
+export const adjustEndDateToStartDate = (
+  originalStartDate: Date | undefined,
+  originalEndDate: Date | undefined,
+  newStartDate: Date
+): Date | undefined => {
+  // Si no hay fecha de fin original, retornar undefined
+  if (!originalEndDate) {
+    return undefined;
+  }
+
+  // Si no hay fecha de inicio original, establecer endDate como startDate + 1 hora por defecto
+  if (!originalStartDate) {
+    const defaultEndDate = new Date(newStartDate);
+    defaultEndDate.setHours(defaultEndDate.getHours() + 1);
+    return defaultEndDate;
+  }
+
+  // Calcular la duración original en milisegundos
+  const originalDuration = originalEndDate.getTime() - originalStartDate.getTime();
+
+  // Si la duración es negativa o cero, establecer endDate como startDate + 1 hora
+  if (originalDuration <= 0) {
+    const defaultEndDate = new Date(newStartDate);
+    defaultEndDate.setHours(defaultEndDate.getHours() + 1);
+    return defaultEndDate;
+  }
+
+  // Aplicar la misma duración a la nueva fecha de inicio
+  const newEndDate = new Date(newStartDate.getTime() + originalDuration);
+  return newEndDate;
+};
