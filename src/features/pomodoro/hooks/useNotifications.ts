@@ -144,7 +144,6 @@ export const useNotifications = () => {
       try {
         setPreferences(JSON.parse(savedPrefs));
       } catch {
-        console.warn('Invalid pomodoro prefs in storage');
       }
     }
     

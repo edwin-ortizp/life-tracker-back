@@ -188,12 +188,10 @@ const TaskPage: React.FC = () => {
               dueDate = parsedDate;
             } else {
               invalidDatesCount++;
-              console.warn(`Fecha inválida para tarea "${taskData.title}": ${taskData.dueDate}`);
             }
           }
           
           // Note: This would need to be connected to the Task component's addTask function
-          console.log('Would import task:', {
             title: taskData.title,
             description: taskData.description || '',
             dueDate: dueDate,

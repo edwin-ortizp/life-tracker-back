@@ -22,7 +22,6 @@ export class FirestoreWriteDiagnostic {
   static startDiagnostic() {
     if (typeof window === 'undefined') return;
 
-    console.log('🔍 Iniciando diagnóstico de escrituras Firestore...');
     
     // Interceptar setDoc
     if (window.firebase?.firestore?.setDoc && !this.originalSetDoc) {
@@ -47,7 +46,6 @@ export class FirestoreWriteDiagnostic {
       this.reportCurrentStats();
     }, 30000);
 
-    console.log('✅ Diagnóstico iniciado. Usa FirestoreWriteDiagnostic.getReport() para ver estadísticas.');
   }
 
   private static wrapWriteFunction(operation: string, originalFunction: any) {
@@ -81,7 +79,6 @@ export class FirestoreWriteDiagnostic {
       );
 
       if (recentWrites.length > 20) {
-        console.warn(`🚨 ALERTA: ${recentWrites.length} escrituras en el último minuto!`);
         this.analyzeRecentWrites(recentWrites);
       }
 
@@ -103,19 +100,15 @@ export class FirestoreWriteDiagnostic {
   private static analyzeRecentWrites(writes: typeof this.writeLog) {
     // Agrupar por colección
     const byCollection = this.groupBy(writes, 'collection');
-    console.warn('📊 Escrituras por colección (último minuto):');
     Object.entries(byCollection).forEach(([collection, collectionWrites]) => {
-      console.warn(`  ${collection}: ${collectionWrites.length} escrituras`);
     });
 
     // Agrupar por fuente (stack trace)
     const bySource = this.groupBy(writes, 'stack');
-    console.warn('📍 Fuentes más activas:');
     Object.entries(bySource)
       .sort(([,a], [,b]) => b.length - a.length)
       .slice(0, 5)
       .forEach(([source, sourceWrites]) => {
-        console.warn(`  ${sourceWrites.length}x: ${source.substring(0, 100)}...`);
       });
 
     // Detectar escrituras al mismo documento
@@ -128,7 +121,6 @@ export class FirestoreWriteDiagnostic {
 
     byDoc.forEach((docWrites, docKey) => {
       if (docWrites.length > 5) {
-        console.warn(`🔥 ${docWrites.length} escrituras al documento ${docKey}`);
       }
     });
   }
@@ -148,10 +140,6 @@ export class FirestoreWriteDiagnostic {
     const last1Min = this.writeLog.filter(w => w.timestamp > new Date(now.getTime() - 60 * 1000));
 
     if (last5Min.length > 0) {
-      console.log(`📈 Estadísticas de escrituras:`);
-      console.log(`  Últimos 5 min: ${last5Min.length} escrituras (${(last5Min.length / 5).toFixed(1)}/min)`);
-      console.log(`  Último minuto: ${last1Min.length} escrituras`);
-      console.log(`  Total desde inicio: ${this.writeCount} escrituras`);
     }
   }
 
@@ -177,18 +165,10 @@ export class FirestoreWriteDiagnostic {
     };
 
     console.group('📊 Reporte de Escrituras Firestore');
-    console.log('Total de escrituras desde inicio:', report.totalWrites);
-    console.log('Últimos 5 minutos:', report.last5Minutes);
-    console.log('Último minuto:', report.lastMinute);
-    console.log('Tasa actual:', report.ratePerMinute.toFixed(1), 'escrituras/minuto');
     
     if (report.ratePerMinute > 10) {
-      console.warn('🚨 Tasa de escrituras muy alta (>10/min)');
     }
     
-    console.log('Por colección:', report.byCollection);
-    console.log('Por operación:', report.byOperation);
-    console.log('Fuentes más activas:', report.topSources);
     console.groupEnd();
 
     return report;
@@ -205,13 +185,11 @@ export class FirestoreWriteDiagnostic {
       window.firebase.firestore.addDoc = this.originalAddDoc;
     }
 
-    console.log('🛑 Diagnóstico de escrituras detenido');
   }
 
   static clearLog() {
     this.writeLog = [];
     this.writeCount = 0;
-    console.log('🧹 Log de escrituras limpiado');
   }
 }
 

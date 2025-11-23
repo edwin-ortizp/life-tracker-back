@@ -96,7 +96,6 @@ export const useGlobalPomodoroTimer = () => {
         audioContext.close();
       }, 1000);
     } catch (error) {
-      console.warn('No se pudo reproducir el sonido de finalización:', error);
     }
   };
 
@@ -107,7 +106,6 @@ export const useGlobalPomodoroTimer = () => {
     
     // Primero notificar al hook de Firebase si está registrado
     if (onCompletionRef.current) {
-      console.log('Notificando completación a usePomodoroTimer...');
       onCompletionRef.current(POMODORO_DURATION);
     }
     

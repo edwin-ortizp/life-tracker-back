@@ -128,7 +128,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
       await loadPomodoroData();
       
       if (import.meta.env.DEV) {
-        console.log('Manual pomodoro session added locally');
       }
     } catch (error) {
       console.error('Pomodoro - Error al agregar sesión manual:', error);
@@ -198,7 +197,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
       await loadPomodoroData();
       
       if (import.meta.env.DEV) {
-        console.log('Pomodoro session saved locally');
       }
     } catch (error) {
       console.error('Pomodoro - Error al guardar:', error);
@@ -229,7 +227,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
       const docRef = doc(db, 'pomodoro', `${user.uid}_${date}`);
       await setDoc(docRef, dataToWrite);
       if (import.meta.env.DEV) {
-        console.log('Pomodoro session deleted locally');
       }
     } catch (error) {
       console.error('Pomodoro - Error al eliminar sesión:', error);
@@ -312,7 +309,6 @@ export const usePomodoroData = (selectedDate?: Date) => {
       await loadPomodoroData();
       
       if (import.meta.env.DEV) {
-        console.log('Pomodoro session updated locally');
       }
     } catch (error) {
       console.error('Pomodoro - Error al editar sesión:', error);

@@ -129,7 +129,6 @@ const TaskCalendarPage: React.FC = () => {
               startDate = parsedDate;
             } else {
               invalidDatesCount++;
-              console.warn(`Fecha inválida para tarea "${taskData.title}": ${dateStr}`);
             }
           }
 
@@ -139,7 +138,6 @@ const TaskCalendarPage: React.FC = () => {
               endDate = parsedDate;
             } else {
               invalidDatesCount++;
-              console.warn(`Fecha de fin inválida para tarea "${taskData.title}": ${taskData.endDate}`);
             }
           }
 

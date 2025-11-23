@@ -37,7 +37,6 @@ class FirestoreLogger {
     };
     
     this.operations.push(operation);
-    console.log(`🔍 [Firestore Read] ${collection}${documentId ? `/${documentId}` : ''} from ${source}`, operation);
   }
 
   logWrite(collection: string, source: string, documentId?: string) {
@@ -52,7 +51,6 @@ class FirestoreLogger {
     };
     
     this.operations.push(operation);
-    console.log(`✏️ [Firestore Write] ${collection}${documentId ? `/${documentId}` : ''} from ${source}`, operation);
     
     // Monitor writes for excessive patterns
     if (import.meta.env.DEV) {
@@ -72,7 +70,6 @@ class FirestoreLogger {
     };
     
     this.operations.push(operation);
-    console.log(`🗑️ [Firestore Delete] ${collection}${documentId ? `/${documentId}` : ''} from ${source}`, operation);
   }
 
   getOperations(): FirestoreOperation[] {
@@ -104,7 +101,6 @@ class FirestoreLogger {
     const summary = this.getOperationsSummary();
     console.group('📊 Firestore Operations Summary');
     Object.entries(summary).forEach(([key, count]) => {
-      console.log(`${key}: ${count} operations`);
     });
     console.groupEnd();
   }

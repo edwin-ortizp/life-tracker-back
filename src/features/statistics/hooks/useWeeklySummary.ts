@@ -101,7 +101,6 @@ export const useWeeklySummary = (startDate: Date) => {
       setLoading(false);
 
       if (import.meta.env.DEV) {
-        console.log('📊 Weekly summary loaded for dates:', weekDates.map(d => getLocalDateString(d)));
       }
     } catch (err) {
       console.error('Error loading weekly summary:', err);

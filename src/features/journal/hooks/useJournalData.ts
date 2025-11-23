@@ -93,7 +93,6 @@ export const useJournalData = (selectedDate: Date) => {
 
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Journal entry saved for date:', dateString);
       }
     } catch (error) {
       console.error('Error saving journal entry:', error);

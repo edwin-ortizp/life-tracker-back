@@ -111,7 +111,6 @@ export const useExerciseData = (selectedDate: Date) => {
       await setDoc(docRef, optimisticDoc);
       
       if (import.meta.env.DEV) {
-        console.log('Exercise logged successfully');
       }
     } catch (error) {
       // Rollback on error
@@ -152,7 +151,6 @@ export const useExerciseData = (selectedDate: Date) => {
       await setDoc(docRef, updatedDoc);
       
       if (import.meta.env.DEV) {
-        console.log('Exercise log updated successfully');
       }
     } catch (error) {
       // Rollback on error
@@ -211,7 +209,6 @@ export const useExerciseData = (selectedDate: Date) => {
       }
 
       if (import.meta.env.DEV) {
-        console.log('Exercise log deleted successfully');
       }
     } catch (error) {
       // Rollback on error

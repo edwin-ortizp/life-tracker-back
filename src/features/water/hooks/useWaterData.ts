@@ -108,7 +108,6 @@ export const useWaterData = (selectedDate: Date) => {
       
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Drink added with amount:', amount, 'ml');
       }
     } catch (error) {
       console.error('Error adding drink:', error);
@@ -160,7 +159,6 @@ export const useWaterData = (selectedDate: Date) => {
       
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Drink edited at index:', index);
       }
     } catch (error) {
       console.error('Error editing drink:', error);
@@ -203,7 +201,6 @@ export const useWaterData = (selectedDate: Date) => {
       
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Drink deleted at index:', index);
       }
     } catch (error) {
       console.error('Error deleting drink:', error);

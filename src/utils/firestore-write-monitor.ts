@@ -51,11 +51,9 @@ class FirestoreWriteMonitor {
     );
 
     if (recentWrites.length > this.alertThreshold) {
-      console.warn(`🚨 ALERTA: ${recentWrites.length} escrituras en los últimos 5 minutos`);
       
       // Agrupar por fuente
       const bySource = this.groupBy(recentWrites, 'source');
-      console.warn('📊 Escrituras por fuente:', 
         Object.entries(bySource).map(([source, writes]) => ({
           source,
           count: writes.length
@@ -64,7 +62,6 @@ class FirestoreWriteMonitor {
 
       // Agrupar por colección
       const byCollection = this.groupBy(recentWrites, 'collection');
-      console.warn('📊 Escrituras por colección:', 
         Object.entries(byCollection).map(([collection, writes]) => ({
           collection,
           count: writes.length
@@ -90,13 +87,11 @@ class FirestoreWriteMonitor {
 
     byDocument.forEach((docWrites, documentKey) => {
       if (docWrites.length > 10) { // Más de 10 escrituras al mismo documento
-        console.warn(`🔥 PATRÓN SOSPECHOSO: ${docWrites.length} escrituras a ${documentKey}:`);
         
         // Mostrar frecuencia de escrituras
         const sources = this.groupBy(docWrites, 'source');
         Object.entries(sources).forEach(([source, sourceWrites]) => {
           if (sourceWrites.length > 5) {
-            console.warn(`  - ${source}: ${sourceWrites.length} escrituras`);
             
             // Calcular intervalos entre escrituras
             const timestamps = sourceWrites.map(w => w.timestamp.getTime()).sort();
@@ -107,7 +102,6 @@ class FirestoreWriteMonitor {
             
             if (intervals.length > 0) {
               const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-              console.warn(`    Intervalo promedio: ${Math.round(avgInterval / 1000)}s`);
               
               if (avgInterval < 60000) { // Menos de 1 minuto entre escrituras
                 console.error(`    ⚠️ ESCRITURAS MUY FRECUENTES: cada ${Math.round(avgInterval / 1000)}s`);
@@ -146,14 +140,11 @@ class FirestoreWriteMonitor {
       w.timestamp > new Date(Date.now() - this.monitoringWindow)
     );
     
-    console.log(`Total de escrituras: ${recentWrites.length}`);
     
     if (recentWrites.length > 0) {
       const rate = recentWrites.length / 5; // escrituras por minuto
-      console.log(`Tasa: ${rate.toFixed(1)} escrituras/minuto`);
       
       if (rate > 10) {
-        console.warn('🚨 Tasa de escrituras muy alta');
       }
     }
     

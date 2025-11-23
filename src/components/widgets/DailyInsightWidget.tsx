@@ -134,7 +134,6 @@ export const DailyInsightWidget: React.FC<DailyInsightWidgetProps> = ({
                   onClick={() => {
                     // Aquí podríamos implementar acciones rápidas
                     // Por ejemplo, navegar a una página específica o ejecutar una acción
-                    console.log('Quick action:', insight.quickAction);
                   }}
                 >
                   {insight.quickAction}

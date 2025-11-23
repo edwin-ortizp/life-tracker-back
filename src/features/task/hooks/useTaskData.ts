@@ -115,7 +115,6 @@ export const useTaskData = () => {
       
       // Verificar si es un error interno de Firestore
       if (isFirestoreInternalError(error)) {
-        console.warn('Firestore internal error detected. This may require cache clearing.');
         setError('Error de sincronización detectado. Puedes intentar limpiar el cache offline si el problema persiste.');
       } else {
         setError(error instanceof Error ? error.message : 'Error loading tasks');
@@ -232,14 +231,12 @@ export const useTaskData = () => {
       
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Task added with ID:', docRef.id, 'and taskCode:', taskCode);
       }
     } catch (error) {
       console.error('Error al guardar tarea:', error);
       
       // Verificar si es un error interno de Firestore
       if (isFirestoreInternalError(error)) {
-        console.warn('Firestore internal error detected during task creation.');
         setError('Error de sincronización. La tarea puede haberse guardado pero hay un problema con el cache local.');
         // No revertir inmediatamente, dar oportunidad de que se sincronice
         setTimeout(() => {
@@ -371,7 +368,6 @@ export const useTaskData = () => {
       
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Task updated with ID:', taskId);
       }
       handleCloseModal();
     } catch (error) {
@@ -409,7 +405,6 @@ export const useTaskData = () => {
         
         setStatus('saved');
         if (import.meta.env.DEV) {
-          console.log('Task toggled with ID:', taskId);
         }
         return;
       }
@@ -449,7 +444,6 @@ export const useTaskData = () => {
       
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Task deleted with ID:', taskId);
       }
     } catch (error) {
       console.error('Error al eliminar:', error);
@@ -567,7 +561,6 @@ export const useTaskData = () => {
       
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Recurrent task completed and next created with ID:', docRef.id, 'and taskCode:', nextTaskCode);
       }
 
       handleCloseModal();

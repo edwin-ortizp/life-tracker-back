@@ -35,7 +35,6 @@ export const usePomodoroTimer = ({
   // Registrar callback de finalización en el hook global
   useEffect(() => {
     globalTimer.setOnCompletion((duration: number) => {
-      console.log('Callback de finalización llamado, guardando sesión...');
       onComplete(duration);
     });
   }, [globalTimer, onComplete]);

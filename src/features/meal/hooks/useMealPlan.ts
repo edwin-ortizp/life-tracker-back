@@ -94,7 +94,6 @@ export const useMealPlan = () => {
       setStatus('saved');
       
       if (import.meta.env.DEV) {
-        console.log('Meal plans loaded for months:', Object.keys(newMonthlyMealPlans));
       }
     } catch (error) {
       console.error('Error loading meal plans:', error);
@@ -150,7 +149,6 @@ export const useMealPlan = () => {
 
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Meal added for date:', date, 'type:', type);
       }
     } catch (error) {
       console.error('Error adding meal:', error);
@@ -212,7 +210,6 @@ export const useMealPlan = () => {
 
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Meal removed for date:', date, 'type:', type);
       }
     } catch (error) {
       console.error('Error removing meal:', error);
@@ -282,7 +279,6 @@ export const useMealPlan = () => {
       
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Meal plan imported for months:', Object.keys(mealsByMonth));
       }
     } catch (error) {
       console.error('Error importing meal plan:', error);

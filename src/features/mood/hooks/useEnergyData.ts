@@ -102,7 +102,6 @@ export const useEnergyData = (selectedDate: Date) => {
 
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Energy entry added with timestamp:', newEntry.timestamp);
       }
     } catch (err) {
       console.error('Energy - Error al guardar:', err);
@@ -138,7 +137,6 @@ export const useEnergyData = (selectedDate: Date) => {
 
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Energy entry updated with timestamp:', originalTimestamp);
       }
     } catch (err) {
       console.error('Energy - Error al actualizar:', err);
@@ -178,7 +176,6 @@ export const useEnergyData = (selectedDate: Date) => {
 
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Energy entry deleted with timestamp:', timestamp);
       }
     } catch (err) {
       console.error('Energy - Error al eliminar:', err);

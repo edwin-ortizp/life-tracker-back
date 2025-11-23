@@ -54,7 +54,6 @@ export const AiInsightCard: React.FC<Props> = ({ data, date, dayDate }) => {
       contents: [{ parts: [{ text: fullPrompt }] }],
       ...params
     };
-      console.log('🤖 AI Analysis Request:', {
       date,
       dataType: isWeeklySummaryData(finalData) ? 'weekly' : 'daily',
       dataKeys: finalData ? Object.keys(finalData) : [],
@@ -70,14 +69,11 @@ export const AiInsightCard: React.FC<Props> = ({ data, date, dayDate }) => {
       });
       
       const responseData = await res.json();
-      console.log('🤖 AI Response:', responseData);
       
       const text = responseData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
       if (text) {
         setAnalysis(text);
-        console.log('🤖 Analysis generated successfully');
       } else {
-        console.warn('🤖 No text in AI response:', responseData);
         setAnalysis('No se pudo generar análisis');
       }
     } catch (error) {

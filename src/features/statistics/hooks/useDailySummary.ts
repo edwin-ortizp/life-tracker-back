@@ -139,7 +139,6 @@ export const testFirestorePermissions = async (uid: string, date: Date) => {
   const dateStr = getLocalDateString(date);
   const [year, month] = dateStr.split('-');
   
-  console.log('🔧 Testing Firestore permissions for:', uid, dateStr);
   
   const collections = [
     { name: 'journal', id: `${uid}_${dateStr}` },
@@ -153,9 +152,7 @@ export const testFirestorePermissions = async (uid: string, date: Date) => {
   
   for (const col of collections) {
     try {
-      console.log(`🔍 Testing collection: ${col.name} with ID: ${col.id}`);
       const docSnap = await getDoc(doc(db, col.name, col.id));
-      console.log(`✅ ${col.name}: Success - exists: ${docSnap.exists()}`);
     } catch (error) {
       console.error(`❌ ${col.name}: Error -`, error);
     }
@@ -163,7 +160,6 @@ export const testFirestorePermissions = async (uid: string, date: Date) => {
   
   // Test tasks collection with query
   try {
-    console.log('🔍 Testing tasks collection with query');
     const todayStart = Timestamp.fromDate(startOfDay(date));
     const todayEnd = Timestamp.fromDate(endOfDay(date));
     
@@ -176,7 +172,6 @@ export const testFirestorePermissions = async (uid: string, date: Date) => {
       where('updatedAt', '<=', todayEnd)
     );
     const completedTaskDocs = await getDocs(completedTasksQuery);
-    console.log(`✅ tasks (completed today): Success - found ${completedTaskDocs.size} documents`);
 
     // Query for tasks due today
     const dueTodayTasksQuery = query(
@@ -186,7 +181,6 @@ export const testFirestorePermissions = async (uid: string, date: Date) => {
       where('dueDate', '<=', todayEnd)
     );
     const dueTodayTaskDocs = await getDocs(dueTodayTasksQuery);
-    console.log(`✅ tasks (due today): Success - found ${dueTodayTaskDocs.size} documents`);
     
     // Query for incomplete tasks
     const incompleteTasksQuery = query(
@@ -195,7 +189,6 @@ export const testFirestorePermissions = async (uid: string, date: Date) => {
       where('completed', '==', false)
     );
     const incompleteTaskDocs = await getDocs(incompleteTasksQuery);
-    console.log(`✅ tasks (incomplete): Success - found ${incompleteTaskDocs.size} documents`);
 
   } catch (error) {
     console.error('❌ tasks: Error -', error);
@@ -279,13 +272,10 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
       },
       exercise: (() => {
         const exerciseData = exerciseSnap.exists() ? exerciseSnap.data() : null;
-        console.log('🏃 fetchDailySummary - Exercise data for', dateStr, ':', exerciseData);
-        console.log('🏃 fetchDailySummary - Exercise summary:', exerciseData?.summary);
         
         const minutes = exerciseData?.summary?.totalDuration || 0;
         const calories = exerciseData?.summary?.totalCalories || 0;
         
-        console.log('🏃 fetchDailySummary - extracted minutes:', minutes, 'calories:', calories);
         
         return {
           minutes,
@@ -293,7 +283,6 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
         };
       })(),      pomodoro: (() => {
         const data = pomodoroSnap.exists() ? pomodoroSnap.data() : null;
-        console.log('🍅 fetchDailySummary - Pomodoro data for', dateStr, ':', data);
         
         const count = data?.count || 0;
           // Calcular workMinutes sumando las duraciones de todas las sesiones
@@ -306,9 +295,6 @@ export const fetchDailySummary = async (uid: string, date: Date): Promise<DailyS
           }, 0);
         }
         
-        console.log('🍅 fetchDailySummary - extracted count:', count, 'workMinutes:', workMinutes);
-        console.log('🍅 fetchDailySummary - sessions found:', data?.sessions?.length || 0);
-        console.log('🍅 fetchDailySummary - available keys:', data ? Object.keys(data) : 'no data');
         
         const expectedMinutes = 300;
         const completionRate = expectedMinutes > 0 ? Math.min(100, (workMinutes / expectedMinutes) * 100) : 0;
@@ -408,13 +394,10 @@ export const createDailySummaryFromData = (
       drinkDetails: processDrinkDetails(waterData),
     },
     exercise: (() => {
-      console.log('🏃 createDailySummaryFromData - Exercise data for', dateStr, ':', exerciseData);
-      console.log('🏃 createDailySummaryFromData - Exercise summary:', exerciseData?.summary);
       
       const minutes = exerciseData?.summary?.totalDuration || 0;
       const calories = exerciseData?.summary?.totalCalories || 0;
       
-      console.log('🏃 createDailySummaryFromData - extracted minutes:', minutes, 'calories:', calories);
       
       return {
         minutes,
@@ -422,7 +405,6 @@ export const createDailySummaryFromData = (
       };
     })(),    pomodoro: (() => {
       const data = pomodoroData;
-      console.log('🍅 Pomodoro data for', dateStr, ':', data);
       
       const count = data?.count || 0;
       
@@ -432,14 +414,10 @@ export const createDailySummaryFromData = (
         workMinutes = data.sessions.reduce((total: number, session: any) => {
           // duration parece venir en segundos, convertir a minutos
           const sessionMinutes = session.duration ? Math.round(session.duration / 60) : 0;
-          console.log('🍅 Session duration:', session.duration, 'seconds =', sessionMinutes, 'minutes');
           return total + sessionMinutes;
         }, 0);
       }
       
-      console.log('🍅 Pomodoro extracted - count:', count, 'workMinutes:', workMinutes);
-      console.log('🍅 Sessions found:', data?.sessions?.length || 0);
-      console.log('🍅 Available keys in data:', data ? Object.keys(data) : 'no data');
       
       const expectedMinutes = 300;
       const completionRate = expectedMinutes > 0 ? Math.min(100, (workMinutes / expectedMinutes) * 100) : 0;
@@ -453,7 +431,6 @@ export const createDailySummaryFromData = (
         averageSessionLength: parseFloat(averageSessionLength.toFixed(1)),
       };
       
-      console.log('🍅 Final pomodoro result:', result);
       return result;
     })(),    habits: processHabitDetails(habitData, dateStr),
     negativeHabits: {
@@ -503,7 +480,6 @@ export const useDailySummary = (date: Date) => {
     setError(null);
 
     try {
-      console.log('📊 Loading daily summary for:', getLocalDateString(date));
       const summaryData = await fetchDailySummary(user.uid, date);
       
       // Cache the result

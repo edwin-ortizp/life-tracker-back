@@ -17,12 +17,10 @@ if ('serviceWorker' in navigator) {
       window.dispatchEvent(new CustomEvent('sw-update-available'));
     },
     onOfflineReady() {
-      console.log('La aplicación está lista para usar sin conexión');
       // Opcional: mostrar toast de confirmación
       window.dispatchEvent(new CustomEvent('sw-offline-ready'));
     },
     onRegisterError(error) {
-      console.warn('Error al registrar el service worker:', error);
     },
     immediate: true
   });
@@ -37,9 +35,6 @@ if (import.meta.env.DEV) {
   (window as any).FirestoreWriteDiagnostic = FirestoreWriteDiagnostic;
   (window as any).firestoreWriteMonitor = firestoreWriteMonitor;
   
-  console.log('🔍 Diagnóstico de Firestore activado');
-  console.log('💡 Usa FirestoreWriteDiagnostic.getReport() para ver estadísticas');
-  console.log('💡 Usa firestoreWriteMonitor.getStats() para stats del monitor');
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

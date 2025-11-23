@@ -117,7 +117,6 @@ export const useMoodData = (selectedDate: Date) => {
       }
 
       if (import.meta.env.DEV) {
-        console.log('Mood added successfully');
       }
     } catch (error) {
       // Rollback on error
@@ -157,7 +156,6 @@ export const useMoodData = (selectedDate: Date) => {
       await setDoc(moodRef, optimisticDoc);
       
       if (import.meta.env.DEV) {
-        console.log('Mood updated successfully');
       }
     } catch (error) {
       // Rollback on error
@@ -206,7 +204,6 @@ export const useMoodData = (selectedDate: Date) => {
       }
 
       if (import.meta.env.DEV) {
-        console.log('Mood deleted successfully');
       }
     } catch (error) {
       // Rollback on error

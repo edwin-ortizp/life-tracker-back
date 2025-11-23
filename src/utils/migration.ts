@@ -3,14 +3,12 @@ import { db } from '@/firebase';
 
 export async function migrateQuantityToStock(userId: string) {
   try {
-    console.log('Starting migration: quantity → stock');
     
     // Get all documents from shopping-list collection for the current user
     const shoppingListRef = collection(db, 'shopping-list');
     const q = query(shoppingListRef, where('userId', '==', userId));
     const snapshot = await getDocs(q);
     
-    console.log(`Found ${snapshot.size} documents to migrate`);
     
     let migratedCount = 0;
     let errorCount = 0;
@@ -31,9 +29,7 @@ export async function migrateQuantityToStock(userId: string) {
           });
           
           migratedCount++;
-          console.log(`✓ Migrated document ${docSnapshot.id}: quantity(${data.quantity}) → stock(${data.quantity})`);
         } else {
-          console.log(`⚠ Document ${docSnapshot.id} doesn't have quantity field, skipping`);
         }
       } catch (error) {
         errorCount++;
@@ -41,10 +37,6 @@ export async function migrateQuantityToStock(userId: string) {
       }
     }
     
-    console.log('\n=== Migration Complete ===');
-    console.log(`Successfully migrated: ${migratedCount} documents`);
-    console.log(`Errors: ${errorCount} documents`);
-    console.log(`Total processed: ${snapshot.size} documents`);
     
     return { migratedCount, errorCount, total: snapshot.size };
     

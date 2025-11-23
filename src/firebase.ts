@@ -29,11 +29,9 @@ let persistenceInitialized = false;
 // Función para limpiar la persistencia offline
 export const clearOfflineCache = async (): Promise<void> => {
   try {
-    console.log('Clearing Firestore offline cache...');
     await disableNetwork(db);
     await clearIndexedDbPersistence(db);
     await enableNetwork(db);
-    console.log('Firestore offline cache cleared successfully');
     // Recargar la página para reinicializar Firestore
     if (typeof window !== 'undefined') {
       window.location.reload();
@@ -57,9 +55,7 @@ if (typeof window !== 'undefined' && !persistenceInitialized) {
     forceOwnership: true // Forzar la propiedad para evitar conflictos
   }).catch((err) => {
     if (err.code === 'failed-precondition') {
-      console.warn('Firestore persistence failed: Multiple tabs open');
     } else if (err.code === 'unimplemented') {
-      console.warn('Firestore persistence not available in this browser');
     } else {
       console.error('Firestore persistence error', err);
     }

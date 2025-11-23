@@ -47,7 +47,6 @@ export const ImportMoodButton: React.FC = () => {
 
       for (const dayData of data) {
         if (!dayData.date || !Array.isArray(dayData.moods)) {
-          console.warn('Datos inválidos para un día:', dayData);
           continue;
         }
 

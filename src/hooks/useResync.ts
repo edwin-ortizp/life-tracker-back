@@ -7,7 +7,6 @@ export const useResync = (label?: string) => {
     await enableNetwork(db);
     await waitForPendingWrites(db);
     if (import.meta.env.DEV && label) {
-      console.log(`${label} resynced`);
     }
   }, [label]);
 };

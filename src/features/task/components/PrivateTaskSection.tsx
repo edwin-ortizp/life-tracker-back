@@ -87,7 +87,6 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
               parsedStartDate = parsedDate;
             } else {
               invalidDatesCount++;
-              console.warn(`Fecha inválida para tarea "${taskData.title}": ${dateStr}`);
             }
           }
 

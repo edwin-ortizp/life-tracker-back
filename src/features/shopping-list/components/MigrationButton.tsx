@@ -21,14 +21,12 @@ export const MigrationButton: React.FC = () => {
     setResult(null);
 
     try {
-      console.log('Starting migration: quantity → stock');
       
       // Get all documents from shopping-list collection for the current user
       const shoppingListRef = collection(db, 'shopping-list');
       const q = query(shoppingListRef, where('userId', '==', user.uid));
       const snapshot = await getDocs(q);
       
-      console.log(`Found ${snapshot.size} documents to migrate`);
       
       let migratedCount = 0;
       let errorCount = 0;
@@ -50,10 +48,8 @@ export const MigrationButton: React.FC = () => {
             });
             
             migratedCount++;
-            console.log(`✓ Migrated document ${docSnapshot.id}: quantity(${data.quantity}) → stock(${data.quantity})`);
           } else {
             skippedCount++;
-            console.log(`⚠ Document ${docSnapshot.id} doesn't have quantity field, skipping`);
           }
         } catch (error) {
           errorCount++;
@@ -61,11 +57,6 @@ export const MigrationButton: React.FC = () => {
         }
       }
       
-      console.log('\n=== Migration Complete ===');
-      console.log(`Successfully migrated: ${migratedCount} documents`);
-      console.log(`Skipped: ${skippedCount} documents`);
-      console.log(`Errors: ${errorCount} documents`);
-      console.log(`Total processed: ${snapshot.size} documents`);
       
       if (migratedCount > 0) {
         setResult({ 

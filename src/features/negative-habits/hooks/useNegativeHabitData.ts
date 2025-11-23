@@ -87,7 +87,6 @@ export const useNegativeHabitData = () => {
       setStatus('saved');
       
       if (import.meta.env.DEV) {
-        console.log('Negative habits data loaded for months:', Object.keys(newMonthlyHabitsMap));
       }
     } catch (error) {
       console.error('Error loading negative habit data:', error);
@@ -142,7 +141,6 @@ export const useNegativeHabitData = () => {
       
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Negative habit logged for date:', date, 'habit:', habitId);
       }
     } catch (error) {
       console.error('Error logging negative habit:', error);
@@ -195,7 +193,6 @@ export const useNegativeHabitData = () => {
       
       setStatus('saved');
       if (import.meta.env.DEV) {
-        console.log('Negative habit removed for date:', date, 'habit:', habitId);
       }
     } catch (error) {
       console.error('Error removing negative habit:', error);
