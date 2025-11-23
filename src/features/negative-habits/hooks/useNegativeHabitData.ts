@@ -20,7 +20,7 @@ import {
 import {
   getYearMonth,
   getVisibleMonths
-} from '../utils/dates';
+} from '@/utils/dates';
 
 export const useNegativeHabitData = () => {
   const [monthlyHabitsMap, setMonthlyHabitsMap] = useState<Record<string, MonthlyHabits['habits']>>({});

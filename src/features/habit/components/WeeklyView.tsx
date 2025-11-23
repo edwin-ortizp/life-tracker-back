@@ -2,7 +2,7 @@
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
 import { HABIT_COLORS } from '../types';
-import { getWeekDays } from '../utils/dateUtils';
+import { getWeekDays } from '@/utils/dates';
 import { HabitGroup } from './HabitGroup';
 import { Button } from '@/components/ui/button';
 

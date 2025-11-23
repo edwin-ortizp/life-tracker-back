@@ -14,6 +14,7 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { getLocalDateString } from '@/utils/dates';
+import type { DailySummaryData } from '../types';
 
 // Helper function to process habit details
 const processHabitDetails = (habitData: any, dateStr: string) => {
@@ -132,62 +133,6 @@ const processMoodDetails = (moodData: any) => {
     details
   };
 };
-
-export interface DailySummaryData {
-  journal: {
-    words: number;
-  };  mood: {
-    count: number;
-    average: number; // Promedio de valores numéricos (1-10)
-    highest: number; // Valor más alto del día
-    lowest: number; // Valor más bajo del día
-    details?: Array<{
-      emoji: string;
-      text: string;
-      value: number;
-      time: string;
-    }>;
-  };habits: {
-    completed: number;
-    total: number;
-    incompletedByTimeOfDay?: Array<{
-      timeOfDay: 'morning' | 'afternoon' | 'night' | 'anytime';
-      habits: Array<{
-        id: number;
-        name: string;
-        icon: string;
-        goal: string;
-      }>;
-    }>;
-  };
-  negativeHabits: {
-    count: number;
-  };
-  exercise: {
-    minutes: number;
-    calories: number;
-  };
-  tasks: {
-    completed: number; // Tasks completed on this specific day (by updatedAt)
-    activeAndOverdue: number; // Incomplete tasks due today or in the past (dueDate <= today)
-    todayPending: number; // Incomplete tasks due today only
-    overdue: number; // Incomplete tasks due in the past
-  };
-  pomodoro: {
-    count: number;
-    expectedMinutes: number;
-    workMinutes: number;
-    completionRate: number; // As a percentage
-    averageSessionLength: number;
-  };  water: {
-    intake: number;
-    drinkDetails?: Array<{
-      type: string;
-      amount: number;
-      count: number;
-    }>;
-  };
-}
 
 // Función de prueba para verificar permisos individualmente
 export const testFirestorePermissions = async (uid: string, date: Date) => {

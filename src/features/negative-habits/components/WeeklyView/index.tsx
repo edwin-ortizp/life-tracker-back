@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { WeeklyHabitList } from './WeeklyHabitList';
 import { WeeklyViewProps } from '../../types';
 import { NEGATIVE_HABITS, NEGATIVE_HABIT_CATEGORIES, NegativeHabit } from '../../types';
-import { getWeekDays } from '../../utils/dates';
+import { getWeekDays } from '@/utils/dates';
 import { Search, ChevronDown, ChevronRight } from 'lucide-react';
 
 // Componente principal para la vista semanal de hábitos negativos

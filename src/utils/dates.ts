@@ -140,6 +140,138 @@ export const getDaysAgo = (date: Date, daysAgo: number): Date => {
   return result;
 };
 
+// ============================================================================
+// WEEK & DAY UTILITIES
+// ============================================================================
+
+export interface WeekDay {
+  dayName: string;
+  fullDate: string;
+  isCurrentMonth?: boolean;
+  date?: Date;
+}
+
+/**
+ * Obtiene los 7 días de la semana comenzando desde el lunes
+ * @param selectedDate - Fecha de referencia (default: hoy)
+ * @returns Array de días de la semana con formato corto
+ */
+export const getWeekDays = (selectedDate: Date = new Date()): WeekDay[] => {
+  const currentDate = new Date(selectedDate);
+  let dayOfWeek = currentDate.getDay(); // 0 (domingo) a 6 (sábado)
+
+  // Convertir el domingo (0) a 7 y restar 1 para que lunes sea 0
+  dayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+  const week: WeekDay[] = [];
+
+  // Comenzar desde el lunes
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(currentDate);
+    date.setDate(currentDate.getDate() - dayOfWeek + i);
+    week.push({
+      dayName: ['L', 'M', 'X', 'J', 'V', 'S', 'D'][i],
+      fullDate: getLocalDateString(date),
+      isCurrentMonth: date.getMonth() === currentDate.getMonth(),
+      date: new Date(date)
+    });
+  }
+
+  return week;
+};
+
+/**
+ * Obtiene la semana siguiente
+ */
+export const getNextWeek = (currentDate: Date): Date => {
+  const nextWeek = new Date(currentDate);
+  nextWeek.setDate(nextWeek.getDate() + 7);
+  return nextWeek;
+};
+
+/**
+ * Obtiene la semana anterior
+ */
+export const getPreviousWeek = (currentDate: Date): Date => {
+  const previousWeek = new Date(currentDate);
+  previousWeek.setDate(previousWeek.getDate() - 7);
+  return previousWeek;
+};
+
+/**
+ * Verifica si una fecha es la fecha actual
+ */
+export const isCurrentDate = (date: Date): boolean => {
+  return getLocalDateString(date) === getLocalDateString(new Date());
+};
+
+// ============================================================================
+// MONTH UTILITIES
+// ============================================================================
+
+/**
+ * Obtiene el número de días en un mes específico
+ */
+export const getDaysInMonth = (year: number, month: number): number => {
+  return new Date(year, month + 1, 0).getDate();
+};
+
+/**
+ * Obtiene el año y mes actual en formato YYYY-MM
+ */
+export const getCurrentYearMonth = (): string => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+};
+
+/**
+ * Obtiene el año y mes en formato YYYY-MM para una fecha dada
+ */
+export const getYearMonth = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+};
+
+/**
+ * Formatea un mes y año en español completo
+ */
+export const formatMonthYear = (date: Date): string => {
+  return date.toLocaleString('es', { month: 'long', year: 'numeric' });
+};
+
+/**
+ * Obtiene un array con los meses visibles desde el inicio del año hasta el mes actual
+ */
+export const getVisibleMonths = (date: Date): string[] => {
+  const currentYear = date.getFullYear();
+  const currentMonth = date.getMonth() + 1;
+  const months: string[] = [];
+
+  for (let month = 1; month <= currentMonth; month++) {
+    const monthStr = String(month).padStart(2, '0');
+    months.push(`${currentYear}-${monthStr}`);
+  }
+
+  return months;
+};
+
+/**
+ * Obtiene la fecha del primer día del mes
+ */
+export const getMonthStart = (yearMonth: string): Date => {
+  const [year, month] = yearMonth.split('-').map(Number);
+  return new Date(year, month - 1, 1);
+};
+
+/**
+ * Obtiene la fecha del último día del mes
+ */
+export const getMonthEnd = (yearMonth: string): Date => {
+  const [year, month] = yearMonth.split('-').map(Number);
+  return new Date(year, month, 0);
+};
+
 /**
  * Ajusta la fecha de fin cuando se cambia la fecha de inicio, preservando la duración original
  * @param originalStartDate - Fecha de inicio original

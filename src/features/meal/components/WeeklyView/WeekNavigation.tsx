@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import { formatMonthYear } from '../../utils/dateUtils.ts';
+import { formatMonthYear } from '@/utils/dates';
 
 interface WeekNavigationProps {
   currentDate: Date;

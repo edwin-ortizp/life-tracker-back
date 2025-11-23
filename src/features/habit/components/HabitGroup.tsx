@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Sun, Coffee, Moon, Flame, Trophy } from 'lucide-react'; // ChevronDown removed
 import { HABITS, Habit } from '../types';
-import { getWeekDays } from '../utils/dateUtils';
-import { getLocalDateString } from '@/utils/dates';
+import { getWeekDays, getLocalDateString } from '@/utils/dates';
 import { Progress } from '@/components/ui/progress';
 import {
   Accordion,

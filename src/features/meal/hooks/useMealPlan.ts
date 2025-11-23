@@ -15,7 +15,7 @@ import {
 import { firestoreLogger } from '@/utils/firestore-logger';
 import { useResync } from '@/hooks/useResync';
 import { MealPlan, Meal, MealPlanEntry } from '../types';
-import { getCurrentYearMonth } from '../utils/dateUtils';
+import { getCurrentYearMonth } from '@/utils/dates';
 
 interface MonthlyMealPlan {
   userId: string;

@@ -58,25 +58,3 @@ export const HABIT_COLORS: Record<number, string> = {
     18: 'bg-emerald-500',
     19: 'bg-indigo-500'
 } as const;
-  
-  // src/features/habit/utils/dateUtils.ts
-  export const getWeekDays = () => {
-    const today = new Date();
-    const day = today.getDay();
-    const week = [];
-    
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - day + i);
-      week.push({
-        dayName: ['D', 'L', 'M', 'X', 'J', 'V', 'S'][date.getDay()],
-        fullDate: date.toISOString().split('T')[0]
-      });
-    }
-    
-    return week;
-  };
-  
-  export const getDaysInMonth = (year: number, month: number) => {
-    return new Date(year, month + 1, 0).getDate();
-  };

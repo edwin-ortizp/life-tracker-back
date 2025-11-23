@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { MEAL_TYPES } from '../../types';
 import { MEAL_HOURS } from '../../utils/dateUtils';
 import { useToast } from '@/components/ui/use-toast';
-import { getWeekDays } from '../../utils/dateUtils';
+import { getWeekDays } from '@/utils/dates';
 import { WeeklyViewProps, MealModalState, MealFormData } from './types';
 import MobileDay from './MobileDay';
 import DesktopDay from './DesktopDay';

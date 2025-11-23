@@ -1,15 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { getLocalDateString } from '@/utils/dates';
-import { 
-  DailySummaryData, 
-  fetchDailySummary
-} from './useDailySummary';
-
-export interface WeeklySummaryData {
-  daily: { date: string; summary: DailySummaryData }[];
-  totals: DailySummaryData;
-}
+import { fetchDailySummary } from './useDailySummary';
+import type { DailySummaryData, WeeklySummaryData } from '../types';
 
 const emptySummary: DailySummaryData = {
   journal: { words: 0 },
