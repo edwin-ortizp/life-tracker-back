@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { X, Edit, Clock, GripVertical, Timer } from 'lucide-react';
+import { X, Edit, Clock, GripVertical, Timer, Play, Check } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
+import { useNavigate } from 'react-router-dom';
 import { Task, CATEGORY_COLORS, CATEGORY_LABELS } from '../types';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +18,7 @@ interface TaskCalendarCompactProps {
   onDelete: (id: string) => void;
   onEdit: (task: Task) => void;
   onQuickUpdate?: (task: Task) => void;
+  onToggle?: (taskId: string, completed: boolean) => void;
   style?: React.CSSProperties;
   className?: string;
   isDraggable?: boolean;
@@ -27,11 +29,13 @@ export const TaskCalendarCompact: React.FC<TaskCalendarCompactProps> = ({
   onDelete,
   onEdit,
   onQuickUpdate,
+  onToggle,
   style,
   className,
   isDraggable = true,
 }) => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Setup draggable
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -68,6 +72,20 @@ export const TaskCalendarCompact: React.FC<TaskCalendarCompactProps> = ({
     e.stopPropagation();
     setOpen(false);
     onDelete(task.id);
+  };
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen(false);
+    if (onToggle) {
+      onToggle(task.id, !task.completed);
+    }
+  };
+
+  const handleRun = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen(false);
+    navigate(`/task/${task.taskCode}/run`);
   };
 
   // Formatear hora de inicio
@@ -301,24 +319,64 @@ export const TaskCalendarCompact: React.FC<TaskCalendarCompactProps> = ({
           )}
 
           {/* Actions */}
-          <div className="flex gap-2 pt-2 border-t">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 h-8 text-xs"
-              onClick={handleEdit}
-            >
-              <Edit className="w-3 h-3 mr-1" />
-              Editar
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={handleDelete}
-            >
-              <X className="w-3 h-3" />
-            </Button>
+          <div className="space-y-2 pt-2 border-t">
+            {/* Primera fila: Completar y Ejecutar */}
+            <div className="flex gap-2">
+              {onToggle && (
+                <Button
+                  variant={task.completed ? "outline" : "default"}
+                  size="sm"
+                  className="flex-1 h-8 text-xs"
+                  onClick={handleToggle}
+                  title={task.completed ? "Marcar como pendiente" : "Marcar como completada"}
+                >
+                  {task.completed ? (
+                    <>
+                      <span className="mr-1">↩️</span>
+                      Pendiente
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3 h-3 mr-1" />
+                      Completar
+                    </>
+                  )}
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 h-8 text-xs"
+                onClick={handleRun}
+                title="Ejecutar tarea con timer"
+              >
+                <Play className="w-3 h-3 mr-1 text-green-600" />
+                Ejecutar
+              </Button>
+            </div>
+
+            {/* Segunda fila: Editar y Eliminar */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 h-8 text-xs"
+                onClick={handleEdit}
+                title="Editar tarea"
+              >
+                <Edit className="w-3 h-3 mr-1" />
+                Editar
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-8 text-xs px-3"
+                onClick={handleDelete}
+                title="Eliminar tarea"
+              >
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
           </div>
         </div>
       </PopoverContent>

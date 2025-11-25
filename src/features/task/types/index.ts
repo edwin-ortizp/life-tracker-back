@@ -3,6 +3,10 @@
 export const TASK_CATEGORIES = {
   PERSONAL: 'personal',
   WORK: 'work',
+  JIKKO: 'jikko',
+  UNICAUCA: 'unicauca',
+  ENTREAGILES: 'entreagiles',
+  CERTMIND: 'certmind',
   HOME: 'home',
   HEALTH: 'health',
   SHOPPING: 'shopping',
@@ -16,6 +20,10 @@ export type TaskCategory = typeof TASK_CATEGORIES[keyof typeof TASK_CATEGORIES];
 export const CATEGORY_LABELS: Record<TaskCategory, string> = {
   personal: 'Personal',
   work: 'Trabajo',
+  jikko: 'Jikko',
+  unicauca: 'Unicauca',
+  entreagiles: 'EntreAgiles',
+  certmind: 'CertMind',
   home: 'Casa',
   health: 'Salud',
   shopping: 'Compras',
@@ -27,6 +35,10 @@ export const CATEGORY_LABELS: Record<TaskCategory, string> = {
 export const CATEGORY_COLORS: Record<TaskCategory, { bg: string, text: string }> = {
   personal: { bg: 'bg-purple-100', text: 'text-purple-700' },
   work: { bg: 'bg-blue-100', text: 'text-blue-700' },
+  jikko: { bg: 'bg-orange-100', text: 'text-orange-700' },
+  unicauca: { bg: 'bg-teal-100', text: 'text-teal-700' },
+  entreagiles: { bg: 'bg-lime-100', text: 'text-lime-700' },
+  certmind: { bg: 'bg-cyan-100', text: 'text-cyan-700' },
   home: { bg: 'bg-green-100', text: 'text-green-700' },
   health: { bg: 'bg-red-100', text: 'text-red-700' },
   shopping: { bg: 'bg-yellow-100', text: 'text-yellow-700' },

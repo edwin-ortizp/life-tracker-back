@@ -35,6 +35,8 @@ export const HABITS: Habit[] = [
     { id: 19, name: 'Tomar agua (tarde)', icon: '💧', timeOfDay: 'afternoon', goal: '5 min', steps: ['Llenar un vaso con agua', 'Beber lentamente'] },
     { id: 20, name: 'Lavar loza del desayuno', icon: '🧽', timeOfDay: 'morning', goal: '10 min', steps: ['Fregar los platos', 'Enjuagar y secar'] },
     { id: 21, name: 'Lista de pendientes', icon: '📝', timeOfDay: 'night', goal: '15 min', steps: ['Revisar tareas pendientes', 'Priorizar actividades', 'Anotar nuevas tareas'] },
+    { id: 22, name: 'Aplicarme bloqueador solar', icon: '☀️', timeOfDay: 'morning', goal: '5 min', steps: ['Aplicar bloqueador en cara', 'Aplicar bloqueador en cuello'] },
+    { id: 23, name: 'Alistar la ropa para mañana', icon: '👕', timeOfDay: 'night', goal: '5 min', steps: ['Seleccionar ropa adecuada', 'Preparar accesorios'] }
 ] as const;
   
 export const HABIT_COLORS: Record<number, string> = {
@@ -56,7 +58,11 @@ export const HABIT_COLORS: Record<number, string> = {
     16: 'bg-violet-500',
     17: 'bg-sky-500',
     18: 'bg-emerald-500',
-    19: 'bg-indigo-500'
+    19: 'bg-indigo-500',
+    20: 'bg-yellow-600',
+    21: 'bg-pink-600',
+    22: 'bg-blue-600',
+    23: 'bg-green-600'
 } as const;
   
   // src/features/habit/utils/dateUtils.ts

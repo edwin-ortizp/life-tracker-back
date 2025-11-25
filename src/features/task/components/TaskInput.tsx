@@ -10,23 +10,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from 'lucide-react';
-import { TASK_CATEGORIES, TaskFormData, TaskCategory } from '../types';
+import { TASK_CATEGORIES, TaskFormData, TaskCategory, CATEGORY_LABELS } from '../types';
 
 interface TaskInputProps {
   onAdd: (data: TaskFormData) => void;
   disabled?: boolean;
 }
-
-const CATEGORY_LABELS: Record<TaskCategory, string> = {
-  personal: 'Personal',
-  work: 'Trabajo',
-  home: 'Casa',
-  health: 'Salud',
-  shopping: 'Compras',
-  study: 'Estudio',
-  social: 'Social',
-  other: 'Otro'
-};
 
 export const TaskInput: React.FC<TaskInputProps> = ({ onAdd, disabled }) => {
   const [title, setTitle] = useState('');

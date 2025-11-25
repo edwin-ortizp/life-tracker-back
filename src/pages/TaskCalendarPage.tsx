@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { FirestoreErrorHandler } from '@/components/ui/FirestoreErrorHandler';
 import { useAuth } from '@/hooks/useAuth';
 import { useTaskData } from '@/features/task/hooks/useTaskData';
-import { Task } from '@/features/task/types';
+import { Task, TaskCategory, CATEGORY_LABELS, TASK_CATEGORIES } from '@/features/task/types';
 import { CompactTaskHeader } from '@/components/navigation/CompactTaskHeader';
 import { cn } from '@/lib/utils';
 import { adjustEndDateToStartDate } from '@/utils/dates';
@@ -50,27 +50,66 @@ const TaskCalendarPage: React.FC = () => {
   // Get search query from URL params
   const searchQuery = searchParams.get('search') || '';
 
+  // Parse categories from URL (comma-separated)
+  const selectedCategories = React.useMemo(() => {
+    const categoriesParam = searchParams.get('categories');
+    if (!categoriesParam) return [];
+    return categoriesParam.split(',').filter(c =>
+      Object.values(TASK_CATEGORIES).includes(c as TaskCategory)
+    ) as TaskCategory[];
+  }, [searchParams]);
+
   // Update URL when search changes
   const handleSearchChange = (query: string) => {
+    const newParams: Record<string, string> = {};
+
     if (query.trim()) {
-      setSearchParams({ search: query });
-    } else {
-      setSearchParams({});
+      newParams.search = query;
     }
+
+    // Preserve categories if they exist
+    if (selectedCategories.length > 0) {
+      newParams.categories = selectedCategories.join(',');
+    }
+
+    setSearchParams(Object.keys(newParams).length > 0 ? newParams : {});
   };
 
-  // Filter tasks based on URL search parameter
-  const filteredTasks = React.useMemo(() => {
-    if (!searchQuery.trim()) {
-      return tasks;
+  // Update URL when categories change
+  const handleCategoriesChange = (categories: TaskCategory[]) => {
+    const newParams: Record<string, string> = {};
+
+    // Preserve search if exists
+    if (searchQuery.trim()) {
+      newParams.search = searchQuery;
     }
-    
-    const query = searchQuery.toLowerCase().trim();
-    return tasks.filter(task => 
-      task.title.toLowerCase().includes(query) ||
-      (task.description && task.description.toLowerCase().includes(query))
-    );
-  }, [tasks, searchQuery]);
+
+    // Add categories only if any are selected
+    if (categories.length > 0) {
+      newParams.categories = categories.join(',');
+    }
+
+    setSearchParams(Object.keys(newParams).length > 0 ? newParams : {});
+  };
+
+  // Filter tasks based on URL parameters (categories and search)
+  const filteredTasks = React.useMemo(() => {
+    // First filter by categories (if any are selected)
+    let filtered = selectedCategories.length > 0
+      ? tasks.filter(task => selectedCategories.includes(task.category))
+      : tasks;
+
+    // Then filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(task =>
+        task.title.toLowerCase().includes(query) ||
+        (task.description && task.description.toLowerCase().includes(query))
+      );
+    }
+
+    return filtered;
+  }, [tasks, selectedCategories, searchQuery]);
 
   if (!user) {
     return (
@@ -260,11 +299,30 @@ const TaskCalendarPage: React.FC = () => {
     }
   };
 
+  // Generate header title based on active filters
+  const getHeaderTitle = () => {
+    const filters: string[] = [];
+
+    if (searchQuery) filters.push(`"${searchQuery}"`);
+
+    if (selectedCategories.length > 0) {
+      const categoryLabels = selectedCategories
+        .map(cat => CATEGORY_LABELS[cat])
+        .join(', ');
+      filters.push(categoryLabels);
+    }
+
+    if (filters.length > 0) {
+      return `Calendario - ${filters.join(' | ')}`;
+    }
+    return "Calendario de Tareas";
+  };
+
   return (
     <div className="min-h-screen relative">
       {/* Header */}
       <CompactTaskHeader
-        title={searchQuery ? `Calendario - Buscando: "${searchQuery}"` : "Calendario de Tareas"}
+        title={getHeaderTitle()}
         actions={calendarActions}
         currentTab="week"
         onTabChange={handleTabChange}
@@ -302,6 +360,7 @@ const TaskCalendarPage: React.FC = () => {
               tasks={filteredTasks}
               onDelete={deleteTask}
               onEdit={openEditModal}
+              onToggle={toggleTask}
               onQuickUpdate={(task) => {
                 // Actualización rápida de duración sin abrir modal
                 editTask(task.id, { endDate: task.endDate });
@@ -333,6 +392,8 @@ const TaskCalendarPage: React.FC = () => {
               }}
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
+              selectedCategories={selectedCategories}
+              onCategoriesChange={handleCategoriesChange}
             />
           </CardContent>
         </Card>

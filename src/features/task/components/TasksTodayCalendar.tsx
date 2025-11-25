@@ -14,6 +14,7 @@ interface TasksTodayCalendarProps {
   onQuickUpdate?: (task: Task) => void;
   onView?: (task: Task) => void;
   onMove?: (taskId: string, startDate: Date | null) => void;
+  onToggle?: (taskId: string, completed: boolean) => void;
 }
 
 // Generar franjas de 30 minutos desde 06:00 hasta 22:00
@@ -35,6 +36,7 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
   onQuickUpdate,
   onView,
   onMove,
+  onToggle,
 }) => {
   const today = new Date();
   const timeSlots = useMemo(() => generateTimeSlots(), []);
@@ -361,6 +363,7 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
                     onDelete={onDelete}
                     onEdit={onEdit}
                     onQuickUpdate={onQuickUpdate}
+                    onToggle={onToggle}
                     className="pointer-events-auto"
                     style={{
                       position: 'absolute',
