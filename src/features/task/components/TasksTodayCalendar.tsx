@@ -5,7 +5,10 @@ import { Task } from '../types';
 import { TaskCalendarCompact } from './TaskCalendarCompact';
 import { TaskItemCalendar } from './TaskItemCalendar';
 import { cn } from '@/lib/utils';
-import { pixelsToTime, snapToInterval, adjustEndDateToStartDate } from '@/utils/dates';
+import { pixelsToTime, snapToInterval, adjustEndDateToStartDate, getLocalDateString, timeToPixels } from '@/utils/dates';
+import { HabitCalendarItem } from '@/features/habit/components/HabitCalendarItem';
+import { useHabitCalendar } from '@/features/habit/hooks/useHabitCalendar';
+import { parseTimeToDate } from '@/features/habit/utils/calendarUtils';
 
 interface TasksTodayCalendarProps {
   tasks: Task[];
@@ -41,6 +44,15 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
   const today = new Date();
   const timeSlots = useMemo(() => generateTimeSlots(), []);
   const gridRef = useRef<HTMLDivElement>(null);
+
+  // Hook para gestionar hábitos en el calendario
+  const {
+    habits,
+    updateHabitTime,
+    resetHabitTime,
+    getHabitTime,
+    toggleHabitCompletion,
+  } = useHabitCalendar(today);
 
   // Configurar sensores para drag-and-drop
   const sensors = useSensors(
@@ -223,6 +235,7 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
   }, [tasksWithTime]);
 
   const totalTodayTasks = tasksWithTime.length + tasksWithoutTime.length;
+  const totalHabits = habits.length;
 
   // Handlers para drag-and-drop
   const handleDragStart = () => {
@@ -235,46 +248,71 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, delta } = event;
+    const dataType = active.data.current?.type;
 
-    if (!active.data.current?.task || !onMove) return;
+    // Manejar drag de tareas
+    if (dataType === 'task-move') {
+      if (!active.data.current?.task || !onMove) return;
 
-    const task: Task = active.data.current.task;
-    if (!task.startDate) return;
+      const task: Task = active.data.current.task;
+      if (!task.startDate) return;
 
-    // Calcular nueva posición basada en el delta Y
-    const originalTop = calculateTopPosition(task.startDate);
-    const newTop = Math.max(0, originalTop + delta.y);
+      // Calcular nueva posición basada en el delta Y
+      const originalTop = calculateTopPosition(task.startDate);
+      const newTop = Math.max(0, originalTop + delta.y);
 
-    // Convertir pixels a tiempo
-    const newStartDate = pixelsToTime(newTop, task.startDate);
+      // Convertir pixels a tiempo
+      const newStartDate = pixelsToTime(newTop, task.startDate);
 
-    // Snap a intervalos de 15 minutos
-    const snappedStartDate = snapToInterval(newStartDate, 15);
+      // Snap a intervalos de 15 minutos
+      const snappedStartDate = snapToInterval(newStartDate, 15);
 
-    // Validar que esté dentro del rango 6:00 - 22:00
-    const newHour = snappedStartDate.getHours();
-    if (newHour < 6 || newHour >= 22) {
-      // Fuera de rango, no hacer nada
-      return;
-    }
-
-    // Ajustar endDate preservando la duración
-    const newEndDate = adjustEndDateToStartDate(task.startDate, task.endDate, snappedStartDate);
-
-    // Validar que endDate también esté en rango
-    if (newEndDate) {
-      const endHour = newEndDate.getHours();
-      if (endHour > 22) {
-        // EndDate fuera de rango, no hacer nada
+      // Validar que esté dentro del rango 6:00 - 22:00
+      const newHour = snappedStartDate.getHours();
+      if (newHour < 6 || newHour >= 22) {
+        // Fuera de rango, no hacer nada
         return;
       }
-    }
 
-    // Actualizar la tarea
-    onMove(task.id, snappedStartDate);
+      // Ajustar endDate preservando la duración
+      const newEndDate = adjustEndDateToStartDate(task.startDate, task.endDate, snappedStartDate);
+
+      // Validar que endDate también esté en rango
+      if (newEndDate) {
+        const endHour = newEndDate.getHours();
+        if (endHour > 22) {
+          // EndDate fuera de rango, no hacer nada
+          return;
+        }
+      }
+
+      // Actualizar la tarea
+      onMove(task.id, snappedStartDate);
+    }
+    // Manejar drag de hábitos
+    else if (dataType === 'habit-move') {
+      if (!active.data.current?.habit) return;
+      const habit = active.data.current.habit;
+
+      const currentTime = getHabitTime(habit.id, getLocalDateString(today));
+
+      // Calcular nueva posición
+      const originalTop = timeToPixels(parseTimeToDate(currentTime, today), 6);
+      const newTop = Math.max(0, originalTop + delta.y);
+      const newStartDate = pixelsToTime(newTop, today, 6);
+      const snappedStartDate = snapToInterval(newStartDate, 15);
+
+      // Validar rango 6:00-22:00
+      const newHour = snappedStartDate.getHours();
+      if (newHour < 6 || newHour >= 22) return;
+
+      // Guardar en localStorage
+      const newTime = format(snappedStartDate, 'HH:mm');
+      updateHabitTime(habit.id, getLocalDateString(today), newTime);
+    }
   };
 
-  if (totalTodayTasks === 0) {
+  if (totalTodayTasks === 0 && totalHabits === 0) {
     return null;
   }
 
@@ -289,12 +327,12 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
       <div className="sticky top-0 bg-white py-2 z-10">
         <h3 className="text-sm font-semibold text-blue-600 flex items-center gap-2">
           <span>📅</span>
-          Hoy - {format(today, 'dd/MM/yyyy')} ({totalTodayTasks} tareas)
+          Hoy - {format(today, 'dd/MM/yyyy')} ({totalTodayTasks} tareas{totalHabits > 0 && `, ${totalHabits} hábitos pendientes`})
         </h3>
       </div>
 
       {/* Grid de franjas horarias */}
-      {tasksWithTime.length > 0 && (
+      {(tasksWithTime.length > 0 || habits.length > 0) && (
         <div className="border rounded-lg overflow-hidden">
           <div className="bg-gray-50 px-3 py-2 border-b">
             <h4 className="text-xs font-semibold text-gray-700">Franjas Horarias (06:00 - 22:00)</h4>
@@ -376,6 +414,39 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
                   />
                 );
               })}
+            </div>
+
+            {/* CAPA 3: Hábitos (solo pendientes) */}
+            <div
+              className="absolute top-0 left-16 right-0 pointer-events-none"
+              style={{ height: `${timeSlots.length * 50}px` }}
+            >
+              {habits.map((habit) => (
+                <HabitCalendarItem
+                  key={`habit-${habit.id}`}
+                  habit={habit}
+                  customTime={getHabitTime(habit.id, getLocalDateString(today))}
+                  onTimeChange={(habitId, newTime) =>
+                    updateHabitTime(habitId, getLocalDateString(today), newTime)
+                  }
+                  onComplete={(habitId) =>
+                    toggleHabitCompletion(habitId, getLocalDateString(today))
+                  }
+                  onReset={(habitId) =>
+                    resetHabitTime(habitId, getLocalDateString(today))
+                  }
+                  className="pointer-events-auto"
+                  style={{
+                    position: 'absolute',
+                    top: `${habit.top}px`,
+                    height: `${habit.height}px`,
+                    left: '0',
+                    width: 'calc(100% - 4px)',
+                    marginLeft: '2px',
+                    zIndex: 5, // Debajo de tareas (z-index 10)
+                  }}
+                />
+              ))}
             </div>
           </div>
         </div>

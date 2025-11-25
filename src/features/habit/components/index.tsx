@@ -17,6 +17,7 @@ export * from './WeeklyView';
 export * from './YearlyView';
 export * from './HabitAiSuggestion';
 export * from './HabitAiMenu';
+export * from './HabitCalendarItem';
 
 // Main component
 export const Habit: React.FC<HabitProps> = () => {

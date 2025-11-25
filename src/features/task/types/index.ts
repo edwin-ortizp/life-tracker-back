@@ -33,15 +33,15 @@ export const CATEGORY_LABELS: Record<TaskCategory, string> = {
 };
 
 export const CATEGORY_COLORS: Record<TaskCategory, { bg: string, text: string }> = {
-  personal: { bg: 'bg-purple-100', text: 'text-purple-700' },
+  personal: { bg: 'bg-green-100', text: 'text-green-700' },
   work: { bg: 'bg-blue-100', text: 'text-blue-700' },
-  jikko: { bg: 'bg-orange-100', text: 'text-orange-700' },
-  unicauca: { bg: 'bg-teal-100', text: 'text-teal-700' },
-  entreagiles: { bg: 'bg-lime-100', text: 'text-lime-700' },
-  certmind: { bg: 'bg-cyan-100', text: 'text-cyan-700' },
+  jikko: { bg: 'bg-blue-100', text: 'text-orange-700' },
+  unicauca: { bg: 'bg-red-100', text: 'text-teal-700' },
+  entreagiles: { bg: 'bg-black-100', text: 'text-lime-700' },
+  certmind: { bg: 'bg-purple-100', text: 'text-purple-700' },
   home: { bg: 'bg-green-100', text: 'text-green-700' },
-  health: { bg: 'bg-red-100', text: 'text-red-700' },
-  shopping: { bg: 'bg-yellow-100', text: 'text-yellow-700' },
+  health: { bg: 'bg-pink-100', text: 'text-red-700' },
+  shopping: { bg: 'bg-pink-100', text: 'text-yellow-700' },
   study: { bg: 'bg-indigo-100', text: 'text-indigo-700' },
   social: { bg: 'bg-pink-100', text: 'text-pink-700' },
   other: { bg: 'bg-gray-100', text: 'text-gray-700' }
