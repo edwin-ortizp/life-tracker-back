@@ -182,26 +182,37 @@ export const MealAiButtons: React.FC<MealAiButtonsProps> = ({ selectedMeal, onFo
 
   const handleInsertMeal = () => {
     if (!generatedData) return;
-    
+
     if (generationType === 'meal') {
-      onFormChange('name', generatedData.name || '');
+      // Validar que el nombre no esté vacío
+      const name = (generatedData.name || '').trim();
+      if (!name) {
+        console.error('AI generated meal without name');
+        return;
+      }
+
+      onFormChange('name', name);
       onFormChange('notes', generatedData.notes || '');
       onFormChange('recipe', generatedData.recipe || '');
     } else {
       const meals: Record<Meal['type'], Omit<Meal, 'id'>> = {} as any;
       (Object.keys(MEAL_TYPES) as Array<Meal['type']>).forEach(t => {
         if (generatedData[t]) {
-          meals[t] = {
-            type: t,
-            name: generatedData[t].name || '',
-            notes: generatedData[t].notes || '',
-            recipe: generatedData[t].recipe || ''
-          };
+          const name = (generatedData[t].name || '').trim();
+          // Solo agregar comidas con nombre válido
+          if (name) {
+            meals[t] = {
+              type: t,
+              name: name,
+              notes: generatedData[t].notes || '',
+              recipe: generatedData[t].recipe || ''
+            };
+          }
         }
       });
       onOverwriteDay(meals);
     }
-    
+
     // Cerrar el modal completamente después de insertar
     closeDialog();
   };

@@ -35,7 +35,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
       name: meal?.name || '',
       notes: meal?.notes || '',
       recipe: meal?.recipe || '',
-      calories: meal?.calories
+      calories: meal?.calories ? Number(meal.calories) : undefined
     });
     setShowModal(true);
   };
@@ -43,27 +43,37 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
   const handleFormChange = (field: keyof MealFormData, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: field === 'calories' ? (value ? parseInt(value) : undefined) : value
+      [field]: field === 'calories' ? (value ? Number(value) || undefined : undefined) : value
     }));
   };
 
   const handleSubmit = async () => {
     if (!selectedMealInfo) return;
 
+    // Validación explícita del nombre (trim para evitar espacios)
+    if (!formData.name || formData.name.trim() === '') {
+      toast({
+        title: "Campo Requerido",
+        description: "El nombre de la comida es obligatorio.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       // Si existe una comida previa y el tipo ha cambiado, eliminar la anterior
       if (selectedMealInfo.meal && selectedMealInfo.meal.type !== formData.type) {
         await onRemoveMeal(selectedMealInfo.date, selectedMealInfo.meal.type);
       }
-      
+
       await onAddMeal(selectedMealInfo.date, formData.type, {
         type: formData.type,
-        name: formData.name,
+        name: formData.name.trim(), // Limpiar espacios
         notes: formData.notes,
         recipe: formData.recipe,
         calories: formData.calories
       });
-      
+
       setShowModal(false);
     } catch (err) { // Renamed error to err
       console.error('Error al guardar:', err);
@@ -97,7 +107,7 @@ export const WeeklyView: React.FC<WeeklyViewProps> = ({
           name: current.name,
           notes: current.notes || '',
           recipe: current.recipe || '',
-          calories: current.calories
+          calories: current.calories ? Number(current.calories) : undefined
         });
       }
     }

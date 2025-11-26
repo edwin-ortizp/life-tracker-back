@@ -110,13 +110,18 @@ export const useMealPlan = () => {
   const addMeal = useCallback(async (date: string, type: Meal['type'], meal: Omit<Meal, 'id'>) => {
     if (!user) return;
 
+    // Validación de campo obligatorio (última línea de defensa)
+    if (!meal.name || meal.name.trim() === '') {
+      throw new Error('El nombre de la comida es obligatorio');
+    }
+
     setStatus('saving');
     setError(null);
 
     const [year, month] = date.split('-');
     const yearMonth = `${year}-${month}`;
     const mealId = `${date}_${type}`;
-    
+
     // Guardar estado original para revertir si falla
     const originalMonthPlan = monthlyMealPlans[yearMonth] || {};
 
@@ -246,12 +251,19 @@ export const useMealPlan = () => {
         }
         
         acc[yearMonth][date] = Object.entries(meals).reduce((mealAcc, [type, meal]) => {
+          // Validar que el nombre exista y no sea solo espacios
+          if (!meal.name || meal.name.trim() === '') {
+            console.warn(`Skipping meal without name for ${date} ${type}`);
+            return mealAcc;
+          }
+
           const mealId = `${date}_${type}`;
           mealAcc[type] = {
             ...meal,
             id: mealId,
             type: type as Meal['type'],
-            calories: meal.calories
+            name: meal.name.trim(), // Limpiar espacios
+            calories: meal.calories ? Number(meal.calories) : undefined // Asegurar number
           };
           return mealAcc;
         }, {} as MealPlanEntry);

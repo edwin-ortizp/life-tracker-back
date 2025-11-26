@@ -43,6 +43,15 @@ export const MealModal: React.FC<MealModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validar usando la API de validación HTML5
+    const form = e.currentTarget as HTMLFormElement;
+    if (!form.checkValidity()) {
+      // Esto mostrará los mensajes de validación nativos del navegador
+      form.reportValidity();
+      return;
+    }
+
     await onSubmit();
   };
 
@@ -97,7 +106,7 @@ export const MealModal: React.FC<MealModalProps> = ({
                 min="0"
                 max="9999"
                 value={formData.calories || ''}
-                onChange={(e) => onFormChange('calories', e.target.value ? parseInt(e.target.value).toString() : '')}
+                onChange={(e) => onFormChange('calories', e.target.value)}
                 placeholder="450"
               />
             </div>
