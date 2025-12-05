@@ -19,7 +19,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Play } from 'lucide-react';
+import { Play, Calendar } from 'lucide-react';
+import { useGoogleCalendarExport } from '../hooks/useGoogleCalendarExport';
 import { Progress } from '@/components/ui/progress';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { isBefore, startOfDay } from 'date-fns';
@@ -76,6 +77,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   if (!task) return null;
 
   const navigate = useNavigate();
+  const { exportTaskToGoogleCalendar } = useGoogleCalendarExport();
 
   const categoryStyle = CATEGORY_COLORS[task.category];
   const priorityInfo = getPriorityInfo(task.priority);
@@ -249,6 +251,17 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                   <Play className="w-4 h-4" />
                   Ejecutar
                 </Button>
+                {/* Exportar a Google Calendar */}
+                {task.startDate && !task.isPrivate && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-2"
+                    onClick={() => exportTaskToGoogleCalendar(task)}
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Exportar a Google Calendar
+                  </Button>
+                )}
                 <Button
                   onClick={() => onEdit(task)}
                   variant="outline"

@@ -34,15 +34,15 @@ export const HABITS: Habit[] = [
     { id: 19, name: 'Tomar agua (tarde)', icon: '💧', timeOfDay: 'afternoon', goal: '5 min', baseTime: '15:00', steps: ['Llenar un vaso con agua', 'Beber lentamente'] },
 
     // Night habits (18:00-22:00)
-    { id: 12, name: 'Cena', icon: '🍽️', timeOfDay: 'night', goal: '30 min', baseTime: '19:00', steps: ['Elegir alimentos ligeros', 'Cocinar sin prisa', 'Cenar temprano', 'Lavar platos'] },
-    { id: 13, name: 'Lavarme los dientes', icon: '🪥', timeOfDay: 'night', goal: '2 min', baseTime: '19:45', steps: ['Preparar cepillo y pasta', 'Cepillar durante 2 minutos', 'Enjuagar boca', 'Limpiar cepillo'] },
-    { id: 14, name: 'Seda Dental', icon: '🦷', timeOfDay: 'night', goal: '2 min', baseTime: '19:50', steps: ['Tomar hilo dental', 'Limpiar entre cada diente', 'Enjuagar boca', 'Guardar hilo dental'] },
-    { id: 15, name: 'Llevar el diario', icon: '📓', timeOfDay: 'night', goal: '10 min', baseTime: '20:00', steps: ['Abrir el diario', 'Reflexionar sobre el día', 'Escribir pensamientos', 'Cerrar y guardar'] },
-    { id: 16, name: 'Botar algo que no sirva', icon: '🗑️', timeOfDay: 'night', goal: '10 min', baseTime: '20:15', steps: ['Buscar objetos innecesarios', 'Evaluar si sirven', 'Desechar responsablemente', 'Limpiar el área'] },
-    { id: 17, name: 'Organizar la cocina', icon: '🍴', timeOfDay: 'night', goal: '15 min', baseTime: '20:30', steps: ['Lavar platos pendientes', 'Guardar utensilios', 'Limpiar superficies', 'Organizar despensa'] },
-    { id: 18, name: 'Lectura', icon: '📚', timeOfDay: 'night', goal: '5 min', baseTime: '20:50', steps: ['Elegir libro', 'Encontrar lugar cómodo', 'Leer sin distracciones', 'Marcar página'] },
-    { id: 21, name: 'Lista de pendientes', icon: '📝', timeOfDay: 'night', goal: '15 min', baseTime: '21:00', steps: ['Revisar tareas pendientes', 'Priorizar actividades', 'Anotar nuevas tareas'] },
-    { id: 23, name: 'Alistar la ropa para mañana', icon: '👕', timeOfDay: 'night', goal: '5 min', baseTime: '21:20', steps: ['Seleccionar ropa adecuada', 'Preparar accesorios'] }
+    { id: 12, name: 'Cena', icon: '🍽️', timeOfDay: 'night', goal: '30 min', baseTime: '19:45', steps: ['Elegir alimentos ligeros', 'Cocinar sin prisa', 'Cenar temprano', 'Lavar platos'] },
+    { id: 13, name: 'Lavarme los dientes', icon: '🪥', timeOfDay: 'night', goal: '2 min', baseTime: '20:00', steps: ['Preparar cepillo y pasta', 'Cepillar durante 2 minutos', 'Enjuagar boca', 'Limpiar cepillo'] },
+    { id: 14, name: 'Seda Dental', icon: '🦷', timeOfDay: 'night', goal: '2 min', baseTime: '20:15', steps: ['Tomar hilo dental', 'Limpiar entre cada diente', 'Enjuagar boca', 'Guardar hilo dental'] },
+    { id: 15, name: 'Llevar el diario', icon: '📓', timeOfDay: 'night', goal: '10 min', baseTime: '20:30', steps: ['Abrir el diario', 'Reflexionar sobre el día', 'Escribir pensamientos', 'Cerrar y guardar'] },
+    { id: 16, name: 'Botar algo que no sirva', icon: '🗑️', timeOfDay: 'night', goal: '10 min', baseTime: '20:45', steps: ['Buscar objetos innecesarios', 'Evaluar si sirven', 'Desechar responsablemente', 'Limpiar el área'] },
+    { id: 17, name: 'Organizar la cocina', icon: '🍴', timeOfDay: 'night', goal: '15 min', baseTime: '21:00', steps: ['Lavar platos pendientes', 'Guardar utensilios', 'Limpiar superficies', 'Organizar despensa'] },
+    { id: 18, name: 'Lectura', icon: '📚', timeOfDay: 'night', goal: '5 min', baseTime: '21:15', steps: ['Elegir libro', 'Encontrar lugar cómodo', 'Leer sin distracciones', 'Marcar página'] },
+    { id: 21, name: 'Lista de pendientes', icon: '📝', timeOfDay: 'night', goal: '15 min', baseTime: '21:30', steps: ['Revisar tareas pendientes', 'Priorizar actividades', 'Anotar nuevas tareas'] },
+    { id: 23, name: 'Alistar la ropa para mañana', icon: '👕', timeOfDay: 'night', goal: '5 min', baseTime: '21:45', steps: ['Seleccionar ropa adecuada', 'Preparar accesorios'] }
 ] as const;
   
 export const HABIT_COLORS: Record<number, string> = {

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { X, Edit, Clock, GripVertical, Timer, Play, Check } from 'lucide-react';
+import { X, Edit, Clock, GripVertical, Timer, Play, Check, Calendar } from 'lucide-react';
+import { useGoogleCalendarExport } from '../hooks/useGoogleCalendarExport';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { useNavigate } from 'react-router-dom';
@@ -36,6 +37,7 @@ export const TaskCalendarCompact: React.FC<TaskCalendarCompactProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { exportTaskToGoogleCalendar } = useGoogleCalendarExport();
 
   // Setup draggable
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -86,6 +88,12 @@ export const TaskCalendarCompact: React.FC<TaskCalendarCompactProps> = ({
     e.stopPropagation();
     setOpen(false);
     navigate(`/task/${task.taskCode}/run`);
+  };
+
+  const handleExportToCalendar = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen(false);
+    exportTaskToGoogleCalendar(task);
   };
 
   // Formatear hora de inicio
@@ -316,6 +324,19 @@ export const TaskCalendarCompact: React.FC<TaskCalendarCompactProps> = ({
               {task.description.slice(0, 200)}
               {task.description.length > 200 && '...'}
             </div>
+          )}
+
+          {/* Exportar a Google Calendar */}
+          {!task.isPrivate && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-2 h-8 text-xs"
+              onClick={handleExportToCalendar}
+            >
+              <Calendar className="w-3 h-3" />
+              Exportar a Google Calendar
+            </Button>
           )}
 
           {/* Actions */}
