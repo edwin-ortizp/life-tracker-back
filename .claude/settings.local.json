@@ -6,7 +6,9 @@
       "Bash(grep:*)",
       "Bash(sed:*)",
       "Bash(pkill:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(find:*)",
+      "Bash(dir:*)"
     ],
     "deny": []
   }

@@ -9,6 +9,10 @@ import { useTheme } from '@/themes/ThemeProvider'
 import { useUserSettings, UserSettings } from '@/hooks/useUserSettings'
 import { useAuth } from '@/hooks/useAuth'
 import { LogOut } from 'lucide-react'
+import { useExternalCalendars } from '@/features/external-calendar/hooks/useExternalCalendars'
+import { AddCalendarDialog } from '@/features/external-calendar/components/AddCalendarDialog'
+import { CalendarListItem } from '@/features/external-calendar/components/CalendarListItem'
+import { CalendarSyncButton } from '@/features/external-calendar/components/CalendarSyncButton'
 
 const SettingsPage = () => {
   const { settings, saveSettings } = useUserSettings()
@@ -16,6 +20,18 @@ const SettingsPage = () => {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const { register, handleSubmit, reset } = useForm<UserSettings>()
+
+  // External calendars hook
+  const {
+    calendars,
+    addCalendar,
+    toggleCalendar,
+    removeCalendar,
+    syncCalendar,
+    syncAllCalendars,
+    syncStatus,
+    lastSyncTime,
+  } = useExternalCalendars()
 
   useEffect(() => {
     if (settings) {
@@ -94,11 +110,54 @@ const SettingsPage = () => {
           </div>
           <Button type="submit">Guardar</Button>
         </form>
-        
+
+        {/* External Calendars Section */}
+        <div className="space-y-4 pt-6 border-t">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Calendarios Externos</h2>
+            <CalendarSyncButton
+              onSync={syncAllCalendars}
+              syncStatus={syncStatus}
+              lastSyncTime={lastSyncTime}
+              variant="outline"
+              size="sm"
+            />
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Sincroniza eventos de Google Calendar mediante URLs públicas en formato iCal.
+          </p>
+
+          {calendars.length === 0 ? (
+            <div className="text-center py-8 border-2 border-dashed rounded-lg">
+              <p className="text-sm text-muted-foreground mb-4">
+                No hay calendarios configurados
+              </p>
+              <AddCalendarDialog onAdd={addCalendar} />
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                {calendars.map((calendar) => (
+                  <CalendarListItem
+                    key={calendar.id}
+                    calendar={calendar}
+                    onToggle={toggleCalendar}
+                    onRemove={removeCalendar}
+                    onSync={syncCalendar}
+                    isSyncing={syncStatus === 'syncing'}
+                  />
+                ))}
+              </div>
+              <AddCalendarDialog onAdd={addCalendar} />
+            </>
+          )}
+        </div>
+
         {/* Logout Button */}
         <div className="pt-4 border-t">
-          <Button 
-            variant="destructive" 
+          <Button
+            variant="destructive"
             onClick={handleLogout}
             className="w-full"
           >

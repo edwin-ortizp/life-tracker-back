@@ -9,6 +9,10 @@ import { pixelsToTime, snapToInterval, adjustEndDateToStartDate, getLocalDateStr
 import { HabitCalendarItem } from '@/features/habit/components/HabitCalendarItem';
 import { useHabitCalendar } from '@/features/habit/hooks/useHabitCalendar';
 import { parseTimeToDate } from '@/features/habit/utils/calendarUtils';
+import { useExternalCalendars } from '@/features/external-calendar/hooks/useExternalCalendars';
+import { ExternalCalendarEvent } from '@/features/external-calendar/components/ExternalCalendarEvent';
+import { CalendarSyncButton } from '@/features/external-calendar/components/CalendarSyncButton';
+import { calculateEventLayouts } from '@/features/external-calendar/utils/eventLayoutCalculator';
 
 interface TasksTodayCalendarProps {
   tasks: Task[];
@@ -53,6 +57,28 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
     getHabitTime,
     toggleHabitCompletion,
   } = useHabitCalendar(today);
+
+  // Hook para gestionar calendarios externos
+  const {
+    calendars: externalCalendars,
+    getVisibleEventsForDay,
+    hideEvent,
+    showEvent,
+    isEventHidden,
+    syncAllCalendars,
+    syncStatus,
+    lastSyncTime,
+  } = useExternalCalendars();
+
+  // Obtener eventos externos para hoy
+  const externalEventsToday = useMemo(() => {
+    return getVisibleEventsForDay(today);
+  }, [getVisibleEventsForDay, today]);
+
+  // Calcular layouts para eventos externos
+  const externalEventLayouts = useMemo(() => {
+    return calculateEventLayouts(externalEventsToday);
+  }, [externalEventsToday]);
 
   // Configurar sensores para drag-and-drop
   const sensors = useSensors(
@@ -325,10 +351,22 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
     >
     <div className="space-y-4">
       <div className="sticky top-0 bg-white py-2 z-10">
-        <h3 className="text-sm font-semibold text-blue-600 flex items-center gap-2">
-          <span>📅</span>
-          Hoy - {format(today, 'dd/MM/yyyy')} ({totalTodayTasks} tareas{totalHabits > 0 && `, ${totalHabits} hábitos pendientes`})
-        </h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold text-blue-600 flex items-center gap-2">
+            <span>📅</span>
+            Hoy - {format(today, 'dd/MM/yyyy')} ({totalTodayTasks} tareas{totalHabits > 0 && `, ${totalHabits} hábitos pendientes`})
+          </h3>
+          {externalCalendars.length > 0 && (
+            <CalendarSyncButton
+              onSync={syncAllCalendars}
+              syncStatus={syncStatus}
+              lastSyncTime={lastSyncTime}
+              variant="ghost"
+              size="sm"
+              showText={false}
+            />
+          )}
+        </div>
       </div>
 
       {/* Grid de franjas horarias */}
@@ -387,7 +425,33 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
               })}
             </div>
 
-            {/* CAPA 2: Tareas con posicionamiento absoluto y columnas */}
+            {/* CAPA 2: Eventos externos (z-index 4) */}
+            <div className="absolute top-0 left-16 right-0 pointer-events-none" style={{ height: `${timeSlots.length * 50}px` }}>
+              {externalEventLayouts.map((layout) => {
+                const calendar = externalCalendars.find(cal => cal.id === layout.event.calendarId);
+                if (!calendar) return null;
+
+                const isHidden = isEventHidden(layout.event.uid);
+
+                return (
+                  <ExternalCalendarEvent
+                    key={layout.event.uid}
+                    layout={layout}
+                    calendar={calendar}
+                    isHidden={isHidden}
+                    onToggleVisibility={(eventUid) => {
+                      if (isHidden) {
+                        showEvent(eventUid);
+                      } else {
+                        hideEvent(eventUid);
+                      }
+                    }}
+                  />
+                );
+              })}
+            </div>
+
+            {/* CAPA 3: Tareas con posicionamiento absoluto y columnas */}
             <div className="absolute top-0 left-16 right-0 pointer-events-none" style={{ height: `${timeSlots.length * 50}px` }}>
               {tasksWithLayout.map((task) => {
                 // Calcular ancho y posición left según columnas
@@ -416,7 +480,7 @@ export const TasksTodayCalendar: React.FC<TasksTodayCalendarProps> = ({
               })}
             </div>
 
-            {/* CAPA 3: Hábitos (solo pendientes) */}
+            {/* CAPA 4: Hábitos (solo pendientes) */}
             <div
               className="absolute top-0 left-16 right-0 pointer-events-none"
               style={{ height: `${timeSlots.length * 50}px` }}
