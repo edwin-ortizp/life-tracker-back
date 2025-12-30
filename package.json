@@ -11,7 +11,12 @@
     "deploy:win": "node post-build-windows.js",
     "deploy:mac": "node post-build-mac.js",
     "lint": "eslint . --report-unused-disable-directives",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "functions:install": "cd functions && npm install",
+    "functions:build": "cd functions && npm run build",
+    "functions:serve": "cd functions && npm run serve",
+    "functions:deploy": "cd functions && npm run deploy",
+    "functions:logs": "cd functions && npm run logs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -1,0 +1,253 @@
+{
+  "examples": {
+    "1_crear_item_simple": {
+      "description": "Crear un ítem de facturación simple con solo los campos requeridos",
+      "request": {
+        "items": [
+          {
+            "entity": "Ministerio de Salud",
+            "month": "2025-01",
+            "azureDevOpsId": "12345"
+          }
+        ]
+      },
+      "expected_response": {
+        "success": true,
+        "totalItems": 1,
+        "created": 1,
+        "updated": 0,
+        "unchanged": 0,
+        "errors": 0,
+        "results": [
+          {
+            "identifier": "Ministerio de Salud-2025-01",
+            "entity": "Ministerio de Salud",
+            "month": "2025-01",
+            "status": "created",
+            "itemId": "abc123xyz",
+            "message": "Ítem creado exitosamente con Azure DevOps ID: 12345"
+          }
+        ]
+      }
+    },
+    "2_crear_item_completo": {
+      "description": "Crear un ítem con todos los campos opcionales",
+      "request": {
+        "items": [
+          {
+            "entity": "Ministerio de Educación",
+            "month": "2025-02",
+            "azureDevOpsId": "67890",
+            "requestType": "Facturación mensual regular",
+            "notes": "Solicitud correspondiente al mes de febrero 2025. Incluye servicios de soporte técnico.",
+            "amount": 250000
+          }
+        ]
+      }
+    },
+    "3_multiples_items_batch": {
+      "description": "Crear múltiples ítems en una sola petición",
+      "request": {
+        "items": [
+          {
+            "entity": "Ministerio de Salud",
+            "month": "2025-03",
+            "azureDevOpsId": "11111"
+          },
+          {
+            "entity": "Ministerio de Educación",
+            "month": "2025-03",
+            "azureDevOpsId": "22222"
+          },
+          {
+            "entity": "Ministerio de Hacienda",
+            "month": "2025-03",
+            "azureDevOpsId": "33333"
+          },
+          {
+            "entity": "Ministerio de Trabajo",
+            "month": "2025-03",
+            "azureDevOpsId": "44444"
+          }
+        ]
+      }
+    },
+    "4_misma_entidad_varios_meses": {
+      "description": "Crear ítems para la misma entidad en diferentes meses",
+      "request": {
+        "items": [
+          {
+            "entity": "Ministerio de Defensa",
+            "month": "2025-01",
+            "azureDevOpsId": "ADO-100",
+            "amount": 100000
+          },
+          {
+            "entity": "Ministerio de Defensa",
+            "month": "2025-02",
+            "azureDevOpsId": "ADO-101",
+            "amount": 110000
+          },
+          {
+            "entity": "Ministerio de Defensa",
+            "month": "2025-03",
+            "azureDevOpsId": "ADO-102",
+            "amount": 105000
+          }
+        ]
+      }
+    },
+    "5_con_user_id": {
+      "description": "Crear ítems asociados a un usuario específico (multi-tenant)",
+      "request": {
+        "items": [
+          {
+            "entity": "Ministerio de Agricultura",
+            "month": "2025-01",
+            "azureDevOpsId": "AGR-2025-01"
+          }
+        ],
+        "userId": "user_12345_abc"
+      }
+    },
+    "6_idempotencia_test": {
+      "description": "Probar idempotencia - ejecutar el mismo request 2 veces",
+      "steps": [
+        {
+          "step": 1,
+          "action": "Primera ejecución - debe CREAR el ítem",
+          "request": {
+            "items": [
+              {
+                "entity": "Ministerio de Comercio",
+                "month": "2025-04",
+                "azureDevOpsId": "COM-2025-04"
+              }
+            ]
+          },
+          "expected_status": "created"
+        },
+        {
+          "step": 2,
+          "action": "Segunda ejecución - debe responder UNCHANGED (sin cambios)",
+          "request": {
+            "items": [
+              {
+                "entity": "Ministerio de Comercio",
+                "month": "2025-04",
+                "azureDevOpsId": "COM-2025-04"
+              }
+            ]
+          },
+          "expected_status": "unchanged"
+        }
+      ]
+    },
+    "7_actualizar_item_sin_azure_id": {
+      "description": "Actualizar un ítem existente que NO tiene Azure DevOps ID",
+      "prerequisite": "Primero crear un ítem manualmente en Firestore sin azureDevOpsId",
+      "request": {
+        "items": [
+          {
+            "entity": "Ministerio de Justicia",
+            "month": "2025-01",
+            "azureDevOpsId": "JUS-2025-001"
+          }
+        ]
+      },
+      "expected_status": "updated"
+    },
+    "8_error_mes_invalido": {
+      "description": "Error de validación: formato de mes inválido",
+      "request": {
+        "items": [
+          {
+            "entity": "Ministerio de Cultura",
+            "month": "2025-13",
+            "azureDevOpsId": "CUL-001"
+          }
+        ]
+      },
+      "expected_error": "Invalid month format"
+    },
+    "9_error_campo_faltante": {
+      "description": "Error de validación: campo requerido faltante",
+      "request": {
+        "items": [
+          {
+            "entity": "Ministerio de Turismo",
+            "month": "2025-05"
+          }
+        ]
+      },
+      "expected_error": "El campo 'azureDevOpsId' es requerido"
+    },
+    "10_n8n_webhook_simulation": {
+      "description": "Simulación de datos que vendrían de un webhook de Azure DevOps via n8n",
+      "comment": "En n8n usarías variables como {{ $json.fields.Custom_Entity }}",
+      "request": {
+        "items": [
+          {
+            "entity": "{{ workItem.fields['Custom.EntityName'] }}",
+            "month": "{{ workItem.fields['Custom.BillingMonth'] }}",
+            "azureDevOpsId": "{{ workItem.id }}",
+            "requestType": "{{ workItem.fields['System.WorkItemType'] }}",
+            "notes": "Work Item: {{ workItem.fields['System.Title'] }} - {{ workItem.fields['System.Description'] }}"
+          }
+        ]
+      },
+      "real_example": {
+        "items": [
+          {
+            "entity": "Ministerio de Relaciones Exteriores",
+            "month": "2025-05",
+            "azureDevOpsId": "12345",
+            "requestType": "Task",
+            "notes": "Work Item: Solicitud de facturación Mayo 2025 - Servicios de consultoría técnica"
+          }
+        ]
+      }
+    }
+  },
+  "postman_collection": {
+    "info": {
+      "name": "Life Tracker - Billing Items API",
+      "description": "Colección de Postman para probar la API de billing items"
+    },
+    "variable": [
+      {
+        "key": "base_url_local",
+        "value": "http://localhost:5001/lifetracker-9e171/us-central1/billingItems"
+      },
+      {
+        "key": "base_url_prod",
+        "value": "https://us-central1-lifetracker-9e171.cloudfunctions.net/billingItems"
+      }
+    ],
+    "requests": [
+      {
+        "name": "Healthcheck (GET)",
+        "method": "GET",
+        "url": "{{base_url_local}}"
+      },
+      {
+        "name": "Crear Item Simple",
+        "method": "POST",
+        "url": "{{base_url_local}}",
+        "body": "Ver ejemplo 1"
+      },
+      {
+        "name": "Crear Items en Batch",
+        "method": "POST",
+        "url": "{{base_url_local}}",
+        "body": "Ver ejemplo 3"
+      }
+    ]
+  },
+  "curl_commands": {
+    "healthcheck": "curl http://localhost:5001/lifetracker-9e171/us-central1/billingItems",
+    "crear_item_simple": "curl -X POST http://localhost:5001/lifetracker-9e171/us-central1/billingItems -H 'Content-Type: application/json' -d '{\"items\":[{\"entity\":\"Ministerio de Salud\",\"month\":\"2025-01\",\"azureDevOpsId\":\"12345\"}]}'",
+    "crear_item_completo": "curl -X POST http://localhost:5001/lifetracker-9e171/us-central1/billingItems -H 'Content-Type: application/json' -d '{\"items\":[{\"entity\":\"Ministerio de Educación\",\"month\":\"2025-02\",\"azureDevOpsId\":\"67890\",\"requestType\":\"Facturación mensual\",\"notes\":\"Solicitud de febrero\",\"amount\":250000}]}'",
+    "crear_batch": "curl -X POST http://localhost:5001/lifetracker-9e171/us-central1/billingItems -H 'Content-Type: application/json' -d '{\"items\":[{\"entity\":\"Ministerio A\",\"month\":\"2025-03\",\"azureDevOpsId\":\"11111\"},{\"entity\":\"Ministerio B\",\"month\":\"2025-03\",\"azureDevOpsId\":\"22222\"}]}'"
+  }
+}
