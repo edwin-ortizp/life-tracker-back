@@ -164,38 +164,48 @@ export const useShoppingList = () => {
       setError('Usuario no autenticado');
       return;
     }
-    
+
+    // Actualización optimista - actualizar UI inmediatamente
+    setItems(prev => prev.map(item =>
+      item.id === id ? { ...item, ...data } : item
+    ));
+
     setStatus('saving');
     setError(null);
 
     try {
       const docRef = doc(db, 'shopping-list', id);
-      
+
       // Construir datos limpios sin undefined
       const updateData: any = {
         updatedAt: serverTimestamp()
       };
-      
+
       // Solo incluir campos que tienen valor válido
       if (data.name !== undefined) updateData.name = data.name;
       if (data.stock !== undefined) updateData.stock = Number(data.stock);
       if (data.toBuy !== undefined) updateData.toBuy = Number(data.toBuy);
       if (data.status !== undefined) updateData.status = data.status;
-      
+
       if (data.price !== undefined && data.price !== null && !isNaN(Number(data.price))) {
         updateData.price = Number(data.price);
       }
-      
+
       if (data.category !== undefined && typeof data.category === 'string' && data.category.trim() !== '') {
         updateData.category = data.category.trim();
       }
-      
+
       if (data.place !== undefined && typeof data.place === 'string' && data.place.trim() !== '') {
         updateData.place = data.place.trim();
       }
 
-      if (data.consumeBy !== undefined && typeof data.consumeBy === 'string' && data.consumeBy.trim() !== '') {
-        updateData.consumeBy = data.consumeBy.trim();
+      if (data.consumeBy !== undefined) {
+        if (typeof data.consumeBy === 'string' && data.consumeBy.trim() !== '') {
+          updateData.consumeBy = data.consumeBy.trim();
+        } else {
+          // Si consumeBy es undefined o string vacío, eliminarlo del documento
+          updateData.consumeBy = null;
+        }
       }
 
       if (data.nextPurchase !== undefined) {
@@ -204,11 +214,11 @@ export const useShoppingList = () => {
 
       firestoreLogger.logWrite('shopping-list', 'useShoppingList.updateItem', id);
       await updateDoc(docRef, updateData);
-      
-      // Recargar lista después de actualizar
-      await loadShoppingList();
+
       setStatus('idle');
     } catch (e) {
+      // Revertir cambios en caso de error
+      await loadShoppingList();
       const errorMessage = e instanceof Error ? e.message : 'Error al actualizar';
       setError(errorMessage);
       setStatus('error');
@@ -218,26 +228,70 @@ export const useShoppingList = () => {
       setError('Usuario no autenticado');
       return;
     }
-    
+
+    // Actualización optimista - eliminar de UI inmediatamente
+    const previousItems = items;
+    setItems(prev => prev.filter(item => item.id !== id));
+
     setStatus('saving');
     setError(null);
 
     try {
       firestoreLogger.logDelete('shopping-list', 'useShoppingList.deleteItem', id);
       await deleteDoc(doc(db, 'shopping-list', id));
-      
-      // Recargar lista después de eliminar
-      await loadShoppingList();
+
       setStatus('idle');
     } catch (e) {
+      // Revertir cambios en caso de error
+      setItems(previousItems);
       const errorMessage = e instanceof Error ? e.message : 'Error al eliminar';
       setError(errorMessage);
       setStatus('error');
     }
   };
 
-  const moveItem = (id: string, status: ItemStatus) => {
-    updateItem(id, { status });
+  const moveItem = (id: string, newStatus: ItemStatus) => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+
+    const updates: Partial<ShoppingItem> = { status: newStatus };
+
+    // Regla 1: Limpiar consumeBy al mover a "Por Comprar"
+    // Los productos por comprar no tienen fecha de vencimiento hasta que se compren
+    if (newStatus === 'to-buy') {
+      updates.consumeBy = undefined;
+    }
+
+    // Regla 2: Transferir toBuy a stock al mover a "En Stock"
+    // Cuando compramos algo, lo que estaba en "toBuy" pasa a "stock"
+    if (newStatus === 'in-stock' && item.toBuy > 0) {
+      updates.stock = item.stock + item.toBuy;
+      updates.toBuy = 0;
+    }
+
+    // Regla 3: Al mover a "Poco Stock", transferir parcialmente toBuy a stock
+    if (newStatus === 'low-stock' && item.toBuy > 0) {
+      updates.stock = item.stock + item.toBuy;
+      updates.toBuy = 0;
+    }
+
+    // Regla 4: Al mover de "En Stock" a "Por Comprar", sugerir reposición
+    if (newStatus === 'to-buy' && item.status === 'in-stock' && item.toBuy === 0) {
+      updates.toBuy = Math.max(1, item.stock); // Sugerir comprar la misma cantidad que había
+      updates.stock = 0; // El stock se agotó
+    }
+
+    // Regla 5: Al mover a "Poco Stock" desde "Por Comprar", sugerir cantidad mínima
+    if (newStatus === 'low-stock' && item.status === 'to-buy') {
+      if (item.toBuy > 0 && item.stock === 0) {
+        updates.stock = item.toBuy;
+        updates.toBuy = 0;
+      } else if (item.stock === 0) {
+        updates.stock = 1;
+      }
+    }
+
+    updateItem(id, updates);
   };
 
   return { items, status, error, addItem, updateItem, deleteItem, moveItem, loadShoppingList };
