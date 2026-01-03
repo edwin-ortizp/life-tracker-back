@@ -7,7 +7,7 @@ import { Calendar, ChefHat, ShoppingCart, Package } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ShoppingExportWizard } from './ShoppingExportWizard';
-import { useShoppingList } from '../hooks/useShoppingList';
+import { useShoppingList } from '../hooks/useShoppingList.supabase';
 import { ShoppingItem } from '../types';
 import ItemModal from './ItemModal';
 import KanbanView from './KanbanView';

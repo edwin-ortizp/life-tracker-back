@@ -1,14 +1,11 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
-import { usePomodoroData } from '@/features/pomodoro/hooks/usePomodoroData'
 import { useGlobalPomodoroTimer } from '@/hooks/useGlobalPomodoroTimer'
 import { useNotifications } from '@/features/pomodoro/hooks/useNotifications'
-import { 
-  Wifi, 
-  WifiOff, 
-  CheckCircle, 
+import {
+  Wifi,
+  WifiOff,
   Timer,
-  AlertCircle,
   Bell,
   BellOff,
   Volume2,
@@ -19,8 +16,6 @@ const AppFooter = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const { isOnline } = useNetworkStatus()
-  const pomodoroData = usePomodoroData()
-  const dataStatus = pomodoroData.status
   const { isActive, formattedTime } = useGlobalPomodoroTimer()
   
   // Hook de notificaciones para mostrar estado
@@ -54,29 +49,6 @@ const AppFooter = () => {
 
   // Usar el hook global para detectar timer activo
   const hasActivePomodoro = isActive
-
-  const getSyncStatus = () => {
-    const statusMap = {
-      'idle': 'Inactivo',
-      'saving': 'Guardando...',
-      'pending': 'Pendiente',
-      'saved': 'Sincronizado',
-      'error': 'Error'
-    }
-    return statusMap[dataStatus] || 'Sincronizado'
-  }
-
-  const getSyncIcon = () => {
-    switch (dataStatus) {
-      case 'saving':
-      case 'pending':
-        return <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
-      case 'error':
-        return <AlertCircle className="w-3 h-3" />
-      default:
-        return <CheckCircle className="w-3 h-3" />
-    }
-  }
 
   // Función para manejar prueba de notificaciones
   const handleTestNotification = async () => {
@@ -145,13 +117,6 @@ const AppFooter = () => {
             </>
           )}
         </div>
-        
-        {/* Sync Status */}
-        <div className="flex items-center space-x-1">
-          {getSyncIcon()}
-          <span>{getSyncStatus()}</span>
-        </div>
-        
       </div>
       
       {/* Center Section */}

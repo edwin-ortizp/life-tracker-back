@@ -1,228 +1,163 @@
-// src/features/water/components/RangeStats.tsx
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  CartesianGrid
-} from 'recharts';
-import { Loader2 } from 'lucide-react';
-import * as Icons from 'lucide-react';
-import { DRINKS, DRINK_CATEGORIES } from '../types';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useWaterStatsRange } from '../hooks/useWaterStatsRange';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useDrinkTypes } from '../hooks/useDrinkTypes';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+const COLORS = ['#3b82f6', '#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
 
 interface RangeStatsProps {
-  startDate: Date;
-  endDate: Date;
+  initialStartDate?: Date;
+  initialEndDate?: Date;
 }
 
-const COLORS = ['#60A5FA', '#34D399', '#A78BFA', '#F87171', '#FBBF24', '#A3E635'];
+export const RangeStats: React.FC<RangeStatsProps> = ({
+  initialStartDate,
+  initialEndDate
+}) => {
+  const [startDate, setStartDate] = useState(initialStartDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
+  const [endDate, setEndDate] = useState(initialEndDate || new Date());
 
-export const RangeStats: React.FC<RangeStatsProps> = ({ startDate, endDate }) => {
-  const { stats, loading, error } = useWaterStatsRange(startDate, endDate);
+  const { stats, loading } = useWaterStatsRange(startDate, endDate);
+  const { getDrinkTypeByName } = useDrinkTypes();
 
-  if (loading) {
-    return (
-      <Card className="w-full">
-        <CardContent className="flex items-center justify-center p-6">
-          <Loader2 className="w-6 h-6 animate-spin" />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error || !stats) {
-    return (
-      <Card className="w-full">
-        <CardContent className="p-6">
-          <p className="text-red-500">Error al cargar estadísticas</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const formatDate = (dateStr: string) => {
-    return format(new Date(dateStr), 'dd MMM', { locale: es });
+  const handlePreviousPeriod = () => {
+    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    setStartDate(new Date(startDate.getTime() - days * 24 * 60 * 60 * 1000));
+    setEndDate(new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000));
   };
 
+  const handleNextPeriod = () => {
+    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const newEndDate = new Date(endDate.getTime() + days * 24 * 60 * 60 * 1000);
+
+    if (newEndDate <= new Date()) {
+      setStartDate(new Date(startDate.getTime() + days * 24 * 60 * 60 * 1000));
+      setEndDate(newEndDate);
+    }
+  };
+
+  if (loading) {
+    return <Card><CardContent className="p-6">Cargando...</CardContent></Card>;
+  }
+
+  // Prepare line chart data
+  const lineChartData = stats.map(day => ({
+    date: new Date(day.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }),
+    intake: day.intake / 1000 // Convert to liters
+  }));
+
+  // Prepare pie chart data for drink types
+  const drinkTotals: Record<string, number> = {};
+  stats.forEach(day => {
+    Object.entries(day.drinks).forEach(([drink, amount]) => {
+      drinkTotals[drink] = (drinkTotals[drink] || 0) + amount;
+    });
+  });
+
+  const pieChartData = Object.entries(drinkTotals).map(([drink, amount]) => ({
+    name: getDrinkTypeByName(drink)?.name || drink,
+    value: amount / 1000
+  }));
+
+  const totalIntake = stats.reduce((sum, day) => sum + day.intake, 0);
+  const avgDailyIntake = stats.length > 0 ? totalIntake / stats.length : 0;
+  const maxDayIntake = Math.max(...stats.map(d => d.intake), 0);
+
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {/* Resumen del período */}
-      <Card className="w-full md:col-span-2">
-        <CardHeader className="pb-2">
+    <div className="space-y-4">
+      {/* Period selector */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <Button onClick={handlePreviousPeriod} variant="outline" size="sm">
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm font-medium">
+              {startDate.toLocaleDateString('es-ES')} - {endDate.toLocaleDateString('es-ES')}
+            </span>
+            <Button
+              onClick={handleNextPeriod}
+              variant="outline"
+              size="sm"
+              disabled={endDate >= new Date()}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Summary stats */}
+      <Card>
+        <CardHeader>
           <CardTitle>Resumen del Período</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-lg bg-muted"> {/* Changed bg-blue-50 */}
-              <div className="text-2xl font-bold text-blue-600">
-                {Math.round(stats.summary.avgDailyIntake)}ml
-              </div>
-              <div className="text-sm text-gray-600">Promedio diario</div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-gray-600">Total</p>
+              <p className="text-2xl font-bold">{(totalIntake / 1000).toFixed(1)}L</p>
             </div>
-            <div className="p-4 rounded-lg bg-muted"> {/* Changed bg-green-50 */}
-              <div className="text-2xl font-bold text-green-600">
-                {stats.summary.daysTracked}
-              </div>
-              <div className="text-sm text-gray-600">Días registrados</div>
+            <div>
+              <p className="text-sm text-gray-600">Promedio</p>
+              <p className="text-2xl font-bold">{(avgDailyIntake / 1000).toFixed(1)}L</p>
             </div>
-            <div className="p-4 rounded-lg bg-muted"> {/* Changed bg-purple-50 */}
-              <div className="text-2xl font-bold text-purple-600">
-                {stats.summary.daysWithGoal}
-              </div>
-              <div className="text-sm text-gray-600">Días meta alcanzada</div>
-            </div>
-            <div className="p-4 rounded-lg bg-muted"> {/* Changed bg-orange-50 */}
-              <div className="text-2xl font-bold text-orange-600">
-                {Math.round(stats.summary.totalIntake / 1000)}L
-              </div>
-              <div className="text-sm text-gray-600">Total consumido</div>
+            <div>
+              <p className="text-sm text-gray-600">Máximo</p>
+              <p className="text-2xl font-bold">{(maxDayIntake / 1000).toFixed(1)}L</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Gráfico de consumo diario */}
-      <Card className="w-full md:col-span-2">
+      {/* Line chart */}
+      <Card>
         <CardHeader>
-          <CardTitle>Tendencia de Consumo</CardTitle>
+          <CardTitle>Tendencia Diaria</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={stats.dailyStats}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={formatDate}
-                  interval="preserveStartEnd"
-                />
-                <YAxis 
-                  tickFormatter={(value) => `${value}ml`}
-                />
-                <Tooltip
-                  formatter={(value: number) => [`${value}ml`, 'Consumo']}
-                  labelFormatter={(label) => format(new Date(label), 'dd MMMM yyyy', { locale: es })}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="intake" 
-                  stroke="#60A5FA" 
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={lineChartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis label={{ value: 'Litros', angle: -90, position: 'insideLeft' }} />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="intake" stroke="#3b82f6" name="Consumo (L)" />
+            </LineChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* Distribución por categoría */}
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Distribución por Categoría</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={stats.categoryStats}
-                  dataKey="totalAmount"
-                  nameKey="category"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  label={({ category }) => DRINK_CATEGORIES[category as keyof typeof DRINK_CATEGORIES]}
-                >
-                  {stats.categoryStats.map((entry, index) => (
-                    <Cell key={entry.category} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value: number) => [`${value}ml`, 'Cantidad']}
-                  labelFormatter={(category) => DRINK_CATEGORIES[category as keyof typeof DRINK_CATEGORIES]}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Bebidas más consumidas */}
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Top Bebidas</CardTitle>
-        </CardHeader>        <CardContent>
-          <div className="grid grid-cols-1 gap-3"> {/* Changed to single column for better text display */}
-            {stats.drinkStats.slice(0, 6).map(drink => {
-              const drinkInfo = DRINKS[drink.type];
-              const Icon = Icons[drinkInfo.icon as keyof typeof Icons] as React.ElementType;
-              return (
-                <div 
-                  key={drink.type}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-muted hover:bg-accent transition-colors" // Added hover and transition
-                >
-                  <Icon className={`w-8 h-8 ${drinkInfo.color} flex-shrink-0`} />
-                  <div className="flex-1 min-w-0"> {/* Added min-w-0 for proper text handling */}
-                    <div className="font-medium text-base">{drinkInfo.name}</div> {/* Increased text size */}
-                    <div className="text-sm text-muted-foreground"> {/* Changed color */}
-                      {Math.round(drink.totalAmount)}ml
-                    </div>
-                    <div className="text-xs text-muted-foreground"> {/* Changed color */}
-                      {drink.count} veces ({Math.round(drink.percentage)}%)
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Promedios mensuales si están disponibles */}
-      {stats.monthlyAverages && (
-        <Card className="w-full md:col-span-2">
+      {/* Pie chart */}
+      {pieChartData.length > 0 && (
+        <Card>
           <CardHeader>
-            <CardTitle>Promedios Mensuales</CardTitle>
+            <CardTitle>Distribución por Tipo de Bebida</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.monthlyAverages}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="month" 
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return format(date, 'MMM yyyy', { locale: es });
-                    }}
-                  />
-                  <YAxis 
-                    tickFormatter={(value) => `${Math.round(value)}ml`}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => [`${Math.round(value)}ml`, 'Promedio']}
-                    labelFormatter={(label) => {
-                      const date = new Date(label);
-                      return format(date, 'MMMM yyyy', { locale: es });
-                    }}
-                  />
-                  <Bar dataKey="average" fill="#60A5FA" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={pieChartData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={(entry) => `${entry.name}: ${entry.value.toFixed(1)}L`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {pieChartData.map((_entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       )}

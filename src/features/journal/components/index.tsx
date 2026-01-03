@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { JournalHeader } from './JournalHeader';
 import { JournalInput } from './JournalInput';
 import { PasswordProtection } from './PasswordProtection';
 import { PrivateTaskSection } from '@/features/task/components/PrivateTaskSection';
-import { SimpleJournalExportWizard } from './SimpleJournalExportWizard';
 import JournalAiMenu from './JournalAiMenu';
 import { LastUpdatedInfo } from './LastUpdatedInfo';
 import { Button } from '@/components/ui/button';
 import { Save, Download } from 'lucide-react';
-import { useJournalData } from '../hooks/useJournalData';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useJournalData } from '../hooks/useJournalData.supabase';
 import { useJournalEntry } from '../context/JournalEntryContext';
 import { useJournalLock } from '../context/JournalLockContext';
 import type { JournalProps } from '../types';
@@ -19,7 +17,7 @@ import type { JournalProps } from '../types';
 export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
   const { user } = useAuth();
   const { isUnlocked, setUnlocked } = useJournalLock();
-  const [isExportWizardOpen, setIsExportWizardOpen] = useState(false);
+  const [_isExportWizardOpen, setIsExportWizardOpen] = useState(false);
   const {
     entry,
     setEntry,
@@ -27,9 +25,7 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
     error,
     saveEntry,
     lastUpdated,
-    resync
   } = useJournalData(selectedDate);
-  const { isOnline } = useNetworkStatus();
 
   const { entry: sharedEntry, setEntry: setSharedEntry } = useJournalEntry();
 
@@ -77,18 +73,16 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
             </p>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col gap-4 p-2">
           <div className="flex justify-between items-center w-full">
             <LastUpdatedInfo lastUpdated={lastUpdated} />
             <div className="flex gap-2">
               <Button
                 onClick={() => saveEntry(sharedEntry)}
-                disabled={status === 'saving' || !isOnline}
+                disabled={status === "saving"}
               >
               {status === 'saving' ? (
                 <span className="flex items-center gap-2">
                   <Save className="w-4 h-4 animate-spin" />
-                  Guardando...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
@@ -118,33 +112,11 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
               </Button>
             </div>
           </div>
-          <div className="flex justify-center items-center gap-2 text-xs">
-            {status === 'saving' && (
-              <span className="text-blue-500">Guardando...</span>
-            )}
-            {status === 'pending' && (
-              <span className="text-yellow-600">Pendiente de sincronizar</span>
-            )}
-            {status === 'saved' && (
-              <span className="text-green-600">Sincronizado</span>
-            )}
-            {status === 'error' && (
-              <span className="text-red-600">Error de sincronización</span>
-            )}
-            {!isOnline && <span className="text-orange-600">Offline</span>}
-            <Button onClick={resync} variant="link" className="p-0 h-auto text-xs">Reintentar</Button>
-          </div>
-        </CardFooter>
       </Card>
       <PrivateTaskSection selectedDate={selectedDate} />
-      <SimpleJournalExportWizard
-        open={isExportWizardOpen}
-        onOpenChange={setIsExportWizardOpen}
-      />
     </>
   );
 };
 export * from "./MarkdownJournal";
-export * from "./ExportRangeButton";
 export * from "./JournalAiMenu";
 export default Journal;

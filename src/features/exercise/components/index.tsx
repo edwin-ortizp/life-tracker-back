@@ -1,12 +1,11 @@
 // src/features/exercise/components/index.tsx
 import { useState, useImperativeHandle, forwardRef } from 'react';
 import { Plus, BarChart } from 'lucide-react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { ExerciseProps } from '../types';
-import { useExerciseData } from '../hooks/useExerciseData';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useExerciseData } from '../hooks/useExerciseData.supabase';
 import { ExerciseList } from './ExerciseList';
 import { ExerciseFormModal } from './ExerciseFormModal';
 import { ExerciseStats } from './ExerciseStats';
@@ -31,9 +30,7 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
     logExercise,
     updateExerciseLog,
     deleteExerciseLog,
-    resync
   } = useExerciseData(selectedDate);
-  const { isOnline } = useNetworkStatus();
 
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [editingExerciseIndex, setEditingExerciseIndex] = useState<number | null>(null);
@@ -70,7 +67,7 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
             <Button
               onClick={() => setShowAddExercise(true)}
               className="gap-2 hidden sm:flex"
-              disabled={status === 'saving' || !isOnline}
+              disabled={status === "saving"}
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Agregar</span>
@@ -120,28 +117,11 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
           />
         )}
       </CardContent>
-      <CardFooter className="justify-center gap-2 text-xs p-2">
-        {status === 'saving' && (
-          <span className="text-blue-500">Guardando...</span>
-        )}
-        {status === 'pending' && (
-          <span className="text-yellow-600">Pendiente de sincronizar</span>
-        )}
-        {status === 'saved' && (
-          <span className="text-green-600">Sincronizado</span>
-        )}
-        {status === 'error' && (
-          <span className="text-red-600">Error de sincronización</span>
-        )}
-        {!isOnline && <span className="text-orange-600">Offline</span>}
-        <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
-      </CardFooter>
     </Card>
   );
 });
 
 Exercise.displayName = 'Exercise';
 // Re-export for easier imports
-export * from './ExerciseCalendar';
 
-export default Exercise;
+export default Exercise;export * from './ExerciseCalendar';

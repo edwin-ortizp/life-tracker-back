@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { ModularExportWizard, ModularExportWizardConfig } from '@/components/ui/modular-export-wizard';
-import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList';
-import { useRecipes } from '@/features/recipe/hooks/useRecipes';
-import { usePreparedMeals } from '@/features/prepared-meals/hooks/usePreparedMeals';
-import { useMealPlan } from '../hooks/useMealPlan';
+import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList.supabase';
+import { useRecipes } from '@/features/recipe/hooks/useRecipes.supabase';
+import { usePreparedMeals } from '@/features/prepared-meals/hooks/usePreparedMeals.supabase';
+import { useMealPlan } from '../hooks/useMealPlan.supabase';
 import { Package, ChefHat, Calendar, BookOpen } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, subDays, startOfWeek, endOfWeek } from 'date-fns';

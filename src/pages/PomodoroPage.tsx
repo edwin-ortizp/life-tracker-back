@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Pomodoro } from '@/features/pomodoro/components';
-import { PomodoroStats, PomodoroCalendar } from '@/features/pomodoro/components';
 import DateSelector from '@/components/DateSelector';
 import PageLayout from '@/components/PageLayout';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,9 +35,6 @@ export default function PomodoroPage() {
           <Pomodoro selectedDate={selectedDate} />
         </div>
         <div className="space-y-6">
-          <PomodoroCalendar selectedDate={selectedDate} />
-          <PomodoroStats dateRange="week" />
-          <PomodoroStats dateRange="month" />
         </div>
       </div>
     </PageLayout>

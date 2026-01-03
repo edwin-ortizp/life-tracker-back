@@ -8,7 +8,14 @@
       "Bash(pkill:*)",
       "WebSearch",
       "Bash(find:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(test:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(npx tsx:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm install:*)",
+      "Bash(node scripts/update-imports.js:*)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": []
   }

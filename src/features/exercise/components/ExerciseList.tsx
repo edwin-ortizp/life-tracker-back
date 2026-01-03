@@ -2,7 +2,8 @@
 import React from 'react';
 import { Trash2, Pencil, Flame, Footprints } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ExerciseLog, EXERCISES, EXERCISE_COLORS } from '../types';
+import { ExerciseLog, EXERCISE_COLORS } from '../types';
+import { useExerciseTypes } from '../hooks/useExerciseTypes';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -19,6 +20,8 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
   onDelete,
   isLoading
 }) => {
+  const { getExerciseTypeById } = useExerciseTypes();
+
   if (isLoading) {
     return <div className="text-center py-8">Cargando ejercicios...</div>;
   }
@@ -32,7 +35,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
   }
 
   const formatExerciseDetail = (log: ExerciseLog) => {
-    const exercise = EXERCISES.find(e => e.id === log.exerciseId);
+    const exercise = getExerciseTypeById(log.exerciseId);
     if (!exercise) return '';
 
     const details = [];
@@ -61,21 +64,10 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
   };
 
   const calculateProgress = (log: ExerciseLog) => {
-    const exercise = EXERCISES.find(e => e.id === log.exerciseId);
+    const exercise = getExerciseTypeById(log.exerciseId);
     if (!exercise) return 0;
 
-    if (exercise.defaultDuration && log.duration) {
-      return (log.duration / exercise.defaultDuration) * 100;
-    }
-
-    if (exercise.defaultDistance && log.distance) {
-      return (log.distance / exercise.defaultDistance) * 100;
-    }
-
-    if (exercise.defaultSets && exercise.defaultReps && log.sets && log.reps) {
-      return ((log.sets * log.reps) / (exercise.defaultSets * exercise.defaultReps)) * 100;
-    }
-
+    // Exercise types from DB don't have default values, so always return 100% for now
     return 100;
   };
 
@@ -128,7 +120,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
       {getDailyStatsCard()}
       
       {exerciseLogs.map((log, index) => {
-        const exercise = EXERCISES.find(e => e.id === log.exerciseId);
+        const exercise = getExerciseTypeById(log.exerciseId);
         if (!exercise) return null;
 
         return (

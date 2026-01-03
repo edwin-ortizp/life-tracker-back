@@ -7,7 +7,7 @@ import { TaskItemCalendar } from './TaskItemCalendar';
 import { cn } from '@/lib/utils';
 import { pixelsToTime, snapToInterval, adjustEndDateToStartDate, getLocalDateString, timeToPixels } from '@/utils/dates';
 import { HabitCalendarItem } from '@/features/habit/components/HabitCalendarItem';
-import { useHabitCalendar } from '@/features/habit/hooks/useHabitCalendar';
+import { useHabitCalendar } from '@/features/habit/hooks/useHabitCalendar.supabase';
 import { parseTimeToDate } from '@/features/habit/utils/calendarUtils';
 import { useExternalCalendars } from '@/features/external-calendar/hooks/useExternalCalendars';
 import { ExternalCalendarEvent } from '@/features/external-calendar/components/ExternalCalendarEvent';

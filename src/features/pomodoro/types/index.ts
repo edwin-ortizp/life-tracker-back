@@ -36,10 +36,9 @@ export interface PomodoroStats {
 }
 
 export interface ActivePomodoro {
-  startTime: TimestampWithOffset;
-  duration: number;
-  pausedAt?: TimestampWithOffset;
-  deviceId: string;  // Para manejar conflictos entre dispositivos
+  startTime: number;
+  pausedAt: number | null;
+  deviceId: string;
 }
 
 export interface PomodoroData {

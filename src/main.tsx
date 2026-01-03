@@ -4,8 +4,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';
 import App from './App';
 import { ThemeProvider } from './themes/ThemeProvider';
-import FirestoreWriteDiagnostic from './utils/firestore-diagnostic';
-import { firestoreWriteMonitor } from './utils/firestore-write-monitor';
 import './index.css';
 import './styles/pwa.css';
 
@@ -26,20 +24,6 @@ if ('serviceWorker' in navigator) {
     },
     immediate: true
   });
-}
-
-// Inicializar diagnósticos de Firestore en desarrollo
-if (import.meta.env.DEV) {
-  // Iniciar diagnóstico automáticamente
-  FirestoreWriteDiagnostic.startDiagnostic();
-  
-  // Hacer disponible globalmente para debugging
-  (window as any).FirestoreWriteDiagnostic = FirestoreWriteDiagnostic;
-  (window as any).firestoreWriteMonitor = firestoreWriteMonitor;
-  
-  console.log('🔍 Diagnóstico de Firestore activado');
-  console.log('💡 Usa FirestoreWriteDiagnostic.getReport() para ver estadísticas');
-  console.log('💡 Usa firestoreWriteMonitor.getStats() para stats del monitor');
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

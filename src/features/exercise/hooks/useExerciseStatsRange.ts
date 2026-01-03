@@ -1,55 +1,66 @@
 import { useState, useEffect } from 'react';
-import { db } from '@/firebase';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { doc, getDoc } from 'firebase/firestore';
 import { getLocalDateString } from '@/utils/dates';
 
-export interface ExerciseRangeStats {
-  dailyStats: Array<{ date: string; calories: number }>;
+interface DayStats {
+  date: string;
+  calories: number;
+  count: number;
 }
 
-export const useExerciseStatsRange = (startDate: Date, endDate: Date) => {
-  const [stats, setStats] = useState<ExerciseRangeStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function useExerciseStatsRange(startDate: Date, endDate: Date) {
   const { user } = useAuth();
+  const [stats, setStats] = useState<DayStats[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      setStats(null);
-      if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
+    const loadStats = async () => {
       setLoading(true);
-      setError(null);
 
-      try {
-        const dates: string[] = [];
-        const cur = new Date(startDate);
-        while (cur <= endDate) {
-          dates.push(getLocalDateString(cur));
-          cur.setDate(cur.getDate() + 1);
-        }
+      const start = getLocalDateString(startDate);
+      const end = getLocalDateString(endDate);
 
-        const snapshots = await Promise.all(
-          dates.map((d) => getDoc(doc(db, 'exercises', `${user.uid}_${d}`)))
-        );
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('date, calories_burned')
+        .eq('user_id', user.id)
+        .gte('date', start)
+        .lte('date', end)
+        .order('date', { ascending: true });
 
-        const dailyStats = snapshots.map((snap, idx) => ({
-          date: dates[idx],
-          calories: snap.exists() ? snap.data().summary?.totalCalories || 0 : 0,
-        }));
-
-        setStats({ dailyStats });
-      } catch (e) {
-        console.error('Error al cargar estadísticas:', e);
-        setError(e instanceof Error ? e.message : 'Error al cargar estadísticas');
-      } finally {
+      if (error) {
+        console.error('Error loading exercise stats:', error);
         setLoading(false);
+        return;
       }
+
+      // Aggregate by date
+      const statsByDate: Record<string, DayStats> = {};
+
+      data?.forEach((exercise) => {
+        if (!statsByDate[exercise.date]) {
+          statsByDate[exercise.date] = {
+            date: exercise.date,
+            calories: 0,
+            count: 0
+          };
+        }
+        statsByDate[exercise.date].calories += exercise.calories_burned || 0;
+        statsByDate[exercise.date].count += 1;
+      });
+
+      setStats(Object.values(statsByDate));
+      setLoading(false);
     };
 
-    fetchStats();
+    loadStats();
   }, [user, startDate, endDate]);
 
-  return { stats, loading, error };
-};
+  return { stats, loading };
+}

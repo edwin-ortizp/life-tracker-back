@@ -1,98 +1,88 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
-import { startOfMonth, endOfMonth } from 'date-fns';
+import React, { useMemo } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useExerciseStatsRange } from '../hooks/useExerciseStatsRange';
-import { getLocalDateString } from '@/utils/dates';
-import { Loader2, Flame } from 'lucide-react';
+import { getMonthDates } from '@/utils/dates';
 
 interface ExerciseCalendarProps {
   selectedDate: Date;
-  goal?: number;
 }
 
-export const ExerciseCalendar: React.FC<ExerciseCalendarProps> = ({ selectedDate, goal = 500 }) => {
-  const [month, setMonth] = useState(startOfMonth(selectedDate));
+export const ExerciseCalendar: React.FC<ExerciseCalendarProps> = ({ selectedDate }) => {
+  const { start, end } = useMemo(() => getMonthDates(selectedDate), [selectedDate]);
+  const { stats, loading } = useExerciseStatsRange(start, end);
 
-  useEffect(() => {
-    setMonth(startOfMonth(selectedDate));
-  }, [selectedDate]);
-
-  const monthStart = useMemo(() => startOfMonth(month), [month]);
-  const monthEnd = useMemo(() => endOfMonth(month), [month]);
-
-  const { stats, loading } = useExerciseStatsRange(monthStart, monthEnd);
-
-  const calorieMap = useMemo(() => {
-    const map: Record<string, number> = {};
-    stats?.dailyStats.forEach(({ date, calories }) => {
-      map[date] = calories;
-    });
-    return map;
+  const maxCalories = useMemo(() => {
+    return Math.max(...stats.map(s => s.calories), 100);
   }, [stats]);
 
-  const DayContent = (props: { date: Date; displayMonth: Date; activeModifiers: Record<string, boolean> }) => {
-    const dateStr = getLocalDateString(props.date);
-    const calories = calorieMap[dateStr] || 0;
-    const percentage = Math.min(calories / goal, 1);
-    const size = 28;
-    const stroke = 3;
-    const radius = (size - stroke) / 2;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - percentage * circumference;
-    const reached = calories >= goal;
-
-    return (
-      <div className="relative flex items-center justify-center w-7 h-7">
-        <svg width={size} height={size} className="absolute">
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke={reached ? '#fed7aa' : '#e5e7eb'}
-            strokeWidth={stroke}
-            fill="none"
-          />
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke={reached ? '#f97316' : '#9ca3af'}
-            strokeWidth={stroke}
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
-          />
-        </svg>
-        <span className="text-[10px] font-medium z-10">{props.date.getDate()}</span>
-      </div>
-    );
+  const getColorIntensity = (calories: number) => {
+    const intensity = Math.min((calories / maxCalories) * 100, 100);
+    if (intensity === 0) return 'bg-gray-100';
+    if (intensity < 25) return 'bg-orange-200';
+    if (intensity < 50) return 'bg-orange-300';
+    if (intensity < 75) return 'bg-orange-400';
+    return 'bg-orange-500';
   };
 
+  if (loading) {
+    return <Card><CardContent className="p-6">Cargando...</CardContent></Card>;
+  }
+
+  const statsMap = new Map(stats.map(({ date, calories }) => [date, calories]));
+
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-col items-center gap-2">
-        <Flame className="w-5 h-5 text-orange-600" />
-        <CardTitle className="text-center">Historial Mensual</CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle>Calendario de Ejercicios</CardTitle>
       </CardHeader>
-      <CardContent className="relative p-4">
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
-            <Loader2 className="w-6 h-6 animate-spin" />
+      <CardContent>
+        <div className="grid grid-cols-7 gap-2">
+          {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
+            <div key={day} className="text-center text-sm font-medium text-gray-600">
+              {day}
+            </div>
+          ))}
+
+          {Array.from({ length: 35 }, (_, i) => {
+            const dayIndex = i - new Date(start).getDay();
+            const currentDate = new Date(start);
+            currentDate.setDate(currentDate.getDate() + dayIndex);
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const calories = statsMap.get(dateStr) || 0;
+
+            const isCurrentMonth = currentDate.getMonth() === selectedDate.getMonth();
+
+            return (
+              <div
+                key={i}
+                className={`aspect-square flex flex-col items-center justify-center p-1 rounded ${
+                  isCurrentMonth ? getColorIntensity(calories) : 'bg-gray-50'
+                }`}
+                title={`${dateStr}: ${calories} cal`}
+              >
+                <span className={`text-xs ${isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}`}>
+                  {currentDate.getDate()}
+                </span>
+                {isCurrentMonth && calories > 0 && (
+                  <span className="text-xs font-bold text-gray-900">
+                    {calories}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 flex items-center gap-2 text-xs">
+          <span>Menos</span>
+          <div className="flex gap-1">
+            {['bg-gray-100', 'bg-orange-200', 'bg-orange-300', 'bg-orange-400', 'bg-orange-500'].map((color, i) => (
+              <div key={i} className={`w-4 h-4 rounded ${color}`} />
+            ))}
           </div>
-        )}
-        <Calendar
-          month={month}
-          onMonthChange={setMonth}
-          showOutsideDays
-          components={{ DayContent }}
-          className="p-0 w-full"
-        />
+          <span>Más</span>
+        </div>
       </CardContent>
     </Card>
   );
 };
-
-export default ExerciseCalendar;

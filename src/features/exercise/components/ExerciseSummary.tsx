@@ -2,7 +2,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ExerciseLog, EXERCISES, EXERCISE_COLORS } from '../types';
+import { ExerciseLog, EXERCISE_COLORS } from '../types';
+import { useExerciseTypes } from '../hooks/useExerciseTypes';
 import { Timer, Route, Dumbbell } from 'lucide-react';
 
 interface ExerciseSummaryProps {
@@ -18,9 +19,11 @@ interface CategorySummary {
 }
 
 const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({ exerciseLogs }) => {
+  const { getExerciseTypeById } = useExerciseTypes();
+
   const categorySummary = React.useMemo(() => {
     return exerciseLogs.reduce((summary, log) => {
-      const exercise = EXERCISES.find(e => e.id === log.exerciseId);
+      const exercise = getExerciseTypeById(log.exerciseId);
       if (!exercise) return summary;
 
       if (!summary[exercise.category]) {

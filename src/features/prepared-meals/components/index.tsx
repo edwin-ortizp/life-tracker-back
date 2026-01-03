@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar, ChefHat, ShoppingCart, Package } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { usePreparedMeals } from '../hooks/usePreparedMeals';
+import { usePreparedMeals } from '../hooks/usePreparedMeals.supabase';
 import type { PreparedMeal } from '../types';
 import AddPreparedMealModal from './AddPreparedMealModal';
 import { CompactMealHeader } from '@/components/navigation/CompactMealHeader';

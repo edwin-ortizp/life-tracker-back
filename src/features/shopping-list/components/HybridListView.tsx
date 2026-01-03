@@ -96,7 +96,8 @@ export const HybridListView: React.FC<HybridListViewProps> = ({ items, onEdit, o
   const totalPending = useMemo(() => {
     return filtered.reduce((sum, item) => {
       if (item.status === 'to-buy' && item.price !== undefined) {
-        return sum + item.price * item.stock;
+        // Para items "por comprar", usar la cantidad a comprar (toBuy)
+        return sum + item.price * item.toBuy;
       }
       return sum;
     }, 0);
@@ -129,15 +130,17 @@ export const HybridListView: React.FC<HybridListViewProps> = ({ items, onEdit, o
   };
 
   const handleStockDecrease = (item: ShoppingItem) => {
-    const newStock = item.stock - 1;
-    if (newStock === 0) {
-      // Si el stock llega a 0, cambiar estado a "to-buy" y mantener stock en 1
-      onUpdate(item.id, { 
-        stock: 1, 
-        status: 'to-buy' as ItemStatus 
+    const newStock = Math.max(0, item.stock - 1);
+
+    if (newStock === 0 && item.status !== 'to-buy') {
+      // Si el stock llega a 0, cambiar estado a "to-buy" y sugerir reposición
+      onUpdate(item.id, {
+        stock: 0,
+        toBuy: Math.max(1, item.stock), // Sugerir comprar la cantidad que había
+        status: 'to-buy' as ItemStatus
       });
-    } else if (newStock > 0) {
-      // Si el stock es mayor a 0, solo actualizar el stock
+    } else {
+      // Solo actualizar el stock
       onUpdate(item.id, { stock: newStock });
     }
   };

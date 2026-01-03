@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList';
+import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList.supabase';
 import { useShoppingTimer } from '@/features/shopping-list/hooks/useShoppingTimer';
 import { ShoppingItem } from '@/features/shopping-list/types';
 import { Play, Pause, Square, ShoppingCart, ArrowLeft } from 'lucide-react';

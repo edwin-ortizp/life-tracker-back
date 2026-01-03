@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { CheckCircle, Circle, Loader2 } from 'lucide-react';
 import { DailyWidget } from './DailyWidget';
 import { useNavigate } from 'react-router-dom';
-import { useHabitDataDaily } from '@/features/habit/hooks/useHabitDataDaily';
+import { useHabitDataDaily } from '@/features/habit/hooks/useHabitDataDaily.supabase';
 import { getLocalDateString } from '@/utils/dates';
 import { HABITS } from '@/features/habit/types';
 

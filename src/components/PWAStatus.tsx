@@ -76,7 +76,7 @@ const PWAStatus = () => {
             </span>
           </div>
           <p className="text-orange-700 text-xs mt-1">
-            Trabajando en modo offline. Los datos se sincronizarán cuando vuelvas a conectarte.
+            Sin conexión. La aplicación está disponible en modo offline.
           </p>
         </div>
       )}

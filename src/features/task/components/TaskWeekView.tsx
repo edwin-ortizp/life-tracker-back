@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useTaskData } from '../hooks/useTaskData';
+import { Card, CardContent } from '@/components/ui/card';
+import { useTaskData } from '../hooks/useTaskData.supabase';
 import { useTaskKeyboardShortcuts } from '../hooks/useTaskKeyboardShortcuts';
 import { TaskWeeklyCalendar } from './TaskWeeklyCalendar';
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import type { Task } from '../types';
 
 export const TaskWeekView: React.FC = () => {
   const {
     tasks,
-    status,
+    status: _status,
     error,
     showRecurrenceModal,
     currentTask,
@@ -25,9 +23,7 @@ export const TaskWeekView: React.FC = () => {
     setShowRecurrenceModal,
     openEditModal,
     openCreateModal,
-    resync
   } = useTaskData();
-  const { isOnline } = useNetworkStatus();
 
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -53,22 +49,6 @@ export const TaskWeekView: React.FC = () => {
             <p className="text-sm text-red-500 mt-4">{error}</p>
           )}
         </CardContent>
-        <CardFooter className="justify-center gap-2 text-xs p-2">
-          {status === 'saving' && (
-            <span className="text-blue-500">Guardando...</span>
-          )}
-          {status === 'pending' && (
-            <span className="text-yellow-600">Pendiente de sincronizar</span>
-          )}
-          {status === 'saved' && (
-            <span className="text-green-600">Sincronizado</span>
-          )}
-          {status === 'error' && (
-            <span className="text-red-600">Error de sincronización</span>
-          )}
-          {!isOnline && <span className="text-orange-600">Offline</span>}
-          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
-        </CardFooter>
       </Card>
       <RecurrenceModal
         isOpen={showRecurrenceModal}

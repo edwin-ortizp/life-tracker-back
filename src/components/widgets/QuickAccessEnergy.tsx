@@ -3,7 +3,7 @@ import { Battery, Plus } from 'lucide-react';
 import { DailyWidget } from './DailyWidget';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useEnergyData } from '@/features/mood/hooks/useEnergyData';
+import { useEnergyData } from '@/features/mood/hooks/useEnergyData.supabase';
 import {
   BatteryWarning,
   BatteryLow,

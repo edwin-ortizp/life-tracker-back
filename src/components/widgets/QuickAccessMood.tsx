@@ -3,7 +3,7 @@ import { Smile, Plus } from 'lucide-react';
 import { DailyWidget } from './DailyWidget';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useMoodData } from '@/features/mood/hooks/useMoodData';
+import { useMoodData } from '@/features/mood/hooks/useMoodData.supabase';
 import { calculateMoodAverage } from '@/features/mood/types';
 
 interface QuickAccessMoodProps {

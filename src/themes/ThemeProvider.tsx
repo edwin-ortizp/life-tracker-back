@@ -1,9 +1,5 @@
 import { ReactNode, useEffect, useState, createContext, useContext, useCallback } from 'react'
-import { useAuth } from '@/hooks/useAuth'
-import { db } from '@/firebase'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { themes, ThemeName } from './index'
-import { firestoreLogger } from '@/utils/firestore-logger'
 
 interface ThemeProviderProps {
   children: ReactNode
@@ -17,6 +13,8 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
+const THEME_STORAGE_KEY = 'life-tracker-theme'
+
 export const useTheme = () => {
   const ctx = useContext(ThemeContext)
   if (!ctx) throw new Error('useTheme must be used within ThemeProvider')
@@ -24,35 +22,19 @@ export const useTheme = () => {
 }
 
 export const ThemeProvider = ({ children, defaultTheme = 'default' }: ThemeProviderProps) => {
-  const { user } = useAuth()
   const [theme, setTheme] = useState<ThemeName>(defaultTheme)
 
-  // Load theme once (single-load pattern)
-  const loadTheme = useCallback(async () => {
-    if (!user) {
-      return
-    }
-    
+  // Load theme from localStorage on mount
+  useEffect(() => {
     try {
-      const docRef = doc(db, 'settings', user.uid)
-      firestoreLogger.logRead('settings', 'ThemeProvider.loadTheme', user.uid)
-      const snap = await getDoc(docRef)
-      
-      if (snap.exists()) {
-        const data = snap.data() as { theme?: ThemeName } | undefined
-        setTheme((data?.theme as ThemeName) || defaultTheme)
-      } else {
-        setTheme(defaultTheme)
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY)
+      if (savedTheme && Object.keys(themes).includes(savedTheme)) {
+        setTheme(savedTheme as ThemeName)
       }
     } catch (error) {
-      console.error('Error loading theme:', error)
-      setTheme(defaultTheme)
+      console.error('Error loading theme from localStorage:', error)
     }
-  }, [user, defaultTheme])
-
-  useEffect(() => {
-    loadTheme()
-  }, [loadTheme])
+  }, [])
 
   // Apply theme variables to DOM
   useEffect(() => {
@@ -62,23 +44,16 @@ export const ThemeProvider = ({ children, defaultTheme = 'default' }: ThemeProvi
     })
   }, [theme, defaultTheme])
 
-  // Save theme with optimistic update
-  const updateTheme = useCallback(async (newTheme: ThemeName) => {
-    // Optimistic update: apply theme immediately
+  // Save theme to localStorage
+  const updateTheme = useCallback((newTheme: ThemeName) => {
     setTheme(newTheme)
-    
-    if (user) {
-      try {
-        const docRef = doc(db, 'settings', user.uid)
-        firestoreLogger.logWrite('settings', 'ThemeProvider.updateTheme', user.uid)
-        await setDoc(docRef, { userId: user.uid, theme: newTheme }, { merge: true })
-      } catch (error) {
-        // On error, revert to previous theme (could be enhanced with proper rollback)
-        console.error('Error saving theme:', error)
-        // Note: For themes, we might want to keep the optimistic update since it's visual
-      }
+
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, newTheme)
+    } catch (error) {
+      console.error('Error saving theme to localStorage:', error)
     }
-  }, [user])
+  }, [])
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme: updateTheme }}>

@@ -1,13 +1,12 @@
 // src/features/task/components/index.tsx
 import React, { useState } from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { TaskList } from './TaskList';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { FirestoreErrorHandler } from '@/components/ui/FirestoreErrorHandler';
 import { adjustEndDateToStartDate } from '@/utils/dates';
+import type { TaskProps } from '../types';
 
 // Exports
 export * from './TaskKanban';
@@ -36,9 +35,8 @@ export * from "./TasksNoDate";
 export * from "./TaskCalendarCompact";
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
-import { useTaskData } from '../hooks/useTaskData';
+import { useTaskData } from '../hooks/useTaskData.supabase';
 import { useTaskKeyboardShortcuts } from '../hooks/useTaskKeyboardShortcuts';
-import type { TaskProps, Task as TaskType } from '../types';
 
 export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
   const { user } = useAuth();
@@ -57,14 +55,11 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
     completeRecurrentTask,
     setShowRecurrenceModal,
     openEditModal,
-    openCreateModal,
-    resync,
-    clearCacheAndReload
+    openCreateModal
   } = taskData;
-  const { isOnline } = useNetworkStatus();
 
-  const [detailTask, setDetailTask] = useState<TaskType | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailTask, setDetailTask] = useState<any>(null);
 
   // Initialize global keyboard shortcuts for task module
   useTaskKeyboardShortcuts({
@@ -79,22 +74,6 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
         <CardContent className="p-8 text-center">
           <p>Inicia sesión para gestionar tus tareas</p>
         </CardContent>
-        <CardFooter className="gap-2 text-xs p-2">
-          {status === 'saving' && (
-            <span className="text-blue-500">Guardando...</span>
-          )}
-          {status === 'pending' && (
-            <span className="text-yellow-600">Pendiente de sincronizar</span>
-          )}
-          {status === 'saved' && (
-            <span className="text-green-600">Sincronizado</span>
-          )}
-          {status === 'error' && (
-            <span className="text-red-600">Error de sincronización</span>
-          )}
-          {!isOnline && <span className="text-orange-600">Offline</span>}
-          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
-        </CardFooter>
       </Card>
     );
   }
@@ -139,35 +118,12 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
             />
 
             {error && (
-              <FirestoreErrorHandler 
-                error={error} 
-                onRetry={resync}
-                showClearCache={true}
-              />
+              <div className="text-sm text-red-500 p-2">
+                {error}
+              </div>
             )}
           </div>
         </CardContent>
-        <CardFooter className="gap-2 text-xs p-2 border-t">
-          {status === 'saving' && (
-            <span className="text-blue-500">Guardando...</span>
-          )}
-          {status === 'pending' && (
-            <span className="text-yellow-600">Pendiente de sincronizar</span>
-          )}
-          {status === 'saved' && (
-            <span className="text-green-600">Sincronizado</span>
-          )}
-          {status === 'error' && (
-            <span className="text-red-600">Error de sincronización</span>
-          )}
-          {!isOnline && <span className="text-orange-600">Offline</span>}
-          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
-          {(status === 'error' || !isOnline) && (
-            <Button onClick={clearCacheAndReload} variant="link" className="p-0 h-auto text-red-600">
-              Limpiar Cache
-            </Button>
-          )}
-        </CardFooter>
       </Card>
 
       {/* Botón flotante para móviles (estilo Material Design) - Solo en páginas dedicadas */}

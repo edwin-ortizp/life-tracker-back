@@ -3,7 +3,6 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Button } from '@/components/ui/button';
 import { Bot } from 'lucide-react';
 import JournalAiRewrite from './JournalAiRewrite';
-import JournalAiFeedback from './JournalAiFeedback';
 
 interface JournalAiMenuProps {
   entry: string;
@@ -12,9 +11,8 @@ interface JournalAiMenuProps {
   onReplace?: (text: string) => void;
 }
 
-export const JournalAiMenu: React.FC<JournalAiMenuProps> = ({ entry, selectedDate, onInsert, onReplace }) => {
+export const JournalAiMenu: React.FC<JournalAiMenuProps> = ({ entry, selectedDate: _selectedDate, onInsert, onReplace }) => {
   const [openRewrite, setOpenRewrite] = useState(false);
-  const [openFeedback, setOpenFeedback] = useState(false);
 
   return (
     <>
@@ -29,13 +27,9 @@ export const JournalAiMenu: React.FC<JournalAiMenuProps> = ({ entry, selectedDat
           <DropdownMenuItem onSelect={() => setOpenRewrite(true)}>
             Reescribir entrada
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setOpenFeedback(true)}>
-            Opinión y consejos
-          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <JournalAiRewrite entry={entry} open={openRewrite} onOpenChange={setOpenRewrite} onInsert={onInsert} onReplace={onReplace} />
-      <JournalAiFeedback entry={entry} selectedDate={selectedDate} open={openFeedback} onOpenChange={setOpenFeedback} />
     </>
   );
 };

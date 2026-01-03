@@ -1,146 +1,92 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
-import { Loader2 } from 'lucide-react';
-import * as Icons from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useWeeklyWaterStats } from '../hooks/useWeeklyWaterStats';
-import { DRINKS, DRINK_CATEGORIES } from '../types';
+import { useDrinkTypes } from '../hooks/useDrinkTypes';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface WeeklyStatsProps {
   selectedDate: Date;
 }
 
-const COLORS = ['#60A5FA', '#34D399', '#A78BFA', '#F87171', '#FBBF24', '#A3E635'];
-
 export const WeeklyStats: React.FC<WeeklyStatsProps> = ({ selectedDate }) => {
-  const { stats, loading, error } = useWeeklyWaterStats(selectedDate);
+  const { stats, loading } = useWeeklyWaterStats(selectedDate);
+  const { getDrinkTypeByName } = useDrinkTypes();
 
   if (loading) {
-    return (
-      <Card className="w-full">
-        <CardContent className="flex items-center justify-center p-6">
-          <Loader2 className="w-6 h-6 animate-spin" />
-        </CardContent>
-      </Card>
-    );
+    return <Card><CardContent className="p-6">Cargando...</CardContent></Card>;
   }
 
-  if (error || !stats) {
-    return (
-      <Card className="w-full">
-        <CardContent className="p-6">
-          <p className="text-red-500">Error al cargar estadísticas</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Prepare data for chart
+  const chartData = stats.map(day => {
+    const entry: any = {
+      date: new Date(day.date).toLocaleDateString('es-ES', { weekday: 'short' }),
+      total: day.intake
+    };
+
+    // Add each drink type
+    Object.entries(day.drinks).forEach(([drink, amount]) => {
+      entry[drink] = amount;
+    });
+
+    return entry;
+  });
+
+  // Get unique drink types from all days
+  const drinkTypes = Array.from(
+    new Set(stats.flatMap(day => Object.keys(day.drinks)))
+  );
+
+  const totalWeekIntake = stats.reduce((sum, day) => sum + day.intake, 0);
+  const avgDailyIntake = stats.length > 0 ? totalWeekIntake / 7 : 0;
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {/* Gráfico de consumo diario */}
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Consumo Diario</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.dailyIntake}>
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(value) => new Date(value).toLocaleDateString('es-ES', { weekday: 'short' })}
-                />
-                <YAxis 
-                  tickFormatter={(value) => `${value}ml`}
-                />
-                <Tooltip
-                  formatter={(value: number) => [`${value}ml`, 'Consumo']}
-                  labelFormatter={(label) => new Date(label).toLocaleDateString('es-ES', { 
-                    weekday: 'long', 
-                    day: 'numeric',
-                    month: 'short'
-                  })}
-                />
-                <Bar dataKey="intake" fill="#60A5FA" />
-              </BarChart>
-            </ResponsiveContainer>
+    <Card>
+      <CardHeader>
+        <CardTitle>Estadísticas Semanales</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4 grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-600">Total Semanal</p>
+            <p className="text-2xl font-bold">{(totalWeekIntake / 1000).toFixed(1)}L</p>
           </div>
-          <div className="mt-4 text-sm text-gray-500 text-center">
-            Promedio diario: {Math.round(stats.avgDailyIntake)}ml
+          <div>
+            <p className="text-sm text-gray-600">Promedio Diario</p>
+            <p className="text-2xl font-bold">{(avgDailyIntake / 1000).toFixed(1)}L</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Distribución por categoría */}
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Distribución por Categoría</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={stats.categoryStats}
-                  dataKey="totalAmount"
-                  nameKey="category"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  label={({ category }) => DRINK_CATEGORIES[category as keyof typeof DRINK_CATEGORIES]}
-                >
-                  {stats.categoryStats.map((entry, index) => (
-                    <Cell key={entry.category} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value: number) => [`${value}ml`, 'Cantidad']}
-                  labelFormatter={(category) => DRINK_CATEGORIES[category as keyof typeof DRINK_CATEGORIES]}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="total" fill="#3b82f6" name="Total" />
+          </BarChart>
+        </ResponsiveContainer>
 
-      {/* Bebidas más consumidas */}
-      <Card className="w-full md:col-span-2">
-        <CardHeader>
-          <CardTitle>Bebidas Más Consumidas</CardTitle>
-        </CardHeader>
-        <CardContent>          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4"> {/* Reduced columns */}
-            {stats.commonDrinks.slice(0, 6).map(drink => { {/* Reduced items to prevent overcrowding */}
-              const drinkInfo = DRINKS[drink.type];
-              const Icon = Icons[drinkInfo.icon as keyof typeof Icons] as React.ElementType;
-              return (
-                <div 
-                  key={drink.type}
-                  className="flex flex-col items-center p-4 rounded-lg bg-muted text-center" // Added text-center
-                >
-                  <Icon className={`w-6 h-6 ${drinkInfo.color} mb-2 flex-shrink-0`} />
-                  <span className="font-medium text-sm leading-tight">{drinkInfo.name}</span> {/* Better text handling */}
-                  <span className="text-sm text-muted-foreground mt-1"> {/* Changed color */}
-                    {drink.totalAmount}ml
-                  </span>
-                  <span className="text-xs text-muted-foreground"> {/* Changed color */}
-                    {drink.count} veces
-                  </span>
-                </div>
-              );
-            })}
+        {/* Breakdown by drink type */}
+        {drinkTypes.length > 0 && (
+          <div className="mt-6">
+            <h4 className="font-medium mb-2">Desglose por Bebida</h4>
+            <div className="space-y-2">
+              {drinkTypes.map(drink => {
+                const total = stats.reduce((sum, day) => sum + (day.drinks[drink] || 0), 0);
+                const drinkInfo = getDrinkTypeByName(drink);
+
+                return (
+                  <div key={drink} className="flex items-center justify-between">
+                    <span className="text-sm">{drinkInfo?.name || drink}</span>
+                    <span className="text-sm font-medium">{(total / 1000).toFixed(1)}L</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };

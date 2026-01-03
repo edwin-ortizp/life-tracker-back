@@ -53,25 +53,14 @@ const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: 
   const profileContent = (
     <div className="flex items-center space-x-3 w-full">
       <div className="relative flex-shrink-0">
-        {user?.photoURL ? (
-          <img 
-            src={user.photoURL} 
-            alt="Profile" 
-            className={`${avatarSize} rounded-full border-2 border-white/20 object-cover`}
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-            }}
-          />
-        ) : null}
-        <div className={`${avatarSize} rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold ${textSize} border-2 border-white/20 ${user?.photoURL ? 'hidden' : ''}`}>
-          {getUserInitials(user?.displayName || user?.email)}
+        <div className={`${avatarSize} rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold ${textSize} border-2 border-white/20`}>
+          {getUserInitials(user?.email)}
         </div>
       </div>
       {isExpanded && (
         <div className="flex flex-col min-w-0 flex-1">
           <span className="text-sm font-medium text-gray-700 truncate">
-            {user?.displayName || 'Usuario'}
+            {user?.email?.split('@')[0] || 'Usuario'}
           </span>
           <span className="text-xs text-gray-500 truncate">
             {user?.email}
