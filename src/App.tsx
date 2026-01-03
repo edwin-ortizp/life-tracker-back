@@ -14,12 +14,17 @@ import ShoppingListPage from './pages/ShoppingListPage';
 import RecipesPage from './pages/RecipesPage';
 import PreparedMealsPage from './pages/PreparedMealsPage';
 import ExercisePage from './pages/ExercisePage';
+import WaterPage from './pages/WaterPage';
+import JournalPage from './pages/JournalPage';
 import NegativeHabitsPage from './pages/NegativeHabitsPage';
 import SettingsPage from './pages/SettingsPage';
 import HabitRunPage from './pages/HabitRunPage';
 import ShoppingRunPage from './pages/ShoppingRunPage';
 import GoalsPage from './pages/GoalsPage';
 import LoginPage from './pages/LoginPage';
+import ExerciseConfigPage from './pages/ExerciseConfigPage';
+import WaterConfigPage from './pages/WaterConfigPage';
+import MoodConfigPage from './pages/MoodConfigPage';
 
 export const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -57,6 +62,11 @@ function App() {
         <Route path="mood" element={<MoodPage />} />
         <Route path="pomodoro" element={<PomodoroPage />} />
         <Route path="exercise" element={<ExercisePage />} />
+        <Route path="exercise/config" element={<ExerciseConfigPage />} />
+        <Route path="water" element={<WaterPage />} />
+        <Route path="water/config" element={<WaterConfigPage />} />
+        <Route path="journal" element={<JournalPage />} />
+        <Route path="mood/config" element={<MoodConfigPage />} />
         <Route path="negative" element={<NegativeHabitsPage />} />
         <Route path="meal" element={<MealPage />} />
         <Route path="shopping-list" element={<ShoppingListPage />} />

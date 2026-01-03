@@ -1,6 +1,6 @@
 // src/pages/NegativeHabitsPage.tsx
 import { useState } from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useNegativeHabitData } from '../features/negative-habits/hooks/useNegativeHabitData.supabase';
 import { NegativeHabitToggle } from '../features/negative-habits/components/NegativeHabitToggle';
@@ -92,21 +92,6 @@ const NegativeHabitsPage = () => {
             </p>
           )}
         </CardContent>
-        <CardFooter className="justify-center gap-2 text-xs p-2">
-          {status === 'saving' && (
-            <span className="text-blue-500">Guardando...</span>
-          )}
-          {status === 'pending' && (
-            <span className="text-yellow-600">Pendiente de sincronizar</span>
-          )}
-          {status === 'saved' && (
-            <span className="text-green-600">Sincronizado</span>
-          )}
-          {status === 'error' && (
-            <span className="text-red-600">Error de sincronización</span>
-          )}
-          {!isOnline && <span className="text-orange-600">Offline</span>}
-        </CardFooter>
       </Card>
 
       <AddHabitModal

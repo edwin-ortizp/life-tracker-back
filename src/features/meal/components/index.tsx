@@ -180,7 +180,7 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
           mealPlan={mealPlan}
           onAddMeal={handleAddMeal}
           onRemoveMeal={handleRemoveMeal}
-          disabled={status === 'saving' || !isOnline}
+          disabled={status === "saving"}
           selectedDate={selectedDate}
         />
 
@@ -206,11 +206,11 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
             <div className="space-y-2">
               <ImportMealPlan 
                 onImport={handleImportMealPlan}
-                disabled={status === 'saving' || !isOnline}
+                disabled={status === "saving"}
               />
               <PasteMealPlan 
                 onImport={handleImportMealPlan}
-                disabled={status === 'saving' || !isOnline}
+                disabled={status === "saving"}
               />
             </div>
           </div>

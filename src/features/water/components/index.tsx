@@ -1,12 +1,11 @@
 // src/features/water/components/index.tsx
 import React, { useState } from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { WaterProgress } from './WaterProgress';
 import { DrinkSelector } from './DrinkSelector';
 import { DrinkHistory } from './DrinkHistory';
 import { useWaterData } from '../hooks/useWaterData.supabase';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { getLocalDateString } from '@/utils/dates';
 import type { WaterProps } from '../types';
 
@@ -24,7 +23,6 @@ export const Water: React.FC<WaterProps> = ({ selectedDate, goal }) => {
     editDrink,
     deleteDrink,
   } = useWaterData(selectedDate);
-  const { isOnline } = useNetworkStatus();
 
   if (!user) {
     return (
@@ -52,7 +50,7 @@ export const Water: React.FC<WaterProps> = ({ selectedDate, goal }) => {
                   addDrink(type, amount);
                   setSelectedDrink(null);
                 }}
-                disabled={status === 'saving' || !isOnline}
+                disabled={status === "saving"}
               />
             </div>
           )}
@@ -85,21 +83,6 @@ export const Water: React.FC<WaterProps> = ({ selectedDate, goal }) => {
           )}
         </div>
       </CardContent>
-      <CardFooter className="justify-center gap-2 text-xs p-2">
-        {status === 'saving' && (
-          <span className="text-blue-500">Guardando...</span>
-        )}
-        {status === 'pending' && (
-          <span className="text-yellow-600">Pendiente de sincronizar</span>
-        )}
-        {status === 'saved' && (
-          <span className="text-green-600">Sincronizado</span>
-        )}
-        {status === 'error' && (
-          <span className="text-red-600">Error de sincronización</span>
-        )}
-        {!isOnline && <span className="text-orange-600">Offline</span>}
-      </CardFooter>
     </Card>
   );
 };
@@ -111,3 +94,6 @@ export * from './DrinkHistory';
 
 // Default export for the main component
 export default Water;
+export * from './WaterCalendar';
+export * from './WeeklyStats';
+export * from './RangeStats';

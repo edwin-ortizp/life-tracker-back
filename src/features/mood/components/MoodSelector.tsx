@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { MOODS } from '../types';
+import { useMoodStates } from '../hooks/useMoodStates';
 
 interface MoodSelectorProps {
   onSelect: (mood: { emoji: string; text: string }) => void;
@@ -8,9 +8,11 @@ interface MoodSelectorProps {
 }
 
 export const MoodSelector: React.FC<MoodSelectorProps> = ({ onSelect, disabled }) => {
+  const { moodStates } = useMoodStates();
+
   return (
     <div className="grid grid-cols-3 gap-2 mb-4">
-      {MOODS.map((mood) => (
+      {moodStates.map((mood) => (
         <div key={mood.emoji} className="relative">
           <Button
             variant="outline"

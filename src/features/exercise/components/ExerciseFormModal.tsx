@@ -12,7 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ExerciseLog, EXERCISES, EXERCISE_CATEGORIES } from '../types';
+import { ExerciseLog, EXERCISE_CATEGORIES } from '../types';
+import { useExerciseTypes, ExerciseType } from '../hooks/useExerciseTypes';
 import {
   Tabs,
   TabsContent,
@@ -34,9 +35,20 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
   onSubmit,
   initialData
 }) => {
-  const [selectedExercise, setSelectedExercise] = React.useState(
-    initialData ? EXERCISES.find(e => e.id === initialData.exerciseId) : null
+  const { exerciseTypes, getExerciseTypeById } = useExerciseTypes();
+  const [selectedExercise, setSelectedExercise] = React.useState<ExerciseType | null>(
+    initialData && exerciseTypes.length > 0 ? getExerciseTypeById(initialData.exerciseId) || null : null
   );
+
+  // Update selected exercise when exercise types load
+  React.useEffect(() => {
+    if (initialData && exerciseTypes.length > 0 && !selectedExercise) {
+      const exercise = getExerciseTypeById(initialData.exerciseId);
+      if (exercise) {
+        setSelectedExercise(exercise);
+      }
+    }
+  }, [initialData, exerciseTypes, selectedExercise, getExerciseTypeById]);
   
   const [formData, setFormData] = React.useState({
     sets: initialData?.sets?.toString() || '',
@@ -52,15 +64,15 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
   const [calculatedCalories, setCalculatedCalories] = React.useState<number>(0);
 
   const calculateCalories = useCallback(() => {
-    if (!selectedExercise?.caloriesPerHour) return;
+    if (!selectedExercise?.calories_per_hour) return;
 
     let duration = parseInt(formData.duration) || 0;
-    
+
     if (!duration && formData.sets && formData.reps) {
       duration = (parseInt(formData.sets) * parseInt(formData.reps) * 3) / 60;
     }
 
-    let calories = (selectedExercise.caloriesPerHour * duration) / 60;
+    let calories = (selectedExercise.calories_per_hour * duration) / 60;
 
     if (formData.weight && selectedExercise.category === 'strength') {
       const weightFactor = parseInt(formData.weight) / 5;
@@ -74,21 +86,22 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
 
   useEffect(() => {
     calculateCalories();
-    if (selectedExercise?.stepsPerKm && formData.distance) {
+    if (selectedExercise?.steps_equivalent && formData.distance) {
       const distance = parseFloat(formData.distance);
-      const steps = Math.round(distance * selectedExercise.stepsPerKm);
+      // steps_equivalent is now per km instead of stepsPerKm
+      const steps = Math.round(distance * selectedExercise.steps_equivalent);
       setFormData(prev => ({ ...prev, steps: steps.toString() }));
     }
   }, [calculateCalories, formData.distance, formData.duration, formData.weight, selectedExercise]);
 
-  const handleSelectExercise = (exercise: typeof EXERCISES[number]) => {
+  const handleSelectExercise = (exercise: ExerciseType) => {
     setSelectedExercise(exercise);
     setFormData({
-      sets: exercise.defaultSets?.toString() || '',
-      reps: exercise.defaultReps?.toString() || '',
+      sets: '',
+      reps: '',
       weight: '',
-      duration: exercise.defaultDuration?.toString() || '',
-      distance: exercise.defaultDistance ? (exercise.defaultDistance / 1000).toString() : '',
+      duration: '',
+      distance: '',
       steps: '',
       calories: '',
       notes: ''
@@ -155,7 +168,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
               {Object.entries(EXERCISE_CATEGORIES).map(([category]) => (
                 <TabsContent key={category} value={category} className="mt-4">
                   <div className="grid grid-cols-2 gap-3">
-                    {EXERCISES.filter(e => e.category === category).map((exercise) => (
+                    {exerciseTypes.filter(e => e.category === category).map((exercise) => (
                       <Button
                         key={exercise.id}
                         type="button"
@@ -163,7 +176,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
                         className="flex flex-col items-center p-6 h-auto gap-3"
                         onClick={() => handleSelectExercise(exercise)}
                       >
-                        <span className="text-3xl">{exercise.icon}</span>
+                        <span className="text-3xl">{exercise.icon || '💪'}</span>
                         <span className="text-sm font-normal text-center">{exercise.name}</span>
                       </Button>
                     ))}
@@ -174,10 +187,10 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
           ) : (
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-6">
-                <span className="text-3xl">{selectedExercise.icon}</span>
+                <span className="text-3xl">{selectedExercise.icon || '💪'}</span>
                 <div>
                   <h4 className="font-medium text-lg">{selectedExercise.name}</h4>
-                  <p className="text-sm text-gray-500">{selectedExercise.description}</p>
+                  <p className="text-sm text-gray-500">{selectedExercise.category}</p>
                 </div>
               </div>
 
@@ -250,7 +263,7 @@ export const ExerciseFormModal: React.FC<ExerciseFormModalProps> = ({
                 </div>
               )}
 
-              {selectedExercise.stepsPerKm && (
+              {selectedExercise.steps_equivalent > 0 && (
                 <div className="space-y-2">
                   <Label htmlFor="steps">
                     Pasos {formData.steps && `(calculado: ${formData.steps})`}

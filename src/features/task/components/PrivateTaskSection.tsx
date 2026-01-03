@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Upload, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { TaskItemList } from './TaskItemList';
@@ -222,7 +222,6 @@ export const PrivateTaskSection: React.FC<PrivateTaskSectionProps> = ({ selected
         )}
       </CardContent>
 
-      <CardFooter className="justify-end flex-wrap gap-2">
         <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
           <DialogTrigger asChild>
             <Button size="sm" variant="outline">
@@ -294,7 +293,6 @@ Formatos de fecha soportados:
           <Plus className="w-4 h-4 mr-2" />
           Nueva Privada
         </Button>
-      </CardFooter>
 
       {/* Modales */}
       <RecurrenceModal

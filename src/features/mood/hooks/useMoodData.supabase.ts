@@ -4,13 +4,14 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { getLocalDateString, createFormattedTimestamp } from '@/utils/dates';
 import type { MoodEntry } from '../types';
-import { getMoodValue } from '../types';
+import { useMoodStates } from './useMoodStates';
 
 export const useMoodData = (selectedDate: Date) => {
   const [moodHistory, setMoodHistory] = useState<MoodEntry[]>([]);
   const [status, setStatus] = useState<'idle' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const { getMoodValue } = useMoodStates();
 
   // Cargar datos de mood
   const loadMoodData = async () => {

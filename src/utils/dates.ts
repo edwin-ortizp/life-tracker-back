@@ -261,3 +261,37 @@ export const timeToPixels = (date: Date, startHour: number = 6): number => {
   const totalMinutesFromStart = (hours - startHour) * 60 + minutes;
   return minutesToPixels(totalMinutesFromStart);
 };
+/**
+ * Gets the start and end dates for a week containing the given date
+ * @param date - Reference date
+ * @returns Object with start (Sunday) and end (Saturday) dates
+ */
+export const getWeekDates = (date: Date): { start: Date; end: Date } => {
+  const current = new Date(date);
+  const dayOfWeek = current.getDay(); // 0 = Sunday
+  
+  const start = new Date(current);
+  start.setDate(current.getDate() - dayOfWeek);
+  start.setHours(0, 0, 0, 0);
+  
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  end.setHours(23, 59, 59, 999);
+  
+  return { start, end };
+};
+
+/**
+ * Gets the start and end dates for a month containing the given date
+ * @param date - Reference date
+ * @returns Object with start (first day) and end (last day) dates
+ */
+export const getMonthDates = (date: Date): { start: Date; end: Date } => {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  start.setHours(0, 0, 0, 0);
+  
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  end.setHours(23, 59, 59, 999);
+  
+  return { start, end };
+};

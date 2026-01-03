@@ -1,6 +1,6 @@
 // src/features/mood/components/index.tsx
 import React from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { MoodSelector } from './MoodSelector';
 import { MoodHistory } from './MoodHistory';
@@ -66,7 +66,7 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
           </div>
 
           {isCurrentDate && (
-            <MoodSelector onSelect={addMood} disabled={status === 'saving' || !isOnline} />
+            <MoodSelector onSelect={addMood} disabled={status === "saving"} />
           )}
 
           <MoodHistory
@@ -81,21 +81,6 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
           </p>
         )}
       </CardContent>
-      <CardFooter className="justify-center gap-2 text-xs p-2">
-        {status === 'saving' && (
-          <span className="text-blue-500">Guardando...</span>
-        )}
-        {status === 'pending' && (
-          <span className="text-yellow-600">Pendiente de sincronizar</span>
-        )}
-        {status === 'saved' && (
-          <span className="text-green-600">Sincronizado</span>
-        )}
-        {status === 'error' && (
-          <span className="text-red-500">Error al guardar</span>
-        )}
-        {!isOnline && <span className="text-orange-600">Offline</span>}
-      </CardFooter>
     </Card>
   );
 
@@ -135,21 +120,6 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
           </p>
         )}
       </CardContent>
-      <CardFooter className="justify-center gap-2 text-xs p-2">
-        {energyStatus === 'saving' && (
-          <span className="text-blue-500">Guardando...</span>
-        )}
-        {energyStatus === 'pending' && (
-          <span className="text-yellow-600">Pendiente de sincronizar</span>
-        )}
-        {energyStatus === 'saved' && (
-          <span className="text-green-600">Sincronizado</span>
-        )}
-        {energyStatus === 'error' && (
-          <span className="text-red-500">Error al guardar</span>
-        )}
-        {!isOnline && <span className="text-orange-600">Offline</span>}
-      </CardFooter>
     </Card>
   );
 

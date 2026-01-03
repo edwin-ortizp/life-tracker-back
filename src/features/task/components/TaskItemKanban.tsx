@@ -5,7 +5,7 @@ import { X, Repeat, Calendar, Edit, Tag, Clock, Play } from 'lucide-react';
 import { Task, TimeOfDay, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import {
   Tooltip,
@@ -413,7 +413,6 @@ export const TaskItemKanban = memo<TaskItemKanbanProps>(({
         </div>
       </CardContent>
       
-      <CardFooter className="px-2 py-1.5 bg-gray-50/50 border-t border-gray-100 p-0 md:p-0">
         <div className="px-2 py-1.5 w-full">
           <TaskKanbanActions
             task={task}
@@ -423,7 +422,6 @@ export const TaskItemKanban = memo<TaskItemKanbanProps>(({
             onAssignTimeOfDay={onAssignTimeOfDay}
           />
         </div>
-      </CardFooter>
     </Card>
   );
 });

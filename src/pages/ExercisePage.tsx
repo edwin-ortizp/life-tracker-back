@@ -1,6 +1,6 @@
 // src/pages/ExercisePage.tsx
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Exercise } from '@/features/exercise/components';
+import { Exercise, ExerciseCalendar } from '@/features/exercise/components';
 import DateSelector from '@/components/DateSelector';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -63,6 +63,7 @@ const ExercisePage: React.FC = () => {
       <Tabs defaultValue="daily" className="w-full">
         <TabsList className="mb-6">
           <TabsTrigger value="daily">Registro Diario</TabsTrigger>
+          <TabsTrigger value="calendar">Calendario</TabsTrigger>
           <TabsTrigger value="settings">Configuración</TabsTrigger>
         </TabsList>
 
@@ -71,6 +72,10 @@ const ExercisePage: React.FC = () => {
           <div className="grid gap-6 md:grid-cols-[1fr_300px] mt-4">
             <Exercise ref={exerciseRef} selectedDate={selectedDate} />
           </div>
+        </TabsContent>
+
+        <TabsContent value="calendar">
+          <ExerciseCalendar selectedDate={selectedDate} />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-4">

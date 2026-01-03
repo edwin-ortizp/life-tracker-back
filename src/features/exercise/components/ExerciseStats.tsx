@@ -18,7 +18,8 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { ExerciseLog, EXERCISES, EXERCISE_CATEGORIES, ExerciseSummary } from '../types';
+import { ExerciseLog, EXERCISE_CATEGORIES, ExerciseSummary } from '../types';
+import { useExerciseTypes } from '../hooks/useExerciseTypes';
 import { Footprints, Timer, Flame, Activity } from 'lucide-react';
 import { getLocalDateString } from '@/utils/dates';
 
@@ -39,17 +40,19 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
   exerciseLogs,
   summary: providedSummary
 }) => {
+  const { getExerciseTypeById } = useExerciseTypes();
+
   // Si no se proporciona un resumen, lo calculamos de los logs
   const calculatedSummary = React.useMemo(() => {
     if (providedSummary) return providedSummary;
-    
+
     return {
       totalCalories: exerciseLogs.reduce((sum, log) => sum + (log.calories || 0), 0),
       totalSteps: exerciseLogs.reduce((sum, log) => sum + (log.steps || 0), 0),
       totalDuration: exerciseLogs.reduce((sum, log) => sum + (log.duration || 0), 0),
       totalDistance: exerciseLogs.reduce((sum, log) => sum + (log.distance || 0), 0),
       categoryStats: exerciseLogs.reduce((stats, log) => {
-        const exercise = EXERCISES.find(e => e.id === log.exerciseId);
+        const exercise = getExerciseTypeById(log.exerciseId);
         if (!exercise) return stats;
 
         if (!stats[exercise.category]) {

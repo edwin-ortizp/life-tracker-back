@@ -3,7 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { getLocalDateString } from '@/utils/dates';
-import { ExerciseLog, EXERCISES } from '../types';
+import { ExerciseLog } from '../types';
+import { useExerciseTypes } from './useExerciseTypes';
 
 export const useExerciseData = (selectedDate: Date) => {
   const [exerciseLogs, setExerciseLogs] = useState<ExerciseLog[]>([]);
@@ -11,12 +12,13 @@ export const useExerciseData = (selectedDate: Date) => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'pending' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const { exerciseTypes, getExerciseTypeById } = useExerciseTypes();
 
   // Función para calcular el resumen de ejercicios
   const calculateSummary = (exercises: ExerciseLog[]) => {
     return exercises.reduce((summary, log) => {
-      const exercise = EXERCISES.find(e => e.id === log.exerciseId);
-      if (!exercise) return summary;
+      const exerciseType = getExerciseTypeById(log.exerciseId);
+      if (!exerciseType) return summary;
 
       // Actualizar totales
       summary.totalCalories += log.calories || 0;
@@ -25,7 +27,7 @@ export const useExerciseData = (selectedDate: Date) => {
       summary.totalDistance += log.distance || 0;
 
       // Actualizar estadísticas por categoría
-      const catStats = summary.categoryStats[exercise.category];
+      const catStats = summary.categoryStats[exerciseType.category];
       catStats.count += 1;
       catStats.duration += log.duration || 0;
       catStats.calories += log.calories || 0;
@@ -46,7 +48,7 @@ export const useExerciseData = (selectedDate: Date) => {
 
   // Cargar datos de ejercicios
   const loadExerciseData = useCallback(async () => {
-    if (!user) return;
+    if (!user || exerciseTypes.length === 0) return;
 
     setStatus('loading');
     setError(null);
@@ -62,9 +64,9 @@ export const useExerciseData = (selectedDate: Date) => {
 
       if (fetchError) throw fetchError;
 
-      // Transformar a formato esperado
+      // Transformar a formato esperado, usando exercise_type_id si está disponible
       const logs: ExerciseLog[] = (data || []).map(row => ({
-        exerciseId: row.exercise_id,
+        exerciseId: row.exercise_type_id || row.exercise_id, // Usar UUID si está disponible, sino fallback al ID antiguo
         sets: row.sets,
         reps: row.reps,
         duration: row.duration,
@@ -82,7 +84,7 @@ export const useExerciseData = (selectedDate: Date) => {
       setError(error instanceof Error ? error.message : 'Error al cargar ejercicios');
       setStatus('error');
     }
-  }, [user, selectedDate]);
+  }, [user, selectedDate, exerciseTypes]);
 
   useEffect(() => {
     loadExerciseData();
@@ -109,7 +111,7 @@ export const useExerciseData = (selectedDate: Date) => {
         .insert({
           user_id: user.id,
           date: date,
-          exercise_id: newExercise.exerciseId,
+          exercise_type_id: newExercise.exerciseId, // Ahora usa UUID
           sets: newExercise.sets || null,
           reps: newExercise.reps || null,
           duration: newExercise.duration || null,
@@ -171,7 +173,7 @@ export const useExerciseData = (selectedDate: Date) => {
       const { error: updateError } = await supabase
         .from('exercise_logs')
         .update({
-          exercise_id: updatedExercises[index].exerciseId,
+          exercise_type_id: updatedExercises[index].exerciseId, // Ahora usa UUID
           sets: updatedExercises[index].sets || null,
           reps: updatedExercises[index].reps || null,
           duration: updatedExercises[index].duration || null,

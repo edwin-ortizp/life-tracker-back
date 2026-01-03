@@ -5,7 +5,7 @@ import { X, Repeat, Calendar, Edit, Tag, Clock, Play } from 'lucide-react';
 import { Task, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import {
   Tooltip,
@@ -379,7 +379,6 @@ export const TaskItemCalendar = memo<TaskItemCalendarProps>(({
         )}
       </CardContent>
       
-      <CardFooter className="!px-0.5 !py-0.5 bg-gray-50/50 border-t border-gray-100">
         <div className="w-full">
           <TaskCalendarActions
             task={task}
@@ -388,7 +387,6 @@ export const TaskItemCalendar = memo<TaskItemCalendarProps>(({
             onMove={onMove}
           />
         </div>
-      </CardFooter>
     </Card>
   );
 });
