@@ -3,7 +3,7 @@ import { Droplets } from 'lucide-react';
 import { DailyWidget } from './DailyWidget';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useWaterData } from '@/features/water/hooks/useWaterData';
+import { useWaterData } from '@/features/water/hooks/useWaterData.supabase';
 
 interface QuickAccessWaterProps {
   date: Date;

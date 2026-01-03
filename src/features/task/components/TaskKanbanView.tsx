@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { TaskKanban, TaskDetailsModal } from './index';
 import { PriorityLegend } from './PriorityLegend';
 import { RecurrenceModal } from './RecurrenceModal';
-import { useTaskData } from '../hooks/useTaskData';
+import { useTaskData } from '../hooks/useTaskData.supabase';
 import { useTaskKeyboardShortcuts } from '../hooks/useTaskKeyboardShortcuts';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import type { Task } from '../types';
@@ -25,7 +24,6 @@ export const TaskKanbanView: React.FC = () => {
     setShowRecurrenceModal,
     openEditModal,
     openCreateModal,
-    resync
   } = useTaskData();
   const { isOnline } = useNetworkStatus();
 
@@ -72,7 +70,6 @@ export const TaskKanbanView: React.FC = () => {
             <span className="text-red-600">Error de sincronización</span>
           )}
           {!isOnline && <span className="text-orange-600">Offline</span>}
-          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
         </CardFooter>
       </Card>
       <RecurrenceModal

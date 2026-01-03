@@ -1,6 +1,6 @@
 import React from 'react';
 import { ModularExportWizard, ModularExportWizardConfig } from '@/components/ui/modular-export-wizard';
-import { useShoppingList } from '../hooks/useShoppingList';
+import { useShoppingList } from '../hooks/useShoppingList.supabase';
 import type { ShoppingItem } from '../types';
 import { ShoppingCart } from 'lucide-react';
 

@@ -1,7 +1,6 @@
 // src/pages/ExercisePage.tsx
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import Exercise, { ExerciseCalendar } from '@/features/exercise/components';
-
+import { Exercise } from '@/features/exercise/components';
 import DateSelector from '@/components/DateSelector';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -71,7 +70,6 @@ const ExercisePage: React.FC = () => {
           <DateSelector selectedDate={selectedDate} onChange={setSelectedDate} />
           <div className="grid gap-6 md:grid-cols-[1fr_300px] mt-4">
             <Exercise ref={exerciseRef} selectedDate={selectedDate} />
-            <ExerciseCalendar selectedDate={selectedDate} goal={settings.dailyCalories} />
           </div>
         </TabsContent>
 

@@ -66,24 +66,13 @@ const SettingsPage = () => {
         {/* User Profile Section */}
         <div className="flex items-center space-x-4 p-4 bg-white rounded-lg shadow-sm border">
           <div className="relative">
-            {user?.photoURL ? (
-              <img 
-                src={user.photoURL} 
-                alt="Profile" 
-                className="w-16 h-16 rounded-full border-2 border-gray-200"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                }}
-              />
-            ) : null}
-            <div className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl border-2 border-gray-200 ${user?.photoURL ? 'hidden' : ''}`}>
-              {getUserInitials(user?.displayName || user?.email || null)}
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl border-2 border-gray-200">
+              {getUserInitials(user?.email || null)}
             </div>
           </div>
           <div className="flex flex-col">
             <h2 className="text-lg font-semibold text-gray-800">
-              {user?.displayName || 'Usuario'}
+              {user?.email?.split('@')[0] || 'Usuario'}
             </h2>
             <p className="text-sm text-gray-600">
               {user?.email}

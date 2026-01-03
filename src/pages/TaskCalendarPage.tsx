@@ -10,9 +10,8 @@ import RecurrenceModal from '@/features/task/components/RecurrenceModal';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { FirestoreErrorHandler } from '@/components/ui/FirestoreErrorHandler';
 import { useAuth } from '@/hooks/useAuth';
-import { useTaskData } from '@/features/task/hooks/useTaskData';
+import { useTaskData } from '@/features/task/hooks/useTaskData.supabase';
 import { Task, TaskCategory, CATEGORY_LABELS, TASK_CATEGORIES } from '@/features/task/types';
 import { CompactTaskHeader } from '@/components/navigation/CompactTaskHeader';
 import { cn } from '@/lib/utils';
@@ -44,7 +43,6 @@ const TaskCalendarPage: React.FC = () => {
     openCreateModal,
     openEditModal,
     error,
-    resync
   } = taskData;
 
   // Get search query from URL params
@@ -344,12 +342,8 @@ const TaskCalendarPage: React.FC = () => {
       <div className="p-4">
         {/* Error Handler */}
         {error && (
-          <div className="mb-4">
-            <FirestoreErrorHandler
-              error={error}
-              onRetry={resync}
-              showClearCache={true}
-            />
+          <div className="mb-4 text-sm text-red-500 p-2">
+            {error}
           </div>
         )}
 

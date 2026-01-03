@@ -5,9 +5,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { WaterProgress } from './WaterProgress';
 import { DrinkSelector } from './DrinkSelector';
 import { DrinkHistory } from './DrinkHistory';
-import { useWaterData } from '../hooks/useWaterData';
+import { useWaterData } from '../hooks/useWaterData.supabase';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { Button } from '@/components/ui/button';
 import { getLocalDateString } from '@/utils/dates';
 import type { WaterProps } from '../types';
 
@@ -24,7 +23,6 @@ export const Water: React.FC<WaterProps> = ({ selectedDate, goal }) => {
     addDrink,
     editDrink,
     deleteDrink,
-    resync
   } = useWaterData(selectedDate);
   const { isOnline } = useNetworkStatus();
 
@@ -101,7 +99,6 @@ export const Water: React.FC<WaterProps> = ({ selectedDate, goal }) => {
           <span className="text-red-600">Error de sincronización</span>
         )}
         {!isOnline && <span className="text-orange-600">Offline</span>}
-        <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
       </CardFooter>
     </Card>
   );
@@ -111,7 +108,6 @@ export const Water: React.FC<WaterProps> = ({ selectedDate, goal }) => {
 export * from './WaterProgress';
 export * from './DrinkSelector';
 export * from './DrinkHistory';
-export * from './WaterCalendar';
 
 // Default export for the main component
 export default Water;

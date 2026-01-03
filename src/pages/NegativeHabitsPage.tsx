@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
-import { useNegativeHabitData } from '../features/negative-habits/hooks/useNegativeHabitData';
+import { useNegativeHabitData } from '../features/negative-habits/hooks/useNegativeHabitData.supabase';
 import { NegativeHabitToggle } from '../features/negative-habits/components/NegativeHabitToggle';
 import { WeeklyView } from '../features/negative-habits/components/WeeklyView';
 import { YearlyView } from '../features/negative-habits/components/YearlyView';
@@ -12,7 +12,6 @@ import DateSelector from '@/components/DateSelector';
 import PageLayout from '@/components/PageLayout';
 import { getLocalDateString } from '@/utils/dates';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { Button } from '@/components/ui/button';
 
 const NegativeHabitsPage = () => {
   const [view, setView] = useState<'weekly' | 'yearly'>('weekly');
@@ -25,7 +24,6 @@ const NegativeHabitsPage = () => {
     error,
     logHabit,
     removeLog,
-    resync
   } = useNegativeHabitData();
   const { isOnline } = useNetworkStatus();
 
@@ -108,7 +106,6 @@ const NegativeHabitsPage = () => {
             <span className="text-red-600">Error de sincronización</span>
           )}
           {!isOnline && <span className="text-orange-600">Offline</span>}
-          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
         </CardFooter>
       </Card>
 

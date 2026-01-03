@@ -11,7 +11,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { FirestoreErrorHandler } from '@/components/ui/FirestoreErrorHandler';
 import { cn } from '@/lib/utils';
 import {
   LineChart,
@@ -27,9 +26,7 @@ import {
   Cell
 } from 'recharts';
 import { useAuth } from '@/hooks/useAuth';
-import { useTaskData } from '@/features/task/hooks/useTaskData';
-import { db } from '@/firebase';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { useTaskData } from '@/features/task/hooks/useTaskData.supabase';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -90,35 +87,14 @@ const TaskPage: React.FC = () => {
     openCreateModal
   } = taskData;
 
+  // Calculate stats from tasks loaded by useTaskData (already from Supabase)
   useEffect(() => {
-    if (user) {
-      fetchStats();
-    }
-  }, [user]);
+    if (!tasks || tasks.length === 0) return;
 
-  const fetchStats = async () => {
-    if (!user) return;
-
-    // Obtener estadísticas de tareas completadas vs pendientes
-    // Usar consulta simple para evitar problemas de índice
-    const q = query(
-      collection(db, 'tasks'),
-      where('userId', '==', user.uid),
-      limit(100)
-    );
-
-    const querySnapshot = await getDocs(q);
-    const tasks = querySnapshot.docs
-      .map(doc => doc.data())
-      .sort((a, b) => {
-        const aDate = a.createdAt?.toDate?.() || new Date(0);
-        const bDate = b.createdAt?.toDate?.() || new Date(0);
-        return bDate.getTime() - aDate.getTime(); // ordenar por fecha desc
-      });
-    
-    // Calcular estadísticas por día
-    const dailyStats = tasks.reduce((acc: any, task) => {
-      const date = task.createdAt?.toDate?.()?.toISOString?.().split('T')[0] || 'unknown';
+    // Calcular estadísticas por día (últimas 100 tareas)
+    const recentTasks = tasks.slice(0, 100);
+    const dailyStats = recentTasks.reduce((acc: any, task) => {
+      const date = task.createdAt ? new Date(task.createdAt.seconds * 1000).toISOString().split('T')[0] : 'unknown';
       if (!acc[date]) {
         acc[date] = { date, completed: 0, pending: 0 };
       }
@@ -136,7 +112,7 @@ const TaskPage: React.FC = () => {
       { name: 'Completadas', value: totalCompleted },
       { name: 'Pendientes', value: totalPending }
     ]);
-  };
+  }, [tasks]);
 
   if (!user) {
     return (
@@ -304,12 +280,8 @@ const TaskPage: React.FC = () => {
 
       <div className="p-4">
         {taskData.error && (
-          <div className="mb-4">
-            <FirestoreErrorHandler 
-              error={taskData.error} 
-              onRetry={taskData.loadTasks}
-              showClearCache={true}
-            />
+          <div className="mb-4 text-sm text-red-500 p-2">
+            {taskData.error}
           </div>
         )}
         

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useTaskData } from '../hooks/useTaskData';
+import { useTaskData } from '../hooks/useTaskData.supabase';
 import { useTaskKeyboardShortcuts } from '../hooks/useTaskKeyboardShortcuts';
 import { TaskWeeklyCalendar } from './TaskWeeklyCalendar';
 import { RecurrenceModal } from './RecurrenceModal';
@@ -25,7 +24,6 @@ export const TaskWeekView: React.FC = () => {
     setShowRecurrenceModal,
     openEditModal,
     openCreateModal,
-    resync
   } = useTaskData();
   const { isOnline } = useNetworkStatus();
 
@@ -67,7 +65,6 @@ export const TaskWeekView: React.FC = () => {
             <span className="text-red-600">Error de sincronización</span>
           )}
           {!isOnline && <span className="text-orange-600">Offline</span>}
-          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
         </CardFooter>
       </Card>
       <RecurrenceModal

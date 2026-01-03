@@ -58,7 +58,6 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
     deleteSession,
     editSession,
     addManualSession,
-    resync
   } = usePomodoroData(selectedDate);
   const { isOnline } = useNetworkStatus();
 
@@ -173,7 +172,6 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
             <span className="text-red-600">Error de sincronización</span>
           )}
           {!isOnline && <span className="text-orange-600">Offline</span>}
-          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
         </CardFooter>
       </Card>
     );
@@ -305,7 +303,6 @@ export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
           <span className="text-red-600">Error de sincronización</span>
         )}
         {!isOnline && <span className="text-orange-600">Offline</span>}
-        <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
       </div>
     </div>
   );

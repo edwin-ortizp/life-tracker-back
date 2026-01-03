@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGoals } from '../hooks/useGoals';
+import { useGoals } from '../hooks/useGoals.supabase';
 import { GoalList } from './GoalList';
 import { GoalDetail } from './GoalDetail';
 import { GoalModal } from './GoalModal';

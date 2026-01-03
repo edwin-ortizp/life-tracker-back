@@ -11,13 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import WeeklyView from './WeeklyView';
 import { ImportMealPlan } from './ImportMealPlan';
 import { PasteMealPlan } from './PasteMealPlan';
-import { useMealPlan } from '../hooks/useMealPlan';
+import { useMealPlan } from '../hooks/useMealPlan.supabase';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import type { MealProps } from '../types';
 import { useToast } from '@/components/ui/use-toast';
-import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList';
-import { useRecipes } from '@/features/recipe/hooks/useRecipes';
-import { usePreparedMeals } from '@/features/prepared-meals/hooks/usePreparedMeals';
+import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList.supabase';
+import { useRecipes } from '@/features/recipe/hooks/useRecipes.supabase';
+import { usePreparedMeals } from '@/features/prepared-meals/hooks/usePreparedMeals.supabase';
 import { CompactMealHeader } from '@/components/navigation/CompactMealHeader';
 import { Calendar, ChefHat, ShoppingCart, Package } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
@@ -37,7 +37,6 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
     addMeal,
     removeMeal,
     importMealPlan,
-    resync
   } = useMealPlan();
   const { isOnline } = useNetworkStatus();
 
@@ -238,7 +237,6 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
           <span className="text-red-600">Error de sincronización</span>
         )}
         {!isOnline && <span className="text-orange-600">Offline</span>}
-        <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
       </div>
     </div>
   );

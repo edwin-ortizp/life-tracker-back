@@ -6,7 +6,6 @@ import { Plus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { TaskList } from './TaskList';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { FirestoreErrorHandler } from '@/components/ui/FirestoreErrorHandler';
 import { adjustEndDateToStartDate } from '@/utils/dates';
 
 // Exports
@@ -36,7 +35,7 @@ export * from "./TasksNoDate";
 export * from "./TaskCalendarCompact";
 import { RecurrenceModal } from './RecurrenceModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
-import { useTaskData } from '../hooks/useTaskData';
+import { useTaskData } from '../hooks/useTaskData.supabase';
 import { useTaskKeyboardShortcuts } from '../hooks/useTaskKeyboardShortcuts';
 import type { TaskProps, Task as TaskType } from '../types';
 
@@ -58,7 +57,6 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
     setShowRecurrenceModal,
     openEditModal,
     openCreateModal,
-    resync,
     clearCacheAndReload
   } = taskData;
   const { isOnline } = useNetworkStatus();
@@ -93,7 +91,6 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
             <span className="text-red-600">Error de sincronización</span>
           )}
           {!isOnline && <span className="text-orange-600">Offline</span>}
-          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
         </CardFooter>
       </Card>
     );
@@ -139,11 +136,9 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
             />
 
             {error && (
-              <FirestoreErrorHandler 
-                error={error} 
-                onRetry={resync}
-                showClearCache={true}
-              />
+              <div className="text-sm text-red-500 p-2">
+                {error}
+              </div>
             )}
           </div>
         </CardContent>
@@ -161,7 +156,6 @@ export const Task: React.FC<TaskProps> = ({ showFloatingButton = false }) => {
             <span className="text-red-600">Error de sincronización</span>
           )}
           {!isOnline && <span className="text-orange-600">Offline</span>}
-          <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
           {(status === 'error' || !isOnline) && (
             <Button onClick={clearCacheAndReload} variant="link" className="p-0 h-auto text-red-600">
               Limpiar Cache

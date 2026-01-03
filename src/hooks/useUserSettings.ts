@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { useAuth } from './useAuth'
-import { db } from '@/firebase'
+import { supabase } from '@/lib/supabase'
 import { ThemeName } from '@/themes'
-import { firestoreLogger } from '@/utils/firestore-logger'
 
 export interface UserSettings {
   name?: string
@@ -23,15 +21,26 @@ export function useUserSettings() {
       setLoading(false)
       return
     }
-    
+
     setLoading(true)
     setError(null)
-    
+
     try {
-      const ref = doc(db, 'settings', user.uid)
-      firestoreLogger.logRead('settings', 'useUserSettings.loadSettings', user.uid)
-      const snap = await getDoc(ref)
-      setSettings(snap.exists() ? snap.data() as UserSettings : null)
+      const { data, error: fetchError } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+
+      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows found
+        throw fetchError
+      }
+
+      setSettings(data ? {
+        name: data.name,
+        birthDate: data.birth_date,
+        theme: data.theme
+      } : null)
       setLoading(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error loading settings')
@@ -45,18 +54,29 @@ export function useUserSettings() {
 
   const saveSettings = async (updates: UserSettings) => {
     if (!user) return
-    
+
     // Save previous state for rollback
     const previousSettings = settings
-    
+
     try {
       // Optimistic update: update UI immediately
       const newSettings = { ...settings, ...updates }
       setSettings(newSettings)
-      
-      const ref = doc(db, 'settings', user.uid)
-      firestoreLogger.logWrite('settings', 'useUserSettings.saveSettings', user.uid)
-      await setDoc(ref, { userId: user.uid, ...updates }, { merge: true })
+
+      // Map camelCase to snake_case for Supabase
+      const dbData: any = {
+        user_id: user.id,
+      }
+
+      if (updates.name !== undefined) dbData.name = updates.name
+      if (updates.birthDate !== undefined) dbData.birth_date = updates.birthDate
+      if (updates.theme !== undefined) dbData.theme = updates.theme
+
+      const { error: upsertError } = await supabase
+        .from('user_settings')
+        .upsert(dbData, { onConflict: 'user_id' })
+
+      if (upsertError) throw upsertError
     } catch (err) {
       // Rollback on error
       setSettings(previousSettings)

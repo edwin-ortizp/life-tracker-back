@@ -14,10 +14,10 @@ export default defineConfig({
         manualChunks: {
           // Separar las dependencias de React
           'react-vendor': ['react', 'react-dom'],
-          
-          // Separar Firebase
-          'firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
-          
+
+          // Separar Supabase
+          'supabase': ['@supabase/supabase-js'],
+
           // Separar librerías de UI pesadas
           'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-accordion'],
           

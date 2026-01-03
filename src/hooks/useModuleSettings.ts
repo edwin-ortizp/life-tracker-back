@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { db } from '@/firebase';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from './useAuth';
-import { firestoreLogger } from '@/utils/firestore-logger';
 
 // Cache global para settings ya cargados
 const settingsCache = new Map<string, any>();
@@ -18,9 +16,9 @@ export function useModuleSettings<T>(module: string, defaults: T) {
   // Load settings with caching to prevent unnecessary reads
   const loadSettings = useCallback(async () => {
     if (!user || hasLoadedRef.current) return;
-    
-    const cacheKey = `${user.uid}_${module}`;
-    
+
+    const cacheKey = `${user.id}_${module}`;
+
     // Check if already cached
     if (settingsCache.has(cacheKey)) {
       const cachedSettings = settingsCache.get(cacheKey);
@@ -28,7 +26,7 @@ export function useModuleSettings<T>(module: string, defaults: T) {
       hasLoadedRef.current = true;
       return;
     }
-    
+
     // Check if already loading
     if (loadingCache.has(cacheKey)) {
       try {
@@ -40,32 +38,39 @@ export function useModuleSettings<T>(module: string, defaults: T) {
         // Continue to load if promise failed
       }
     }
-    
+
     setStatus('loading');
     setError(null);
-    
+
     // Create loading promise
     const loadingPromise = (async () => {
       try {
-        const docRef = doc(db, 'settings', cacheKey);
-        firestoreLogger.logRead('settings', 'useModuleSettings.loadSettings', cacheKey);
-        const snap = await getDoc(docRef);
-        
-        const result = snap.exists() ? snap.data() : {};
-        
+        const { data, error: fetchError } = await supabase
+          .from('module_settings')
+          .select('settings')
+          .eq('user_id', user.id)
+          .eq('module', module)
+          .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows found
+          throw fetchError;
+        }
+
+        const result = data?.settings || {};
+
         // Cache the result
         settingsCache.set(cacheKey, result);
         loadingCache.delete(cacheKey);
-        
+
         return result;
       } catch (e) {
         loadingCache.delete(cacheKey);
         throw e;
       }
     })();
-    
+
     loadingCache.set(cacheKey, loadingPromise);
-    
+
     try {
       const result = await loadingPromise;
       setSettings({ ...defaults, ...result } as T);
@@ -83,34 +88,43 @@ export function useModuleSettings<T>(module: string, defaults: T) {
 
   const saveSettings = async (updates: Partial<T>) => {
     if (!user) return;
-    
+
     setStatus('saving');
     setError(null);
-    
+
     // Save previous state for rollback
     const previousSettings = settings;
-    const cacheKey = `${user.uid}_${module}`;
-    
+    const cacheKey = `${user.id}_${module}`;
+
     try {
       // Optimistic update: update UI immediately
       const newSettings = { ...settings, ...updates };
       setSettings(newSettings);
       setStatus('saved');
-      
-      const docRef = doc(db, 'settings', cacheKey);
+
       const sanitized = Object.fromEntries(
         Object.entries(updates).filter(
           ([, v]) => v !== undefined && !(typeof v === 'number' && isNaN(v))
         )
       );
-      
-      firestoreLogger.logWrite('settings', 'useModuleSettings.saveSettings', cacheKey);
-      await setDoc(docRef, { userId: user.uid, ...sanitized }, { merge: true });
-      
-      // Update cache with new settings
+
+      // Get current settings from DB to merge
       const currentCache = settingsCache.get(cacheKey) || {};
-      settingsCache.set(cacheKey, { ...currentCache, ...sanitized });
-      
+      const mergedSettings = { ...currentCache, ...sanitized };
+
+      const { error: upsertError } = await supabase
+        .from('module_settings')
+        .upsert({
+          user_id: user.id,
+          module: module,
+          settings: mergedSettings
+        }, { onConflict: 'user_id,module' });
+
+      if (upsertError) throw upsertError;
+
+      // Update cache with new settings
+      settingsCache.set(cacheKey, mergedSettings);
+
     } catch (e: any) {
       // Rollback on error
       setSettings(previousSettings);

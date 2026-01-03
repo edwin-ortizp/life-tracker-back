@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { ExerciseProps } from '../types';
-import { useExerciseData } from '../hooks/useExerciseData';
+import { useExerciseData } from '../hooks/useExerciseData.supabase';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { ExerciseList } from './ExerciseList';
 import { ExerciseFormModal } from './ExerciseFormModal';
@@ -31,7 +31,6 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
     logExercise,
     updateExerciseLog,
     deleteExerciseLog,
-    resync
   } = useExerciseData(selectedDate);
   const { isOnline } = useNetworkStatus();
 
@@ -134,7 +133,6 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
           <span className="text-red-600">Error de sincronización</span>
         )}
         {!isOnline && <span className="text-orange-600">Offline</span>}
-        <Button onClick={resync} variant="link" className="p-0 h-auto">Reintentar</Button>
       </CardFooter>
     </Card>
   );
@@ -142,6 +140,5 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
 
 Exercise.displayName = 'Exercise';
 // Re-export for easier imports
-export * from './ExerciseCalendar';
 
 export default Exercise;

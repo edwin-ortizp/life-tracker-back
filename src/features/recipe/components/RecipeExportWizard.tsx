@@ -1,6 +1,6 @@
 import React from 'react';
 import { ModularExportWizard, ModularExportWizardConfig } from '@/components/ui/modular-export-wizard';
-import { useRecipes } from '../hooks/useRecipes';
+import { useRecipes } from '../hooks/useRecipes.supabase';
 import type { Recipe } from '../types';
 import { BookOpen } from 'lucide-react';
 

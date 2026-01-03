@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Sparkles, RefreshCw, Loader2, Check, X } from 'lucide-react';
 import { getAiConfig } from '@/config/ai';
-import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList';
+import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList.supabase';
 import type { MealModalState, MealFormData } from './types';
 import { MEAL_TYPES, Meal } from '../../types';
 import { Textarea } from '@/components/ui/textarea';

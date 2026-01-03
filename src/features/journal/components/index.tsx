@@ -5,12 +5,11 @@ import { JournalHeader } from './JournalHeader';
 import { JournalInput } from './JournalInput';
 import { PasswordProtection } from './PasswordProtection';
 import { PrivateTaskSection } from '@/features/task/components/PrivateTaskSection';
-import { SimpleJournalExportWizard } from './SimpleJournalExportWizard';
 import JournalAiMenu from './JournalAiMenu';
 import { LastUpdatedInfo } from './LastUpdatedInfo';
 import { Button } from '@/components/ui/button';
 import { Save, Download } from 'lucide-react';
-import { useJournalData } from '../hooks/useJournalData';
+import { useJournalData } from '../hooks/useJournalData.supabase';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useJournalEntry } from '../context/JournalEntryContext';
 import { useJournalLock } from '../context/JournalLockContext';
@@ -19,7 +18,7 @@ import type { JournalProps } from '../types';
 export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
   const { user } = useAuth();
   const { isUnlocked, setUnlocked } = useJournalLock();
-  const [isExportWizardOpen, setIsExportWizardOpen] = useState(false);
+  const [_isExportWizardOpen, setIsExportWizardOpen] = useState(false);
   const {
     entry,
     setEntry,
@@ -27,7 +26,6 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
     error,
     saveEntry,
     lastUpdated,
-    resync
   } = useJournalData(selectedDate);
   const { isOnline } = useNetworkStatus();
 
@@ -132,19 +130,13 @@ export const Journal: React.FC<JournalProps> = ({ selectedDate }) => {
               <span className="text-red-600">Error de sincronización</span>
             )}
             {!isOnline && <span className="text-orange-600">Offline</span>}
-            <Button onClick={resync} variant="link" className="p-0 h-auto text-xs">Reintentar</Button>
           </div>
         </CardFooter>
       </Card>
       <PrivateTaskSection selectedDate={selectedDate} />
-      <SimpleJournalExportWizard
-        open={isExportWizardOpen}
-        onOpenChange={setIsExportWizardOpen}
-      />
     </>
   );
 };
 export * from "./MarkdownJournal";
-export * from "./ExportRangeButton";
 export * from "./JournalAiMenu";
 export default Journal;

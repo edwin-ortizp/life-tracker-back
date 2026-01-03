@@ -5,10 +5,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { HabitViewToggle } from './HabitViewToggle';
 import { WeeklyView } from './WeeklyView';
 import { YearlyView } from './YearlyView';
-import { useHabitData } from '../hooks/useHabitData';
+import { useHabitData } from '../hooks/useHabitData.supabase';
 import type { HabitProps } from '../types';
 import { HabitAiMenu } from './HabitAiMenu';
-import { Button } from '@/components/ui/button';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 // Exports
@@ -28,7 +27,6 @@ export const Habit: React.FC<HabitProps> = () => {
     status,
     error,
     toggleHabit,
-    resync
   } = useHabitData();
   const { isOnline } = useNetworkStatus();
 
@@ -88,9 +86,6 @@ export const Habit: React.FC<HabitProps> = () => {
           <span className="text-red-600">Error de sincronización</span>
         )}
         {!isOnline && <span className="text-orange-600">Offline</span>}
-        <Button onClick={resync} variant="link" className="p-0 h-auto text-xs">
-          Reintentar
-        </Button>
       </CardFooter>
     </Card>
   );

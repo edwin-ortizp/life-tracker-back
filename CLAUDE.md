@@ -20,7 +20,7 @@ This is **Life Tracker**, a comprehensive React PWA for personal productivity tr
 ### Core Technology Stack
 - **Frontend**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS + Radix UI components
-- **Backend**: Firebase Firestore
+- **Backend**: Supabase (PostgreSQL)
 - **State Management**: Custom hooks + React hooks
 - **Charts**: Recharts
 - **Icons**: Lucide React

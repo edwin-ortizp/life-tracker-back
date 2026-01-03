@@ -14,7 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar, ChefHat, ShoppingCart, Package } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useRecipes } from '../hooks/useRecipes';
+import { useRecipes } from '../hooks/useRecipes.supabase';
 import AddRecipeModal from './AddRecipeModal';
 import ExportRecipesButton from './ExportRecipesButton';
 import { MEAL_TYPES } from '@/features/meal/types';

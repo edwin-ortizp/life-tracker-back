@@ -1,32 +1,26 @@
 // src/features/mood/components/index.tsx
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { MoodSelector } from './MoodSelector';
 import { MoodHistory } from './MoodHistory';
 import { EnergySelector } from './EnergySelector';
 import { EnergyHistory } from './EnergyHistory';
-import { ImportMoodButton } from './ImportMoodButton';
-import { MoodAiMenu } from './MoodAiMenu';
-import { useJournalLock } from '@/features/journal/context/JournalLockContext';
-import { useMoodData } from '../hooks/useMoodData';
-import { useEnergyData } from '../hooks/useEnergyData';
+import { useMoodData } from '../hooks/useMoodData.supabase';
+import { useEnergyData } from '../hooks/useEnergyData.supabase';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { getLocalDateString } from '@/utils/dates';
 import type { MoodProps } from '../types';
 
 export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false }) => {
   const { user } = useAuth();
-  const { isUnlocked } = useJournalLock();
   const {
     moodHistory,
     status,
     error,
     addMood,
     updateMood,
-    deleteMood,
-    resync: resyncMood
+    deleteMood
   } = useMoodData(selectedDate);
   const {
     energyHistory,
@@ -34,8 +28,7 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
     error: energyError,
     addEntry,
     updateEntry,
-    deleteEntry,
-    resync: resyncEnergy
+    deleteEntry
   } = useEnergyData(selectedDate);
   const { isOnline } = useNetworkStatus();
 
@@ -69,11 +62,6 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-medium">Estado de ánimo</h3>
           <div className="flex items-center gap-2">
-              <ImportMoodButton />
-              {isUnlocked && (
-                <MoodAiMenu selectedDate={selectedDate} />
-              )}
-              
             </div>
           </div>
 
@@ -107,9 +95,6 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
           <span className="text-red-500">Error al guardar</span>
         )}
         {!isOnline && <span className="text-orange-600">Offline</span>}
-        <Button onClick={resyncMood} variant="link" className="p-0 h-auto text-xs">
-          Reintentar
-        </Button>
       </CardFooter>
     </Card>
   );
@@ -164,9 +149,6 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
           <span className="text-red-500">Error al guardar</span>
         )}
         {!isOnline && <span className="text-orange-600">Offline</span>}
-        <Button onClick={resyncEnergy} variant="link" className="p-0 h-auto text-xs">
-          Reintentar
-        </Button>
       </CardFooter>
     </Card>
   );
@@ -181,8 +163,6 @@ export const Mood: React.FC<MoodProps> = ({ selectedDate, energyFirst = false })
 
 export * from './MoodSelector';
 export * from './MoodHistory';
-export * from './ImportMoodButton';
-export * from './MoodAiMenu';
 export * from './EnergySelector';
 export * from './EnergyHistory';
 

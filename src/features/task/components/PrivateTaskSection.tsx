@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { TaskItemList } from './TaskItemList';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { RecurrenceModal } from './RecurrenceModal';
-import { useTaskData } from '../hooks/useTaskData';
+import { useTaskData } from '../hooks/useTaskData.supabase';
 import type { Task } from '../types';
 import { isSameDay } from 'date-fns';
 import {

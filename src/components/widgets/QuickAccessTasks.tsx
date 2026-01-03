@@ -3,7 +3,7 @@ import { ListTodo, Plus } from 'lucide-react';
 import { DailyWidget } from './DailyWidget';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useTaskData } from '@/features/task/hooks/useTaskData';
+import { useTaskData } from '@/features/task/hooks/useTaskData.supabase';
 import { startOfDay, endOfDay } from 'date-fns';
 
 interface QuickAccessTasksProps {

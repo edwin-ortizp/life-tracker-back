@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CheckCircle, ArrowLeft, Play, Pause } from 'lucide-react';
 import { HABITS } from '@/features/habit/types';
-import { useHabitDataDaily } from '@/features/habit/hooks/useHabitDataDaily';
+import { useHabitDataDaily } from '@/features/habit/hooks/useHabitDataDaily.supabase';
 import { useHabitTimer } from '@/features/habit/hooks/useHabitTimer';
 import { getLocalDateString } from '@/utils/dates';
 import {
