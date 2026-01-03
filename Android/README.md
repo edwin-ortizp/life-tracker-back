@@ -27,6 +27,14 @@ cd Android
 ```
 Luego instala el APK generado en `app/build/outputs/apk/debug/` en un emulador o dispositivo.
 
+### Si no puedes descargar binarios (wrapper)
+Usa una instalación local de Gradle 8.7+ en lugar del wrapper:
+```bash
+cd Android
+gradle --version   # asegúrate de que sea 8.7 o superior
+gradle :app:assembleDebug
+```
+
 ## Arquitectura y paquetes
 - `com.lifetracker.android.data`
   - `SupabaseApi`: cliente Ktor contra Supabase (auth + REST tasks)
