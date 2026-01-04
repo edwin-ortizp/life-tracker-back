@@ -4,7 +4,7 @@ import {
   Dialog,
   DialogContent
 } from '@/components/ui/dialog';
-import { MOODS } from '@/features/mood/types';
+import { useMoodStates } from '@/features/mood/hooks/useMoodStates';
 import type { Task } from '../types';
 import { CATEGORY_LABELS } from '../types';
 import { format } from 'date-fns';
@@ -28,6 +28,7 @@ const API_URL = taskConfig
   : '';
 
 export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks, open: openProp, onOpenChange }) => {
+  const { moodStates } = useMoodStates();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = openProp !== undefined ? openProp : internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
@@ -123,7 +124,7 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks, open:
                 <div>
                   <label className="text-sm font-medium text-gray-700 mb-2 block">¿Cómo te sientes?</label>
                   <div className="grid grid-cols-3 gap-2">
-                    {MOODS.map((mood) => (
+                    {moodStates.map((mood) => (
                       <div key={mood.emoji} className="relative">
                         <Button
                           variant="outline"

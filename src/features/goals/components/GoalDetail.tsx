@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { 
-  Plus, 
-  Calendar, 
-  CheckCircle2, 
-  Clock, 
+import {
+  Plus,
+  Calendar,
+  CheckCircle2,
+  Clock,
   Star,
   ThumbsUp,
   ThumbsDown,
@@ -12,24 +12,26 @@ import {
   TrendingUp,
   Edit,
   Sparkles,
-  Hash
+  Hash,
+  X
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { AiSuggestionsModal } from './AiSuggestionsModal';
+import { RecurrenceModal } from '@/features/task/components/RecurrenceModal';
+import { useGoalTasks } from '../hooks/useGoalTasks';
 import type { Goal } from '../types';
+import type { Task } from '@/features/task/types';
 
 interface Props {
   goal: Goal;
-  onAddTask: (title: string) => void;
-  onToggleTask: (index: number) => void;
   onAddEntry: (text: string, date: string, isMilestone: boolean) => void;
   onIncrementPositive: () => void;
   onIncrementNegative: () => void;
@@ -37,16 +39,22 @@ interface Props {
   onEdit: () => void;
 }
 
-export const GoalDetail = ({ 
-  goal, 
-  onAddTask, 
-  onToggleTask, 
-  onAddEntry, 
-  onIncrementPositive, 
+export const GoalDetail = ({
+  goal,
+  onAddEntry,
+  onIncrementPositive,
   onIncrementNegative,
   onAddNumericEntry,
-  onEdit 
+  onEdit
 }: Props) => {
+  // Hook para gestionar las tareas del objetivo
+  const { tasks, addTask, editTask, toggleTask, deleteTask } = useGoalTasks(goal.id);
+
+  // Estados para el modal de tareas
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+
   // Función para calcular el progreso numérico correctamente
   const calculateNumericProgress = (currentValue: number, targetValue: number) => {
     if (currentValue === targetValue) return 100;
@@ -65,7 +73,6 @@ export const GoalDetail = ({
       return Math.max(0, Math.min(100, progress));
     }
   };
-  const [taskTitle, setTaskTitle] = useState('');
   const [entryText, setEntryText] = useState('');
   const [entryDate, setEntryDate] = useState(new Date().toISOString().split('T')[0]);
   const [milestone, setMilestone] = useState(false);
@@ -74,8 +81,9 @@ export const GoalDetail = ({
   const [numericDate, setNumericDate] = useState(new Date().toISOString().split('T')[0]);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
-  const completed = goal.tasks.filter(t => t.done).length;
-  const total = goal.tasks.length;
+  // Calcular progreso de tareas
+  const completed = tasks.filter(t => t.completed).length;
+  const total = tasks.length;
   const progressPercentage = total > 0 ? (completed / total) * 100 : 0;
 
   const getStatusVariant = (status: string) => {
@@ -114,13 +122,6 @@ export const GoalDetail = ({
         return 'Abandonado';
       default:
         return status;
-    }
-  };
-
-  const handleAddTask = () => {
-    if (taskTitle.trim()) {
-      onAddTask(taskTitle.trim());
-      setTaskTitle('');
     }
   };
 
@@ -209,52 +210,94 @@ export const GoalDetail = ({
 
             {/* Tasks List */}
             <div className="space-y-2">
-              {goal.tasks.length > 0 ? (
-                goal.tasks.map((task, idx) => (
-                  <div key={idx} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50">
+              {tasks.length > 0 ? (
+                tasks.map((task) => (
+                  <div key={task.id} className="flex items-center space-x-2 p-3 rounded-lg border bg-gray-50 hover:bg-gray-100">
                     <Checkbox
-                      id={`task-${idx}`}
-                      checked={task.done}
-                      onCheckedChange={() => onToggleTask(idx)}
+                      id={`task-${task.id}`}
+                      checked={task.completed}
+                      onCheckedChange={() => toggleTask(task.id, !task.completed)}
                     />
-                    <Label
-                      htmlFor={`task-${idx}`}
-                      className={`flex-1 cursor-pointer ${
-                        task.done ? 'line-through text-gray-500' : ''
-                      }`}
-                    >
-                      {task.title}
-                    </Label>
-                    {task.done && (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    )}
+                    <div className="flex-1 min-w-0">
+                      <Label
+                        htmlFor={`task-${task.id}`}
+                        className={`cursor-pointer block ${
+                          task.completed ? 'line-through text-gray-500' : ''
+                        }`}
+                      >
+                        {task.title}
+                      </Label>
+                      {task.description && (
+                        <p className="text-xs text-gray-500 mt-1">{task.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentTask(task);
+                          setModalMode('edit');
+                          setShowTaskModal(true);
+                        }}
+                        className="h-8 w-8 p-0"
+                        title="Editar tarea"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+                            deleteTask(task.id);
+                          }
+                        }}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        title="Eliminar tarea"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      {task.completed && (
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      )}
+                    </div>
                   </div>
                 ))
               ) : (
                 <p className="text-sm text-gray-500 text-center py-4">
-                  No hay tareas aún. Agrega la primera tarea para empezar.
+                  No hay tareas aún
                 </p>
               )}
             </div>
 
             <Separator />
 
-            {/* Add Task */}
-            <div className="space-y-2">
-              <Label htmlFor="new-task">Nueva tarea</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="new-task"
-                  value={taskTitle}
-                  onChange={(e) => setTaskTitle(e.target.value)}
-                  placeholder="Escribe una nueva tarea..."
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
-                />
-                <Button onClick={handleAddTask} disabled={!taskTitle.trim()}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+            {/* Add Task Button */}
+            <Button
+              onClick={() => {
+                setCurrentTask({
+                  id: '',
+                  taskCode: 0,
+                  title: '',
+                  completed: false,
+                  category: 'personal',
+                  priority: 'delete',
+                  size: 'pequeña',
+                  createdAt: { seconds: Date.now() / 1000 },
+                  goalId: goal.id,
+                  progress: 0
+                } as Task);
+                setModalMode('create');
+                setShowTaskModal(true);
+              }}
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nueva tarea
+            </Button>
           </CardContent>
         </Card>
 
@@ -543,6 +586,28 @@ export const GoalDetail = ({
         isOpen={isAiModalOpen}
         onClose={() => setIsAiModalOpen(false)}
       />
+
+      {/* Task Modal */}
+      {showTaskModal && currentTask && (
+        <RecurrenceModal
+          isOpen={showTaskModal}
+          onClose={() => {
+            setShowTaskModal(false);
+            setCurrentTask(null);
+          }}
+          onConfirm={async (formData) => {
+            if (modalMode === 'create') {
+              await addTask(formData);
+            } else {
+              await editTask(currentTask.id, formData);
+            }
+            setShowTaskModal(false);
+            setCurrentTask(null);
+          }}
+          task={currentTask}
+          mode={modalMode}
+        />
+      )}
     </div>
   );
 };

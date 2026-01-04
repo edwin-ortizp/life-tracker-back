@@ -19,6 +19,9 @@ import com.lifetracker.android.data.SupabaseRepository
 import com.lifetracker.android.ui.auth.AuthScreen
 import com.lifetracker.android.ui.auth.AuthViewModel
 import com.lifetracker.android.ui.auth.AuthViewModelFactory
+import com.lifetracker.android.ui.tasks.TaskCreateScreen
+import com.lifetracker.android.ui.tasks.TaskCreateViewModel
+import com.lifetracker.android.ui.tasks.TaskCreateViewModelFactory
 import com.lifetracker.android.ui.tasks.TaskDetailScreen
 import com.lifetracker.android.ui.tasks.TaskDetailViewModel
 import com.lifetracker.android.ui.tasks.TaskDetailViewModelFactory
@@ -29,6 +32,7 @@ import com.lifetracker.android.ui.tasks.TaskListViewModelFactory
 sealed class Screen(val route: String) {
     data object Login : Screen("login")
     data object Tasks : Screen("tasks")
+    data object CreateTask : Screen("tasks/create")
     data object TaskDetail : Screen("task/{taskId}") {
         fun createRoute(id: String) = "task/$id"
     }
@@ -65,12 +69,22 @@ fun LifeTrackerApp(
                 viewModel = viewModel,
                 snackbarHostState = snackbarHostState,
                 onTaskClick = { id -> navController.navigate(Screen.TaskDetail.createRoute(id)) },
+                onNavigateToCreate = { navController.navigate(Screen.CreateTask.route) },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Tasks.route) { inclusive = true }
                     }
                 },
                 repository = repository
+            )
+        }
+
+        composable(Screen.CreateTask.route) {
+            val viewModel: TaskCreateViewModel = viewModel(factory = TaskCreateViewModelFactory(repository))
+            TaskCreateScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() },
+                snackbarHostState = snackbarHostState
             )
         }
 

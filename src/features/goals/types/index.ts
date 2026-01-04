@@ -1,4 +1,5 @@
 export interface GoalTask {
+  id: string;
   title: string;
   done: boolean;
   createdAt?: string;
@@ -49,8 +50,6 @@ export interface GoalsHook {
   error: string | null;
   addGoal: (goal: Omit<Goal, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateGoal: (id: string, data: Partial<Goal>) => Promise<void>;
-  addTask: (goalId: string, taskTitle: string) => Promise<void>;
-  toggleTask: (goalId: string, taskIndex: number) => Promise<void>;
   addEntry: (goalId: string, entry: Omit<GoalEntry, 'date'> & { date?: string }) => Promise<void>;
   incrementPositiveCount: (goalId: string) => Promise<void>;
   incrementNegativeCount: (goalId: string) => Promise<void>;

@@ -83,8 +83,8 @@ const SettingsPage = () => {
         {/* Settings Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nombre</Label>
-            <Input id="name" {...register('name')} />
+            <Label htmlFor="fullName">Nombre</Label>
+            <Input id="fullName" {...register('fullName')} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="birthDate">Fecha de nacimiento</Label>

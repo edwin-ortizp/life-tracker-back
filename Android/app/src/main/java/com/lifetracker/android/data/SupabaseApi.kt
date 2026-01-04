@@ -17,6 +17,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import java.time.LocalDate
 
 class SupabaseApi {
 
@@ -25,7 +26,7 @@ class SupabaseApi {
 
     private val client = HttpClient(Android) {
         install(ContentNegotiation) {
-            io.ktor.serialization.kotlinx.json.json(
+            json(
                 Json {
                     ignoreUnknownKeys = true
                     isLenient = true
@@ -52,17 +53,57 @@ class SupabaseApi {
         return response.body()
     }
 
-    suspend fun getTasks(accessToken: String): List<Task> {
+    suspend fun getTasks(accessToken: String, filter: TaskFilter? = null, category: String? = null): List<Task> {
         val response = client.get("$supabaseUrl/rest/v1/tasks") {
             header("apikey", anonKey)
             header(HttpHeaders.Authorization, "Bearer $accessToken")
             header("Prefer", "return=representation")
             url {
                 parameters.append("select", "*")
-                parameters.append("order", "date.desc")
+                parameters.append("completed", "is.false") 
+                
+                // Filters
+                when (filter) {
+                    TaskFilter.NO_DATE -> parameters.append("start_date", "is.null")
+                    TaskFilter.TODAY -> {
+                        val today = LocalDate.now().toString()
+                        parameters.append("start_date", "eq.$today")
+                    }
+                    else -> {}
+                }
+
+                if (!category.isNullOrBlank()) {
+                    parameters.append("category", "ilike.%$category%")
+                }
+
+                parameters.append("order", "start_date.desc.nullslast")
             }
         }
         return response.body()
+    }
+
+    suspend fun searchTasks(accessToken: String, query: String): List<Task> {
+        val response = client.get("$supabaseUrl/rest/v1/tasks") {
+            header("apikey", anonKey)
+            header(HttpHeaders.Authorization, "Bearer $accessToken")
+            header("Prefer", "return=representation")
+            url {
+                parameters.append("select", "*")
+                parameters.append("completed", "is.false")
+                parameters.append("or", "(title.ilike.%$query%,description.ilike.%$query%)")
+                parameters.append("order", "start_date.desc.nullslast")
+            }
+        }
+        return response.body()
+    }
+
+    suspend fun createTask(accessToken: String, task: CreateTaskRequest) {
+        client.post("$supabaseUrl/rest/v1/tasks") {
+            header("apikey", anonKey)
+            header(HttpHeaders.Authorization, "Bearer $accessToken")
+            contentType(ContentType.Application.Json)
+            setBody(task)
+        }
     }
 
     suspend fun getTaskById(id: String, accessToken: String): Task {
@@ -78,4 +119,44 @@ class SupabaseApi {
         val tasks: List<Task> = response.body()
         return tasks.firstOrNull() ?: error("Task not found")
     }
+
+    // New methods for other modules
+    suspend fun getJournalEntries(accessToken: String): List<JournalEntry> {
+        val response = client.get("$supabaseUrl/rest/v1/journal_entries") {
+            header("apikey", anonKey)
+            header(HttpHeaders.Authorization, "Bearer $accessToken")
+            url {
+                parameters.append("select", "*")
+                parameters.append("order", "created_at.desc")
+            }
+        }
+        return response.body()
+    }
+
+    suspend fun getGoals(accessToken: String): List<Goal> {
+         val response = client.get("$supabaseUrl/rest/v1/goals") {
+            header("apikey", anonKey)
+            header(HttpHeaders.Authorization, "Bearer $accessToken")
+            url {
+                parameters.append("select", "*")
+            }
+        }
+        return response.body()
+    }
+
+    suspend fun getDrinkLogs(accessToken: String): List<DrinkLog> {
+         val response = client.get("$supabaseUrl/rest/v1/drink_logs") {
+            header("apikey", anonKey)
+            header(HttpHeaders.Authorization, "Bearer $accessToken")
+            url {
+                parameters.append("select", "*")
+                parameters.append("order", "created_at.desc")
+            }
+        }
+        return response.body()
+    }
+}
+
+enum class TaskFilter {
+    ALL, NO_DATE, TODAY
 }

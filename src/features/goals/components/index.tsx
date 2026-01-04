@@ -20,8 +20,6 @@ export const Goals = () => {
     error,
     addGoal,
     updateGoal,
-    addTask,
-    toggleTask,
     addEntry,
     incrementPositiveCount,
     incrementNegativeCount,
@@ -114,8 +112,6 @@ export const Goals = () => {
         
         <GoalDetail
           goal={selectedGoal}
-          onAddTask={title => addTask(selectedGoal.id, title)}
-          onToggleTask={idx => toggleTask(selectedGoal.id, idx)}
           onAddEntry={(text, date, milestone) => addEntry(selectedGoal.id, { text, date, isMilestone: milestone })}
           onIncrementPositive={() => incrementPositiveCount(selectedGoal.id)}
           onIncrementNegative={() => incrementNegativeCount(selectedGoal.id)}

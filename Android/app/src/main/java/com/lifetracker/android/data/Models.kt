@@ -1,5 +1,6 @@
 package com.lifetracker.android.data
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -28,7 +29,50 @@ data class Task(
     val title: String,
     val description: String? = null,
     val status: String? = null,
-    val date: String? = null,
+    val category: String? = null,
+    @SerialName("start_date") val startDate: String? = null,
+    @SerialName("end_date") val endDate: String? = null,
+    val progress: Int? = null,
+    @SerialName("task_code") val taskCode: String? = null,
+    val completed: Boolean? = false
+)
+
+@Serializable
+data class CreateTaskRequest(
+    val title: String,
+    val description: String? = null,
+    val status: String = "pending",
+    val category: String? = null,
+    @SerialName("start_date") val startDate: String? = null,
+    @SerialName("end_date") val endDate: String? = null,
+    val progress: Int = 0,
+    @SerialName("task_code") val taskCode: String? = null,
+    val completed: Boolean = false
+)
+
+@Serializable
+data class JournalEntry(
+    val id: String,
+    val content: String,
+    @SerialName("created_at") val createdAt: String,
+    val date: String? = null
+)
+
+@Serializable
+data class Goal(
+    val id: String,
+    val title: String,
+    val description: String? = null,
+    @SerialName("target_date") val targetDate: String? = null,
+    val completed: Boolean = false
+)
+
+@Serializable
+data class DrinkLog(
+    val id: String,
+    @SerialName("drink_type") val drinkType: String,
+    val amount: Int, // ml
+    @SerialName("created_at") val createdAt: String
 )
 
 object FlexibleStringSerializer : KSerializer<String> {

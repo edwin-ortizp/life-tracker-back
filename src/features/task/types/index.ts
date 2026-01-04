@@ -88,6 +88,7 @@ export interface Task {
   timeOfDay?: TimeOfDay; // Deprecated - mantener por compatibilidad
   progress?: number;
   elapsedSeconds?: number;
+  goalId?: string; // ID del objetivo al que pertenece esta tarea (si aplica)
   // Timer-related fields
   timerStartTime?: {
     timestamp: number;
@@ -133,6 +134,7 @@ export interface TaskFormData {
   estimatedTime?: number;
   timeOfDay?: TimeOfDay; // Deprecated
   elapsedSeconds?: number;
+  goalId?: string; // ID del objetivo al que pertenece esta tarea (si aplica)
   // Timer-related fields
   timerStartTime?: {
     timestamp: number;

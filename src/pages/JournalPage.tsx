@@ -1,6 +1,8 @@
 // src/pages/JournalPage.tsx
 import React, { useState } from 'react';
 import { Journal } from '@/features/journal/components';
+import { JournalLockProvider } from '@/features/journal/context/JournalLockContext';
+import { JournalEntryProvider } from '@/features/journal/context/JournalEntryContext';
 import DateSelector from '@/components/DateSelector';
 import { useAuth } from '@/hooks/useAuth';
 import PageLayout from '@/components/PageLayout';
@@ -32,7 +34,11 @@ const JournalPage: React.FC = () => {
       <div className="mt-6">
         <DateSelector selectedDate={selectedDate} onChange={setSelectedDate} />
         <div className="mt-4">
-          <Journal selectedDate={selectedDate} />
+          <JournalEntryProvider>
+            <JournalLockProvider>
+              <Journal selectedDate={selectedDate} />
+            </JournalLockProvider>
+          </JournalEntryProvider>
         </div>
       </div>
     </PageLayout>
