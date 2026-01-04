@@ -69,6 +69,18 @@ class SupabaseApi {
                         val today = LocalDate.now().toString()
                         parameters.append("start_date", "eq.$today")
                     }
+                    TaskFilter.TOMORROW -> {
+                        val tomorrow = LocalDate.now().plusDays(1).toString()
+                        parameters.append("start_date", "eq.$tomorrow")
+                    }
+                    TaskFilter.OVERDUE -> {
+                        val today = LocalDate.now().toString()
+                        parameters.append("start_date", "lt.$today")
+                    }
+                    TaskFilter.FUTURE -> {
+                        val tomorrow = LocalDate.now().plusDays(1).toString()
+                        parameters.append("start_date", "gte.$tomorrow")
+                    }
                     else -> {}
                 }
 
@@ -82,7 +94,7 @@ class SupabaseApi {
         return response.body()
     }
 
-    suspend fun searchTasks(accessToken: String, query: String): List<Task> {
+    suspend fun searchTasks(accessToken: String, query: String, category: String? = null): List<Task> {
         val response = client.get("$supabaseUrl/rest/v1/tasks") {
             header("apikey", anonKey)
             header(HttpHeaders.Authorization, "Bearer $accessToken")
@@ -91,6 +103,11 @@ class SupabaseApi {
                 parameters.append("select", "*")
                 parameters.append("completed", "is.false")
                 parameters.append("or", "(title.ilike.%$query%,description.ilike.%$query%)")
+                
+                if (!category.isNullOrBlank()) {
+                    parameters.append("category", "ilike.%$category%")
+                }
+
                 parameters.append("order", "start_date.desc.nullslast")
             }
         }
@@ -120,7 +137,6 @@ class SupabaseApi {
         return tasks.firstOrNull() ?: error("Task not found")
     }
 
-    // New methods for other modules
     suspend fun getJournalEntries(accessToken: String): List<JournalEntry> {
         val response = client.get("$supabaseUrl/rest/v1/journal_entries") {
             header("apikey", anonKey)
@@ -158,5 +174,5 @@ class SupabaseApi {
 }
 
 enum class TaskFilter {
-    ALL, NO_DATE, TODAY
+    ALL, NO_DATE, TODAY, TOMORROW, OVERDUE, FUTURE
 }

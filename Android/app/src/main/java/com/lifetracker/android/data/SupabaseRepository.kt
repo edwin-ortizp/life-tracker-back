@@ -21,10 +21,10 @@ class SupabaseRepository(
         return api.getTasks(tokens.accessToken, filter, category)
     }
 
-    suspend fun searchTasks(query: String): List<Task> {
+    suspend fun searchTasks(query: String, category: String? = null): List<Task> {
         val tokens = tokenStorage.tokens.first()
             ?: error("No session available")
-        return api.searchTasks(tokens.accessToken, query)
+        return api.searchTasks(tokens.accessToken, query, category)
     }
 
     suspend fun createTask(title: String, description: String?, category: String?, startDate: String?, endDate: String?, taskCode: String?) {

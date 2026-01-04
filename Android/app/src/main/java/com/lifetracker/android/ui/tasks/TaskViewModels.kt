@@ -28,6 +28,10 @@ class TaskListViewModel(private val repository: SupabaseRepository) : ViewModel(
     
     private val _currentFilter = MutableStateFlow(TaskFilter.ALL)
     val currentFilter: StateFlow<TaskFilter> = _currentFilter
+    
+    // New: Category filter state
+    private val _categoryFilter = MutableStateFlow("")
+    val categoryFilter: StateFlow<String> = _categoryFilter
 
     private var searchJob: Job? = null
 
@@ -48,17 +52,32 @@ class TaskListViewModel(private val repository: SupabaseRepository) : ViewModel(
         _currentFilter.value = filter
         refresh()
     }
+    
+    // New: Set category filter
+    fun setCategoryFilter(category: String) {
+        _categoryFilter.value = category
+        refresh()
+    }
 
     fun refresh() {
         _state.value = TaskListState.Loading
         viewModelScope.launch {
             val query = _searchQuery.value
             val filter = _currentFilter.value
+            val category = _categoryFilter.value.trim()
+            
             runCatching { 
+                // Logic updated:
+                // If query is present, use searchTasks (but pass category filter too)
+                // If no query, use getTasks with filters
+                
                 if (query.isNotBlank()) {
-                    repository.searchTasks(query)
+                    repository.searchTasks(query, if (category.isNotEmpty()) category else null)
                 } else {
-                    repository.getTasks(filter = filter) 
+                    repository.getTasks(
+                        filter = filter, 
+                        category = if (category.isNotEmpty()) category else null
+                    ) 
                 }
             }
                 .onSuccess { tasks ->
