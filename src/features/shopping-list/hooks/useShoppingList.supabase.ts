@@ -42,7 +42,8 @@ export const useShoppingList = () => {
         ...(row.category && { category: row.category }),
         ...(row.place && { place: row.place }),
         ...(row.consume_by && { consumeBy: row.consume_by }),
-        ...(row.next_purchase && { nextPurchase: row.next_purchase })
+        ...(row.next_purchase && { nextPurchase: row.next_purchase }),
+        unit: row.unit || 'units'
       }));
 
       setItems(list);
@@ -93,6 +94,7 @@ export const useShoppingList = () => {
         stock: Number(item.stock),
         to_buy: Number(item.toBuy),
         status: item.status,
+        unit: item.unit || 'units',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -116,6 +118,7 @@ export const useShoppingList = () => {
       if (item.nextPurchase) {
         docData.next_purchase = true;
       }
+
 
       const { error: insertError } = await supabase
         .from('shopping_items')
@@ -155,16 +158,28 @@ export const useShoppingList = () => {
       if (data.toBuy !== undefined) updateData.to_buy = Number(data.toBuy);
       if (data.status !== undefined) updateData.status = data.status;
 
-      if (data.price !== undefined && data.price !== null && !isNaN(Number(data.price))) {
-        updateData.price = Number(data.price);
+      if (data.price !== undefined) {
+        if (data.price === null || isNaN(Number(data.price))) {
+          updateData.price = null;
+        } else {
+          updateData.price = Number(data.price);
+        }
       }
 
-      if (data.category !== undefined && typeof data.category === 'string' && data.category.trim() !== '') {
-        updateData.category = data.category.trim();
+      if (data.category !== undefined) {
+        if (typeof data.category === 'string' && data.category.trim() !== '') {
+          updateData.category = data.category.trim();
+        } else {
+          updateData.category = null;
+        }
       }
 
-      if (data.place !== undefined && typeof data.place === 'string' && data.place.trim() !== '') {
-        updateData.place = data.place.trim();
+      if (data.place !== undefined) {
+        if (typeof data.place === 'string' && data.place.trim() !== '') {
+          updateData.place = data.place.trim();
+        } else {
+          updateData.place = null;
+        }
       }
 
       if (data.consumeBy !== undefined) {
@@ -177,6 +192,10 @@ export const useShoppingList = () => {
 
       if (data.nextPurchase !== undefined) {
         updateData.next_purchase = data.nextPurchase;
+      }
+
+      if (data.unit !== undefined) {
+        updateData.unit = data.unit;
       }
 
       const { error: updateError } = await supabase
@@ -229,10 +248,6 @@ export const useShoppingList = () => {
     if (!item) return;
 
     const updates: Partial<ShoppingItem> = { status: newStatus };
-
-    if (newStatus === 'to-buy') {
-      updates.consumeBy = undefined;
-    }
 
     if (newStatus === 'in-stock' && item.toBuy > 0) {
       updates.stock = item.stock + item.toBuy;

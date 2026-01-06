@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { MoreVertical, LayoutList, Kanban, Plus, Download, Play } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -20,7 +20,10 @@ export const ShoppingList: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
-  const [view, setView] = useState<'kanban' | 'list'>('kanban');
+  const view = useMemo<'kanban' | 'list'>(
+    () => (location.pathname.includes('/shopping-list/kanban') ? 'kanban' : 'list'),
+    [location.pathname]
+  );
   const [showExportWizard, setShowExportWizard] = useState(false);
 
   const handleSave = (data: Omit<ShoppingItem, 'id'>, id?: string) => {
@@ -42,7 +45,7 @@ export const ShoppingList: React.FC = () => {
             <ToggleGroup
               type="single"
               value={view}
-              onValueChange={(v) => v && setView(v as 'kanban' | 'list')}
+              onValueChange={(v) => v && navigate(`/shopping-list/${v}`)}
             >
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -134,9 +137,9 @@ export const ShoppingList: React.FC = () => {
                 </Link>
               </DropdownMenuItem>
             )}
-            {location.pathname !== '/shopping-list' && (
+            {!location.pathname.startsWith('/shopping-list') && (
               <DropdownMenuItem asChild>
-                <Link to="/shopping-list" className="flex items-center">
+                <Link to="/shopping-list/list" className="flex items-center">
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Lista de Compras
                 </Link>
@@ -176,9 +179,7 @@ export const ShoppingList: React.FC = () => {
             onToggleNext={item =>
               updateItem(item.id, { nextPurchase: !item.nextPurchase })
             }
-            onUpdateQuantity={(id, field, value) => {
-              updateItem(id, { [field]: value });
-            }}
+            onUpdate={updateItem}
           />
         ) : (
           <HybridListView

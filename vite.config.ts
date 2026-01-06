@@ -49,6 +49,11 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: '.',
       filename: 'service-worker.ts',
+      injectManifest: {
+        globDirectory: 'dist',
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,webmanifest}'],
+        globIgnores: ['**/service-worker.js', '**/service-worker.mjs']
+      },
       manifest: {
         name: 'Life Tracker',
         short_name: 'LifeTrack',

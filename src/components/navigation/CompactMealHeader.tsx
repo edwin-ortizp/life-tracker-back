@@ -16,7 +16,7 @@ const navigationItems: NavigationItem[] = [
     icon: <Calendar className="h-4 w-4" />
   },
   {
-    path: '/shopping-list',
+    path: '/shopping-list/list',
     label: 'Lista de Compras',
     icon: <ShoppingCart className="h-4 w-4" />
   },
@@ -61,7 +61,9 @@ export const CompactMealHeader: React.FC<CompactMealHeaderProps> = ({
               {/* Navigation - Desktop */}
               <nav className="hidden md:flex gap-2 lg:gap-4">
                 {navigationItems.map((item) => {
-                  const isActive = location.pathname === item.path;
+                  const isActive = item.path === '/shopping-list/list'
+                    ? location.pathname.startsWith('/shopping-list')
+                    : location.pathname === item.path;
                   return (
                     <Link
                       key={item.path}

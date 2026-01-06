@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { addDays, isBefore } from 'date-fns';
-import { ShoppingItem, ItemStatus } from '../types';
+import { ShoppingItem, ItemStatus, ItemUnit } from '../types';
 import { Button } from '@/components/ui/button';
 import { formatCategory } from '../utils/categories';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Tooltip,
   TooltipContent,
@@ -16,18 +17,19 @@ import {
   Check,
   Eye,
   Star,
-  ChevronUp,
-  ChevronDown
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import ShoppingFilters from './ShoppingFilters';
 import { useResponsive } from '@/hooks/useResponsive';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface KanbanViewProps {
   items: ShoppingItem[];
   onMove: (id: string, status: ItemStatus) => void;
   onView: (item: ShoppingItem) => void;
   onToggleNext: (item: ShoppingItem) => void;
-  onUpdateQuantity: (id: string, field: 'stock' | 'toBuy', value: number) => void;
+  onUpdate: (id: string, data: Partial<ShoppingItem>) => void;
 }
 
 const columns: { key: ItemStatus; title: string }[] = [
@@ -42,12 +44,30 @@ const statusIcons: Record<ItemStatus, React.ElementType> = {
   'in-stock': Check
 };
 
+const unitOptions: { value: ItemUnit; label: string }[] = [
+  { value: 'units', label: 'u' },
+  { value: 'grams', label: 'g' },
+  { value: 'milliliters', label: 'ml' }
+];
+
+const unitLabels: Record<ItemUnit, string> = {
+  units: 'u',
+  grams: 'g',
+  milliliters: 'ml'
+};
+
+const parseNumberInput = (value: string, fallback: number) => {
+  const parsed = Number(value);
+  if (Number.isNaN(parsed)) return fallback;
+  return Math.max(0, parsed);
+};
+
 export const KanbanView: React.FC<KanbanViewProps> = ({
   items,
   onMove,
   onView,
   onToggleNext,
-  onUpdateQuantity
+  onUpdate
 }) => {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'az' | 'za' | 'category'>('az');
@@ -58,7 +78,12 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
   const [expireSoonOnly, setExpireSoonOnly] = useState(false);
   const [nextOnly, setNextOnly] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   const { isMobile } = useResponsive();
+
+  const toggleExpanded = (id: string) => {
+    setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const places = useMemo(() => {
     return Array.from(new Set(items.map(i => i.place).filter(Boolean))) as string[];
@@ -123,7 +148,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
       'in-stock': 0
     };
     filtered.forEach(item => {
-      if (item.price !== undefined) {
+      if (item.price != null) {
         totals[item.status] += item.price * item.toBuy;
       }
     });
@@ -131,73 +156,6 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
   }, [filtered]);
 
   const formatter = useMemo(() => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }), []);
-
-  const UnifiedQuantityControl: React.FC<{
-    stockValue: number;
-    toBuyValue: number;
-    onStockIncrease: () => void;
-    onStockDecrease: () => void;
-    onToBuyIncrease: () => void;
-    onToBuyDecrease: () => void;
-  }> = ({ stockValue, toBuyValue, onStockIncrease, onStockDecrease, onToBuyIncrease, onToBuyDecrease }) => (
-    <div className="flex items-center justify-between text-xs">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1">
-          <span className="text-gray-600">Stock:</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-4 w-4 p-0 text-gray-500 hover:text-gray-700"
-            onClick={(e) => {
-              e.stopPropagation();
-              onStockDecrease();
-            }}
-          >
-            <ChevronDown className="h-2.5 w-2.5" />
-          </Button>
-          <span className="font-medium min-w-[1rem] text-center">{stockValue}</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-4 w-4 p-0 text-gray-500 hover:text-gray-700"
-            onClick={(e) => {
-              e.stopPropagation();
-              onStockIncrease();
-            }}
-          >
-            <ChevronUp className="h-2.5 w-2.5" />
-          </Button>
-        </div>
-        
-        <div className="flex items-center gap-1">
-          <span className="text-gray-600">Comprar:</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-4 w-4 p-0 text-gray-500 hover:text-gray-700"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToBuyDecrease();
-            }}
-          >
-            <ChevronDown className="h-2.5 w-2.5" />
-          </Button>
-          <span className="font-medium min-w-[1rem] text-center">{toBuyValue}</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-4 w-4 p-0 text-gray-500 hover:text-gray-700"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToBuyIncrease();
-            }}
-          >
-            <ChevronUp className="h-2.5 w-2.5" />
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <TooltipProvider>
@@ -228,152 +186,280 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-        {columns.map(col => (
-          <div key={col.key} className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-base text-gray-700 flex items-center gap-2">
-                {React.createElement(statusIcons[col.key], { className: "w-4 h-4" })}
-                {col.title}
-              </h3>
-              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                {filtered.filter(it => it.status === col.key).length}
-              </span>
-            </div>
-            <div className="text-sm text-gray-600 font-medium">
-              {formatter.format(columnTotals[col.key])}
-            </div>
-            <div className="space-y-2 h-full max-h-[calc(100vh-300px)] overflow-y-auto">
-            {filtered.filter(it => it.status === col.key).map(item => {
-              const limit = addDays(new Date(), 3);
-              const consumeDate = item.consumeBy ? new Date(item.consumeBy) : null;
-              const isExpired = consumeDate ? isBefore(consumeDate, new Date()) : false;
-              const isSoon = consumeDate ? isBefore(consumeDate, limit) : false;
-              return (
-                <Card
-                  key={item.id}
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-md border-l-4 ${
-                    col.key === 'in-stock' 
-                      ? 'border-l-green-500 hover:border-l-green-600' 
-                      : col.key === 'low-stock' 
-                      ? 'border-l-yellow-500 hover:border-l-yellow-600' 
-                      : 'border-l-blue-500 hover:border-l-blue-600'
-                  } ${isSoon || isExpired ? 'border-red-500 bg-red-50/30' : ''} ${isExpired ? 'bg-red-50/50' : ''}`}
-                  onClick={() => onView(item)}
-                >
-                  <CardContent className="p-2 pb-1 md:p-2 md:pb-1">
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="font-medium text-sm leading-tight">{item.name}</span>
-                      {item.category && (
-                        <span className="bg-gray-100 text-gray-700 px-1 py-0.5 rounded text-xs whitespace-nowrap">
-                          {formatCategory(item.category)}
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="mb-2">
-                      <UnifiedQuantityControl
-                        stockValue={item.stock}
-                        toBuyValue={item.toBuy}
-                        onStockIncrease={() => onUpdateQuantity(item.id, 'stock', item.stock + 1)}
-                        onStockDecrease={() => onUpdateQuantity(item.id, 'stock', Math.max(0, item.stock - 1))}
-                        onToBuyIncrease={() => onUpdateQuantity(item.id, 'toBuy', item.toBuy + 1)}
-                        onToBuyDecrease={() => onUpdateQuantity(item.id, 'toBuy', Math.max(0, item.toBuy - 1))}
-                      />
-                    </div>
-                    
-                    {item.consumeBy && (
-                      <div className={`text-xs mt-1 text-center ${isExpired ? 'text-red-600 font-medium' : isSoon ? 'text-orange-600' : 'text-gray-500'}`}>
-                        {isExpired ? '⚠️ Vencido' : isSoon ? '⏰ Por vencer' : 'Hasta'} {item.consumeBy}
-                      </div>
-                    )}
-                  </CardContent>
-                  
-                    <div className="flex justify-center gap-1 w-full px-2 py-2">
-                      {columns.filter(c => c.key !== col.key).map(c => {
-                        const Icon = statusIcons[c.key];
-                        const color =
-                          c.key === 'in-stock'
-                            ? 'text-green-600 hover:bg-green-50'
-                            : c.key === 'low-stock'
-                            ? 'text-yellow-600 hover:bg-yellow-50'
-                            : 'text-blue-600 hover:bg-blue-50';
-                        return (
-                          <Tooltip key={c.key}>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className={`h-8 w-8 p-0 ${color}`}
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  onMove(item.id, c.key);
-                                }}
-                              >
-                                <Icon className="w-4 h-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Mover a {c.title}</TooltipContent>
-                          </Tooltip>
-                        );
-                      })}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-gray-600 hover:bg-gray-50"
-                            onClick={e => {
-                              e.stopPropagation();
-                              onView(item);
-                            }}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Ver detalles</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={`h-8 w-8 p-0 ${
-                              item.nextPurchase
-                                ? 'text-yellow-600 hover:bg-yellow-50'
-                                : 'text-gray-600 hover:bg-gray-50'
-                            }`}
-                            onClick={e => {
-                              e.stopPropagation();
-                              onToggleNext(item);
-                            }}
-                          >
-                            <Star
-                              className="w-4 h-4"
-                              {...(item.nextPurchase && { fill: 'currentColor' })}
-                            />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {item.nextPurchase
-                            ? 'Quitar de próxima compra'
-                            : 'Marcar próxima compra'}
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                </Card>
-              );
-            })}
-            {filtered.filter(it => it.status === col.key).length === 0 && (
-              <div className="text-center py-8 text-gray-400 border-2 border-dashed border-gray-200 rounded-lg">
-                <div className="text-sm">Sin elementos</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {columns.map(col => (
+            <div key={col.key} className="space-y-1">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm text-gray-700 flex items-center gap-2">
+                  {React.createElement(statusIcons[col.key], { className: 'w-4 h-4' })}
+                  {col.title}
+                </h3>
+                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                  {filtered.filter(it => it.status === col.key).length}
+                </span>
               </div>
-            )}
+              <div className="text-xs text-gray-600 font-medium">
+                {formatter.format(columnTotals[col.key])}
+              </div>
+              <div className="space-y-1 h-full max-h-[calc(100vh-260px)] overflow-y-auto">
+                {filtered.filter(it => it.status === col.key).map(item => {
+                  const limit = addDays(new Date(), 3);
+                  const consumeDate = item.consumeBy ? new Date(item.consumeBy) : null;
+                  const isExpired = consumeDate ? isBefore(consumeDate, new Date()) : false;
+                  const isSoon = consumeDate ? isBefore(consumeDate, limit) : false;
+                  const unitValue = (item.unit || 'units') as ItemUnit;
+
+                  return (
+                    <Card
+                      key={item.id}
+                      className={`transition-all duration-200 border-l-4 ${
+                        col.key === 'in-stock'
+                          ? 'border-l-green-500'
+                          : col.key === 'low-stock'
+                          ? 'border-l-yellow-500'
+                          : 'border-l-blue-500'
+                      } ${isSoon || isExpired ? 'border-red-500 bg-red-50/30' : ''} ${isExpired ? 'bg-red-50/50' : ''}`}
+                    >
+                      <CardContent className="p-1.5 space-y-2">
+                        <div
+                          className="flex items-start justify-between gap-2 cursor-pointer"
+                          onClick={() => toggleExpanded(item.id)}
+                        >
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm leading-tight truncate">{item.name}</span>
+                              {item.category && (
+                                <span className="bg-gray-100 text-gray-700 px-1 py-0.5 rounded text-[10px] whitespace-nowrap">
+                                  {formatCategory(item.category)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                              <span className="uppercase">{col.title}</span>
+                              <span className="text-gray-400">|</span>
+                              <span>
+                                Stock {item.stock} {unitLabels[unitValue]}
+                              </span>
+                              <span className="text-gray-400">|</span>
+                              <span>Comprar {item.toBuy}</span>
+                              {(isExpired || isSoon) && (
+                                <>
+                                  <span className="text-gray-400">|</span>
+                                  <span className={isExpired ? 'text-red-600 font-medium' : 'text-orange-600'}>
+                                    {isExpired ? 'Vencido' : 'Por vencer'}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={`h-7 w-7 p-0 ${
+                                item.nextPurchase
+                                  ? 'text-yellow-600 hover:bg-yellow-50'
+                                  : 'text-gray-500 hover:bg-gray-50'
+                              }`}
+                              onClick={e => {
+                                e.stopPropagation();
+                                onToggleNext(item);
+                              }}
+                            >
+                              <Star
+                                className="w-4 h-4"
+                                {...(item.nextPurchase && { fill: 'currentColor' })}
+                              />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-gray-500 hover:bg-gray-50"
+                              onClick={e => {
+                                e.stopPropagation();
+                                toggleExpanded(item.id);
+                              }}
+                            >
+                              {expandedItems[item.id] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                            </Button>
+                          </div>
+                        </div>
+
+                        {expandedItems[item.id] && (
+                          <>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <label className="flex items-center gap-1">
+                                <span className="text-gray-500">Stock</span>
+                                <Input
+                                  key={`stock-${item.id}-${item.stock}`}
+                                  type="number"
+                                  defaultValue={item.stock}
+                                  className="h-7 px-2 text-xs"
+                                  onClick={e => e.stopPropagation()}
+                                  onKeyDown={e => e.key === 'Enter' && (e.currentTarget as HTMLInputElement).blur()}
+                                  onBlur={e =>
+                                    onUpdate(item.id, {
+                                      stock: parseNumberInput(e.target.value, item.stock)
+                                    })
+                                  }
+                                />
+                              </label>
+                              <label className="flex items-center gap-1">
+                                <span className="text-gray-500">Comprar</span>
+                                <Input
+                                  key={`toBuy-${item.id}-${item.toBuy}`}
+                                  type="number"
+                                  defaultValue={item.toBuy}
+                                  className="h-7 px-2 text-xs"
+                                  onClick={e => e.stopPropagation()}
+                                  onKeyDown={e => e.key === 'Enter' && (e.currentTarget as HTMLInputElement).blur()}
+                                  onBlur={e =>
+                                    onUpdate(item.id, {
+                                      toBuy: parseNumberInput(e.target.value, item.toBuy)
+                                    })
+                                  }
+                                />
+                              </label>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <label className="flex items-center gap-1">
+                                <span className="text-gray-500">Unidad</span>
+                                <Select
+                                  value={unitValue}
+                                  onValueChange={v => onUpdate(item.id, { unit: v as ItemUnit })}
+                                >
+                                  <SelectTrigger className="h-7 text-xs px-2" onClick={e => e.stopPropagation()}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {unitOptions.map(unitOption => (
+                                      <SelectItem key={unitOption.value} value={unitOption.value}>
+                                        {unitOption.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </label>
+                              <label className="flex items-center gap-1">
+                                <span className="text-gray-500">Precio</span>
+                                <Input
+                                  key={`price-${item.id}-${item.price ?? 'none'}`}
+                                  type="number"
+                                  defaultValue={item.price ?? ''}
+                                  className="h-7 px-2 text-xs"
+                                  onClick={e => e.stopPropagation()}
+                                  onKeyDown={e => e.key === 'Enter' && (e.currentTarget as HTMLInputElement).blur()}
+                                  onBlur={e =>
+                                    onUpdate(item.id, {
+                                      price: e.target.value === '' ? null : Number(e.target.value)
+                                    })
+                                  }
+                                />
+                              </label>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <label className="flex items-center gap-1">
+                                <span className="text-gray-500">Tienda</span>
+                                <Input
+                                  key={`place-${item.id}-${item.place ?? 'none'}`}
+                                  type="text"
+                                  defaultValue={item.place ?? ''}
+                                  placeholder="Tienda"
+                                  className="h-7 px-2 text-xs"
+                                  onClick={e => e.stopPropagation()}
+                                  onKeyDown={e => e.key === 'Enter' && (e.currentTarget as HTMLInputElement).blur()}
+                                  onBlur={e => onUpdate(item.id, { place: e.target.value })}
+                                />
+                              </label>
+                              <label className="flex items-center gap-1">
+                                <span className={`text-gray-500 ${isExpired ? 'text-red-600 font-medium' : ''}`}>
+                                  Vence
+                                </span>
+                                <Input
+                                  key={`consume-${item.id}-${item.consumeBy ?? 'none'}`}
+                                  type="date"
+                                  defaultValue={item.consumeBy ?? ''}
+                                  className={`h-7 px-2 text-xs ${
+                                    isExpired ? 'border-red-400 bg-red-50' : isSoon ? 'border-orange-300 bg-orange-50/50' : ''
+                                  }`}
+                                  onClick={e => e.stopPropagation()}
+                                  onKeyDown={e => e.key === 'Enter' && (e.currentTarget as HTMLInputElement).blur()}
+                                  onBlur={e => onUpdate(item.id, { consumeBy: e.target.value })}
+                                />
+                              </label>
+                            </div>
+
+                            {item.consumeBy && (isExpired || isSoon) && (
+                              <div className={`text-[11px] ${isExpired ? 'text-red-600 font-medium' : 'text-orange-600'}`}>
+                                {isExpired ? 'Vencido' : 'Por vencer'}
+                              </div>
+                            )}
+
+                            <div className="flex justify-between gap-1 pt-1">
+                              <div className="flex gap-1">
+                                {columns.filter(c => c.key !== col.key).map(c => {
+                                  const Icon = statusIcons[c.key];
+                                  const color =
+                                    c.key === 'in-stock'
+                                      ? 'text-green-600 hover:bg-green-50'
+                                      : c.key === 'low-stock'
+                                      ? 'text-yellow-600 hover:bg-yellow-50'
+                                      : 'text-blue-600 hover:bg-blue-50';
+                                  return (
+                                    <Tooltip key={c.key}>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className={`h-7 w-7 p-0 ${color}`}
+                                          onClick={e => {
+                                            e.stopPropagation();
+                                            onMove(item.id, c.key);
+                                          }}
+                                        >
+                                          <Icon className="w-4 h-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Mover a {c.title}</TooltipContent>
+                                    </Tooltip>
+                                  );
+                                })}
+                              </div>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 p-0 text-gray-600 hover:bg-gray-50"
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      onView(item);
+                                    }}
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Ver detalles</TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                {filtered.filter(it => it.status === col.key).length === 0 && (
+                  <div className="text-center py-6 text-gray-400 border border-dashed border-gray-200 rounded-lg">
+                    <div className="text-xs">Sin elementos</div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
     </TooltipProvider>
   );
 };

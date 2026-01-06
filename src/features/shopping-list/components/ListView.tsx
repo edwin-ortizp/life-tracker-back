@@ -57,7 +57,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
     }
 
     if (noPriceOnly) {
-      list = list.filter(i => i.price === undefined);
+      list = list.filter(i => i.price == null);
     }
 
     if (onlyToBuy) {
@@ -95,7 +95,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
 
   const totalPending = useMemo(() => {
     return filtered.reduce((sum, item) => {
-      if (item.status === 'to-buy' && item.price !== undefined) {
+      if (item.status === 'to-buy' && item.price != null) {
         return sum + item.price * item.stock;
       }
       return sum;
@@ -228,7 +228,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
                           </div>
                         </div>
                         <div className="text-sm font-medium text-gray-900">
-                          {item.price !== undefined && (
+                          {item.price != null && (
                             <span className="text-green-600">
                               {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(item.price)}
                             </span>
@@ -363,7 +363,7 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
 
                       {/* Precio Column */}
                       <div className="col-span-2 flex justify-center items-center">
-                        {item.price !== undefined ? (
+                        {item.price != null ? (
                           <span className="text-sm font-medium text-green-600">
                             {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(item.price)}
                           </span>

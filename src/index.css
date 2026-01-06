@@ -1,7 +1,7 @@
-@tailwind base;
-  @tailwind components;
-  @tailwind utilities;
-  @layer base {
+@import "tailwindcss";
+@config "../tailwind.config.mjs";
+
+@layer base {
     :root {
       --background: 0 0% 100%;
       --foreground: 222.2 84% 4.9%;
@@ -60,7 +60,7 @@
       --font-family: system-ui, sans-serif;
     }
   }
-  @layer base {
+@layer base {
     * {
       @apply border-border;
     }

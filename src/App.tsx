@@ -71,7 +71,9 @@ function App() {
         <Route path="mood/config" element={<MoodConfigPage />} />
         <Route path="negative" element={<NegativeHabitsPage />} />
         <Route path="meal" element={<MealPage />} />
-        <Route path="shopping-list" element={<ShoppingListPage />} />
+        <Route path="shopping-list" element={<Navigate to="/shopping-list/list" replace />} />
+        <Route path="shopping-list/list" element={<ShoppingListPage />} />
+        <Route path="shopping-list/kanban" element={<ShoppingListPage />} />
         <Route path="recipes" element={<RecipesPage />} />
         <Route path="prepared-meals" element={<PreparedMealsPage />} />
         <Route path="settings" element={<SettingsPage />} />

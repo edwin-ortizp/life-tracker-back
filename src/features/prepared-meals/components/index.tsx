@@ -65,9 +65,9 @@ export const PreparedMeals: React.FC = () => {
                 </Link>
               </DropdownMenuItem>
             )}
-            {location.pathname !== '/shopping-list' && (
+            {!location.pathname.startsWith('/shopping-list') && (
               <DropdownMenuItem asChild>
-                <Link to="/shopping-list" className="flex items-center">
+                <Link to="/shopping-list/list" className="flex items-center">
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Lista de Compras
                 </Link>

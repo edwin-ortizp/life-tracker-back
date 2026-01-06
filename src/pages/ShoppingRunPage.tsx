@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList.supabase';
 import { useShoppingTimer } from '@/features/shopping-list/hooks/useShoppingTimer';
-import { ShoppingItem } from '@/features/shopping-list/types';
+import { ShoppingItem, ItemUnit } from '@/features/shopping-list/types';
+import { PLACES } from '@/features/shopping-list/utils/places';
 import { Play, Pause, Square, ShoppingCart, ArrowLeft } from 'lucide-react';
 import {
   AlertDialog,
@@ -20,22 +21,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-const PLACES = [
-  'Éxito',
-  'D1',
-  'Ara',
-  'Dollarcity',
-  'Olimpica (SAO)',
-  'Jumbo',
-  'Plaza de mercado',
-  'Panadería',
-  'Droguería',
-  'Otro'
-];
-
 interface ShoppingItemWithPurchased extends ShoppingItem {
   purchased: boolean;
 }
+
+const unitLabels: Record<ItemUnit, string> = {
+  units: 'u',
+  grams: 'g',
+  milliliters: 'ml'
+};
 
 const getRandomBackground = (storeName: string) => {
   const backgrounds = [
@@ -48,7 +42,7 @@ const getRandomBackground = (storeName: string) => {
     'bg-gradient-to-br from-gray-900 via-slate-900 to-zinc-900',
     'bg-gradient-to-br from-orange-900 via-red-900 to-slate-900',
   ];
-  
+
   // Use store name as seed for consistent but random selection
   const hash = storeName.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
   const index = hash % backgrounds.length;
@@ -57,29 +51,30 @@ const getRandomBackground = (storeName: string) => {
 
 export default function ShoppingRunPage() {
   const navigate = useNavigate();
-  const { items } = useShoppingList();
-  
+  const { items, updateItem } = useShoppingList();
+
   const [selectedStore, setSelectedStore] = useState<string>('');
   const [showStoreModal, setShowStoreModal] = useState(true);
   const [shoppingItems, setShoppingItems] = useState<ShoppingItemWithPurchased[]>([]);
+  const [isApplying, setIsApplying] = useState(false);
 
-  const { 
-    formattedTime, 
-    isActive, 
-    isPaused, 
-    startTimer, 
-    pauseTimer, 
-    resumeTimer, 
-    stopTimer, 
-    completeSession 
-  } = useShoppingTimer({ 
-    onComplete: () => navigate(-1) 
+  const {
+    formattedTime,
+    isActive,
+    isPaused,
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    stopTimer,
+    completeSession
+  } = useShoppingTimer({
+    onComplete: () => navigate(-1)
   });
 
   // Filter items for selected store with toBuy > 0
   const storeItems = useMemo(() => {
     if (!selectedStore) return [];
-    
+
     return items
       .filter(item => item.place === selectedStore && item.toBuy > 0)
       .map(item => ({ ...item, purchased: false }));
@@ -116,8 +111,8 @@ export default function ShoppingRunPage() {
     return { totalEstimated, totalPurchased, totalRemaining };
   }, [shoppingItems]);
 
-  const backgroundClass = useMemo(() => 
-    getRandomBackground(selectedStore), 
+  const backgroundClass = useMemo(() =>
+    getRandomBackground(selectedStore),
     [selectedStore]
   );
 
@@ -130,16 +125,48 @@ export default function ShoppingRunPage() {
   };
 
   const toggleItemPurchased = (itemId: string) => {
-    setShoppingItems(prev => 
-      prev.map(item => 
-        item.id === itemId 
+    setShoppingItems(prev =>
+      prev.map(item =>
+        item.id === itemId
           ? { ...item, purchased: !item.purchased }
           : item
       )
     );
   };
 
-  const handleFinishShopping = () => {
+  const toggleAllPurchased = (value: boolean) => {
+    setShoppingItems(prev => prev.map(item => ({ ...item, purchased: value })));
+  };
+
+  const handleApplyPurchases = async () => {
+    const purchasedItems = shoppingItems.filter(item => item.purchased);
+    if (purchasedItems.length === 0) return;
+
+    setIsApplying(true);
+    try {
+      await Promise.all(
+        purchasedItems.map(item =>
+          updateItem(item.id, {
+            stock: item.stock + item.toBuy,
+            toBuy: 0,
+            status: 'in-stock'
+          })
+        )
+      );
+      setShoppingItems(prev =>
+        prev.map(item =>
+          item.purchased
+            ? { ...item, stock: item.stock + item.toBuy, toBuy: 0, status: 'in-stock' }
+            : item
+        )
+      );
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const handleFinishShopping = async () => {
+    await handleApplyPurchases();
     completeSession();
   };
 
@@ -185,9 +212,9 @@ export default function ShoppingRunPage() {
           <p className="text-xl text-gray-300">
             No tienes productos marcados para comprar en {selectedStore}
           </p>
-          <Button 
-            variant="outline" 
-            className="text-white border-white hover:bg-white/20" 
+          <Button
+            variant="outline"
+            className="text-white border-white hover:bg-white/20"
             onClick={() => navigate(-1)}
           >
             ← Volver
@@ -201,30 +228,30 @@ export default function ShoppingRunPage() {
     <div className={`min-h-screen flex flex-col ${backgroundClass} text-white`}>
       {/* Header */}
       <div className="flex justify-between items-center p-4 bg-black/20 backdrop-blur-sm">
-        <Button 
-          variant="ghost" 
-          className="text-white hover:bg-white/20 text-lg font-semibold" 
+        <Button
+          variant="ghost"
+          className="text-white hover:bg-white/20 text-lg font-semibold"
           onClick={() => navigate(-1)}
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
           Volver
         </Button>
-        
+
         <div className="text-center">
           <div className="text-sm text-white/80 mb-1">{selectedStore}</div>
           <div className="text-3xl font-mono font-bold bg-black/30 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/20">
             {formattedTime}
           </div>
         </div>
-        
+
         <div className="w-20" /> {/* Spacer for centering */}
       </div>
 
       {/* Timer Controls */}
       <div className="flex gap-2 justify-center p-4 bg-black/10">
         {!isActive ? (
-          <Button 
-            onClick={startTimer} 
+          <Button
+            onClick={startTimer}
             className="bg-green-700 hover:bg-green-800 text-white px-6 py-2 font-semibold"
           >
             <Play className="w-4 h-4 mr-2" />
@@ -233,24 +260,24 @@ export default function ShoppingRunPage() {
         ) : (
           <>
             {isPaused ? (
-              <Button 
-                onClick={resumeTimer} 
+              <Button
+                onClick={resumeTimer}
                 className="bg-green-700 hover:bg-green-800 text-white px-6 py-2 font-semibold"
               >
                 <Play className="w-4 h-4 mr-2" />
                 Reanudar
               </Button>
             ) : (
-              <Button 
-                onClick={pauseTimer} 
+              <Button
+                onClick={pauseTimer}
                 className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 font-semibold"
               >
                 <Pause className="w-4 h-4 mr-2" />
                 Pausar
               </Button>
             )}
-            <Button 
-              onClick={stopTimer} 
+            <Button
+              onClick={stopTimer}
               className="bg-red-700 hover:bg-red-800 text-white px-6 py-2 font-semibold"
             >
               <Square className="w-4 h-4 mr-2" />
@@ -262,26 +289,42 @@ export default function ShoppingRunPage() {
 
       {/* Shopping List */}
       <div className="flex-1 overflow-auto p-4 space-y-3">
+        <div className="flex flex-wrap gap-2 text-sm">
+          <Button
+            variant="outline"
+            className="text-white border-white/40 hover:bg-white/10"
+            onClick={() => toggleAllPurchased(true)}
+          >
+            Marcar todos
+          </Button>
+          <Button
+            variant="outline"
+            className="text-white border-white/40 hover:bg-white/10"
+            onClick={() => toggleAllPurchased(false)}
+          >
+            Limpiar todos
+          </Button>
+        </div>
         {shoppingItems.map((item) => (
-          <div 
+          <div
             key={item.id}
             className={`bg-black/20 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all duration-300 ${
               item.purchased ? 'opacity-60 bg-green-900/20' : ''
             }`}
           >
             <div className="flex items-center space-x-4">
-              <Checkbox 
+              <Checkbox
                 checked={item.purchased}
                 onCheckedChange={() => toggleItemPurchased(item.id)}
                 className="scale-125"
               />
-              
+
               <div className="flex-1">
                 <div className={`text-lg font-medium ${item.purchased ? 'line-through text-white/70' : ''}`}>
                   {item.name}
                 </div>
                 <div className="text-sm text-white/80">
-                  Cantidad: {item.toBuy}
+                  Cantidad: {item.toBuy} {unitLabels[(item.unit || 'units') as ItemUnit]}
                   {item.price && (
                     <span className="ml-4">
                       Precio unitario: {formatter.format(item.price)}
@@ -289,7 +332,7 @@ export default function ShoppingRunPage() {
                   )}
                 </div>
               </div>
-              
+
               {item.price && (
                 <div className={`text-right ${item.purchased ? 'line-through text-white/70' : ''}`}>
                   <div className="text-lg font-bold">
@@ -316,35 +359,44 @@ export default function ShoppingRunPage() {
           <span>Falta por comprar:</span>
           <span>{formatter.format(totals.totalRemaining)}</span>
         </div>
-        
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button 
-              className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 text-lg font-semibold mt-4"
-            >
-              <ShoppingCart className="w-5 h-5 mr-2" />
-              Terminar Compras
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Terminar Compras</AlertDialogTitle>
-              <AlertDialogDescription>
-                ¿Estás seguro de que quieres terminar la sesión de compras? 
-                El cronómetro se detendrá y volverás a la vista anterior.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Continuar comprando</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleFinishShopping}
-                className="bg-blue-600 hover:bg-blue-700"
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <Button
+            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-3 text-lg font-semibold"
+            onClick={handleApplyPurchases}
+            disabled={isApplying}
+          >
+            {isApplying ? 'Aplicando...' : 'Aplicar compras'}
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 text-lg font-semibold"
               >
-                Sí, terminar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                <ShoppingCart className="w-5 h-5 mr-2" />
+                Terminar Compras
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Terminar Compras</AlertDialogTitle>
+                <AlertDialogDescription>
+                  ¿Estás seguro de que quieres terminar la sesión de compras?
+                  El cronómetro se detendrá y volverás a la vista anterior.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Continuar comprando</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleFinishShopping}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Sí, terminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </div>
   );
