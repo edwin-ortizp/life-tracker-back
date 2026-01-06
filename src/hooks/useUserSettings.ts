@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { ThemeName } from '@/themes'
 
 export interface UserSettings {
-  name?: string
+  fullName?: string
   birthDate?: string
   theme?: ThemeName
 }
@@ -27,9 +27,9 @@ export function useUserSettings() {
 
     try {
       const { data, error: fetchError } = await supabase
-        .from('user_settings')
-        .select('*')
-        .eq('user_id', user.id)
+        .from('profiles')
+        .select('full_name, birth_date, theme')
+        .eq('id', user.id)
         .single()
 
       if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows found
@@ -37,7 +37,7 @@ export function useUserSettings() {
       }
 
       setSettings(data ? {
-        name: data.name,
+        fullName: data.full_name,
         birthDate: data.birth_date,
         theme: data.theme
       } : null)
@@ -65,16 +65,17 @@ export function useUserSettings() {
 
       // Map camelCase to snake_case for Supabase
       const dbData: any = {
-        user_id: user.id,
+        id: user.id,
       }
 
-      if (updates.name !== undefined) dbData.name = updates.name
+      if (updates.fullName !== undefined) dbData.full_name = updates.fullName
       if (updates.birthDate !== undefined) dbData.birth_date = updates.birthDate
       if (updates.theme !== undefined) dbData.theme = updates.theme
 
       const { error: upsertError } = await supabase
-        .from('user_settings')
-        .upsert(dbData, { onConflict: 'user_id' })
+        .from('profiles')
+        .update(dbData)
+        .eq('id', user.id)
 
       if (upsertError) throw upsertError
     } catch (err) {

@@ -60,6 +60,7 @@ export const useTaskData = () => {
         estimatedTime: row.estimated_time,
         timeOfDay: row.time_of_day,
         elapsedSeconds: row.elapsed_seconds || 0,
+        goalId: row.goal_id || undefined,
         progress: typeof row.progress === 'number' ? row.progress : getCheckboxProgress(row.description || ''),
         recurrence: row.recurrence ? {
           frequency: row.recurrence.frequency,
@@ -71,8 +72,9 @@ export const useTaskData = () => {
 
       setAllTasks(allTaskList);
 
+      // Filtrar tareas principales (excluir tareas de goals y tareas completadas)
       const taskList = allTaskList
-        .filter(task => !task.completed)
+        .filter(task => !task.completed && !task.goalId)
         .sort((a, b) => {
           if (a.startDate && b.startDate) {
             return a.startDate.getTime() - b.startDate.getTime();
@@ -129,7 +131,8 @@ export const useTaskData = () => {
         isPrivate: formData.isPrivate || false,
         ...(formData.timeOfDay && { timeOfDay: formData.timeOfDay }),
         ...(formData.estimatedTime !== undefined && { estimatedTime: formData.estimatedTime }),
-        ...(formData.recurrence && { recurrence: formData.recurrence })
+        ...(formData.recurrence && { recurrence: formData.recurrence }),
+        ...(formData.goalId && { goalId: formData.goalId })
       };
 
       setTasks(prev => [...prev, optimisticTask].sort((a, b) => {
@@ -193,6 +196,10 @@ export const useTaskData = () => {
         }
       }
 
+      if (formData.goalId) {
+        taskData.goal_id = formData.goalId;
+      }
+
       const { data, error: insertError } = await supabase
         .from('tasks')
         .insert(taskData)
@@ -251,7 +258,8 @@ export const useTaskData = () => {
         ...(updates.timeOfDay && { timeOfDay: updates.timeOfDay }),
         ...(updates.isPrivate !== undefined && { isPrivate: updates.isPrivate }),
         ...(updates.isRecurrent !== undefined && { isRecurrent: updates.isRecurrent }),
-        ...(updates.recurrence && { recurrence: updates.recurrence })
+        ...(updates.recurrence && { recurrence: updates.recurrence }),
+        ...(updates.goalId !== undefined && { goalId: updates.goalId || undefined })
       };
 
       updatedTask.progress = getCheckboxProgress(
@@ -308,6 +316,9 @@ export const useTaskData = () => {
           updateData.recurrence.customDays = updates.recurrence.customDays;
         }
       }
+      if (updates.goalId !== undefined) {
+        updateData.goal_id = updates.goalId || null;
+      }
 
       const { error: updateError } = await supabase
         .from('tasks')
@@ -337,12 +348,20 @@ export const useTaskData = () => {
     setStatus('saving');
 
     try {
-      const task = tasks.find(t => t.id === taskId);
+      // Buscar en allTasks para incluir tareas de goals
+      const task = allTasks.find(t => t.id === taskId);
       if (!task) throw new Error('Tarea no encontrada');
 
       if (!task.isRecurrent) {
         if (completed) {
-          setTasks(prev => prev.filter(t => t.id !== taskId));
+          // Remover de tasks si no es tarea de goal
+          if (!task.goalId) {
+            setTasks(prev => prev.filter(t => t.id !== taskId));
+          }
+          // Actualizar en allTasks
+          setAllTasks(prev => prev.map(t =>
+            t.id === taskId ? { ...t, completed: true } : t
+          ));
         }
 
         const { error: updateError } = await supabase
@@ -368,15 +387,16 @@ export const useTaskData = () => {
     } catch (error) {
       console.error('Error al actualizar estado:', error);
       if (completed) {
-        const task = tasks.find(t => t.id === taskId);
-        if (task) {
+        const task = allTasks.find(t => t.id === taskId);
+        if (task && !task.goalId) {
+          // Solo restaurar en tasks si no es una tarea de goal
           setTasks(prev => [...prev, task]);
         }
       }
       setError(error instanceof Error ? error.message : 'Error al actualizar');
       setStatus('error');
     }
-  }, [user, tasks]);
+  }, [user, allTasks]);
 
   const deleteTask = useCallback(async (taskId: string) => {
     if (!user) return;

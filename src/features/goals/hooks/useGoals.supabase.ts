@@ -26,7 +26,7 @@ export const useGoals = (): GoalsHook => {
       const goalIds = (goalsData || []).map(g => g.id);
 
       const [tasksResult, entriesResult, numericEntriesResult] = await Promise.all([
-        supabase.from('goal_tasks').select('*').in('goal_id', goalIds),
+        supabase.from('tasks').select('*').in('goal_id', goalIds).order('created_at', { ascending: true }),
         supabase.from('goal_entries').select('*').in('goal_id', goalIds),
         supabase.from('goal_numeric_entries').select('*').in('goal_id', goalIds)
       ]);
@@ -39,10 +39,11 @@ export const useGoals = (): GoalsHook => {
       (tasksResult.data || []).forEach(t => {
         if (!tasksByGoal[t.goal_id]) tasksByGoal[t.goal_id] = [];
         tasksByGoal[t.goal_id].push({
+          id: t.id,
           title: t.title,
-          done: t.done,
+          done: t.completed,          // completed → done
           createdAt: t.created_at,
-          completedAt: t.completed_at
+          completedAt: t.updated_at   // usar updated_at como completedAt
         });
       });
 
@@ -181,65 +182,6 @@ export const useGoals = (): GoalsHook => {
     }
   };
 
-  const addTask = async (goalId: string, taskTitle: string) => {
-    const goal = goals.find(g => g.id === goalId);
-    if (!goal || !user) return;
-
-    try {
-      const { error: insertError } = await supabase
-        .from('goal_tasks')
-        .insert({
-          goal_id: goalId,
-          title: taskTitle,
-          done: false,
-          created_at: new Date().toISOString()
-        });
-
-      if (insertError) throw insertError;
-
-      // Reload goals
-      await loadGoals();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al agregar tarea');
-      setStatus('error');
-    }
-  };
-
-  const toggleTask = async (goalId: string, taskIndex: number) => {
-    const goal = goals.find(g => g.id === goalId);
-    if (!goal || !user) return;
-    const task = goal.tasks[taskIndex];
-    if (!task) return;
-
-    try {
-      // Find task by goal_id and title (since we don't have task IDs in local state)
-      const { data: tasks } = await supabase
-        .from('goal_tasks')
-        .select('id')
-        .eq('goal_id', goalId)
-        .eq('title', task.title)
-        .order('created_at', { ascending: true });
-
-      if (!tasks || tasks.length <= taskIndex) return;
-
-      const { error: updateError } = await supabase
-        .from('goal_tasks')
-        .update({
-          done: !task.done,
-          completed_at: !task.done ? new Date().toISOString() : null
-        })
-        .eq('id', tasks[taskIndex].id);
-
-      if (updateError) throw updateError;
-
-      // Reload goals
-      await loadGoals();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar tarea');
-      setStatus('error');
-    }
-  };
-
   const addEntry = async (goalId: string, entry: Omit<GoalEntry, 'date'> & { date?: string }) => {
     const goal = goals.find(g => g.id === goalId);
     if (!goal || !user) return;
@@ -316,8 +258,6 @@ export const useGoals = (): GoalsHook => {
     error,
     addGoal,
     updateGoal,
-    addTask,
-    toggleTask,
     addEntry,
     incrementPositiveCount,
     incrementNegativeCount,
