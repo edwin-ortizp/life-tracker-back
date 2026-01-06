@@ -28,5 +28,7 @@ export const getCheckboxStats = (
 export const getCheckboxProgress = (markdown: string): number => {
   const { total, checked } = getCheckboxStats(markdown);
   if (!total) return 0;
-  return (checked / total) * 100;
+  const progress = Math.round((checked / total) * 100);
+  return Math.min(100, Math.max(0, progress));
 };
+
