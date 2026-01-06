@@ -1,103 +1,122 @@
 // src/pages/ExercisePage.tsx
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useState } from 'react';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Exercise, ExerciseCalendar } from '@/features/exercise/components';
 import DateSelector from '@/components/DateSelector';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dumbbell, Plus, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import PageLayout from '@/components/PageLayout';
-import { useModuleSettings } from '@/hooks/useModuleSettings';
+import ModuleViewLayout from '@/components/module-views/ModuleViewLayout';
+import type { ModuleViewAction, ModuleViewDefinition } from '@/components/module-views/types';
+import { exerciseDefaultViewKey, exerciseViews, type ExerciseViewKey } from '@/features/exercise/views';
 
-// Define the ExerciseRef type with the openAddExercise method
 type ExerciseRef = {
   openAddExercise: () => void;
 };
 
+type ExerciseViewProps = {
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
+  exerciseRef: React.RefObject<ExerciseRef>;
+};
+
+const ExerciseDailyView: React.FC<ExerciseViewProps> = ({
+  selectedDate,
+  onDateChange,
+  exerciseRef
+}) => (
+  <div className="space-y-4">
+    <DateSelector selectedDate={selectedDate} onChange={onDateChange} />
+    <div className="grid gap-6 md:grid-cols-[1fr_300px]">
+      <Exercise ref={exerciseRef} selectedDate={selectedDate} />
+    </div>
+  </div>
+);
+
+const ExerciseCalendarView: React.FC<ExerciseViewProps> = ({ selectedDate }) => (
+  <ExerciseCalendar selectedDate={selectedDate} />
+);
+
 const ExercisePage: React.FC = () => {
+  const navigate = useNavigate();
+  const { viewKey } = useParams<{ viewKey: ExerciseViewKey }>();
+  const resolvedViewKey = (viewKey || exerciseDefaultViewKey) as ExerciseViewKey;
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { user } = useAuth();
   const exerciseRef = useRef<ExerciseRef>(null);
-  
-  // Memoize defaults to prevent re-renders
-  const exerciseDefaults = useMemo(() => ({ dailyCalories: 500 }), []);
-  const { settings, saveSettings } = useModuleSettings('exercise', exerciseDefaults);
-  const [caloriesInput, setCaloriesInput] = useState(settings.dailyCalories);
 
-  useEffect(() => {
-    setCaloriesInput(settings.dailyCalories);
-  }, [settings.dailyCalories]);
+  const exerciseViewRegistry: Array<ModuleViewDefinition<ExerciseViewProps>> = exerciseViews.map((view) => ({
+    ...view,
+    component: view.key === 'daily' ? ExerciseDailyView : ExerciseCalendarView
+  }));
 
-  const handleFloatingButtonClick = () => {
-    exerciseRef.current?.openAddExercise();
-  };
+  const activeView = exerciseViewRegistry.find((view) => view.key === resolvedViewKey);
+
+  if (!activeView) {
+    return <Navigate to={`/exercise/view/${exerciseDefaultViewKey}`} replace />;
+  }
 
   if (!user) {
     return (
-      <div className="container max-w-4xl mx-auto py-6">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-semibold mb-2">Inicia sesión</h2>
-            <p className="text-gray-500">
-              Necesitas iniciar sesión para registrar y ver tus ejercicios
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <ModuleViewLayout
+        title="Ejercicio"
+        icon={<Dumbbell className="h-4 w-4 text-white" />}
+      >
+        <div className="p-4">
+          <Card>
+            <CardContent className="p-8 text-center">
+              <h2 className="text-xl font-semibold mb-2">Inicia sesion</h2>
+              <p className="text-gray-500">
+                Necesitas iniciar sesion para registrar y ver tus ejercicios
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </ModuleViewLayout>
     );
   }
 
+  const actions: ModuleViewAction[] = [
+    {
+      id: 'config',
+      label: 'Configuracion',
+      icon: <Settings className="h-4 w-4" />,
+      onClick: () => navigate('/exercise/config'),
+      tooltip: 'Configuracion'
+    }
+  ];
+
+  const ActiveView = activeView.component;
+  const viewProps: ExerciseViewProps = {
+    selectedDate,
+    onDateChange: setSelectedDate,
+    exerciseRef
+  };
+
   return (
-    <PageLayout
-      showFloatingButton={true}
-      onFloatingButtonClick={handleFloatingButtonClick}
-      floatingButtonLabel="Agregar ejercicio"
+    <ModuleViewLayout
+      title="Registro de Ejercicio"
+      subtitle="Registra y monitorea tus actividades fisicas diarias"
+      icon={<Dumbbell className="h-4 w-4 text-white" />}
+      views={exerciseViewRegistry}
+      activeViewKey={resolvedViewKey}
+      onViewChange={(key) => navigate(`/exercise/view/${key}`)}
+      actions={actions}
     >
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Registro de Ejercicio</h1>
-        <p className="text-gray-500">Registra y monitorea tus actividades físicas diarias</p>
+      <div className="p-4 space-y-4">
+        <ActiveView {...viewProps} />
       </div>
 
-      <Tabs defaultValue="daily" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="daily">Registro Diario</TabsTrigger>
-          <TabsTrigger value="calendar">Calendario</TabsTrigger>
-          <TabsTrigger value="settings">Configuración</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="daily">
-          <DateSelector selectedDate={selectedDate} onChange={setSelectedDate} />
-          <div className="grid gap-6 md:grid-cols-[1fr_300px] mt-4">
-            <Exercise ref={exerciseRef} selectedDate={selectedDate} />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="calendar">
-          <ExerciseCalendar selectedDate={selectedDate} />
-        </TabsContent>
-
-        <TabsContent value="settings" className="space-y-4">
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <div>
-                <Label htmlFor="calGoal">Calorías diarias objetivo</Label>
-                <Input
-                  id="calGoal"
-                  type="number"
-                  value={caloriesInput}
-                  onChange={(e) => setCaloriesInput(Number(e.target.value))}
-                />
-              </div>
-              <Button onClick={() => saveSettings({ dailyCalories: caloriesInput })}>
-                Guardar
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </PageLayout>
+      <Button
+        onClick={() => exerciseRef.current?.openAddExercise()}
+        className="fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50 lg:hidden bg-black text-white hover:bg-gray-800"
+        size="icon"
+        title="Agregar ejercicio"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
+    </ModuleViewLayout>
   );
 };
 

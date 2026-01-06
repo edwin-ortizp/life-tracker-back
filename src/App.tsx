@@ -7,7 +7,6 @@ import Home from './artifacts/Home';
 import PomodoroPage from './pages/PomodoroPage';
 import MoodPage from './pages/MoodPage';
 import TaskPage from './pages/TaskPage';
-import TaskCalendarPage from './pages/TaskCalendarPage';
 import HabitPage from './pages/HabitPage';
 import MealPage from './pages/MealPage';
 import ShoppingListPage from './pages/ShoppingListPage';
@@ -24,6 +23,7 @@ import TaskRunPage from './pages/TaskRunPage';
 import GoalsPage from './pages/GoalsPage';
 import LoginPage from './pages/LoginPage';
 import ExerciseConfigPage from './pages/ExerciseConfigPage';
+import TaskConfigPage from './pages/TaskConfigPage';
 import WaterConfigPage from './pages/WaterConfigPage';
 import MoodConfigPage from './pages/MoodConfigPage';
 
@@ -52,18 +52,21 @@ function App() {
       <Route path="/" element={<AppLayout />}>
         <Route index element={<Home />} />
         <Route path="habit" element={<HabitPage />} />
-        {/* Task routes - independent views */}
-        <Route path="task" element={<Navigate to="/task/list" replace />} />
-        <Route path="task/list" element={<TaskPage />} />
-        <Route path="task/kanban" element={<TaskPage />} />
-        <Route path="task/calendar" element={<TaskCalendarPage />} />
+        {/* Task routes - Airtable style views */}
+        <Route path="task" element={<Navigate to="/task/view/list" replace />} />
+        <Route path="task/view/:viewKey" element={<TaskPage />} />
+        <Route path="task/config" element={<TaskConfigPage />} />
         <Route path="task/:taskCode/run" element={<TaskRunPage />} />
         {/* Legacy redirects */}
-        <Route path="tasks/calendar" element={<Navigate to="/task/calendar" replace />} />
-        <Route path="kanban" element={<Navigate to="/task/kanban" replace />} />
+        <Route path="task/list" element={<Navigate to="/task/view/list" replace />} />
+        <Route path="task/kanban" element={<Navigate to="/task/view/kanban" replace />} />
+        <Route path="task/calendar" element={<Navigate to="/task/view/calendar" replace />} />
+        <Route path="tasks/calendar" element={<Navigate to="/task/view/calendar" replace />} />
+        <Route path="kanban" element={<Navigate to="/task/view/kanban" replace />} />
         <Route path="mood" element={<MoodPage />} />
         <Route path="pomodoro" element={<PomodoroPage />} />
-        <Route path="exercise" element={<ExercisePage />} />
+        <Route path="exercise" element={<Navigate to="/exercise/view/daily" replace />} />
+        <Route path="exercise/view/:viewKey" element={<ExercisePage />} />
         <Route path="exercise/config" element={<ExerciseConfigPage />} />
         <Route path="water" element={<WaterPage />} />
         <Route path="water/config" element={<WaterConfigPage />} />

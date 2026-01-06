@@ -144,7 +144,11 @@ const CompactTaskActions = memo<{
         <DropdownMenuContent align="end" className="w-48">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-sm text-red-600 focus:text-red-600">
+              <DropdownMenuItem
+                onSelect={(e) => e.preventDefault()}
+                onClick={(e) => e.stopPropagation()}
+                className="text-sm text-red-600 focus:text-red-600"
+              >
                 <span className="mr-2">🗑️</span>
                 Eliminar tarea
               </DropdownMenuItem>
@@ -157,9 +161,14 @@ const CompactTaskActions = memo<{
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
+                  Cancelar
+                </AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={handleDelete}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete();
+                  }}
                   className="bg-red-600 hover:bg-red-700"
                 >
                   Eliminar

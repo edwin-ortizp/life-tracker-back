@@ -1,12 +1,7 @@
 // src/pages/TaskPage.tsx
-import React, { useState, useEffect, useMemo } from 'react';
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Task, TaskKanbanView, TaskAiSuggestion, TaskAiReprioritize } from '@/features/task/components';
-import RecurrenceModal from '@/features/task/components/RecurrenceModal';
-import { CompactTaskHeader } from '@/components/navigation/CompactTaskHeader';
-import { Plus, Upload, Download, Brain, Calendar } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -25,76 +20,372 @@ import {
   Pie,
   Cell
 } from 'recharts';
+import { Brain, CheckSquare, Download, Plus, Settings, Upload } from 'lucide-react';
+import ModuleViewLayout from '@/components/module-views/ModuleViewLayout';
+import type { ModuleViewAction, ModuleViewDefinition } from '@/components/module-views/types';
+import { taskDefaultViewKey, taskViews, type TaskViewKey } from '@/features/task/views';
 import { useAuth } from '@/hooks/useAuth';
 import { useTaskData } from '@/features/task/hooks/useTaskData.supabase';
+import { useTaskKeyboardShortcuts } from '@/features/task/hooks/useTaskKeyboardShortcuts';
+import {
+  PriorityLegend,
+  TaskAiReprioritize,
+  TaskAiSuggestion,
+  TaskDetailsModal,
+  TaskKanban,
+  TaskList,
+  TaskWeeklyCalendar
+} from '@/features/task/components';
+import RecurrenceModal from '@/features/task/components/RecurrenceModal';
+import { Task, TaskCategory, CATEGORY_LABELS, TASK_CATEGORIES } from '@/features/task/types';
+import { adjustEndDateToStartDate } from '@/utils/dates';
+
+type TaskStatus = 'idle' | 'loading' | 'saving' | 'pending' | 'saved' | 'error';
+
+type TaskViewProps = {
+  tasks: Task[];
+  status: TaskStatus;
+  error: string | null;
+  addTask: (data: any) => void;
+  editTask: (taskId: string, updates: any) => void;
+  deleteTask: (taskId: string) => void;
+  toggleTask: (taskId: string, completed: boolean) => void;
+  openEditModal: (task: Task) => void;
+  openCreateModal: (due?: Date) => void;
+  onViewTask: (task: Task) => void;
+  taskStats: any[];
+  completionStats: any[];
+};
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
+const TaskListView: React.FC<TaskViewProps> = ({
+  tasks,
+  status,
+  error,
+  editTask,
+  deleteTask,
+  openEditModal,
+  onViewTask
+}) => (
+  <Card>
+    <CardContent className="pt-6">
+      <TaskList
+        tasks={tasks}
+        onDelete={deleteTask}
+        onEdit={openEditModal}
+        onView={onViewTask}
+        onMove={(id, startDate) => {
+          const task = tasks.find((item) => item.id === id);
+          if (!task) return;
+
+          if (!startDate) {
+            editTask(id, { startDate: undefined, endDate: undefined });
+            return;
+          }
+
+          const newEndDate = adjustEndDateToStartDate(
+            task.startDate,
+            task.endDate,
+            startDate
+          );
+
+          editTask(id, {
+            startDate,
+            endDate: newEndDate,
+          });
+        }}
+        onAssignTimeOfDay={(id, timeOfDay) => editTask(id, { timeOfDay })}
+        status={status}
+        error={error || undefined}
+      />
+      {error && (
+        <div className="text-sm text-red-500 p-2">
+          {error}
+        </div>
+      )}
+    </CardContent>
+  </Card>
+);
+
+const TaskKanbanView: React.FC<TaskViewProps> = ({
+  tasks,
+  error,
+  editTask,
+  deleteTask,
+  openEditModal,
+  openCreateModal,
+  onViewTask
+}) => (
+  <div className="space-y-6">
+    <Card className="w-full">
+      <CardContent className="pt-6 overflow-x-auto">
+        <TaskKanban
+          tasks={tasks}
+          onDelete={deleteTask}
+          onEdit={openEditModal}
+          onView={onViewTask}
+          onMove={(id, due) => editTask(id, { startDate: due ?? undefined })}
+          onAdd={(due) => openCreateModal(due ?? undefined)}
+          onFilteredTasksChange={() => {}}
+        />
+        {error && (
+          <p className="text-sm text-red-500 mt-4">{error}</p>
+        )}
+      </CardContent>
+    </Card>
+    <PriorityLegend />
+  </div>
+);
+
+const TaskCalendarView: React.FC<TaskViewProps> = ({
+  tasks,
+  editTask,
+  deleteTask,
+  toggleTask,
+  openEditModal,
+  onViewTask,
+  error
+}) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const searchQuery = searchParams.get('search') || '';
+
+  const selectedCategories = React.useMemo(() => {
+    const categoriesParam = searchParams.get('categories');
+    if (!categoriesParam) return [];
+    return categoriesParam.split(',').filter((category) =>
+      Object.values(TASK_CATEGORIES).includes(category as TaskCategory)
+    ) as TaskCategory[];
+  }, [searchParams]);
+
+  const handleSearchChange = (query: string) => {
+    const newParams: Record<string, string> = {};
+
+    if (query.trim()) {
+      newParams.search = query;
+    }
+
+    if (selectedCategories.length > 0) {
+      newParams.categories = selectedCategories.join(',');
+    }
+
+    setSearchParams(Object.keys(newParams).length > 0 ? newParams : {});
+  };
+
+  const handleCategoriesChange = (categories: TaskCategory[]) => {
+    const newParams: Record<string, string> = {};
+
+    if (searchQuery.trim()) {
+      newParams.search = searchQuery;
+    }
+
+    if (categories.length > 0) {
+      newParams.categories = categories.join(',');
+    }
+
+    setSearchParams(Object.keys(newParams).length > 0 ? newParams : {});
+  };
+
+  const filteredTasks = React.useMemo(() => {
+    let filtered = selectedCategories.length > 0
+      ? tasks.filter((task) => selectedCategories.includes(task.category))
+      : tasks;
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((task) =>
+        task.title.toLowerCase().includes(query) ||
+        (task.description && task.description.toLowerCase().includes(query))
+      );
+    }
+
+    return filtered;
+  }, [tasks, selectedCategories, searchQuery]);
+
+  return (
+    <Card>
+      <CardContent className="p-6">
+        {error && (
+          <div className="mb-4 text-sm text-red-500 p-2">
+            {error}
+          </div>
+        )}
+        <TaskWeeklyCalendar
+          tasks={filteredTasks}
+          onDelete={deleteTask}
+          onEdit={openEditModal}
+          onToggle={toggleTask}
+          onQuickUpdate={(task) => {
+            editTask(task.id, { endDate: task.endDate });
+          }}
+          onView={onViewTask}
+          onMove={(id, startDate) => {
+            const task = tasks.find((item) => item.id === id);
+            if (!task) return;
+
+            if (!startDate) {
+              editTask(id, { startDate: undefined, endDate: undefined });
+              return;
+            }
+
+            const newEndDate = adjustEndDateToStartDate(
+              task.startDate,
+              task.endDate,
+              startDate
+            );
+
+            editTask(id, {
+              startDate,
+              endDate: newEndDate,
+            });
+          }}
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
+          selectedCategories={selectedCategories}
+          onCategoriesChange={handleCategoriesChange}
+        />
+      </CardContent>
+    </Card>
+  );
+};
+
+const TaskAnalyticsView: React.FC<TaskViewProps> = ({ taskStats, completionStats }) => (
+  <div className="grid md:grid-cols-2 xl:grid-cols-2 gap-4 lg:gap-6 xl:gap-8 desktop-grid-responsive">
+    <Card className="desktop-card-enhanced">
+      <CardContent className="pt-6">
+        <h3 className="font-medium mb-4">Progreso de Tareas</h3>
+        <div className="h-64 lg:h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={taskStats}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="completed"
+                name="Completadas"
+                stroke="#8884d8"
+              />
+              <Line
+                type="monotone"
+                dataKey="pending"
+                name="Pendientes"
+                stroke="#82ca9d"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+
+    <Card className="desktop-card-enhanced">
+      <CardContent className="pt-6">
+        <h3 className="font-medium mb-4">Estado General</h3>
+        <div className="h-64 lg:h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={completionStats}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+                label={({
+                  cx,
+                  cy,
+                  midAngle,
+                  innerRadius,
+                  outerRadius,
+                  percent,
+                  name
+                }) => {
+                  const RADIAN = Math.PI / 180;
+                  const radius = 25 + innerRadius + (outerRadius - innerRadius);
+                  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      fill="#888"
+                      textAnchor={x > cx ? 'start' : 'end'}
+                      dominantBaseline="central"
+                    >
+                      {`${name} (${(percent * 100).toFixed(0)}%)`}
+                    </text>
+                  );
+                }}
+              >
+                {completionStats.map((entry, index) => (
+                  <Cell
+                    key={`cell-${entry.name}-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+);
+
 const TaskPage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { viewKey } = useParams<{ viewKey: TaskViewKey }>();
+  const resolvedViewKey = (viewKey || taskDefaultViewKey) as TaskViewKey;
+  const { user } = useAuth();
   const [taskStats, setTaskStats] = useState<any[]>([]);
   const [completionStats, setCompletionStats] = useState<any[]>([]);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importJson, setImportJson] = useState('');
   const [showAiSuggestion, setShowAiSuggestion] = useState(false);
   const [showAiReprioritize, setShowAiReprioritize] = useState(false);
+  const [detailTask, setDetailTask] = useState<Task | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
-  // Determine current view from URL path
-  const currentTab = useMemo(() => {
-    const path = location.pathname;
-    if (path.includes('/task/kanban')) return 'kanban';
-    if (path.includes('/task/list')) return 'list';
-    if (path.includes('/task/calendar')) return 'week';
-    return 'list'; // default
-  }, [location.pathname]);
-
-  // Internal tab for analytics (remains as internal state for list view)
-  const [internalTab, setInternalTab] = useState<'list' | 'analytics'>('list');
-
-  const handleTabChange = (tab: string) => {
-    if (tab === 'week') {
-      navigate('/task/calendar');
-      return;
-    }
-    if (tab === 'kanban') {
-      navigate('/task/kanban');
-      return;
-    }
-    if (tab === 'list') {
-      navigate('/task/list');
-      setInternalTab('list');
-      return;
-    }
-    if (tab === 'analytics') {
-      // Analytics is part of list view
-      navigate('/task/list');
-      setInternalTab('analytics');
-      return;
-    }
-  };
-  const { user } = useAuth();
   const taskData = useTaskData();
   const {
     tasks,
+    status,
+    error,
     showRecurrenceModal,
     currentTask,
     modalMode,
     addTask,
     editTask,
+    deleteTask,
+    toggleTask,
     completeRecurrentTask,
     setShowRecurrenceModal,
-    openCreateModal
+    openCreateModal,
+    openEditModal,
   } = taskData;
 
-  // Calculate stats from tasks loaded by useTaskData (already from Supabase)
-  useEffect(() => {
-    if (!tasks || tasks.length === 0) return;
+  useTaskKeyboardShortcuts({
+    openCreateModal,
+    isModalOpen: showRecurrenceModal || showDetailModal
+  });
 
-    // Calcular estadísticas por día (últimas 100 tareas)
+  useEffect(() => {
+    if (!tasks || tasks.length === 0) {
+      setTaskStats([]);
+      setCompletionStats([]);
+      return;
+    }
+
     const recentTasks = tasks.slice(0, 100);
     const dailyStats = recentTasks.reduce((acc: any, task) => {
-      const date = task.createdAt ? new Date(task.createdAt.seconds * 1000).toISOString().split('T')[0] : 'unknown';
+      const date = task.createdAt
+        ? new Date(task.createdAt.seconds * 1000).toISOString().split('T')[0]
+        : 'unknown';
       if (!acc[date]) {
         acc[date] = { date, completed: 0, pending: 0 };
       }
@@ -104,9 +395,8 @@ const TaskPage: React.FC = () => {
 
     setTaskStats(Object.values(dailyStats));
 
-    // Calcular totales para el gráfico circular
-    const totalCompleted = tasks.filter(task => task.completed).length;
-    const totalPending = tasks.filter(task => !task.completed).length;
+    const totalCompleted = tasks.filter((task) => task.completed).length;
+    const totalPending = tasks.filter((task) => !task.completed).length;
 
     setCompletionStats([
       { name: 'Completadas', value: totalCompleted },
@@ -114,28 +404,39 @@ const TaskPage: React.FC = () => {
     ]);
   }, [tasks]);
 
-  if (!user) {
-    return (
-      <div className="min-h-screen">
-        <CompactTaskHeader 
-          title="Tareas"
-          actions={[]}
-          currentTab={currentTab}
-          onTabChange={handleTabChange}
-        />
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="text-center py-8">
-            <h2 className="text-xl font-semibold">Inicia sesión para ver tus tareas</h2>
-          </div>
-        </div>
-      </div>
-    );
+  const taskViewRegistry: Array<ModuleViewDefinition<TaskViewProps>> = taskViews.map((view) => ({
+    ...view,
+    component: view.key === 'list'
+      ? TaskListView
+      : view.key === 'kanban'
+      ? TaskKanbanView
+      : view.key === 'calendar'
+      ? TaskCalendarView
+      : TaskAnalyticsView
+  }));
+
+  const activeView = taskViewRegistry.find((view) => view.key === resolvedViewKey);
+
+  if (!activeView) {
+    return <Navigate to={`/task/view/${taskDefaultViewKey}`} replace />;
   }
 
-  // Task actions for header
-  const handleNewTask = () => {
-    openCreateModal();
-  };
+  if (!user) {
+    return (
+      <ModuleViewLayout
+        title="Tareas"
+        icon={<CheckSquare className="h-4 w-4 text-white" />}
+      >
+        <div className="p-4">
+          <Card>
+            <CardContent className="p-8 text-center">
+              <h2 className="text-xl font-semibold">Inicia sesion para ver tus tareas</h2>
+            </CardContent>
+          </Card>
+        </div>
+      </ModuleViewLayout>
+    );
+  }
 
   const handleImportTasks = () => {
     setShowImportDialog(true);
@@ -144,7 +445,7 @@ const TaskPage: React.FC = () => {
   const handleImportTasksConfirm = () => {
     try {
       const tasksToImport = JSON.parse(importJson);
-      
+
       if (!Array.isArray(tasksToImport)) {
         toast.error('El JSON debe contener un array de tareas');
         return;
@@ -152,67 +453,95 @@ const TaskPage: React.FC = () => {
 
       let importedCount = 0;
       let invalidDatesCount = 0;
-      
-      tasksToImport.forEach((taskData: any) => {
-        if (taskData.title) {
-          let dueDate = undefined;
-          
-          // Manejo mejorado de fechas
-          if (taskData.dueDate) {
-            const parsedDate = new Date(taskData.dueDate);
+
+      tasksToImport.forEach((taskData: Record<string, any>) => {
+        if (typeof taskData.title === 'string') {
+          let startDate = undefined;
+          let endDate = undefined;
+
+          if (taskData.startDate || taskData.dueDate) {
+            const dateStr = (taskData.startDate || taskData.dueDate) as string;
+            const parsedDate = new Date(dateStr);
             if (!isNaN(parsedDate.getTime())) {
-              dueDate = parsedDate;
+              startDate = parsedDate;
             } else {
               invalidDatesCount++;
-              console.warn(`Fecha inválida para tarea "${taskData.title}": ${taskData.dueDate}`);
+              console.warn(`Fecha invalida para tarea "${taskData.title}": ${dateStr}`);
             }
           }
-          
-          // Note: This would need to be connected to the Task component's addTask function
-          console.log('Would import task:', {
+
+          if (taskData.endDate) {
+            const parsedDate = new Date(taskData.endDate as string);
+            if (!isNaN(parsedDate.getTime())) {
+              endDate = parsedDate;
+            } else {
+              invalidDatesCount++;
+              console.warn(`Fecha de fin invalida para tarea "${taskData.title}": ${taskData.endDate}`);
+            }
+          }
+
+          addTask({
             title: taskData.title,
             description: taskData.description || '',
-            dueDate: dueDate,
-            category: taskData.category || 'personal',
-            priority: taskData.priority || undefined,
+            startDate,
+            endDate,
+            category: (taskData.category as 'personal' | 'work' | 'health') || 'personal',
+            priority: taskData.priority as 'do' | 'decide' | 'delegate' | 'delete' || undefined,
             isPrivate: false,
-            isRecurrent: taskData.isRecurrent || false,
-            size: taskData.size || undefined
+            isRecurrent: Boolean(taskData.isRecurrent) || false,
+            size: taskData.size as 'pequena' | 'mediana' | 'grande' || undefined,
+            completed: Boolean(taskData.completed) || false,
           });
           importedCount++;
         }
       });
 
       if (invalidDatesCount > 0) {
-        toast.warning(`${importedCount} tareas procesadas. ${invalidDatesCount} fechas inválidas fueron omitidas.`);
+        toast.warning(`${importedCount} tareas importadas. ${invalidDatesCount} fechas invalidas fueron omitidas.`);
       } else {
-        toast.success(`${importedCount} tareas procesadas correctamente`);
+        toast.success(`${importedCount} tareas importadas correctamente`);
       }
-      
+
       setImportJson('');
       setShowImportDialog(false);
     } catch (error) {
       toast.error('Error al importar las tareas. Verifica el formato JSON.');
-      console.error('Error de importación:', error);
+      console.error('Error de importacion:', error);
     }
   };
 
   const handleExportTasks = () => {
-    // Note: This would need to be connected to the Task component's tasks data
-    toast.success('Funcionalidad de exportar - será implementada');
+    const exportData = tasks.map((task) => ({
+      title: task.title,
+      description: task.description || '',
+      startDate: task.startDate?.toISOString() || null,
+      endDate: task.endDate?.toISOString() || null,
+      category: task.category,
+      priority: task.priority || null,
+      isRecurrent: task.isRecurrent || false,
+      size: task.size || null,
+      completed: task.completed
+    }));
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `tareas_${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    toast.success('Tareas exportadas correctamente');
   };
 
-  const handleAiMenu = () => {
-    // El dropdown se maneja directamente en el CompactTaskHeader, no necesitamos hacer nada aquí
-  };
-
-  const taskActions = [
+  const taskActions: ModuleViewAction[] = [
     {
-      id: 'calendar',
-      label: 'Calendario',
-      icon: <Calendar className="h-4 w-4" />,
-      onClick: () => navigate('/tasks/calendar'),
-      tooltip: 'Vista de calendario'
+      id: 'config',
+      label: 'Configuracion',
+      icon: <Settings className="h-4 w-4" />,
+      onClick: () => navigate('/task/config'),
+      tooltip: 'Configuracion'
     },
     {
       id: 'import',
@@ -232,7 +561,7 @@ const TaskPage: React.FC = () => {
       id: 'ai',
       label: 'AI Assistant',
       icon: <Brain className="h-4 w-4" />,
-      onClick: handleAiMenu,
+      onClick: () => {},
       tooltip: 'Asistente IA',
       dropdown: [
         {
@@ -240,7 +569,7 @@ const TaskPage: React.FC = () => {
           onClick: () => setShowAiSuggestion(true)
         },
         {
-          label: 'Repriorizar visibles', 
+          label: 'Repriorizar visibles',
           onClick: () => setShowAiReprioritize(true)
         }
       ]
@@ -249,28 +578,51 @@ const TaskPage: React.FC = () => {
       id: 'new',
       label: 'Nuevo',
       icon: <Plus className="h-4 w-4" />,
-      onClick: handleNewTask,
+      onClick: () => openCreateModal(),
       tooltip: 'Crear nueva tarea',
       className: 'bg-black text-white hover:bg-gray-800',
       showLabel: true
     }
   ];
 
-  return (
-    <div className="min-h-screen relative">
-      <CompactTaskHeader
-        title="Tareas"
-        actions={taskActions}
-        currentTab={currentTab}
-        onTabChange={handleTabChange}
-      />
+  const ActiveView = activeView.component;
 
-      {/* FAB - Floating Action Button (mobile only) */}
+  const viewProps: TaskViewProps = {
+    tasks,
+    status,
+    error,
+    addTask,
+    editTask,
+    deleteTask,
+    toggleTask,
+    openEditModal,
+    openCreateModal,
+    onViewTask: (task) => {
+      setDetailTask(task);
+      setShowDetailModal(true);
+    },
+    taskStats,
+    completionStats,
+  };
+
+  return (
+    <ModuleViewLayout
+      title="Tareas"
+      icon={<CheckSquare className="h-4 w-4 text-white" />}
+      views={taskViewRegistry}
+      activeViewKey={resolvedViewKey}
+      onViewChange={(key) => navigate(`/task/view/${key}`)}
+      actions={taskActions}
+    >
+      <div className="p-4 space-y-4">
+        <ActiveView {...viewProps} />
+      </div>
+
       <Button
-        onClick={handleNewTask}
+        onClick={() => openCreateModal()}
         className={cn(
-          "fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl",
-          "transition-shadow z-50 lg:hidden bg-black text-white hover:bg-gray-800"
+          'fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl',
+          'transition-shadow z-50 lg:hidden bg-black text-white hover:bg-gray-800'
         )}
         size="icon"
         title="Crear nueva tarea"
@@ -278,133 +630,22 @@ const TaskPage: React.FC = () => {
         <Plus className="h-6 w-6" />
       </Button>
 
-      <div className="p-4">
-        {taskData.error && (
-          <div className="mb-4 text-sm text-red-500 p-2">
-            {taskData.error}
-          </div>
-        )}
-        
-        {/* Render view based on current route */}
-        {currentTab === 'list' && (
-          <Tabs value={internalTab} onValueChange={(tab) => handleTabChange(tab)} className="space-y-4">
-            <TabsContent value="list" className="space-y-4">
-              <Task />
-            </TabsContent>
-            <TabsContent value="analytics" className="space-y-4">
-          <div className="grid md:grid-cols-2 xl:grid-cols-2 gap-4 lg:gap-6 xl:gap-8 desktop-grid-responsive">
-            <Card className="desktop-card-enhanced">
-              <CardContent className="pt-6">
-                <h3 className="font-medium mb-4">Progreso de Tareas</h3>
-                <div className="h-64 lg:h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={taskStats}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="completed" 
-                        name="Completadas"
-                        stroke="#8884d8" 
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="pending" 
-                        name="Pendientes"
-                        stroke="#82ca9d" 
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="desktop-card-enhanced">
-              <CardContent className="pt-6">
-                <h3 className="font-medium mb-4">Estado General</h3>
-                <div className="h-64 lg:h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={completionStats}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({
-                          cx,
-                          cy,
-                          midAngle,
-                          innerRadius,
-                          outerRadius,
-                          percent,
-                          name
-                        }) => {
-                          const RADIAN = Math.PI / 180;
-                          const radius = 25 + innerRadius + (outerRadius - innerRadius);
-                          const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                          const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                          return (
-                            <text
-                              x={x}
-                              y={y}
-                              fill="#888"
-                              textAnchor={x > cx ? 'start' : 'end'}
-                              dominantBaseline="central"
-                            >
-                              {`${name} (${(percent * 100).toFixed(0)}%)`}
-                            </text>
-                          );
-                        }}
-                      >
-                        {completionStats.map((index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={COLORS[index % COLORS.length]} 
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-            </TabsContent>
-          </Tabs>
-        )}
-
-        {currentTab === 'kanban' && (
-          <div className="space-y-4">
-            <TaskKanbanView />
-          </div>
-        )}
-      </div>
-
-      {/* Task AI Components */}
-      <TaskAiSuggestion 
-        tasks={tasks} 
-        open={showAiSuggestion} 
-        onOpenChange={setShowAiSuggestion} 
+      <TaskAiSuggestion
+        tasks={tasks}
+        open={showAiSuggestion}
+        onOpenChange={setShowAiSuggestion}
       />
-      <TaskAiReprioritize 
-        tasks={tasks} 
-        onUpdate={editTask} 
-        open={showAiReprioritize} 
-        onOpenChange={setShowAiReprioritize} 
+      <TaskAiReprioritize
+        tasks={tasks}
+        onUpdate={editTask}
+        open={showAiReprioritize}
+        onOpenChange={setShowAiReprioritize}
       />
 
-      {/* Recurrence Modal for new task creation */}
       <RecurrenceModal
         isOpen={showRecurrenceModal}
         onClose={() => setShowRecurrenceModal()}
-        onConfirm={(data: any) => {
+        onConfirm={(data) => {
           if (modalMode === 'complete') {
             completeRecurrentTask(data);
           } else if (modalMode === 'edit') {
@@ -424,7 +665,17 @@ const TaskPage: React.FC = () => {
         mode={modalMode}
       />
 
-      {/* Import Tasks Dialog */}
+      <TaskDetailsModal
+        task={detailTask}
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        onEdit={(task) => {
+          setShowDetailModal(false);
+          openEditModal(task);
+        }}
+        onToggle={toggleTask}
+      />
+
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
@@ -439,24 +690,18 @@ const TaskPage: React.FC = () => {
 [
   {
     "title": "Completar proyecto importante",
-    "description": "Terminar la implementación",
+    "description": "Terminar la implementacion",
     "dueDate": "2024-12-31",
     "category": "work",
     "priority": "do",
     "size": "grande"
   },
   {
-    "title": "Revisión médica anual", 
+    "title": "Revision medica anual",
     "description": "Chequeo general de salud",
-    "dueDate": "2024-07-15T09:00:00Z",
+    "startDate": "2024-07-15T09:00:00Z",
     "category": "health",
     "priority": "decide"
-  },
-  {
-    "title": "Tarea flexible",
-    "description": "Esta tarea no tiene fecha límite específica",
-    "category": "personal",
-    "isRecurrent": true
   }
 ]
 
@@ -464,13 +709,11 @@ Formatos de fecha soportados:
 - "2024-12-31" (solo fecha)
 - "2024-06-15T14:30:00Z" (fecha y hora ISO)
 - "2024-06-15T14:30:00" (fecha y hora local)
-- Sin campo "dueDate" = sin fecha asignada
-
-Campos opcionales:
-- description, dueDate, priority, size, isRecurrent`}
+- Sin campo "startDate" o "dueDate" = sin fecha asignada
+`}
               value={importJson}
               onChange={(e) => setImportJson(e.target.value)}
-              rows={20}
+              rows={18}
               className="font-mono text-sm"
             />
             <div className="flex gap-2 justify-end">
@@ -484,7 +727,7 @@ Campos opcionales:
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </ModuleViewLayout>
   );
 };
 
