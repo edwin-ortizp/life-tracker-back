@@ -20,6 +20,7 @@ import NegativeHabitsPage from './pages/NegativeHabitsPage';
 import SettingsPage from './pages/SettingsPage';
 import HabitRunPage from './pages/HabitRunPage';
 import ShoppingRunPage from './pages/ShoppingRunPage';
+import TaskRunPage from './pages/TaskRunPage';
 import GoalsPage from './pages/GoalsPage';
 import LoginPage from './pages/LoginPage';
 import ExerciseConfigPage from './pages/ExerciseConfigPage';
@@ -56,6 +57,7 @@ function App() {
         <Route path="task/list" element={<TaskPage />} />
         <Route path="task/kanban" element={<TaskPage />} />
         <Route path="task/calendar" element={<TaskCalendarPage />} />
+        <Route path="task/:taskCode/run" element={<TaskRunPage />} />
         {/* Legacy redirects */}
         <Route path="tasks/calendar" element={<Navigate to="/task/calendar" replace />} />
         <Route path="kanban" element={<Navigate to="/task/kanban" replace />} />

@@ -4,7 +4,7 @@ import {
   Dialog,
   DialogContent
 } from '@/components/ui/dialog';
-import { MOODS } from '@/features/mood/types';
+import { useMoodStates } from '@/features/mood/hooks/useMoodStates';
 import type { Task } from '../types';
 import { CATEGORY_LABELS } from '../types';
 import { format } from 'date-fns';
@@ -32,6 +32,7 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks, open:
   const open = openProp !== undefined ? openProp : internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
   const [selectedMood, setSelectedMood] = useState<{ emoji: string; text: string } | null>(null);
+  const { moodStates } = useMoodStates();
   const [suggestion, setSuggestion] = useState('');
   const [loading, setLoading] = useState(false);
   const [prompt, setPrompt] = useState('');
@@ -123,11 +124,11 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks, open:
                 <div>
                   <label className="text-sm font-medium text-gray-700 mb-2 block">¿Cómo te sientes?</label>
                   <div className="grid grid-cols-3 gap-2">
-                    {MOODS.map((mood) => (
+                    {moodStates.map((mood) => (
                       <div key={mood.emoji} className="relative">
                         <Button
                           variant="outline"
-                          onClick={() => setSelectedMood(mood)}
+                          onClick={() => setSelectedMood({ emoji: mood.emoji, text: mood.text })}
                           className="h-12 text-lg w-full relative"
                         >
                           <span>{mood.emoji}</span>
@@ -137,6 +138,11 @@ export const TaskAiSuggestion: React.FC<TaskAiSuggestionProps> = ({ tasks, open:
                         </Button>
                       </div>
                     ))}
+                    {moodStates.length === 0 && (
+                      <div className="text-xs text-gray-500 col-span-3">
+                        No hay estados de animo configurados.
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

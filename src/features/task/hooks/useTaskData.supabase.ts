@@ -109,6 +109,7 @@ export const useTaskData = () => {
       }
 
       const taskCode = await generateTaskCode(user.id);
+      const elapsedSeconds = formData.elapsedSeconds ?? 0;
 
       const optimisticTask: Task = {
         id: `temp-${Date.now()}`,
@@ -122,7 +123,7 @@ export const useTaskData = () => {
         category: formData.category || 'other',
         priority: formData.priority || 'delete',
         size: formData.size || 'pequeña',
-        elapsedSeconds: 0,
+        elapsedSeconds,
         progress: getCheckboxProgress(formData.description || ''),
         isRecurrent: formData.isRecurrent || false,
         isPrivate: formData.isPrivate || false,
@@ -149,7 +150,7 @@ export const useTaskData = () => {
         category: formData.category || 'other',
         priority: formData.priority || 'delete',
         size: formData.size || 'pequeña',
-        elapsed_seconds: 0,
+        elapsed_seconds: elapsedSeconds,
         progress: getCheckboxProgress(formData.description || ''),
       };
 
@@ -175,6 +176,9 @@ export const useTaskData = () => {
 
       if (formData.estimatedTime !== undefined) {
         taskData.estimated_time = formData.estimatedTime;
+      }
+      if (formData.elapsedSeconds !== undefined) {
+        taskData.elapsed_seconds = formData.elapsedSeconds;
       }
 
       if (formData.isRecurrent && formData.recurrence) {
@@ -243,6 +247,7 @@ export const useTaskData = () => {
         ...(updates.priority && { priority: updates.priority }),
         ...(updates.size && { size: updates.size }),
         ...(updates.estimatedTime !== undefined && { estimatedTime: updates.estimatedTime }),
+        ...(updates.elapsedSeconds !== undefined && { elapsedSeconds: updates.elapsedSeconds }),
         ...(updates.timeOfDay && { timeOfDay: updates.timeOfDay }),
         ...(updates.isPrivate !== undefined && { isPrivate: updates.isPrivate }),
         ...(updates.isRecurrent !== undefined && { isRecurrent: updates.isRecurrent }),
@@ -285,6 +290,7 @@ export const useTaskData = () => {
       if (updates.priority) updateData.priority = updates.priority;
       if (updates.size) updateData.size = updates.size;
       if (updates.estimatedTime !== undefined) updateData.estimated_time = updates.estimatedTime;
+      if (updates.elapsedSeconds !== undefined) updateData.elapsed_seconds = updates.elapsedSeconds;
       if (updates.timeOfDay) updateData.time_of_day = updates.timeOfDay;
       if (updates.isPrivate !== undefined) updateData.is_private = updates.isPrivate;
       if (updates.isRecurrent !== undefined) {

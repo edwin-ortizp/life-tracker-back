@@ -15,13 +15,33 @@ import TaskAiImproveDescription from './TaskAiImproveDescription';
 import TaskAiIdeas from './TaskAiIdeas';
 import { TaskDateTimeRangeInput } from './TaskDateTimeRangeInput';
 import { TaskCategorySelect } from './TaskCategorySelect';
-import TaskEstimatedTimeInput from './TaskEstimatedTimeInput';
+import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { TaskRecurrenceConfig } from './TaskRecurrenceConfig';
 import { useRecurrenceLogic } from '../hooks/useRecurrenceLogic';
 import { useTaskKeyboardShortcuts } from '../hooks/useTaskKeyboardShortcuts';
 import type { RecurrenceModalProps, TaskFormData } from '../types';
+
+const formatElapsedTime = (seconds?: number) => {
+  const totalSeconds = Math.max(0, Math.floor(seconds ?? 0));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const remainingSeconds = totalSeconds % 60;
+  const pad = (value: number) => value.toString().padStart(2, '0');
+  return `${pad(hours)}:${pad(minutes)}:${pad(remainingSeconds)}`;
+};
+
+const parseElapsedTime = (value: string) => {
+  const trimmed = value.trim();
+  const match = trimmed.match(/^(\d+):([0-5]\d):([0-5]\d)$/);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const seconds = Number(match[3]);
+  if (Number.isNaN(hours) || Number.isNaN(minutes) || Number.isNaN(seconds)) return null;
+  return hours * 3600 + minutes * 60 + seconds;
+};
 
 export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
   isOpen,
@@ -72,6 +92,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
     return task.priority === 'do' || task.priority === 'decide';
   });
   const [sizeState, setSizeState] = useState<'peque\u00f1a' | 'mediana' | 'grande'>(task.size || 'peque\u00f1a');
+  const [elapsedInput, setElapsedInput] = useState<string>(formatElapsedTime(task.elapsedSeconds));
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -90,6 +112,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
         setUrgent(false);
         setImportant(false);
         setSizeState('peque\u00f1a');
+        setElapsedInput(formatElapsedTime(0));
+        setFormError(null);
         } else {
         setFormData({
             title: task.title || '',
@@ -103,17 +127,40 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
             priority: task.priority || 'delete',
             size: task.size || 'peque\u00f1a',
             estimatedTime: task.estimatedTime,
-            timeOfDay: task.timeOfDay
+            timeOfDay: task.timeOfDay,
+            elapsedSeconds: task.elapsedSeconds
           });
         setUrgent(task.priority === 'do' || task.priority === 'delegate');
         setImportant(task.priority === 'do' || task.priority === 'decide');
         setSizeState(task.size || 'peque\u00f1a');
+        setElapsedInput(formatElapsedTime(task.elapsedSeconds));
+        setFormError(null);
       }
     }
   }, [task, mode, isOpen]);
 
+  useEffect(() => {
+    if (mode === 'complete') return;
+    if (!formData.startDate || !formData.endDate) return;
+
+    const diffMs = formData.endDate.getTime() - formData.startDate.getTime();
+    const minutes = Math.max(0, Math.round(diffMs / 60000));
+
+    setFormData((prev) => (prev.estimatedTime === minutes ? prev : { ...prev, estimatedTime: minutes }));
+  }, [formData.startDate, formData.endDate, mode]);
+
   const handleConfirm = () => {
     if (!formData.title.trim()) return;
+    if (formData.startDate && formData.endDate && formData.endDate < formData.startDate) {
+      setFormError('La fecha de fin debe ser posterior a la fecha de inicio.');
+      return;
+    }
+    const elapsedSeconds = parseElapsedTime(elapsedInput);
+    if (elapsedSeconds === null) {
+      setFormError('El valor no es valido.');
+      return;
+    }
+
     const priority = urgent && important
       ? 'do'
       : important
@@ -128,11 +175,11 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
         .map(l => l.trim())
         .filter(Boolean);
       lines.forEach(title => {
-        onConfirm({ ...formData, title, priority, size: sizeState });
+        onConfirm({ ...formData, title, priority, size: sizeState, elapsedSeconds });
       });
       onClose();
     } else {
-      onConfirm({ ...formData, priority, size: sizeState });
+      onConfirm({ ...formData, priority, size: sizeState, elapsedSeconds });
     }
   };
 
@@ -227,8 +274,14 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
               <TaskDateTimeRangeInput
                 startDate={formData.startDate}
                 endDate={formData.endDate}
-                onStartDateChange={(startDate) => setFormData(prev => ({ ...prev, startDate }))}
-                onEndDateChange={(endDate) => setFormData(prev => ({ ...prev, endDate }))}
+                onStartDateChange={(startDate) => {
+                  setFormData(prev => ({ ...prev, startDate }));
+                  setFormError(null);
+                }}
+                onEndDateChange={(endDate) => {
+                  setFormData(prev => ({ ...prev, endDate }));
+                  setFormError(null);
+                }}
                 showClearButton
               />
             )}
@@ -252,10 +305,29 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
               />
             )}
             {mode !== 'complete' && (
-              <TaskEstimatedTimeInput
-                value={formData.estimatedTime}
-                onChange={(value) => setFormData(prev => ({ ...prev, estimatedTime: value }))}
-              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Tiempo estimado (min)</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    readOnly
+                    placeholder="Calculado"
+                    value={formData.estimatedTime ?? ''}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Tiempo ejecutado (HH:MM:SS)</label>
+                  <Input
+                    value={elapsedInput}
+                    onChange={(e) => {
+                      setElapsedInput(e.target.value);
+                      setFormError(null);
+                    }}
+                    placeholder="00:00:00"
+                  />
+                </div>
+              </div>
             )}
             {mode !== 'complete' && (
               <div className="flex flex-wrap items-center gap-4">
@@ -291,6 +363,12 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
             )}
           </div>
         </div>
+
+        {formError && (
+          <div className="text-sm text-red-600">
+            {formError}
+          </div>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
