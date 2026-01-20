@@ -140,6 +140,7 @@ export const useTaskData = () => {
         if (b.startDate) return 1;
         return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
       }));
+      setAllTasks(prev => [...prev, optimisticTask]);
 
       const taskData: any = {
         user_id: user.id,
@@ -206,6 +207,11 @@ export const useTaskData = () => {
           ? { ...task, id: data.id }
           : task
       ));
+      setAllTasks(prev => prev.map(task =>
+        task.id === optimisticTask.id
+          ? { ...task, id: data.id }
+          : task
+      ));
 
       setStatus('saved');
       if (import.meta.env.DEV) {
@@ -214,6 +220,7 @@ export const useTaskData = () => {
     } catch (error) {
       console.error('Error al guardar tarea:', error);
       setTasks(prev => prev.filter(task => !task.id.startsWith('temp-')));
+      setAllTasks(prev => prev.filter(task => !task.id.startsWith('temp-')));
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
     }
@@ -270,6 +277,9 @@ export const useTaskData = () => {
         if (b.startDate) return 1;
         return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
       }));
+      setAllTasks(prev => prev.map(task =>
+        task.id === taskId ? updatedTask : task
+      ));
 
       const updateData: any = {
         updated_at: new Date().toISOString(),
@@ -324,6 +334,9 @@ export const useTaskData = () => {
     } catch (error) {
       console.error('Error al actualizar:', error);
       setTasks(prev => prev.map(task =>
+        task.id === taskId ? originalTask : task
+      ));
+      setAllTasks(prev => prev.map(task =>
         task.id === taskId ? originalTask : task
       ));
       setError(error instanceof Error ? error.message : 'Error al actualizar');

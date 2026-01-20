@@ -57,7 +57,7 @@ export const QuickAccessHabits: React.FC<QuickAccessHabitsProps> = ({
       icon={CheckCircle}
       variant={variant}
       loading={loading}
-      onClick={() => navigate('/habit')}
+      onClick={() => navigate('/habit/view/tracker')}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between">

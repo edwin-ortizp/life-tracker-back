@@ -20,7 +20,7 @@ export const usePomodoroTimer = ({
   const { user } = useAuth();
   const [activePomodoro, setActivePomodoro] = useState<ActivePomodoro | null>(null);
   const [isStopping, setIsStopping] = useState(false);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | null>(null);
   const isResetting = useRef(false);
 
   // Usar el hook global para el estado del timer
@@ -36,9 +36,9 @@ export const usePomodoroTimer = ({
 
   // Limpieza del timer
   const cleanupTimer = useCallback(() => {
-    if (animationFrameRef.current) {
+    if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = undefined;
+      animationFrameRef.current = null;
     }
   }, []);
 

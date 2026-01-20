@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
-import { AlertCircle, MoreVertical, Upload, Download } from 'lucide-react';
+import { AlertCircle, MoreVertical, Upload, Download, Settings } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -20,13 +20,14 @@ import { useRecipes } from '@/features/recipe/hooks/useRecipes.supabase';
 import { usePreparedMeals } from '@/features/prepared-meals/hooks/usePreparedMeals.supabase';
 import { CompactMealHeader } from '@/components/navigation/CompactMealHeader';
 import { Calendar, ChefHat, ShoppingCart, Package } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MealExportWizard } from './MealExportWizard';
 
 export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showExportWizard, setShowExportWizard] = useState(false);
 
@@ -89,8 +90,11 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
   return (
     <div className="w-full h-full flex flex-col">
       {/* Header con navegación unificada */}
-      <CompactMealHeader 
+      <CompactMealHeader
         title="Plan de Comidas"
+        views={[{ key: 'weekly', label: 'Semanal' }]}
+        activeViewKey="weekly"
+        onViewChange={() => navigate('/meal/view/weekly')}
       >
         {/* Desktop: Icon buttons */}
         <TooltipProvider>
@@ -117,6 +121,17 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
                 <p>Exportar</p>
               </TooltipContent>
             </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigate('/meal/config')}>
+                  <Settings className="h-4 w-4" />
+                  <span className="sr-only">Configuracion</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Configuracion</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </TooltipProvider>
         
@@ -137,10 +152,14 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
               <Download className="mr-2 h-4 w-4" />
               Exportar
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/meal/config')}>
+              <Settings className="mr-2 h-4 w-4" />
+              Configuracion
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {location.pathname !== '/meal' && (
+            {location.pathname !== '/meal/view/weekly' && (
               <DropdownMenuItem asChild>
-                <Link to="/meal" className="flex items-center">
+                <Link to="/meal/view/weekly" className="flex items-center">
                   <Calendar className="mr-2 h-4 w-4" />
                   Plan de Comidas
                 </Link>
@@ -148,23 +167,23 @@ export const MealPlanner: React.FC<MealProps> = ({ selectedDate }) => {
             )}
             {!location.pathname.startsWith('/shopping-list') && (
               <DropdownMenuItem asChild>
-                <Link to="/shopping-list/list" className="flex items-center">
+                <Link to="/shopping-list/view/list" className="flex items-center">
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Lista de Compras
                 </Link>
               </DropdownMenuItem>
             )}
-            {location.pathname !== '/recipes' && (
+            {location.pathname !== '/recipes/view/list' && (
               <DropdownMenuItem asChild>
-                <Link to="/recipes" className="flex items-center">
+                <Link to="/recipes/view/list" className="flex items-center">
                   <ChefHat className="mr-2 h-4 w-4" />
                   Recetas
                 </Link>
               </DropdownMenuItem>
             )}
-            {location.pathname !== '/prepared-meals' && (
+            {location.pathname !== '/prepared-meals/view/list' && (
               <DropdownMenuItem asChild>
-                <Link to="/prepared-meals" className="flex items-center">
+                <Link to="/prepared-meals/view/list" className="flex items-center">
                   <Package className="mr-2 h-4 w-4" />
                   Comidas Preparadas
                 </Link>

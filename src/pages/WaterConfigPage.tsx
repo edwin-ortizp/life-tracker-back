@@ -2,13 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
-import PageLayout from '@/components/PageLayout';
+import ModuleViewLayout from '@/components/module-views/ModuleViewLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Droplet, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { waterViews } from '@/features/water/views';
 
 interface DrinkType {
   id: string;
@@ -23,6 +25,7 @@ interface DrinkType {
 
 const WaterConfigPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [drinkTypes, setDrinkTypes] = useState<DrinkType[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -110,7 +113,7 @@ const WaterConfigPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este tipo de bebida?')) return;
+    if (!confirm('Estas seguro de eliminar este tipo de bebida?')) return;
 
     const { error } = await supabase
       .from('drink_types')
@@ -138,137 +141,147 @@ const WaterConfigPage: React.FC = () => {
   };
 
   if (!user) {
-    return <div>Inicia sesión para configurar bebidas</div>;
+    return (
+      <ModuleViewLayout
+        title="Configuracion de Bebidas"
+        icon={<Droplet className="h-4 w-4 text-white" />}
+      >
+        <div className="p-4">Inicia sesion para configurar bebidas</div>
+      </ModuleViewLayout>
+    );
   }
 
   return (
-    <PageLayout>
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Configuración de Bebidas</h1>
-        <p className="text-gray-500">Administra los tipos de bebida disponibles</p>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingId ? 'Editar' : 'Nuevo'} Tipo de Bebida</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Nombre</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="hydration">Factor de hidratación (0-1)</Label>
-                <Input
-                  id="hydration"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="1"
-                  value={formData.hydration_factor}
-                  onChange={(e) => setFormData({ ...formData, hydration_factor: Number(e.target.value) })}
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">1.0 = 100% hidratante (agua pura)</p>
-              </div>
-              <div>
-                <Label htmlFor="color">Color</Label>
-                <div className="flex gap-2">
+    <ModuleViewLayout
+      title="Configuracion de Bebidas"
+      subtitle="Administra los tipos de bebida disponibles"
+      icon={<Droplet className="h-4 w-4 text-white" />}
+      views={waterViews.map((view) => ({ ...view, component: () => null }))}
+      onViewChange={(key) => navigate(`/water/view/${key}`)}
+    >
+      <div className="p-4">
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{editingId ? 'Editar' : 'Nuevo'} Tipo de Bebida</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Nombre</Label>
                   <Input
-                    id="color"
-                    type="color"
-                    value={formData.color}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="w-20"
-                  />
-                  <Input
-                    value={formData.color}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    placeholder="#3b82f6"
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
                   />
                 </div>
-              </div>
-              <div>
-                <Label htmlFor="category">Categoría</Label>
-                <Input
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="water, coffee, juice, etc."
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" className="flex-1">
-                  <Plus className="w-4 h-4 mr-2" />
-                  {editingId ? 'Actualizar' : 'Agregar'}
-                </Button>
-                {editingId && (
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancelar
+                <div>
+                  <Label htmlFor="hydration">Factor de hidratacion (0-1)</Label>
+                  <Input
+                    id="hydration"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="1"
+                    value={formData.hydration_factor}
+                    onChange={(e) => setFormData({ ...formData, hydration_factor: Number(e.target.value) })}
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">1.0 = 100% hidratante (agua pura)</p>
+                </div>
+                <div>
+                  <Label htmlFor="color">Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="color"
+                      type="color"
+                      value={formData.color}
+                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                      className="w-20"
+                    />
+                    <Input
+                      value={formData.color}
+                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                      placeholder="#3b82f6"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="category">Categoria</Label>
+                  <Input
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    placeholder="water, coffee, juice, etc."
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" className="flex-1">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {editingId ? 'Actualizar' : 'Agregar'}
                   </Button>
-                )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+                  {editingId && (
+                    <Button type="button" variant="outline" onClick={resetForm}>
+                      Cancelar
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Tipos de Bebida ({drinkTypes.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p>Cargando...</p>
-            ) : drinkTypes.length === 0 ? (
-              <p className="text-gray-500">No hay tipos de bebida configurados</p>
-            ) : (
-              <div className="space-y-2">
-                {drinkTypes.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-3 border rounded">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-6 h-6 rounded"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <div>
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-gray-600">
-                          Hidratación: {(item.hydration_factor * 100).toFixed(0)}%
-                          {item.category && ` · ${item.category}`}
-                        </p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Tipos de Bebida ({drinkTypes.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p>Cargando...</p>
+              ) : drinkTypes.length === 0 ? (
+                <p className="text-gray-500">No hay tipos de bebida configurados</p>
+              ) : (
+                <div className="space-y-2">
+                  {drinkTypes.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between p-3 border rounded">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-6 h-6 rounded"
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <div>
+                          <p className="font-medium">{item.name}</p>
+                          <p className="text-sm text-gray-600">
+                            Hidratacion: {(item.hydration_factor * 100).toFixed(0)}%
+                            {item.category && ` · ${item.category}`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEdit(item)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDelete(item.id)}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleEdit(item)}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </PageLayout>
+    </ModuleViewLayout>
   );
 };
 

@@ -25,23 +25,23 @@ import { ClipboardList, ThumbsDown, Kanban as KanbanIcon, BarChart } from 'lucid
 
 export const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Inicio', path: '/' },
-  { icon: Droplet, label: 'Hidratación', path: '/water' },
-  { icon: Dumbbell, label: 'Ejercicio', path: '/exercise' },
-  { icon: CheckSquare, label: 'Hábitos', path: '/habit' },
-  { icon: Smile, label: 'Estado', path: '/mood' },
-  { icon: BookOpen, label: 'Diario', path: '/journal' },
-  { icon: Timer, label: 'Pomodoro', path: '/pomodoro' },
-  { icon: UtensilsCrossed, label: 'Comidas', path: '/meal' },
-  { icon: ClipboardList, label: 'Tareas', path: '/task' },
-  { icon: KanbanIcon, label: 'Kanban', path: '/kanban' },
+  { icon: Droplet, label: 'Hidratacion', path: '/water/view/daily' },
+  { icon: Dumbbell, label: 'Ejercicio', path: '/exercise/view/daily' },
+  { icon: CheckSquare, label: 'Habitos', path: '/habit/view/tracker' },
+  { icon: Smile, label: 'Estado', path: '/mood/view/tracker' },
+  { icon: BookOpen, label: 'Diario', path: '/journal/view/entries' },
+  { icon: Timer, label: 'Pomodoro', path: '/pomodoro/view/timer' },
+  { icon: UtensilsCrossed, label: 'Comidas', path: '/meal/view/weekly' },
+  { icon: ClipboardList, label: 'Tareas', path: '/task/view/list' },
+  { icon: KanbanIcon, label: 'Kanban', path: '/task/view/kanban' },
   { icon: Flag, label: 'Objetivos', path: '/goals' },
-  { icon: BarChart, label: 'Estadísticas', path: '/stats' },
-  { icon: ThumbsDown, label: 'Hábitos Negativos', path: '/negative' }
+  { icon: BarChart, label: 'Estadisticas', path: '/stats' },
+  { icon: ThumbsDown, label: 'Habitos Negativos', path: '/negative/view/weekly' }
 ];
 
 const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: (path: string) => void }) => {
   const { user } = useAuth();
-  
+
   const getUserInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
     return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2);
@@ -84,7 +84,7 @@ const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: 
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" className="bg-black text-white border-gray-700">
-            <p>Perfil y configuración</p>
+            <p>Perfil y configuracion</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -106,22 +106,24 @@ const DesktopNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(() => {
-    // Recordar el estado de la navegación en desktop
     const saved = localStorage.getItem('desktop-nav-expanded');
     return saved === 'true';
   });
 
-  // Persistir el estado de expansión
   useEffect(() => {
     localStorage.setItem('desktop-nav-expanded', JSON.stringify(isExpanded));
-    // Actualizar la variable CSS para el margin del contenido
     document.documentElement.style.setProperty(
-      '--desktop-nav-width', 
+      '--desktop-nav-width',
       isExpanded ? '256px' : '64px'
     );
-  }, [isExpanded]);const DesktopMenuItem = ({ icon: Icon, label, path, onClick }: MenuItem) => {
-    const isActive = location.pathname === path;
-    
+  }, [isExpanded]);
+
+  const DesktopMenuItem = ({ icon: Icon, label, path, onClick }: MenuItem) => {
+    const basePath = path.includes('/view/') ? path.split('/view/')[0] : path;
+    const isActive = basePath === '/'
+      ? location.pathname === '/'
+      : location.pathname.startsWith(basePath);
+
     const buttonContent = (
       <>
         <Icon className={`w-5 h-5 flex-shrink-0 ${
@@ -139,9 +141,9 @@ const DesktopNavigation = () => {
 
     const baseClasses = `
       w-full flex items-center justify-start rounded-xl transition-colors duration-150
-      ${isExpanded ? 'px-4 py-3' : 'p-3'} 
-      ${isActive 
-        ? 'gradient-bg-primary text-white shadow-lg' 
+      ${isExpanded ? 'px-4 py-3' : 'p-3'}
+      ${isActive
+        ? 'gradient-bg-primary text-white shadow-lg'
         : 'hover:bg-white/20'
       }
     `;
@@ -177,15 +179,16 @@ const DesktopNavigation = () => {
       </Button>
     );
   };
+
   return (
     <aside className={`hidden md:flex flex-col h-screen fixed top-0 left-0 transition-all duration-300 glass-card z-50 border-r-0
       ${isExpanded ? 'w-64' : 'w-16'}`}>
-      
+
       {/* User Profile Section - Top */}
       <div className={`border-b border-white/20 ${isExpanded ? 'p-4' : 'p-1.5'}`}>
         <UserProfile isExpanded={isExpanded} navigate={navigate} />
       </div>
-      
+
       {/* Main Navigation - Middle */}
       <nav className="flex-1 p-3 overflow-y-auto">
         <div className="space-y-1">
@@ -194,10 +197,9 @@ const DesktopNavigation = () => {
           ))}
         </div>
       </nav>
-      
+
       {/* Bottom Section - Expand/Collapse */}
       <div className="p-3 border-t border-white/20">
-        {/* Expand/Collapse Button */}
         <Button
           variant="ghost"
           size="icon"
@@ -205,7 +207,7 @@ const DesktopNavigation = () => {
           onClick={() => setIsExpanded(!isExpanded)}
           className="w-full p-2 hover:bg-white/20 rounded-lg"
         >
-          <ChevronRight className={`w-4 h-4 transform transition-transform duration-200 
+          <ChevronRight className={`w-4 h-4 transform transition-transform duration-200
             ${isExpanded ? 'rotate-180' : ''}`} />
         </Button>
       </div>

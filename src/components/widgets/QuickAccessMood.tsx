@@ -38,7 +38,7 @@ export const QuickAccessMood: React.FC<QuickAccessMoodProps> = ({
       icon={Smile}
       variant={variant}
       loading={loading}
-      onClick={() => navigate('/mood')}
+      onClick={() => navigate('/mood/view/tracker')}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -69,7 +69,7 @@ export const QuickAccessMood: React.FC<QuickAccessMoodProps> = ({
             variant="outline"
             onClick={(e) => {
               e.stopPropagation();
-              navigate('/mood');
+              navigate('/mood/view/tracker');
             }}
             className="flex items-center gap-1"
           >

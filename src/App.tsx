@@ -24,8 +24,16 @@ import GoalsPage from './pages/GoalsPage';
 import LoginPage from './pages/LoginPage';
 import ExerciseConfigPage from './pages/ExerciseConfigPage';
 import TaskConfigPage from './pages/TaskConfigPage';
-import WaterConfigPage from './pages/WaterConfigPage';
+import HabitConfigPage from './pages/HabitConfigPage';
 import MoodConfigPage from './pages/MoodConfigPage';
+import WaterConfigPage from './pages/WaterConfigPage';
+import PomodoroConfigPage from './pages/PomodoroConfigPage';
+import JournalConfigPage from './pages/JournalConfigPage';
+import NegativeHabitsConfigPage from './pages/NegativeHabitsConfigPage';
+import MealConfigPage from './pages/MealConfigPage';
+import ShoppingListConfigPage from './pages/ShoppingListConfigPage';
+import RecipesConfigPage from './pages/RecipesConfigPage';
+import PreparedMealsConfigPage from './pages/PreparedMealsConfigPage';
 
 export const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -51,7 +59,9 @@ function App() {
     <Routes>
       <Route path="/" element={<AppLayout />}>
         <Route index element={<Home />} />
-        <Route path="habit" element={<HabitPage />} />
+        <Route path="habit" element={<Navigate to="/habit/view/tracker" replace />} />
+        <Route path="habit/view/:viewKey" element={<HabitPage />} />
+        <Route path="habit/config" element={<HabitConfigPage />} />
         {/* Task routes - Airtable style views */}
         <Route path="task" element={<Navigate to="/task/view/list" replace />} />
         <Route path="task/view/:viewKey" element={<TaskPage />} />
@@ -63,22 +73,38 @@ function App() {
         <Route path="task/calendar" element={<Navigate to="/task/view/calendar" replace />} />
         <Route path="tasks/calendar" element={<Navigate to="/task/view/calendar" replace />} />
         <Route path="kanban" element={<Navigate to="/task/view/kanban" replace />} />
-        <Route path="mood" element={<MoodPage />} />
-        <Route path="pomodoro" element={<PomodoroPage />} />
+        <Route path="mood" element={<Navigate to="/mood/view/tracker" replace />} />
+        <Route path="mood/view/:viewKey" element={<MoodPage />} />
+        <Route path="mood/config" element={<MoodConfigPage />} />
+        <Route path="pomodoro" element={<Navigate to="/pomodoro/view/timer" replace />} />
+        <Route path="pomodoro/view/:viewKey" element={<PomodoroPage />} />
+        <Route path="pomodoro/config" element={<PomodoroConfigPage />} />
         <Route path="exercise" element={<Navigate to="/exercise/view/daily" replace />} />
         <Route path="exercise/view/:viewKey" element={<ExercisePage />} />
         <Route path="exercise/config" element={<ExerciseConfigPage />} />
-        <Route path="water" element={<WaterPage />} />
+        <Route path="water" element={<Navigate to="/water/view/daily" replace />} />
+        <Route path="water/view/:viewKey" element={<WaterPage />} />
         <Route path="water/config" element={<WaterConfigPage />} />
-        <Route path="journal" element={<JournalPage />} />
-        <Route path="mood/config" element={<MoodConfigPage />} />
-        <Route path="negative" element={<NegativeHabitsPage />} />
-        <Route path="meal" element={<MealPage />} />
-        <Route path="shopping-list" element={<Navigate to="/shopping-list/list" replace />} />
-        <Route path="shopping-list/list" element={<ShoppingListPage />} />
-        <Route path="shopping-list/kanban" element={<ShoppingListPage />} />
-        <Route path="recipes" element={<RecipesPage />} />
-        <Route path="prepared-meals" element={<PreparedMealsPage />} />
+        <Route path="journal" element={<Navigate to="/journal/view/entries" replace />} />
+        <Route path="journal/view/:viewKey" element={<JournalPage />} />
+        <Route path="journal/config" element={<JournalConfigPage />} />
+        <Route path="negative" element={<Navigate to="/negative/view/weekly" replace />} />
+        <Route path="negative/view/:viewKey" element={<NegativeHabitsPage />} />
+        <Route path="negative/config" element={<NegativeHabitsConfigPage />} />
+        <Route path="meal" element={<Navigate to="/meal/view/weekly" replace />} />
+        <Route path="meal/view/:viewKey" element={<MealPage />} />
+        <Route path="meal/config" element={<MealConfigPage />} />
+        <Route path="shopping-list" element={<Navigate to="/shopping-list/view/list" replace />} />
+        <Route path="shopping-list/view/:viewKey" element={<ShoppingListPage />} />
+        <Route path="shopping-list/config" element={<ShoppingListConfigPage />} />
+        <Route path="shopping-list/list" element={<Navigate to="/shopping-list/view/list" replace />} />
+        <Route path="shopping-list/kanban" element={<Navigate to="/shopping-list/view/kanban" replace />} />
+        <Route path="recipes" element={<Navigate to="/recipes/view/list" replace />} />
+        <Route path="recipes/view/:viewKey" element={<RecipesPage />} />
+        <Route path="recipes/config" element={<RecipesConfigPage />} />
+        <Route path="prepared-meals" element={<Navigate to="/prepared-meals/view/list" replace />} />
+        <Route path="prepared-meals/view/:viewKey" element={<PreparedMealsPage />} />
+        <Route path="prepared-meals/config" element={<PreparedMealsConfigPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="goals" element={<GoalsPage />} />
         <Route path="goals/:goalId" element={<GoalsPage />} />

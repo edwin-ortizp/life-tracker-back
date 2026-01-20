@@ -11,7 +11,7 @@ export const useNotifications = () => {
   });
 
   const activeNotificationRef = useRef<Notification | null>(null);
-  const intervalRef = useRef<number>();
+  const intervalRef = useRef<number | null>(null);
 
   // Verificar soporte de notificaciones
   const notificationsSupported = useCallback(() => {
@@ -105,7 +105,7 @@ export const useNotifications = () => {
   const startPersistentNotification = useCallback(
     (title: string, getBody: () => string, intervalMs = 60000) => {
       showPersistentNotification(title, getBody());
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current !== null) clearInterval(intervalRef.current);
       intervalRef.current = window.setInterval(() => {
         showPersistentNotification(title, getBody());
       }, intervalMs);
@@ -116,7 +116,7 @@ export const useNotifications = () => {
   const stopPersistentNotification = useCallback(async () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
-      intervalRef.current = undefined;
+      intervalRef.current = null;
     }
 
     if (activeNotificationRef.current) {

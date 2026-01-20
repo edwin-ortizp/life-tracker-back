@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { generateTaskCode } from '@/utils/taskCode';
 import type { Goal, GoalEntry, GoalTask, GoalsHook, NumericEntry } from '../types';
 
 export const useGoals = (): GoalsHook => {
@@ -25,11 +26,33 @@ export const useGoals = (): GoalsHook => {
       // Load all related tasks, entries, and numeric entries
       const goalIds = (goalsData || []).map(g => g.id);
 
+      const safeSelectByGoalIds = async (table: string) => {
+        if (goalIds.length === 0) {
+          return { data: [], error: null as any };
+        }
+        const result = await supabase.from(table).select('*').in('goal_id', goalIds);
+        if (result.status === 404) {
+          // Table not available in current backend; treat as empty to avoid blocking goals.
+          return { data: [], error: null as any };
+        }
+        return result;
+      };
+
+      const tasksPromise = goalIds.length === 0
+        ? Promise.resolve({ data: [], error: null as any })
+        : supabase
+          .from('tasks')
+          .select('id, goal_id, title, completed, created_at, updated_at')
+          .eq('user_id', user.id)
+          .in('goal_id', goalIds);
+
       const [tasksResult, entriesResult, numericEntriesResult] = await Promise.all([
-        supabase.from('goal_tasks').select('*').in('goal_id', goalIds),
-        supabase.from('goal_entries').select('*').in('goal_id', goalIds),
-        supabase.from('goal_numeric_entries').select('*').in('goal_id', goalIds)
+        tasksPromise,
+        safeSelectByGoalIds('goal_entries'),
+        safeSelectByGoalIds('goal_numeric_entries')
       ]);
+
+      if (tasksResult.error) throw tasksResult.error;
 
       // Group by goal_id
       const tasksByGoal: Record<string, GoalTask[]> = {};
@@ -39,10 +62,11 @@ export const useGoals = (): GoalsHook => {
       (tasksResult.data || []).forEach(t => {
         if (!tasksByGoal[t.goal_id]) tasksByGoal[t.goal_id] = [];
         tasksByGoal[t.goal_id].push({
+          id: t.id,
           title: t.title,
-          done: t.done,
+          done: !!t.completed,
           createdAt: t.created_at,
-          completedAt: t.completed_at
+          completedAt: t.completed ? t.updated_at || null : null
         });
       });
 
@@ -186,13 +210,23 @@ export const useGoals = (): GoalsHook => {
     if (!goal || !user) return;
 
     try {
+      const taskCode = await generateTaskCode(user.id);
       const { error: insertError } = await supabase
-        .from('goal_tasks')
+        .from('tasks')
         .insert({
+          user_id: user.id,
           goal_id: goalId,
+          task_code: taskCode,
           title: taskTitle,
-          done: false,
-          created_at: new Date().toISOString()
+          completed: false,
+          category: 'other',
+          priority: 'delete',
+          size: 'pequeña',
+          progress: 0,
+          is_private: false,
+          is_recurrent: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         });
 
       if (insertError) throw insertError;
@@ -205,30 +239,35 @@ export const useGoals = (): GoalsHook => {
     }
   };
 
-  const toggleTask = async (goalId: string, taskIndex: number) => {
+  const toggleTask = async (goalId: string, taskId: string | undefined, taskIndex: number) => {
     const goal = goals.find(g => g.id === goalId);
     if (!goal || !user) return;
     const task = goal.tasks[taskIndex];
     if (!task) return;
 
     try {
-      // Find task by goal_id and title (since we don't have task IDs in local state)
-      const { data: tasks } = await supabase
-        .from('goal_tasks')
-        .select('id')
-        .eq('goal_id', goalId)
-        .eq('title', task.title)
-        .order('created_at', { ascending: true });
+      let resolvedTaskId = taskId || task.id;
+      if (!resolvedTaskId) {
+        // Fallback: resolve task id by goal/title ordering.
+        const { data: tasks } = await supabase
+          .from('tasks')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('goal_id', goalId)
+          .eq('title', task.title)
+          .order('created_at', { ascending: true });
 
-      if (!tasks || tasks.length <= taskIndex) return;
+        if (!tasks || tasks.length <= taskIndex) return;
+        resolvedTaskId = tasks[taskIndex].id;
+      }
 
       const { error: updateError } = await supabase
-        .from('goal_tasks')
+        .from('tasks')
         .update({
-          done: !task.done,
-          completed_at: !task.done ? new Date().toISOString() : null
+          completed: !task.done,
+          updated_at: new Date().toISOString()
         })
-        .eq('id', tasks[taskIndex].id);
+        .eq('id', resolvedTaskId);
 
       if (updateError) throw updateError;
 
@@ -236,6 +275,49 @@ export const useGoals = (): GoalsHook => {
       await loadGoals();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al actualizar tarea');
+      setStatus('error');
+    }
+  };
+
+  const editTask = async (goalId: string, taskId: string, title: string) => {
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal || !user || !taskId) return;
+
+    try {
+      const { error: updateError } = await supabase
+        .from('tasks')
+        .update({
+          title: title.trim(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', taskId)
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      await loadGoals();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al actualizar tarea');
+      setStatus('error');
+    }
+  };
+
+  const deleteTask = async (goalId: string, taskId: string) => {
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal || !user || !taskId) return;
+
+    try {
+      const { error: deleteError } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId)
+        .eq('user_id', user.id);
+
+      if (deleteError) throw deleteError;
+
+      await loadGoals();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al eliminar tarea');
       setStatus('error');
     }
   };
@@ -318,6 +400,8 @@ export const useGoals = (): GoalsHook => {
     updateGoal,
     addTask,
     toggleTask,
+    editTask,
+    deleteTask,
     addEntry,
     incrementPositiveCount,
     incrementNegativeCount,

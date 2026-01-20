@@ -55,7 +55,7 @@ export const QuickAccessEnergy: React.FC<QuickAccessEnergyProps> = ({
       icon={Battery}
       variant={variant}
       loading={loading}
-      onClick={() => navigate('/mood')}
+      onClick={() => navigate('/mood/view/tracker')}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -86,7 +86,7 @@ export const QuickAccessEnergy: React.FC<QuickAccessEnergyProps> = ({
             variant="outline"
             onClick={(e) => {
               e.stopPropagation();
-              navigate('/mood');
+              navigate('/mood/view/tracker');
             }}
             className="flex items-center gap-1"
           >

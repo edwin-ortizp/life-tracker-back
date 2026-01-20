@@ -43,7 +43,7 @@ export const QuickAccessWater: React.FC<QuickAccessWaterProps> = ({
       icon={Droplets}
       variant={variant}
       loading={loading}
-      onClick={() => navigate('/water')}
+      onClick={() => navigate('/water/view/daily')}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between">

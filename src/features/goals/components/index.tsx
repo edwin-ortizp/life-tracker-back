@@ -22,6 +22,8 @@ export const Goals = () => {
     updateGoal,
     addTask,
     toggleTask,
+    editTask,
+    deleteTask,
     addEntry,
     incrementPositiveCount,
     incrementNegativeCount,
@@ -32,7 +34,7 @@ export const Goals = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('active');
 
   const selectedGoal = goals.find(g => g.id === selectedId) || null;
 
@@ -115,7 +117,9 @@ export const Goals = () => {
         <GoalDetail
           goal={selectedGoal}
           onAddTask={title => addTask(selectedGoal.id, title)}
-          onToggleTask={idx => toggleTask(selectedGoal.id, idx)}
+          onToggleTask={(taskId, idx) => toggleTask(selectedGoal.id, taskId, idx)}
+          onEditTask={(taskId, title) => editTask(selectedGoal.id, taskId, title)}
+          onDeleteTask={(taskId) => deleteTask(selectedGoal.id, taskId)}
           onAddEntry={(text, date, milestone) => addEntry(selectedGoal.id, { text, date, isMilestone: milestone })}
           onIncrementPositive={() => incrementPositiveCount(selectedGoal.id)}
           onIncrementNegative={() => incrementNegativeCount(selectedGoal.id)}
@@ -144,7 +148,7 @@ export const Goals = () => {
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Target className="h-5 w-5" />
-                  Objetivos
+                  Objetivos ({goals.length})
                 </CardTitle>
               </div>
               <Button onClick={() => setIsModalOpen(true)}>

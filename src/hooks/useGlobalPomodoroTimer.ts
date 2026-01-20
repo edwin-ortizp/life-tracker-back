@@ -14,7 +14,7 @@ interface StoredTimer {
 export const useGlobalPomodoroTimer = () => {
   const [time, setTime] = useState(0);
   const [isActive, setIsActive] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<number | null>(null);
   const completionHandledRef = useRef(false);
   const onCompletionRef = useRef<((duration: number) => void) | null>(null);
   
@@ -143,7 +143,7 @@ export const useGlobalPomodoroTimer = () => {
   // Manejar el interval para actualizar el tiempo
   useEffect(() => {
     if (isActive) {
-      intervalRef.current = setInterval(() => {
+      intervalRef.current = window.setInterval(() => {
         const stored = readFromStorage();
         if (stored) {
           const elapsed = calculateElapsed(stored.startTime);
@@ -159,14 +159,14 @@ export const useGlobalPomodoroTimer = () => {
         }
       }, 1000);
     } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      if (intervalRef.current !== null) {
+        window.clearInterval(intervalRef.current);
       }
     }
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      if (intervalRef.current !== null) {
+        window.clearInterval(intervalRef.current);
       }
     };
   }, [isActive]);

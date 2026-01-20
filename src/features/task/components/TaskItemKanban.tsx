@@ -1,6 +1,5 @@
 import React, { memo, useCallback } from 'react';
 import { isBefore, startOfDay, format, addDays } from 'date-fns';
-import { toNoon } from '@/utils/dates';
 import { X, Repeat, Calendar, Edit, Tag, Clock, Play } from 'lucide-react';
 import { Task, TimeOfDay, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Button } from '@/components/ui/button';
@@ -167,20 +166,24 @@ const TaskKanbanActions = memo<{
 }>(({ task, onEdit, onDelete, onMove, onAssignTimeOfDay }) => {
   const navigate = useNavigate();
   
+  const getTargetDate = useCallback((daysFromToday: number) => {
+    return addDays(startOfDay(new Date()), daysFromToday);
+  }, []);
+
   const handleSetToday = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    onMove?.(task.id, toNoon(new Date()));
-  }, [onMove, task.id]);
+    onMove?.(task.id, getTargetDate(0));
+  }, [getTargetDate, onMove, task.id]);
 
   const handleSetTomorrow = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    onMove?.(task.id, toNoon(addDays(new Date(), 1)));
-  }, [onMove, task.id]);
+    onMove?.(task.id, getTargetDate(1));
+  }, [getTargetDate, onMove, task.id]);
 
   const handleSetDayAfterTomorrow = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    onMove?.(task.id, toNoon(addDays(new Date(), 2)));
-  }, [onMove, task.id]);
+    onMove?.(task.id, getTargetDate(2));
+  }, [getTargetDate, onMove, task.id]);
 
   const handleRemoveDate = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();

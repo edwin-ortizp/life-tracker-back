@@ -32,7 +32,7 @@ export const QuickAccessMeal: React.FC<QuickAccessMealProps> = ({
 
   const handlePlanMeal = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate('/meal');
+    navigate('/meal/view/weekly');
   };
 
   return (
@@ -40,7 +40,7 @@ export const QuickAccessMeal: React.FC<QuickAccessMealProps> = ({
       title="Comidas"
       icon={UtensilsCrossed}
       variant={variant}
-      onClick={() => navigate('/meal')}
+      onClick={() => navigate('/meal/view/weekly')}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between">

@@ -12,7 +12,11 @@ import {
   TrendingUp,
   Edit,
   Sparkles,
-  Hash
+  Hash,
+  Pencil,
+  Trash2,
+  Check,
+  X
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,13 +27,26 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog';
 import { AiSuggestionsModal } from './AiSuggestionsModal';
 import type { Goal } from '../types';
 
 interface Props {
   goal: Goal;
   onAddTask: (title: string) => void;
-  onToggleTask: (index: number) => void;
+  onToggleTask: (taskId: string | undefined, index: number) => void;
+  onEditTask: (taskId: string, title: string) => void;
+  onDeleteTask: (taskId: string) => void;
   onAddEntry: (text: string, date: string, isMilestone: boolean) => void;
   onIncrementPositive: () => void;
   onIncrementNegative: () => void;
@@ -39,13 +56,15 @@ interface Props {
 
 export const GoalDetail = ({ 
   goal, 
-  onAddTask, 
-  onToggleTask, 
-  onAddEntry, 
-  onIncrementPositive, 
+  onAddTask,
+  onToggleTask,
+  onEditTask,
+  onDeleteTask,
+  onAddEntry,
+  onIncrementPositive,
   onIncrementNegative,
   onAddNumericEntry,
-  onEdit 
+  onEdit
 }: Props) => {
   // Función para calcular el progreso numérico correctamente
   const calculateNumericProgress = (currentValue: number, targetValue: number) => {
@@ -73,6 +92,8 @@ export const GoalDetail = ({
   const [numericNote, setNumericNote] = useState('');
   const [numericDate, setNumericDate] = useState(new Date().toISOString().split('T')[0]);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingTaskTitle, setEditingTaskTitle] = useState('');
 
   const completed = goal.tasks.filter(t => t.done).length;
   const total = goal.tasks.length;
@@ -122,6 +143,24 @@ export const GoalDetail = ({
       onAddTask(taskTitle.trim());
       setTaskTitle('');
     }
+  };
+
+  const startEditingTask = (taskId: string, title: string) => {
+    setEditingTaskId(taskId);
+    setEditingTaskTitle(title);
+  };
+
+  const cancelEditingTask = () => {
+    setEditingTaskId(null);
+    setEditingTaskTitle('');
+  };
+
+  const saveEditingTask = () => {
+    if (!editingTaskId) return;
+    const nextTitle = editingTaskTitle.trim();
+    if (!nextTitle) return;
+    onEditTask(editingTaskId, nextTitle);
+    cancelEditingTask();
   };
 
   const handleAddEntry = () => {
@@ -210,26 +249,97 @@ export const GoalDetail = ({
             {/* Tasks List */}
             <div className="space-y-2">
               {goal.tasks.length > 0 ? (
-                goal.tasks.map((task, idx) => (
-                  <div key={idx} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50">
-                    <Checkbox
-                      id={`task-${idx}`}
-                      checked={task.done}
-                      onCheckedChange={() => onToggleTask(idx)}
-                    />
-                    <Label
-                      htmlFor={`task-${idx}`}
-                      className={`flex-1 cursor-pointer ${
-                        task.done ? 'line-through text-gray-500' : ''
-                      }`}
-                    >
-                      {task.title}
-                    </Label>
-                    {task.done && (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    )}
-                  </div>
-                ))
+                goal.tasks.map((task, idx) => {
+                  const isEditing = editingTaskId === task.id;
+                  return (
+                    <div key={task.id || idx} className="flex items-center gap-2 p-2 rounded hover:bg-gray-50">
+                      <Checkbox
+                        id={`task-${idx}`}
+                        checked={task.done}
+                        onCheckedChange={() => onToggleTask(task.id, idx)}
+                        disabled={isEditing}
+                      />
+                      {isEditing ? (
+                        <div className="flex-1 flex items-center gap-2">
+                          <Input
+                            value={editingTaskTitle}
+                            onChange={(e) => setEditingTaskTitle(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEditingTask();
+                              if (e.key === 'Escape') cancelEditingTask();
+                            }}
+                            className="h-8"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={saveEditingTask}
+                            disabled={!editingTaskTitle.trim()}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={cancelEditingTask}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <Label
+                            htmlFor={`task-${idx}`}
+                            className={`flex-1 cursor-pointer ${
+                              task.done ? 'line-through text-gray-500' : ''
+                            }`}
+                          >
+                            {task.title}
+                          </Label>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => task.id && startEditingTask(task.id, task.title)}
+                            disabled={!task.id}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={!task.id}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Eliminar tarea?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta accion no se puede deshacer.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => task.id && onDeleteTask(task.id)}
+                                  className="bg-red-600 text-white hover:bg-red-700"
+                                >
+                                  Eliminar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                          {task.done && (
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })
               ) : (
                 <p className="text-sm text-gray-500 text-center py-4">
                   No hay tareas aún. Agrega la primera tarea para empezar.

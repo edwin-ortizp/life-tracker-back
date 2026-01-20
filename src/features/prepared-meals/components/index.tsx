@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, MoreVertical } from 'lucide-react';
+import { Plus, MoreVertical, Settings } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar, ChefHat, ShoppingCart, Package } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { usePreparedMeals } from '../hooks/usePreparedMeals.supabase';
 import type { PreparedMeal } from '../types';
 import AddPreparedMealModal from './AddPreparedMealModal';
@@ -14,6 +14,7 @@ export const PreparedMeals: React.FC = () => {
   const { meals, addMeal, updateMeal, deleteMeal } = usePreparedMeals();
   const [showModal, setShowModal] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const [editing, setEditing] = useState<PreparedMeal | null>(null);
 
   const handleSave = (data: Omit<PreparedMeal, 'id'>, id?: string) => {
@@ -23,8 +24,11 @@ export const PreparedMeals: React.FC = () => {
 
   return (
     <div className="w-full h-full flex flex-col">
-      <CompactMealHeader 
+      <CompactMealHeader
         title="Comidas Preparadas"
+        views={[{ key: 'list', label: 'Lista' }]}
+        activeViewKey="list"
+        onViewChange={() => navigate('/prepared-meals/view/list')}
       >
         {/* Desktop: Icon buttons */}
         <TooltipProvider>
@@ -38,6 +42,17 @@ export const PreparedMeals: React.FC = () => {
               </TooltipTrigger>
               <TooltipContent>
                 <p>Agregar</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigate('/prepared-meals/config')}>
+                  <Settings className="h-4 w-4" />
+                  <span className="sr-only">Configuracion</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Configuracion</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -56,10 +71,14 @@ export const PreparedMeals: React.FC = () => {
               <Plus className="mr-2 h-4 w-4" />
               Agregar
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/prepared-meals/config')}>
+              <Settings className="mr-2 h-4 w-4" />
+              Configuracion
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {location.pathname !== '/meal' && (
+            {location.pathname !== '/meal/view/weekly' && (
               <DropdownMenuItem asChild>
-                <Link to="/meal" className="flex items-center">
+                <Link to="/meal/view/weekly" className="flex items-center">
                   <Calendar className="mr-2 h-4 w-4" />
                   Plan de Comidas
                 </Link>
@@ -67,23 +86,23 @@ export const PreparedMeals: React.FC = () => {
             )}
             {!location.pathname.startsWith('/shopping-list') && (
               <DropdownMenuItem asChild>
-                <Link to="/shopping-list/list" className="flex items-center">
+                <Link to="/shopping-list/view/list" className="flex items-center">
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Lista de Compras
                 </Link>
               </DropdownMenuItem>
             )}
-            {location.pathname !== '/recipes' && (
+            {location.pathname !== '/recipes/view/list' && (
               <DropdownMenuItem asChild>
-                <Link to="/recipes" className="flex items-center">
+                <Link to="/recipes/view/list" className="flex items-center">
                   <ChefHat className="mr-2 h-4 w-4" />
                   Recetas
                 </Link>
               </DropdownMenuItem>
             )}
-            {location.pathname !== '/prepared-meals' && (
+            {location.pathname !== '/prepared-meals/view/list' && (
               <DropdownMenuItem asChild>
-                <Link to="/prepared-meals" className="flex items-center">
+                <Link to="/prepared-meals/view/list" className="flex items-center">
                   <Package className="mr-2 h-4 w-4" />
                   Comidas Preparadas
                 </Link>

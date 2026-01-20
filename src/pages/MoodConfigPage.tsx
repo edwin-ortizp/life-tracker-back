@@ -2,13 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
-import PageLayout from '@/components/PageLayout';
+import ModuleViewLayout from '@/components/module-views/ModuleViewLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Heart, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { moodViews } from '@/features/mood/views';
 
 interface MoodState {
   id: string;
@@ -22,6 +24,7 @@ interface MoodState {
 
 const MoodConfigPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [moodStates, setMoodStates] = useState<MoodState[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -50,7 +53,7 @@ const MoodConfigPage: React.FC = () => {
 
     if (error) {
       console.error('Error loading mood states:', error);
-      toast.error('Error al cargar estados de ánimo');
+      toast.error('Error al cargar estados de animo');
     } else {
       setMoodStates(data || []);
     }
@@ -76,7 +79,7 @@ const MoodConfigPage: React.FC = () => {
         console.error('Error updating:', error);
         toast.error('Error al actualizar');
       } else {
-        toast.success('Estado de ánimo actualizado');
+        toast.success('Estado de animo actualizado');
         resetForm();
         loadMoodStates();
       }
@@ -89,7 +92,7 @@ const MoodConfigPage: React.FC = () => {
         console.error('Error creating:', error);
         toast.error('Error al crear');
       } else {
-        toast.success('Estado de ánimo creado');
+        toast.success('Estado de animo creado');
         resetForm();
         loadMoodStates();
       }
@@ -107,7 +110,7 @@ const MoodConfigPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este estado de ánimo?')) return;
+    if (!confirm('Estas seguro de eliminar este estado de animo?')) return;
 
     const { error } = await supabase
       .from('mood_states')
@@ -118,7 +121,7 @@ const MoodConfigPage: React.FC = () => {
       console.error('Error deleting:', error);
       toast.error('Error al eliminar');
     } else {
-      toast.success('Estado de ánimo eliminado');
+      toast.success('Estado de animo eliminado');
       loadMoodStates();
     }
   };
@@ -142,135 +145,145 @@ const MoodConfigPage: React.FC = () => {
   };
 
   if (!user) {
-    return <div>Inicia sesión para configurar estados de ánimo</div>;
+    return (
+      <ModuleViewLayout
+        title="Configuracion de Estado de Animo"
+        icon={<Heart className="h-4 w-4 text-white" />}
+      >
+        <div className="p-4">Inicia sesion para configurar estados de animo</div>
+      </ModuleViewLayout>
+    );
   }
 
   return (
-    <PageLayout>
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Configuración de Estados de Ánimo</h1>
-        <p className="text-gray-500">Administra los estados de ánimo disponibles</p>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingId ? 'Editar' : 'Nuevo'} Estado de Ánimo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="emoji">Emoji</Label>
-                <Input
-                  id="emoji"
-                  value={formData.emoji}
-                  onChange={(e) => setFormData({ ...formData, emoji: e.target.value })}
-                  placeholder="😊"
-                  required
-                  maxLength={2}
-                />
-                <p className="text-xs text-gray-500 mt-1">Copia y pega un emoji</p>
-              </div>
-              <div>
-                <Label htmlFor="text">Texto</Label>
-                <Input
-                  id="text"
-                  value={formData.text}
-                  onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-                  placeholder="Feliz, Triste, Ansioso..."
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="value">Valor (1-10)</Label>
-                <Input
-                  id="value"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={formData.value}
-                  onChange={(e) => setFormData({ ...formData, value: Number(e.target.value) })}
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">10 = Muy positivo, 1 = Muy negativo</p>
-              </div>
-              <div>
-                <Label htmlFor="category">Categoría (opcional)</Label>
-                <Input
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="Emocional, Físico, Mental..."
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" className="flex-1">
-                  <Plus className="w-4 h-4 mr-2" />
-                  {editingId ? 'Actualizar' : 'Agregar'}
-                </Button>
-                {editingId && (
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancelar
+    <ModuleViewLayout
+      title="Configuracion de Estado de Animo"
+      subtitle="Administra los estados de animo disponibles"
+      icon={<Heart className="h-4 w-4 text-white" />}
+      views={moodViews.map((view) => ({ ...view, component: () => null }))}
+      onViewChange={(key) => navigate(`/mood/view/${key}`)}
+    >
+      <div className="p-4">
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{editingId ? 'Editar' : 'Nuevo'} Estado de Animo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="emoji">Emoji</Label>
+                  <Input
+                    id="emoji"
+                    value={formData.emoji}
+                    onChange={(e) => setFormData({ ...formData, emoji: e.target.value })}
+                    placeholder="😊"
+                    required
+                    maxLength={2}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Copia y pega un emoji</p>
+                </div>
+                <div>
+                  <Label htmlFor="text">Texto</Label>
+                  <Input
+                    id="text"
+                    value={formData.text}
+                    onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+                    placeholder="Feliz, Triste, Ansioso..."
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="value">Valor (1-10)</Label>
+                  <Input
+                    id="value"
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={formData.value}
+                    onChange={(e) => setFormData({ ...formData, value: Number(e.target.value) })}
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">10 = Muy positivo, 1 = Muy negativo</p>
+                </div>
+                <div>
+                  <Label htmlFor="category">Categoria (opcional)</Label>
+                  <Input
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    placeholder="Emocional, Fisico, Mental..."
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" className="flex-1">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {editingId ? 'Actualizar' : 'Agregar'}
                   </Button>
-                )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+                  {editingId && (
+                    <Button type="button" variant="outline" onClick={resetForm}>
+                      Cancelar
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Estados de Ánimo ({moodStates.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p>Cargando...</p>
-            ) : moodStates.length === 0 ? (
-              <p className="text-gray-500">No hay estados de ánimo configurados</p>
-            ) : (
-              <div className="space-y-2">
-                {moodStates.map((item) => {
-                  const badge = getCategoryBadge(item.value);
-                  return (
-                    <div key={item.id} className="flex items-center justify-between p-3 border rounded">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{item.emoji}</span>
-                        <div>
-                          <p className="font-medium">{item.text}</p>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span>Valor: {item.value}</span>
-                            <span className={`px-2 py-0.5 rounded text-xs ${badge.color}`}>
-                              {badge.label}
-                            </span>
-                            {item.category && <span>· {item.category}</span>}
+          <Card>
+            <CardHeader>
+              <CardTitle>Estados de Animo ({moodStates.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p>Cargando...</p>
+              ) : moodStates.length === 0 ? (
+                <p className="text-gray-500">No hay estados de animo configurados</p>
+              ) : (
+                <div className="space-y-2">
+                  {moodStates.map((item) => {
+                    const badge = getCategoryBadge(item.value);
+                    return (
+                      <div key={item.id} className="flex items-center justify-between p-3 border rounded">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{item.emoji}</span>
+                          <div>
+                            <p className="font-medium">{item.text}</p>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <span>Valor: {item.value}</span>
+                              <span className={`px-2 py-0.5 rounded text-xs ${badge.color}`}>
+                                {badge.label}
+                              </span>
+                              {item.category && <span>· {item.category}</span>}
+                            </div>
                           </div>
                         </div>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEdit(item)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(item.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleEdit(item)}
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </PageLayout>
+    </ModuleViewLayout>
   );
 };
 

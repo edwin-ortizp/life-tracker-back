@@ -1,75 +1,114 @@
 import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Habit } from '@/features/habit/components';
-import PageLayout from '@/components/PageLayout';
 import DateSelector from '@/components/DateSelector';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { HABITS } from '@/features/habit/types';
+import ModuleViewLayout from '@/components/module-views/ModuleViewLayout';
+import type { ModuleViewAction, ModuleViewDefinition } from '@/components/module-views/types';
+import { habitDefaultViewKey, habitViews, type HabitViewKey } from '@/features/habit/views';
+import { CheckSquare, Settings } from 'lucide-react';
+
+type HabitViewProps = {
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
+  habitStats: any[];
+};
+
+const HabitTrackerView: React.FC<HabitViewProps> = ({ selectedDate, onDateChange }) => (
+  <div className="space-y-4">
+    <DateSelector selectedDate={selectedDate} onChange={onDateChange} />
+    <div className="grid grid-cols-1">
+      <Habit selectedDate={selectedDate} />
+    </div>
+  </div>
+);
+
+const HabitAnalyticsView: React.FC<HabitViewProps> = ({ habitStats }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4 lg:gap-6 xl:gap-8 desktop-grid-responsive">
+    <Card className="desktop-card-enhanced">
+      <CardContent className="p-4 lg:p-6">
+        <h3 className="font-medium mb-4">Tendencias de Habitos</h3>
+        <div className="h-64 md:h-80 lg:h-96">
+          <ResponsiveContainer>
+            <LineChart data={habitStats}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              {HABITS.map(habit => (
+                <Line
+                  key={habit.id}
+                  type="monotone"
+                  dataKey={habit.name}
+                  name={`${habit.icon} ${habit.name}`}
+                  stroke={`var(--${habit.name.toLowerCase()}-color)`}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+
+    <Card className="desktop-card-enhanced">
+      <CardContent className="p-4 lg:p-6">
+        <h3 className="font-medium mb-4">Resumen del Mes</h3>
+      </CardContent>
+    </Card>
+  </div>
+);
 
 const HabitPage = () => {
+  const navigate = useNavigate();
+  const { viewKey } = useParams<{ viewKey: HabitViewKey }>();
+  const resolvedViewKey = (viewKey || habitDefaultViewKey) as HabitViewKey;
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [habitStats] = useState<any[]>([]);
 
+  const habitViewRegistry: Array<ModuleViewDefinition<HabitViewProps>> = habitViews.map((view) => ({
+    ...view,
+    component: view.key === 'tracker' ? HabitTrackerView : HabitAnalyticsView
+  }));
+
+  const activeView = habitViewRegistry.find((view) => view.key === resolvedViewKey);
+
+  if (!activeView) {
+    return <Navigate to={`/habit/view/${habitDefaultViewKey}`} replace />;
+  }
+
+  const actions: ModuleViewAction[] = [
+    {
+      id: 'config',
+      label: 'Configuracion',
+      icon: <Settings className="h-4 w-4" />,
+      onClick: () => navigate('/habit/config'),
+      tooltip: 'Configuracion'
+    }
+  ];
+
+  const ActiveView = activeView.component;
+
   return (
-    <PageLayout>
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Seguimiento de Hábitos</h1>
-        <p className="text-gray-500">Registra y analiza tus hábitos diarios para mejorar tu estilo de vida</p>
+    <ModuleViewLayout
+      title="Seguimiento de Habitos"
+      subtitle="Registra y analiza tus habitos diarios para mejorar tu estilo de vida"
+      icon={<CheckSquare className="h-4 w-4 text-white" />}
+      views={habitViewRegistry}
+      activeViewKey={resolvedViewKey}
+      onViewChange={(key) => navigate(`/habit/view/${key}`)}
+      actions={actions}
+    >
+      <div className="p-4 space-y-4">
+        <ActiveView
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
+          habitStats={habitStats}
+        />
       </div>
-
-      <DateSelector 
-        selectedDate={selectedDate}
-        onChange={setSelectedDate}
-      />
-        
-      <Tabs defaultValue="tracker">
-        <TabsList>
-          <TabsTrigger value="tracker">Registro Diario</TabsTrigger>
-          <TabsTrigger value="analytics">Análisis</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="tracker" >
-          <div className="grid grid-cols-1">
-            <Habit selectedDate={selectedDate} />
-          </div>
-        </TabsContent>        <TabsContent value="analytics" className="flex-1 overflow-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4 lg:gap-6 xl:gap-8 desktop-grid-responsive">
-            <Card className="desktop-card-enhanced">
-              <CardContent className="p-4 lg:p-6">
-                <h3 className="font-medium mb-4">Tendencias de Hábitos</h3>
-                <div className="h-64 md:h-80 lg:h-96">
-                  <ResponsiveContainer>
-                    <LineChart data={habitStats}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      {HABITS.map(habit => (
-                        <Line
-                          key={habit.id}
-                          type="monotone"
-                          dataKey={habit.name}
-                          name={`${habit.icon} ${habit.name}`}
-                          stroke={`var(--${habit.name.toLowerCase()}-color)`}
-                        />
-                      ))}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="desktop-card-enhanced">
-              <CardContent className="p-4 lg:p-6">
-                <h3 className="font-medium mb-4">Resumen del Mes</h3>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </PageLayout>
+    </ModuleViewLayout>
   );
 };
 

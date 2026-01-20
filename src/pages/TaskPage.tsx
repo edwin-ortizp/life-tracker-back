@@ -37,7 +37,7 @@ import {
   TaskWeeklyCalendar
 } from '@/features/task/components';
 import RecurrenceModal from '@/features/task/components/RecurrenceModal';
-import { Task, TaskCategory, CATEGORY_LABELS, TASK_CATEGORIES } from '@/features/task/types';
+import { Task, TaskCategory, TASK_CATEGORIES } from '@/features/task/types';
 import { adjustEndDateToStartDate } from '@/utils/dates';
 
 type TaskStatus = 'idle' | 'loading' | 'saving' | 'pending' | 'saved' | 'error';
@@ -55,6 +55,36 @@ type TaskViewProps = {
   onViewTask: (task: Task) => void;
   taskStats: any[];
   completionStats: any[];
+};
+
+const getTaskTimeParts = (date?: Date) => {
+  if (!date) {
+    return { hours: 8, minutes: 0, seconds: 0, milliseconds: 0 };
+  }
+
+  const hasTime =
+    date.getHours() !== 0 ||
+    date.getMinutes() !== 0 ||
+    date.getSeconds() !== 0 ||
+    date.getMilliseconds() !== 0;
+
+  if (!hasTime) {
+    return { hours: 8, minutes: 0, seconds: 0, milliseconds: 0 };
+  }
+
+  return {
+    hours: date.getHours(),
+    minutes: date.getMinutes(),
+    seconds: date.getSeconds(),
+    milliseconds: date.getMilliseconds()
+  };
+};
+
+const buildStartDate = (task: Task, targetDate: Date) => {
+  const nextStart = new Date(targetDate);
+  const time = getTaskTimeParts(task.startDate);
+  nextStart.setHours(time.hours, time.minutes, time.seconds, time.milliseconds);
+  return nextStart;
 };
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
@@ -116,27 +146,56 @@ const TaskKanbanView: React.FC<TaskViewProps> = ({
   openEditModal,
   openCreateModal,
   onViewTask
-}) => (
-  <div className="space-y-6">
-    <Card className="w-full">
-      <CardContent className="pt-6 overflow-x-auto">
-        <TaskKanban
-          tasks={tasks}
-          onDelete={deleteTask}
-          onEdit={openEditModal}
-          onView={onViewTask}
-          onMove={(id, due) => editTask(id, { startDate: due ?? undefined })}
-          onAdd={(due) => openCreateModal(due ?? undefined)}
-          onFilteredTasksChange={() => {}}
-        />
-        {error && (
-          <p className="text-sm text-red-500 mt-4">{error}</p>
-        )}
-      </CardContent>
-    </Card>
-    <PriorityLegend />
-  </div>
-);
+}) => {
+  const handleMove = (id: string, targetDate: Date | null) => {
+    if (!targetDate) {
+      editTask(id, { startDate: undefined, endDate: undefined });
+      return;
+    }
+
+    const task = tasks.find((item) => item.id === id);
+    if (!task) {
+      editTask(id, { startDate: targetDate });
+      return;
+    }
+
+    const newStartDate = buildStartDate(task, targetDate);
+    const duration =
+      task.startDate && task.endDate ? task.endDate.getTime() - task.startDate.getTime() : 0;
+    const safeDuration = duration > 0 ? duration : 0;
+    let newEndDate = new Date(newStartDate.getTime() + safeDuration);
+    if (newEndDate.getTime() < newStartDate.getTime()) {
+      newEndDate = new Date(newStartDate);
+    }
+
+    editTask(id, {
+      startDate: newStartDate,
+      endDate: newEndDate
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="w-full">
+        <CardContent className="pt-6 overflow-x-auto">
+          <TaskKanban
+            tasks={tasks}
+            onDelete={deleteTask}
+            onEdit={openEditModal}
+            onView={onViewTask}
+            onMove={handleMove}
+            onAdd={(due) => openCreateModal(due ?? undefined)}
+            onFilteredTasksChange={() => {}}
+          />
+          {error && (
+            <p className="text-sm text-red-500 mt-4">{error}</p>
+          )}
+        </CardContent>
+      </Card>
+      <PriorityLegend />
+    </div>
+  );
+};
 
 const TaskCalendarView: React.FC<TaskViewProps> = ({
   tasks,
@@ -296,12 +355,12 @@ const TaskAnalyticsView: React.FC<TaskViewProps> = ({ taskStats, completionStats
                 fill="#8884d8"
                 dataKey="value"
                 label={({
-                  cx,
-                  cy,
-                  midAngle,
-                  innerRadius,
-                  outerRadius,
-                  percent,
+                  cx = 0,
+                  cy = 0,
+                  midAngle = 0,
+                  innerRadius = 0,
+                  outerRadius = 0,
+                  percent = 0,
                   name
                 }) => {
                   const RADIAN = Math.PI / 180;
@@ -489,8 +548,9 @@ const TaskPage: React.FC = () => {
             priority: taskData.priority as 'do' | 'decide' | 'delegate' | 'delete' || undefined,
             isPrivate: false,
             isRecurrent: Boolean(taskData.isRecurrent) || false,
-            size: taskData.size as 'pequena' | 'mediana' | 'grande' || undefined,
-            completed: Boolean(taskData.completed) || false,
+            size: taskData.size === 'pequena'
+              ? 'pequeña'
+              : (taskData.size as 'pequeña' | 'mediana' | 'grande' | undefined),
           });
           importedCount++;
         }

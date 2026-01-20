@@ -28,6 +28,63 @@ export const TaskKanbanView: React.FC = () => {
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
+  const getTaskTimeParts = (date?: Date) => {
+    if (!date) {
+      return { hours: 8, minutes: 0, seconds: 0, milliseconds: 0 };
+    }
+
+    const hasTime =
+      date.getHours() !== 0 ||
+      date.getMinutes() !== 0 ||
+      date.getSeconds() !== 0 ||
+      date.getMilliseconds() !== 0;
+
+    if (!hasTime) {
+      return { hours: 8, minutes: 0, seconds: 0, milliseconds: 0 };
+    }
+
+    return {
+      hours: date.getHours(),
+      minutes: date.getMinutes(),
+      seconds: date.getSeconds(),
+      milliseconds: date.getMilliseconds()
+    };
+  };
+
+  const buildStartDate = (task: Task, targetDate: Date) => {
+    const nextStart = new Date(targetDate);
+    const time = getTaskTimeParts(task.startDate);
+    nextStart.setHours(time.hours, time.minutes, time.seconds, time.milliseconds);
+    return nextStart;
+  };
+
+  const handleMove = (id: string, targetDate: Date | null) => {
+    if (!targetDate) {
+      editTask(id, { startDate: undefined });
+      return;
+    }
+
+    const task = tasks.find((t) => t.id === id);
+    if (!task) {
+      editTask(id, { startDate: targetDate });
+      return;
+    }
+
+    const newStartDate = buildStartDate(task, targetDate);
+    const duration =
+      task.startDate && task.endDate ? task.endDate.getTime() - task.startDate.getTime() : 0;
+    const safeDuration = duration > 0 ? duration : 0;
+    let newEndDate = new Date(newStartDate.getTime() + safeDuration);
+    if (newEndDate.getTime() < newStartDate.getTime()) {
+      newEndDate = new Date(newStartDate);
+    }
+
+    editTask(id, {
+      startDate: newStartDate,
+      endDate: newEndDate
+    });
+  };
+
   // Initialize global keyboard shortcuts for task module
   useTaskKeyboardShortcuts({
     openCreateModal,
@@ -46,7 +103,7 @@ export const TaskKanbanView: React.FC = () => {
               setDetailTask(task);
               setShowDetailModal(true);
             }}
-            onMove={(id, due) => editTask(id, { startDate: due ?? undefined })}
+            onMove={handleMove}
             onAdd={(due) => openCreateModal(due ?? undefined)}
             onFilteredTasksChange={() => {}}
           />

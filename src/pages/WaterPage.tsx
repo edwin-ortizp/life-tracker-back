@@ -1,63 +1,108 @@
 // src/pages/WaterPage.tsx
 import React, { useState } from 'react';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Water, WaterCalendar, WeeklyStats, RangeStats } from '@/features/water/components';
 import DateSelector from '@/components/DateSelector';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
-import PageLayout from '@/components/PageLayout';
 import { Card, CardContent } from '@/components/ui/card';
+import ModuleViewLayout from '@/components/module-views/ModuleViewLayout';
+import type { ModuleViewAction, ModuleViewDefinition } from '@/components/module-views/types';
+import { waterDefaultViewKey, waterViews, type WaterViewKey } from '@/features/water/views';
+import { Droplet, Settings } from 'lucide-react';
+
+type WaterViewProps = {
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
+};
+
+const WaterDailyView: React.FC<WaterViewProps> = ({ selectedDate, onDateChange }) => (
+  <div className="space-y-4">
+    <DateSelector selectedDate={selectedDate} onChange={onDateChange} />
+    <div className="mt-4">
+      <Water selectedDate={selectedDate} goal={2000} />
+    </div>
+  </div>
+);
+
+const WaterCalendarView: React.FC<WaterViewProps> = ({ selectedDate }) => (
+  <WaterCalendar selectedDate={selectedDate} />
+);
+
+const WaterWeeklyView: React.FC<WaterViewProps> = ({ selectedDate }) => (
+  <WeeklyStats selectedDate={selectedDate} />
+);
+
+const WaterRangeView: React.FC<WaterViewProps> = () => (
+  <RangeStats />
+);
 
 const WaterPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { viewKey } = useParams<{ viewKey: WaterViewKey }>();
+  const resolvedViewKey = (viewKey || waterDefaultViewKey) as WaterViewKey;
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { user } = useAuth();
 
+  const waterViewRegistry: Array<ModuleViewDefinition<WaterViewProps>> = waterViews.map((view) => ({
+    ...view,
+    component: view.key === 'daily'
+      ? WaterDailyView
+      : view.key === 'calendar'
+      ? WaterCalendarView
+      : view.key === 'weekly'
+      ? WaterWeeklyView
+      : WaterRangeView
+  }));
+
+  const activeView = waterViewRegistry.find((view) => view.key === resolvedViewKey);
+
+  if (!activeView) {
+    return <Navigate to={`/water/view/${waterDefaultViewKey}`} replace />;
+  }
+
   if (!user) {
     return (
-      <div className="container max-w-4xl mx-auto py-6">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-semibold">Inicia sesión para registrar tu hidratación</h2>
-          </CardContent>
-        </Card>
-      </div>
+      <ModuleViewLayout
+        title="Registro de Hidratacion"
+        icon={<Droplet className="h-4 w-4 text-white" />}
+      >
+        <div className="p-4">
+          <Card>
+            <CardContent className="p-8 text-center">
+              <h2 className="text-xl font-semibold">Inicia sesion para registrar tu hidratacion</h2>
+            </CardContent>
+          </Card>
+        </div>
+      </ModuleViewLayout>
     );
   }
 
+  const actions: ModuleViewAction[] = [
+    {
+      id: 'config',
+      label: 'Configuracion',
+      icon: <Settings className="h-4 w-4" />,
+      onClick: () => navigate('/water/config'),
+      tooltip: 'Configuracion'
+    }
+  ];
+
+  const ActiveView = activeView.component;
+
   return (
-    <PageLayout>
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Registro de Hidratación</h1>
-        <p className="text-gray-500">Monitorea tu consumo diario de líquidos</p>
+    <ModuleViewLayout
+      title="Registro de Hidratacion"
+      subtitle="Monitorea tu consumo diario de liquidos"
+      icon={<Droplet className="h-4 w-4 text-white" />}
+      views={waterViewRegistry}
+      activeViewKey={resolvedViewKey}
+      onViewChange={(key) => navigate(`/water/view/${key}`)}
+      actions={actions}
+    >
+      <div className="p-4 space-y-4">
+        <ActiveView selectedDate={selectedDate} onDateChange={setSelectedDate} />
       </div>
-
-      <Tabs defaultValue="daily" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="daily">Registro Diario</TabsTrigger>
-          <TabsTrigger value="calendar">Calendario</TabsTrigger>
-          <TabsTrigger value="weekly">Semanal</TabsTrigger>
-          <TabsTrigger value="range">Rango</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="daily">
-          <DateSelector selectedDate={selectedDate} onChange={setSelectedDate} />
-          <div className="mt-4">
-            <Water selectedDate={selectedDate} goal={2000} />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="calendar">
-          <WaterCalendar selectedDate={selectedDate} />
-        </TabsContent>
-
-        <TabsContent value="weekly">
-          <WeeklyStats selectedDate={selectedDate} />
-        </TabsContent>
-
-        <TabsContent value="range">
-          <RangeStats />
-        </TabsContent>
-      </Tabs>
-    </PageLayout>
+    </ModuleViewLayout>
   );
 };
 

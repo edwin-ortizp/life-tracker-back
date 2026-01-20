@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 interface UseTextAreaKeyboardShortcutsProps {
-  textAreaRef: React.RefObject<HTMLTextAreaElement>;
+  textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
   value: string;
   onChange: (value: string) => void;
 }

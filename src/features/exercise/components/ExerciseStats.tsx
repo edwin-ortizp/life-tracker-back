@@ -76,7 +76,7 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
     });
   };
 
-  const formatTooltipDate = (value: string | number, name: string) => {
+  const formatTooltipDate = (value?: string | number, name?: string) => {
     if (typeof value === 'string') {
       const date = new Date(value);
       return date.toLocaleDateString('es-ES', {
@@ -85,7 +85,10 @@ export const ExerciseStats: React.FC<ExerciseStatsProps> = ({
         day: 'numeric'
       });
     }
-    return [value.toLocaleString(), name];
+    if (value === undefined) {
+      return '';
+    }
+    return name ? [value.toLocaleString(), name] : value.toLocaleString();
   };
 
   // Agrupar los datos para el gráfico por fecha

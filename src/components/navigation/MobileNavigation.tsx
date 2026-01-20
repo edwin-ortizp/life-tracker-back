@@ -33,14 +33,17 @@ const MobileNavigation = () => {
 
   // Quick access shortcuts for widgets
   const quickAccessItems = [
-    { icon: Droplets, label: 'Agua +250ml', path: '/water', action: 'quick-water' },
-    { icon: Smile, label: 'Registrar Ánimo', path: '/mood', action: 'quick-mood' },
-    { icon: CheckCircle, label: 'Marcar Hábito', path: '/habit', action: 'quick-habit' },
-    { icon: ListTodo, label: 'Nueva Tarea', path: '/task', action: 'quick-task' },
+    { icon: Droplets, label: 'Agua +250ml', path: '/water/view/daily', action: 'quick-water' },
+    { icon: Smile, label: 'Registrar Animo', path: '/mood/view/tracker', action: 'quick-mood' },
+    { icon: CheckCircle, label: 'Marcar Habito', path: '/habit/view/tracker', action: 'quick-habit' },
+    { icon: ListTodo, label: 'Nueva Tarea', path: '/task/view/list', action: 'quick-task' },
     { icon: TrendingUp, label: 'Resumen Hoy', path: '/stats', action: 'quick-stats' },
   ];
     const MobileMenuItem = ({ icon: Icon, label, path, onClick }: MenuItem & { onClick?: () => void }) => {
-    const isActive = location.pathname === path;
+    const basePath = path.includes('/view/') ? path.split('/view/')[0] : path;
+    const isActive = basePath === '/'
+      ? location.pathname === '/'
+      : location.pathname.startsWith(basePath);
     
     return (
       <Button

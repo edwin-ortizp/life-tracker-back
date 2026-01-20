@@ -18,7 +18,7 @@ type ExerciseRef = {
 type ExerciseViewProps = {
   selectedDate: Date;
   onDateChange: (date: Date) => void;
-  exerciseRef: React.RefObject<ExerciseRef>;
+  exerciseRef: React.RefObject<ExerciseRef | null>;
 };
 
 const ExerciseDailyView: React.FC<ExerciseViewProps> = ({
@@ -44,7 +44,7 @@ const ExercisePage: React.FC = () => {
   const resolvedViewKey = (viewKey || exerciseDefaultViewKey) as ExerciseViewKey;
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { user } = useAuth();
-  const exerciseRef = useRef<ExerciseRef>(null);
+  const exerciseRef = useRef<ExerciseRef | null>(null);
 
   const exerciseViewRegistry: Array<ModuleViewDefinition<ExerciseViewProps>> = exerciseViews.map((view) => ({
     ...view,
