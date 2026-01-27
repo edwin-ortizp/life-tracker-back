@@ -9,8 +9,10 @@ import androidx.navigation.compose.rememberNavController
 import com.edwinortizp.lifetracker.ui.screens.LoginScreen
 import com.edwinortizp.lifetracker.ui.screens.RegisterScreen
 import com.edwinortizp.lifetracker.ui.screens.DashboardScreen
-import com.edwinortizp.lifetracker.ui.screens.TaskDetailScreen
+import com.edwinortizp.lifetracker.ui.screens.TaskFormScreen
 import com.edwinortizp.lifetracker.ui.screens.TaskListScreen
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun AppNavigation() {
@@ -50,16 +52,33 @@ fun AppNavigation() {
         composable("tasks") {
             TaskListScreen(
                 onTaskSelected = { encodedTask ->
-                    navController.navigate("task/$encodedTask")
-                }
+                    val safe = URLEncoder.encode(encodedTask, StandardCharsets.UTF_8.toString())
+                    navController.navigate("task/edit/$safe")
+                },
+                onCreateTask = { navController.navigate("task/new") },
+                onBack = { navController.popBackStack() }
             )
         }
         composable(
-            "task/{taskJson}",
-            arguments = listOf(navArgument("taskJson") { type = NavType.StringType })
+            "task/edit/{taskId}",
+            arguments = listOf(navArgument("taskId") {
+                type = NavType.StringType
+                nullable = false
+            })
         ) { backStackEntry ->
-            val taskJson = backStackEntry.arguments?.getString("taskJson").orEmpty()
-            TaskDetailScreen(encodedTask = taskJson)
+            val taskId = backStackEntry.arguments?.getString("taskId").orEmpty()
+            TaskFormScreen(
+                taskId = taskId,
+                onSaved = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() }
+            )
+        }
+        composable("task/new") {
+            TaskFormScreen(
+                taskId = null,
+                onSaved = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() }
+            )
         }
     }
 }
