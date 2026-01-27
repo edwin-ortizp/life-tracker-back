@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Journal } from '@/features/journal/components';
+import { JournalEntryProvider } from '@/features/journal/context/JournalEntryContext';
+import { JournalLockProvider } from '@/features/journal/context/JournalLockContext';
 import DateSelector from '@/components/DateSelector';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,12 +18,16 @@ type JournalViewProps = {
 };
 
 const JournalEntriesView: React.FC<JournalViewProps> = ({ selectedDate, onDateChange }) => (
-  <div className="space-y-4">
-    <DateSelector selectedDate={selectedDate} onChange={onDateChange} />
-    <div className="mt-4">
-      <Journal selectedDate={selectedDate} />
-    </div>
-  </div>
+  <JournalEntryProvider>
+    <JournalLockProvider>
+      <div className="space-y-4">
+        <DateSelector selectedDate={selectedDate} onChange={onDateChange} />
+        <div className="mt-4">
+          <Journal selectedDate={selectedDate} />
+        </div>
+      </div>
+    </JournalLockProvider>
+  </JournalEntryProvider>
 );
 
 const JournalPage: React.FC = () => {
