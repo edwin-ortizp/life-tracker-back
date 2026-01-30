@@ -87,7 +87,7 @@ export const TaskCalendarCompact: React.FC<TaskCalendarCompactProps> = ({
   const handleRun = (e: React.MouseEvent) => {
     e.stopPropagation();
     setOpen(false);
-    navigate(`/task/${task.taskCode}/run`);
+    navigate(`/task/${task.id}/run`);
   };
 
   const handleExportToCalendar = (e: React.MouseEvent) => {

@@ -216,7 +216,7 @@ const TaskKanbanActions = memo<{
 
   const handleRun = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/task/${task.taskCode}/run`);
+    navigate(`/task/${task.id}/run`);
   }, [navigate, task.taskCode]);
 
   const buttonClassName = "h-6 w-6 md:h-5 md:w-5 p-0 rounded-full hover:bg-muted";

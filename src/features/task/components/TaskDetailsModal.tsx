@@ -244,7 +244,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                   </Button>
                 )}
                 <Button
-                  onClick={() => navigate(`/task/${task.taskCode}/run`)}
+                  onClick={() => navigate(`/task/${task.id}/run`)}
                   variant="outline"
                   className="w-full justify-start gap-2"
                 >

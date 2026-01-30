@@ -94,7 +94,7 @@ const CompactTaskActions = memo<{
 
   const handleRun = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/task/${task.taskCode}/run`);
+    navigate(`/task/${task.id}/run`);
   }, [navigate, task.taskCode]);
 
   const handleDelete = useCallback(() => {
@@ -313,7 +313,7 @@ export const TaskItemList = memo<TaskItemListProps>(({
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/task/${task.taskCode}/run`);
+                      navigate(`/task/${task.id}/run`);
                     }}
                     className="h-6 w-6 p-0 text-green-600"
                   >

@@ -40,8 +40,12 @@ const SettingsPage = () => {
   }, [settings, reset])
 
   const onSubmit = async (data: UserSettings) => {
-    await saveSettings(data)
-    if (data.theme) setTheme(data.theme)
+    try {
+      await saveSettings(data)
+      if (data.theme) setTheme(data.theme)
+    } catch (error) {
+      console.error('Error al guardar configuración:', error)
+    }
   }
 
   const handleLogout = async () => {
@@ -89,6 +93,17 @@ const SettingsPage = () => {
           <div className="space-y-2">
             <Label htmlFor="birthDate">Fecha de nacimiento</Label>
             <Input id="birthDate" type="date" {...register('birthDate')} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lifeExpectancyYears">Expectativa de vida (años)</Label>
+            <Input
+              id="lifeExpectancyYears"
+              type="number"
+              min={1}
+              max={150}
+              step={1}
+              {...register('lifeExpectancyYears', { valueAsNumber: true })}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="theme">Tema</Label>

@@ -149,7 +149,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
     setFormData((prev) => (prev.estimatedTime === minutes ? prev : { ...prev, estimatedTime: minutes }));
   }, [formData.startDate, formData.endDate, mode]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!formData.title.trim()) return;
     if (formData.startDate && formData.endDate && formData.endDate < formData.startDate) {
       setFormError('La fecha de fin debe ser posterior a la fecha de inicio.');
@@ -174,12 +174,13 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
         .split('\n')
         .map(l => l.trim())
         .filter(Boolean);
-      lines.forEach(title => {
-        onConfirm({ ...formData, title, priority, size: sizeState, elapsedSeconds });
-      });
+      for (const title of lines) {
+        await Promise.resolve(onConfirm({ ...formData, title, priority, size: sizeState, elapsedSeconds }));
+      }
       onClose();
     } else {
-      onConfirm({ ...formData, priority, size: sizeState, elapsedSeconds });
+      await Promise.resolve(onConfirm({ ...formData, priority, size: sizeState, elapsedSeconds }));
+      onClose();
     }
   };
 

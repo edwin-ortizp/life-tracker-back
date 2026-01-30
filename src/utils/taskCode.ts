@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
  * Generate a unique 5-digit task code for a user
  * Range: 10000-99999 (90,000 possible codes per user)
  */
-export async function generateTaskCode(userId: string): Promise<number> {
+export async function generateTaskCode(userId: string, reservedCodes?: Set<number>): Promise<number> {
   const MIN_CODE = 10000;
   const MAX_CODE = 99999;
 
@@ -19,6 +19,13 @@ export async function generateTaskCode(userId: string): Promise<number> {
     if (error) throw error;
 
     const existingCodes = new Set<number>();
+    if (reservedCodes) {
+      reservedCodes.forEach((code) => {
+        if (Number.isInteger(code)) {
+          existingCodes.add(code);
+        }
+      });
+    }
 
     if (data) {
       data.forEach((task) => {

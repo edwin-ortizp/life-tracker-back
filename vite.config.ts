@@ -5,7 +5,7 @@ import Pages from 'vite-plugin-pages'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   build: {
     chunkSizeWarningLimit: 1500, // Aumentar a 1.5MB para chart-vendor
     rollupOptions: {
@@ -30,7 +30,7 @@ export default defineConfig({
       }
     }
   },
-  base: '/life-tracker/',  // Cambiado para GitHub Pages
+  base: command === 'serve' ? '/' : '/life-tracker/',  // Dev local vs GitHub Pages
   server: {
     host: true
   },
@@ -124,4 +124,4 @@ export default defineConfig({
       'src': path.resolve(__dirname, './src'),
     },
   }
-})
+}))

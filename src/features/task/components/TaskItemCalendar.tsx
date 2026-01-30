@@ -219,7 +219,7 @@ const TaskCalendarActions = memo<{
 
   const handleRun = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/task/${task.taskCode}/run`);
+    navigate(`/task/${task.id}/run`);
   }, [navigate, task.taskCode]);
 
   const buttonClassName = "h-4 w-4 p-0 rounded-full hover:bg-muted";

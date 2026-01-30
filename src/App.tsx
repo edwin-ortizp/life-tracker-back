@@ -66,7 +66,7 @@ function App() {
         <Route path="task" element={<Navigate to="/task/view/list" replace />} />
         <Route path="task/view/:viewKey" element={<TaskPage />} />
         <Route path="task/config" element={<TaskConfigPage />} />
-        <Route path="task/:taskCode/run" element={<TaskRunPage />} />
+        <Route path="task/:taskId/run" element={<TaskRunPage />} />
         {/* Legacy redirects */}
         <Route path="task/list" element={<Navigate to="/task/view/list" replace />} />
         <Route path="task/kanban" element={<Navigate to="/task/view/kanban" replace />} />

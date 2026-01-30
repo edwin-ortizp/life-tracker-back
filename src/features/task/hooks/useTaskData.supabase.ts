@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import type { Task, TaskFormData } from '../types';
@@ -16,6 +16,7 @@ export const useTaskData = () => {
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>('create');
   const { user } = useAuth();
+  const reservedTaskCodesRef = useRef<Set<number>>(new Set());
 
   const getPublicTasks = useCallback(() => tasks.filter(task => !task.isPrivate), [tasks]);
 
@@ -95,11 +96,26 @@ export const useTaskData = () => {
     loadTasks();
   }, [loadTasks]);
 
+  const getNextTaskCode = useCallback(async () => {
+    if (!user) return 0;
+    const reservedCodes = new Set<number>();
+    reservedTaskCodesRef.current.forEach((code) => reservedCodes.add(code));
+    allTasks.forEach((task) => {
+      if (Number.isInteger(task.taskCode) && task.taskCode > 0) {
+        reservedCodes.add(task.taskCode);
+      }
+    });
+    const nextCode = await generateTaskCode(user.id, reservedCodes);
+    reservedTaskCodesRef.current.add(nextCode);
+    return nextCode;
+  }, [allTasks, user]);
+
   const addTask = useCallback(async (formData: TaskFormData) => {
     if (!formData.title.trim() || !user) return;
 
     setStatus('saving');
     setError(null);
+    let taskCode = 0;
 
     try {
       if (formData.startDate && formData.endDate && formData.endDate < formData.startDate) {
@@ -108,7 +124,7 @@ export const useTaskData = () => {
         return;
       }
 
-      const taskCode = await generateTaskCode(user.id);
+      taskCode = await getNextTaskCode();
       const elapsedSeconds = formData.elapsedSeconds ?? 0;
 
       const optimisticTask: Task = {
@@ -219,12 +235,15 @@ export const useTaskData = () => {
       }
     } catch (error) {
       console.error('Error al guardar tarea:', error);
+      if (taskCode) {
+        reservedTaskCodesRef.current.delete(taskCode);
+      }
       setTasks(prev => prev.filter(task => !task.id.startsWith('temp-')));
       setAllTasks(prev => prev.filter(task => !task.id.startsWith('temp-')));
       setError(error instanceof Error ? error.message : 'Error al guardar');
       setStatus('error');
     }
-  }, [user]);
+  }, [user, getNextTaskCode]);
 
   const editTask = useCallback(async (taskId: string, updates: Partial<TaskFormData>) => {
     if (!user) return;
@@ -432,9 +451,10 @@ export const useTaskData = () => {
     if (!currentTask || !user) return;
 
     setStatus('saving');
+    let nextTaskCode = 0;
 
     try {
-      const nextTaskCode = await generateTaskCode(user.id);
+      nextTaskCode = await getNextTaskCode();
 
       const nextTask: Task = {
         id: `temp-${Date.now()}`,
@@ -532,6 +552,9 @@ export const useTaskData = () => {
       handleCloseModal();
     } catch (error) {
       console.error('Error al procesar tarea recurrente:', error);
+      if (nextTaskCode) {
+        reservedTaskCodesRef.current.delete(nextTaskCode);
+      }
       setTasks(prev => {
         const filtered = prev.filter(t => !t.id.startsWith('temp-'));
         return [...filtered, currentTask].sort((a, b) => {
@@ -546,7 +569,7 @@ export const useTaskData = () => {
       setError(error instanceof Error ? error.message : 'Error al actualizar tarea recurrente');
       setStatus('error');
     }
-  }, [currentTask, user, handleCloseModal]);
+  }, [currentTask, user, handleCloseModal, getNextTaskCode]);
 
   const openCreateModal = useCallback((startDate?: Date | null, isPrivate?: boolean) => {
     setModalMode('create');
