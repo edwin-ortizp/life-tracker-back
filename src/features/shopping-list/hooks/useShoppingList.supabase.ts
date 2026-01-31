@@ -43,6 +43,7 @@ export const useShoppingList = () => {
         ...(row.place && { place: row.place }),
         ...(row.consume_by && { consumeBy: row.consume_by }),
         ...(row.next_purchase && { nextPurchase: row.next_purchase }),
+        ...(row.barcode && { barcode: row.barcode }),
         unit: row.unit || 'units'
       }));
 
@@ -119,6 +120,9 @@ export const useShoppingList = () => {
         docData.next_purchase = true;
       }
 
+      if (item.barcode && typeof item.barcode === 'string' && item.barcode.trim() !== '') {
+        docData.barcode = item.barcode.trim();
+      }
 
       const { error: insertError } = await supabase
         .from('shopping_items')
@@ -196,6 +200,14 @@ export const useShoppingList = () => {
 
       if (data.unit !== undefined) {
         updateData.unit = data.unit;
+      }
+
+      if (data.barcode !== undefined) {
+        if (typeof data.barcode === 'string' && data.barcode.trim() !== '') {
+          updateData.barcode = data.barcode.trim();
+        } else {
+          updateData.barcode = null;
+        }
       }
 
       const { error: updateError } = await supabase

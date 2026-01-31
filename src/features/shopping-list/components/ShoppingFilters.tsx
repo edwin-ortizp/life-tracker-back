@@ -69,7 +69,7 @@ export const ShoppingFilters: React.FC<ShoppingFiltersProps> = ({
     <Collapsible open={!isMobile || filtersOpen} onOpenChange={setFiltersOpen}>
       <div className="flex gap-2 items-start">
         <Input
-          placeholder="Buscar"
+          placeholder="Buscar por nombre o código de barras"
           value={query}
           onChange={e => onQueryChange(e.target.value)}
           className="flex-1 sm:w-60"

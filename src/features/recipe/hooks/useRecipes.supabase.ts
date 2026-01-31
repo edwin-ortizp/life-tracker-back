@@ -27,7 +27,6 @@ export const useRecipes = () => {
       const list: Recipe[] = (data || []).map(row => ({
         id: row.id,
         name: row.name,
-        ingredients: row.ingredients || [],
         instructions: row.instructions || '',
         nutrition: row.nutrition || { calories: 0, protein: 0, carbs: 0, fat: 0 },
         mealType: row.meal_type,
@@ -54,10 +53,10 @@ export const useRecipes = () => {
     loadRecipes();
   }, [user, loadRecipes]);
 
-  const addRecipe = async (recipe: Omit<Recipe, 'id'>) => {
+  const addRecipe = async (recipe: Omit<Recipe, 'id'>): Promise<string | null> => {
     if (!user) {
       setError('Usuario no autenticado');
-      return;
+      return null;
     }
 
     setStatus('saving');
@@ -77,7 +76,6 @@ export const useRecipes = () => {
         .insert({
           user_id: user.id,
           name: recipe.name,
-          ingredients: recipe.ingredients,
           instructions: recipe.instructions,
           nutrition: recipe.nutrition,
           meal_type: recipe.mealType,
@@ -100,12 +98,14 @@ export const useRecipes = () => {
       ));
 
       setStatus('idle');
+      return data.id; // Retornar el ID de la receta creada
     } catch (e) {
       console.error('Error adding recipe:', e);
       // Revertir actualización optimista
       setRecipes(prev => prev.filter(r => r.id !== optimisticRecipe.id));
       setError(e instanceof Error ? e.message : 'Error al guardar');
       setStatus('error');
+      return null;
     }
   };
 
@@ -134,7 +134,6 @@ export const useRecipes = () => {
 
       const updateData: any = {};
       if (data.name !== undefined) updateData.name = data.name;
-      if (data.ingredients !== undefined) updateData.ingredients = data.ingredients;
       if (data.instructions !== undefined) updateData.instructions = data.instructions;
       if (data.nutrition !== undefined) updateData.nutrition = data.nutrition;
       if (data.mealType !== undefined) updateData.meal_type = data.mealType;

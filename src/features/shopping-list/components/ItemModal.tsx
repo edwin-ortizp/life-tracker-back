@@ -35,6 +35,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
   const [status, setStatus] = useState<ItemStatus>('to-buy');
   const [nextPurchase, setNextPurchase] = useState(false);
   const [unit, setUnit] = useState<ItemUnit>('units');
+  const [barcode, setBarcode] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -49,6 +50,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
       setStatus(item.status);
       setNextPurchase(Boolean(item.nextPurchase));
       setUnit(item.unit || 'units');
+      setBarcode(item.barcode || '');
     } else {
       setNames('');
       setStock(1);
@@ -60,6 +62,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
       setStatus('to-buy');
       setNextPurchase(false);
       setUnit('units');
+      setBarcode('');
     }
     setError(null);
   }, [item, open]);
@@ -111,6 +114,12 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
       baseData.consumeBy = consumeBy;
     } else if (item) {
       baseData.consumeBy = '';
+    }
+
+    if (barcode && barcode.trim() !== '') {
+      baseData.barcode = barcode;
+    } else if (item) {
+      baseData.barcode = '';
     }
 
     if (item) {
@@ -176,6 +185,15 @@ export const ItemModal: React.FC<ItemModalProps> = ({ open, onOpenChange, onSave
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="barcode">Código de barras</Label>
+                <Input
+                  id="barcode"
+                  value={barcode}
+                  onChange={e => setBarcode(e.target.value)}
+                  placeholder="EAN, UPC, SKU, etc."
+                />
               </div>
             </div>
 

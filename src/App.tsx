@@ -11,6 +11,7 @@ import HabitPage from './pages/HabitPage';
 import MealPage from './pages/MealPage';
 import ShoppingListPage from './pages/ShoppingListPage';
 import RecipesPage from './pages/RecipesPage';
+import RecipeDetailPage from './pages/RecipeDetailPage';
 import PreparedMealsPage from './pages/PreparedMealsPage';
 import ExercisePage from './pages/ExercisePage';
 import WaterPage from './pages/WaterPage';
@@ -102,6 +103,7 @@ function App() {
         <Route path="recipes" element={<Navigate to="/recipes/view/list" replace />} />
         <Route path="recipes/view/:viewKey" element={<RecipesPage />} />
         <Route path="recipes/config" element={<RecipesConfigPage />} />
+        <Route path="recipes/:recipeId" element={<RecipeDetailPage />} />
         <Route path="prepared-meals" element={<Navigate to="/prepared-meals/view/list" replace />} />
         <Route path="prepared-meals/view/:viewKey" element={<PreparedMealsPage />} />
         <Route path="prepared-meals/config" element={<PreparedMealsConfigPage />} />

@@ -38,7 +38,10 @@ export const ListView: React.FC<ListViewProps> = ({ items, onEdit, onDelete, onU
   }, [items]);
 
   const filtered = useMemo(() => {
-    let list = items.filter(i => i.name.toLowerCase().includes(query.toLowerCase()));
+    let list = items.filter(i =>
+      i.name.toLowerCase().includes(query.toLowerCase()) ||
+      (i.barcode && i.barcode.toLowerCase().includes(query.toLowerCase()))
+    );
 
     if (placeFilter) {
       list = list.filter(i => i.place === placeFilter);

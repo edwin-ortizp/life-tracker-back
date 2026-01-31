@@ -50,11 +50,13 @@ export const Recipes: React.FC = () => {
     return sorted;
   }, [recipes, query, mealFilter, sort]);
 
-  const handleSave = (data: Omit<Recipe, 'id'>, id?: string) => {
+  const handleSave = async (data: Omit<Recipe, 'id'>, id?: string): Promise<string | null> => {
     if (id) {
-      updateRecipe(id, data);
+      await updateRecipe(id, data);
+      return id;
     } else {
-      addRecipe(data);
+      const newId = await addRecipe(data);
+      return newId;
     }
   };
 
@@ -199,43 +201,49 @@ export const Recipes: React.FC = () => {
           ) : (
             <div className="space-y-4">
             {filtered.map(recipe => (
-              <Card key={recipe.id}>
+              <Card
+                key={recipe.id}
+                className="cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => navigate(`/recipes/${recipe.id}`)}
+              >
                 <CardHeader className="flex flex-row items-start justify-between">
                   <div>
                     <CardTitle className="text-base">{recipe.name}</CardTitle>
                     <CardDescription>{MEAL_TYPES[recipe.mealType].title}</CardDescription>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => { setEditing(recipe); setShowModal(true); }}>Editar</Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditing(recipe);
+                      setShowModal(true);
+                    }}
+                  >
+                    Editar
+                  </Button>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-3">
                   {recipe.description && (
-                    <p className="text-sm whitespace-pre-wrap">{recipe.description}</p>
+                    <p className="text-sm text-gray-600 line-clamp-2">{recipe.description}</p>
                   )}
-                  <p className="text-sm">
-                    <span className="font-medium">Dificultad:</span> {recipe.difficulty || 'N/A'} |{' '}
-                    <span className="font-medium">Tiempo:</span> {recipe.prepTime ? `${recipe.prepTime} min` : 'N/A'}
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">Dificultad:</span>
+                      <span className="text-gray-600 capitalize">{recipe.difficulty || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">Tiempo:</span>
+                      <span className="text-gray-600">{recipe.prepTime ? `${recipe.prepTime} min` : 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">Calorías:</span>
+                      <span className="text-gray-600">{recipe.nutrition.calories} kcal</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Haz click para ver la receta completa
                   </p>
-                  <div>
-                    <p className="text-sm font-medium">Ingredientes:</p>
-                    <ul className="list-disc pl-4 text-sm">
-                      {recipe.ingredients.map((ing, idx) => (
-                        <li key={idx}>{ing.quantity} {ing.name}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Instrucciones:</p>
-                    <p className="text-sm whitespace-pre-wrap">{recipe.instructions}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Información Nutricional:</p>
-                    <p className="text-sm">
-                      {recipe.nutrition.calories} kcal |{' '}
-                      {recipe.nutrition.protein}g P |{' '}
-                      {recipe.nutrition.carbs}g C |{' '}
-                      {recipe.nutrition.fat}g G
-                    </p>
-                  </div>
                 </CardContent>
               </Card>
             ))}

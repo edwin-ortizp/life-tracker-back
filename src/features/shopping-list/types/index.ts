@@ -15,6 +15,7 @@ export interface ShoppingItem {
   status: ItemStatus;
   nextPurchase?: boolean;
   unit?: ItemUnit;
+  barcode?: string;
 }
 
 export interface ShoppingListProps {}
