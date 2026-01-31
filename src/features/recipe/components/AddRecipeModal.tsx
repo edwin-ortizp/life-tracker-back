@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MEAL_TYPES } from '@/features/meal/types';
-import type { Recipe, RecipeIngredientRelation } from '../types';
+import type { Recipe } from '../types';
 import { IngredientsSelector } from './IngredientsSelector';
 import { useShoppingList } from '@/features/shopping-list/hooks/useShoppingList.supabase';
 import { useRecipeIngredients } from '../hooks/useRecipeIngredients';

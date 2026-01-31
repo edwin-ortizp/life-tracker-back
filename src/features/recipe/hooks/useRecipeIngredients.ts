@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RecipeIngredientRelation, RecipeIngredientWithItem } from '../types';
-import type { ShoppingItem } from '@/features/shopping-list/types';
 import { useAuth } from '@/hooks/useAuth';
 
 export const useRecipeIngredients = (recipeId?: string) => {
