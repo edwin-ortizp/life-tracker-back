@@ -14,9 +14,10 @@ npm run dev
 '''
 
 [[actions]]
-name = "build-prod"
+name = "build-prod-macOS"
 icon = "tool"
 command = '''
 npm run build
-node .\post-build-mac.js
+node post-build-mac.js
 '''
+platform = "darwin"

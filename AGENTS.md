@@ -146,9 +146,17 @@ npm run dev          # Servidor de desarrollo
 npm run build        # Build de producción
 npm run build:mac    # Build + deploy para macOS
 npm run build:win    # Build + deploy para Windows
+npm run deploy:mac   # Deploy en macOS desde post-build-mac.js
+npm run deploy:win   # Deploy en Windows desde post-build-windows.js
 npm run lint         # Análisis de código
 npm run preview      # Preview del build
 ```
+
+### Flujos de Build y Deploy Local
+- `build:mac`: genera `dist` y copia archivos a `/Applications/XAMPP/xamppfiles/htdocs/life-tracker`.
+- `build:win`: ejecuta build y script de deploy para copiar archivos a `C:\laragon\www\life-tracker`.
+- `deploy:mac` / `deploy:win`: ejecutan solo el script de copia/deploy del sistema operativo.
+- TODO: validar y unificar el flujo de `build:win`, ya que el script de Windows también dispara `npm run build` internamente.
 
 ## Consideraciones Importantes
 
