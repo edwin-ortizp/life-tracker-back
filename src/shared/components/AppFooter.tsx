@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useNetworkStatus } from '@/shared/hooks/useNetworkStatus'
 import { useGlobalPomodoroTimer } from '@/shared/hooks/useGlobalPomodoroTimer'
 import { useNotifications } from '@/modules/pomodoro/controllers/useNotifications'
+import { paths } from '@/core/routes/paths'
 import {
   Wifi,
   WifiOff,
@@ -29,19 +30,19 @@ const AppFooter = () => {
 
   const getPageName = (pathname: string) => {
     const routeMatchers: Array<[string, string]> = [
-      ['/water', 'Hidratacion'],
-      ['/exercise', 'Ejercicio'],
-      ['/habit', 'Habitos'],
-      ['/mood', 'Estado de Animo'],
-      ['/journal', 'Diario'],
-      ['/pomodoro', 'Pomodoro'],
-      ['/meal', 'Comidas'],
-      ['/task', 'Tareas'],
-      ['/negative', 'Habitos Negativos'],
-      ['/settings', 'Configuracion']
+      [paths.water.base, 'Hidratacion'],
+      [paths.exercise.base, 'Ejercicio'],
+      [paths.habit.base, 'Habitos'],
+      [paths.mood.base, 'Estado de Animo'],
+      [paths.journal.base, 'Diario'],
+      [paths.pomodoro.base, 'Pomodoro'],
+      [paths.meal.base, 'Comidas'],
+      [paths.task.base, 'Tareas'],
+      [paths.negativeHabits.base, 'Habitos Negativos'],
+      [paths.settings, 'Configuracion']
     ]
 
-    if (pathname === '/') return 'Inicio'
+    if (pathname === paths.home) return 'Inicio'
 
     const match = routeMatchers.find(([prefix]) => pathname.startsWith(prefix))
     return match?.[1] || 'Life Tracker'
@@ -123,7 +124,7 @@ const AppFooter = () => {
         {hasActivePomodoro && (
           <button
             type="button"
-            onClick={() => navigate('/pomodoro/view/timer')}
+            onClick={() => navigate(paths.pomodoro.view('timer'))}
             className="flex items-center space-x-2 bg-[#005a9e] px-2 py-1 rounded hover:bg-[#007ACC] transition-colors"
           >
             <Timer className="w-3 h-3" />
@@ -135,7 +136,7 @@ const AppFooter = () => {
         {!hasActivePomodoro && (
           <button
             type="button"
-            onClick={() => navigate('/pomodoro/view/timer')}
+            onClick={() => navigate(paths.pomodoro.view('timer'))}
             className="flex items-center space-x-1 hover:bg-[#005a9e] px-2 py-1 rounded transition-colors"
           >
             <Timer className="w-3 h-3" />

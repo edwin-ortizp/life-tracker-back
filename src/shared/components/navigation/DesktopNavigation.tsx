@@ -20,23 +20,24 @@ import {
   Flag
 } from 'lucide-react';
 import { useAuth } from '@/shared/hooks/useAuth';
+import { paths } from '@/core/routes/paths';
 import { MenuItem } from './types';
 import { ClipboardList, ThumbsDown, Kanban as KanbanIcon, BarChart } from 'lucide-react';
 
 export const menuItems: MenuItem[] = [
-  { icon: LayoutDashboard, label: 'Inicio', path: '/' },
-  { icon: Droplet, label: 'Hidratacion', path: '/water/view/daily' },
-  { icon: Dumbbell, label: 'Ejercicio', path: '/exercise/view/daily' },
-  { icon: CheckSquare, label: 'Habitos', path: '/habit/view/tracker' },
-  { icon: Smile, label: 'Estado', path: '/mood/view/tracker' },
-  { icon: BookOpen, label: 'Diario', path: '/journal/view/entries' },
-  { icon: Timer, label: 'Pomodoro', path: '/pomodoro/view/timer' },
-  { icon: UtensilsCrossed, label: 'Comidas', path: '/meal/view/weekly' },
-  { icon: ClipboardList, label: 'Tareas', path: '/task/view/list' },
-  { icon: KanbanIcon, label: 'Kanban', path: '/task/view/kanban' },
-  { icon: Flag, label: 'Objetivos', path: '/goals' },
-  { icon: BarChart, label: 'Estadisticas', path: '/stats' },
-  { icon: ThumbsDown, label: 'Habitos Negativos', path: '/negative/view/weekly' }
+  { icon: LayoutDashboard, label: 'Inicio', path: paths.home },
+  { icon: Droplet, label: 'Hidratacion', path: paths.water.view('daily') },
+  { icon: Dumbbell, label: 'Ejercicio', path: paths.exercise.view('daily') },
+  { icon: CheckSquare, label: 'Habitos', path: paths.habit.view('tracker') },
+  { icon: Smile, label: 'Estado', path: paths.mood.view('tracker') },
+  { icon: BookOpen, label: 'Diario', path: paths.journal.view('entries') },
+  { icon: Timer, label: 'Pomodoro', path: paths.pomodoro.view('timer') },
+  { icon: UtensilsCrossed, label: 'Comidas', path: paths.meal.view('weekly') },
+  { icon: ClipboardList, label: 'Tareas', path: paths.task.view('list') },
+  { icon: KanbanIcon, label: 'Kanban', path: paths.task.view('kanban') },
+  { icon: Flag, label: 'Objetivos', path: paths.goals.base },
+  { icon: BarChart, label: 'Estadisticas', path: paths.stats.home },
+  { icon: ThumbsDown, label: 'Habitos Negativos', path: paths.negativeHabits.view('weekly') }
 ];
 
 const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: (path: string) => void }) => {
@@ -78,7 +79,7 @@ const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: 
             <Button
               variant="ghost"
               className="w-full h-auto p-1.5 hover:bg-white/20 rounded-xl transition-colors duration-150 flex items-center justify-center"
-              onClick={() => navigate('/settings')}
+              onClick={() => navigate(paths.settings)}
             >
               {profileContent}
             </Button>
@@ -95,7 +96,7 @@ const UserProfile = ({ isExpanded, navigate }: { isExpanded: boolean; navigate: 
     <Button
       variant="ghost"
       className="w-full h-auto p-4 hover:bg-white/20 rounded-xl transition-colors duration-150 flex items-center justify-start"
-      onClick={() => navigate('/settings')}
+      onClick={() => navigate(paths.settings)}
     >
       {profileContent}
     </Button>

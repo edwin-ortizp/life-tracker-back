@@ -10,6 +10,7 @@ import { GoalList } from './GoalList';
 import { GoalDetail } from './GoalDetail';
 import { GoalModal } from './GoalModal';
 import type { Goal } from '../models';
+import { paths } from '@/core/routes/paths';
 
 export const Goals = () => {
   const { goalId } = useParams<{ goalId: string }>();
@@ -49,7 +50,7 @@ export const Goals = () => {
   useEffect(() => {
     if (goalId && goals.length > 0 && !goals.find(g => g.id === goalId)) {
       // Goal doesn't exist, redirect to goals list
-      navigate('/goals');
+      navigate(paths.goals.base);
     }
   }, [goalId, goals, navigate]);
 
@@ -91,12 +92,12 @@ export const Goals = () => {
 
   const handleBackToList = () => {
     setSelectedId(null);
-    navigate('/goals');
+    navigate(paths.goals.base);
   };
 
   const handleSelectGoal = (id: string) => {
     setSelectedId(id);
-    navigate(`/goals/${id}`);
+    navigate(paths.goals.detail(id));
   };
 
   if (selectedGoal) {

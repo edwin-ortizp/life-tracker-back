@@ -5,6 +5,7 @@ import { Button } from '@/shared/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useTaskData } from '@/modules/task/controllers/useTaskData.supabase';
 import { startOfDay, endOfDay } from 'date-fns';
+import { paths } from '@/core/routes/paths';
 
 interface QuickAccessTasksProps {
   date: Date;
@@ -50,7 +51,7 @@ export const QuickAccessTasks: React.FC<QuickAccessTasksProps> = ({
   }).length;
 
   const handleQuickAdd = () => {
-    navigate('/task/view/list');
+    navigate(paths.task.view('list'));
   };
 
   return (
@@ -59,7 +60,7 @@ export const QuickAccessTasks: React.FC<QuickAccessTasksProps> = ({
       icon={ListTodo}
       variant={variant}
       loading={loading}
-      onClick={() => navigate('/task/view/list')}
+      onClick={() => navigate(paths.task.view('list'))}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between">

@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/components/ui/tooltip';
 import { Calendar, ChefHat, ShoppingCart, Package } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { paths } from '@/core/routes/paths';
 import { ToggleGroup, ToggleGroupItem } from '@/shared/components/ui/toggle-group';
 import { ShoppingExportWizard } from './ShoppingExportWizard';
 import { useShoppingList } from '../controllers/useShoppingList.supabase';
@@ -21,7 +22,7 @@ export const ShoppingList: React.FC = () => {
   const navigate = useNavigate();
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
   const view = useMemo<'kanban' | 'list'>(
-    () => (location.pathname.includes('/shopping-list/view/kanban') ? 'kanban' : 'list'),
+    () => (location.pathname.includes(paths.shoppingList.view('kanban')) ? 'kanban' : 'list'),
     [location.pathname]
   );
   const [showExportWizard, setShowExportWizard] = useState(false);
@@ -43,7 +44,7 @@ export const ShoppingList: React.FC = () => {
           { key: 'kanban', label: 'Kanban' },
         ]}
         activeViewKey={view}
-        onViewChange={(key) => navigate(`/shopping-list/view/${key}`)}
+        onViewChange={(key) => navigate(paths.shoppingList.view(key))}
       >
         {/* Desktop: Icon buttons */}
         <TooltipProvider>
@@ -51,7 +52,7 @@ export const ShoppingList: React.FC = () => {
             <ToggleGroup
               type="single"
               value={view}
-              onValueChange={(v) => v && navigate(`/shopping-list/view/${v}`)}
+              onValueChange={(v) => v && navigate(paths.shoppingList.view(v))}
             >
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -101,7 +102,7 @@ export const ShoppingList: React.FC = () => {
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigate('/shopping/run')}>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigate(paths.shoppingList.run)}>
                   <Play className="h-4 w-4" />
                   <span className="sr-only">Ir de compras</span>
                 </Button>
@@ -113,7 +114,7 @@ export const ShoppingList: React.FC = () => {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigate('/shopping-list/config')}>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigate(paths.shoppingList.config)}>
                   <Settings className="h-4 w-4" />
                   <span className="sr-only">Configuracion</span>
                 </Button>
@@ -142,42 +143,42 @@ export const ShoppingList: React.FC = () => {
               <Download className="mr-2 h-4 w-4" />
               Exportar ingredientes
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/shopping/run')}>
+            <DropdownMenuItem onClick={() => navigate(paths.shoppingList.run)}>
               <Play className="mr-2 h-4 w-4" />
               Ir de compras
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/shopping-list/config')}>
+            <DropdownMenuItem onClick={() => navigate(paths.shoppingList.config)}>
               <Settings className="mr-2 h-4 w-4" />
               Configuracion
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {location.pathname !== '/meal/view/weekly' && (
+            {location.pathname !== paths.meal.view('weekly') && (
               <DropdownMenuItem asChild>
-                <Link to="/meal/view/weekly" className="flex items-center">
+                <Link to={paths.meal.view('weekly')} className="flex items-center">
                   <Calendar className="mr-2 h-4 w-4" />
                   Plan de Comidas
                 </Link>
               </DropdownMenuItem>
             )}
-            {!location.pathname.startsWith('/shopping-list') && (
+            {!location.pathname.startsWith(paths.shoppingList.base) && (
               <DropdownMenuItem asChild>
-                <Link to="/shopping-list/view/list" className="flex items-center">
+                <Link to={paths.shoppingList.view('list')} className="flex items-center">
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Lista de Compras
                 </Link>
               </DropdownMenuItem>
             )}
-            {location.pathname !== '/recipes/view/list' && (
+            {location.pathname !== paths.recipes.view('list') && (
               <DropdownMenuItem asChild>
-                <Link to="/recipes/view/list" className="flex items-center">
+                <Link to={paths.recipes.view('list')} className="flex items-center">
                   <ChefHat className="mr-2 h-4 w-4" />
                   Recetas
                 </Link>
               </DropdownMenuItem>
             )}
-            {location.pathname !== '/prepared-meals/view/list' && (
+            {location.pathname !== paths.preparedMeals.view('list') && (
               <DropdownMenuItem asChild>
-                <Link to="/prepared-meals/view/list" className="flex items-center">
+                <Link to={paths.preparedMeals.view('list')} className="flex items-center">
                   <Package className="mr-2 h-4 w-4" />
                   Comidas Preparadas
                 </Link>

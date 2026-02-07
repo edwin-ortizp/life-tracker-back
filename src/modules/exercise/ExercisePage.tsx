@@ -10,6 +10,7 @@ import { useAuth } from '@/shared/hooks/useAuth';
 import ModuleViewLayout from '@/shared/components/module-views/ModuleViewLayout';
 import type { ModuleViewAction, ModuleViewDefinition } from '@/shared/components/module-views/types';
 import { exerciseDefaultViewKey, exerciseViews, type ExerciseViewKey } from '@/modules/exercise/views';
+import { paths } from '@/core/routes/paths';
 
 type ExerciseRef = {
   openAddExercise: () => void;
@@ -54,7 +55,7 @@ const ExercisePage: React.FC = () => {
   const activeView = exerciseViewRegistry.find((view) => view.key === resolvedViewKey);
 
   if (!activeView) {
-    return <Navigate to={`/exercise/view/${exerciseDefaultViewKey}`} replace />;
+    return <Navigate to={paths.exercise.view(exerciseDefaultViewKey)} replace />;
   }
 
   if (!user) {
@@ -82,7 +83,7 @@ const ExercisePage: React.FC = () => {
       id: 'config',
       label: 'Configuracion',
       icon: <Settings className="h-4 w-4" />,
-      onClick: () => navigate('/exercise/config'),
+      onClick: () => navigate(paths.exercise.config),
       tooltip: 'Configuracion'
     }
   ];
@@ -101,7 +102,7 @@ const ExercisePage: React.FC = () => {
       icon={<Dumbbell className="h-4 w-4 text-white" />}
       views={exerciseViewRegistry}
       activeViewKey={resolvedViewKey}
-      onViewChange={(key) => navigate(`/exercise/view/${key}`)}
+      onViewChange={(key) => navigate(paths.exercise.view(key))}
       actions={actions}
     >
       <div className="p-4 space-y-4">

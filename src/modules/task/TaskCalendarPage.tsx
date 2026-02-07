@@ -16,6 +16,7 @@ import { Task, TaskCategory, CATEGORY_LABELS, TASK_CATEGORIES } from '@/modules/
 import { CompactTaskHeader } from '@/shared/components/navigation/CompactTaskHeader';
 import { cn } from '@/lib/utils';
 import { adjustEndDateToStartDate } from '@/shared/utils/dates';
+import { paths } from '@/core/routes/paths';
 
 const TaskCalendarPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -116,7 +117,7 @@ const TaskCalendarPage: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/task')}
+            onClick={() => navigate(paths.task.base)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -240,7 +241,7 @@ const TaskCalendarPage: React.FC = () => {
       id: 'back',
       label: 'Volver',
       icon: <ArrowLeft className="h-4 w-4" />,
-      onClick: () => navigate('/task/list'),
+      onClick: () => navigate(paths.task.legacy.list),
       tooltip: 'Volver a tareas'
     },
     {
@@ -287,13 +288,13 @@ const TaskCalendarPage: React.FC = () => {
 
   const handleTabChange = (tab: string) => {
     if (tab === 'list') {
-      navigate('/task/list');
+      navigate(paths.task.legacy.list);
     } else if (tab === 'kanban') {
-      navigate('/task/kanban');
+      navigate(paths.task.legacy.kanban);
     } else if (tab === 'week') {
-      navigate('/task/calendar');
+      navigate(paths.task.legacy.calendar);
     } else if (tab === 'analytics') {
-      navigate('/task/list'); // Analytics is part of list view
+      navigate(paths.task.legacy.list); // Analytics is part of list view
     }
   };
 

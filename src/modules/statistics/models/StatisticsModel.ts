@@ -5,6 +5,9 @@ export interface DailyStatsSummary {
   moodEntries: number;
   moodAverage: number;
   journalEntries: number;
+  habitWeeklyCompletionPct: number;
+  habitWeeklyCompleted: number;
+  habitWeeklyTotal: number;
 }
 
 export interface MoodTrendPoint {

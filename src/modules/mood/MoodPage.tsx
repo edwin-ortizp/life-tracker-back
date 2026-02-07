@@ -8,6 +8,7 @@ import ModuleViewLayout from '@/shared/components/module-views/ModuleViewLayout'
 import type { ModuleViewAction, ModuleViewDefinition } from '@/shared/components/module-views/types';
 import { moodDefaultViewKey, moodViews, type MoodViewKey } from '@/modules/mood/views';
 import { Heart, Settings } from 'lucide-react';
+import { paths } from '@/core/routes/paths';
 import {
   Tooltip,
   ResponsiveContainer,
@@ -110,7 +111,7 @@ const MoodPage = () => {
   const activeView = moodViewRegistry.find((view) => view.key === resolvedViewKey);
 
   if (!activeView) {
-    return <Navigate to={`/mood/view/${moodDefaultViewKey}`} replace />;
+    return <Navigate to={paths.mood.view(moodDefaultViewKey)} replace />;
   }
 
   const actions: ModuleViewAction[] = [
@@ -118,7 +119,7 @@ const MoodPage = () => {
       id: 'config',
       label: 'Configuracion',
       icon: <Settings className="h-4 w-4" />,
-      onClick: () => navigate('/mood/config'),
+      onClick: () => navigate(paths.mood.config),
       tooltip: 'Configuracion'
     }
   ];
@@ -132,7 +133,7 @@ const MoodPage = () => {
       icon={<Heart className="h-4 w-4 text-white" />}
       views={moodViewRegistry}
       activeViewKey={resolvedViewKey}
-      onViewChange={(key) => navigate(`/mood/view/${key}`)}
+      onViewChange={(key) => navigate(paths.mood.view(key))}
       actions={actions}
     >
       <div className="p-4 space-y-4">

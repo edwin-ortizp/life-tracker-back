@@ -9,6 +9,7 @@ import ModuleViewLayout from '@/shared/components/module-views/ModuleViewLayout'
 import type { ModuleViewAction, ModuleViewDefinition } from '@/shared/components/module-views/types';
 import { waterDefaultViewKey, waterViews, type WaterViewKey } from '@/modules/water/views';
 import { Droplet, Settings } from 'lucide-react';
+import { paths } from '@/core/routes/paths';
 
 type WaterViewProps = {
   selectedDate: Date;
@@ -57,7 +58,7 @@ const WaterPage: React.FC = () => {
   const activeView = waterViewRegistry.find((view) => view.key === resolvedViewKey);
 
   if (!activeView) {
-    return <Navigate to={`/water/view/${waterDefaultViewKey}`} replace />;
+    return <Navigate to={paths.water.view(waterDefaultViewKey)} replace />;
   }
 
   if (!user) {
@@ -82,7 +83,7 @@ const WaterPage: React.FC = () => {
       id: 'config',
       label: 'Configuracion',
       icon: <Settings className="h-4 w-4" />,
-      onClick: () => navigate('/water/config'),
+      onClick: () => navigate(paths.water.config),
       tooltip: 'Configuracion'
     }
   ];
@@ -96,7 +97,7 @@ const WaterPage: React.FC = () => {
       icon={<Droplet className="h-4 w-4 text-white" />}
       views={waterViewRegistry}
       activeViewKey={resolvedViewKey}
-      onViewChange={(key) => navigate(`/water/view/${key}`)}
+      onViewChange={(key) => navigate(paths.water.view(key))}
       actions={actions}
     >
       <div className="p-4 space-y-4">

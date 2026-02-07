@@ -4,6 +4,7 @@ import { Calendar, ChefHat, ShoppingCart, Utensils, Package, ChevronDown } from 
 import { cn } from '@/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/components/ui/dropdown-menu';
+import { paths } from '@/core/routes/paths';
 
 interface NavigationItem {
   path: string;
@@ -13,22 +14,22 @@ interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   {
-    path: '/meal/view/weekly',
+    path: paths.meal.view('weekly'),
     label: 'Plan de Comidas',
     icon: <Calendar className="h-4 w-4" />
   },
   {
-    path: '/shopping-list/view/list',
+    path: paths.shoppingList.view('list'),
     label: 'Lista de Compras',
     icon: <ShoppingCart className="h-4 w-4" />
   },
   {
-    path: '/recipes/view/list',
+    path: paths.recipes.view('list'),
     label: 'Recetas',
     icon: <ChefHat className="h-4 w-4" />
   },
   {
-    path: '/prepared-meals/view/list',
+    path: paths.preparedMeals.view('list'),
     label: 'Comidas Preparadas',
     icon: <Package className="h-4 w-4" />
   }
@@ -70,8 +71,8 @@ export const CompactMealHeader: React.FC<CompactMealHeaderProps> = ({
               {/* Navigation - Desktop */}
               <nav className="hidden md:flex gap-2 lg:gap-4">
                 {navigationItems.map((item) => {
-                  const isActive = item.path.includes('/shopping-list/')
-                    ? location.pathname.startsWith('/shopping-list')
+                  const isActive = item.path.includes(`${paths.shoppingList.base}/`)
+                    ? location.pathname.startsWith(paths.shoppingList.base)
                     : location.pathname === item.path;
                   return (
                     <Link

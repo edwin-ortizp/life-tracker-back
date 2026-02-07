@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, BookOpen, Droplet, Dumbbell, RefreshCw, Smile } from 'lucide-react';
+import { Activity, BookOpen, CheckSquare, Droplet, Dumbbell, RefreshCw, Smile } from 'lucide-react';
+import { paths } from '@/core/routes/paths';
 import PageLayout from '@/shared/components/PageLayout';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -33,7 +34,7 @@ const StatisticsPage: React.FC = () => {
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2"><Droplet className="h-4 w-4" /> Agua hoy</CardTitle>
@@ -72,6 +73,18 @@ const StatisticsPage: React.FC = () => {
             <p className="text-sm text-muted-foreground">entradas</p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2"><CheckSquare className="h-4 w-4" /> Habitos (7 dias)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-semibold">{data.summary.habitWeeklyCompletionPct.toFixed(1)}%</p>
+            <p className="text-sm text-muted-foreground">
+              {data.summary.habitWeeklyCompleted}/{data.summary.habitWeeklyTotal} completados
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -92,10 +105,10 @@ const StatisticsPage: React.FC = () => {
           <CardTitle className="text-lg">Accesos rapidos</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Button asChild variant="outline"><Link to="/water/view/weekly">Ver hidratacion</Link></Button>
-          <Button asChild variant="outline"><Link to="/exercise/view/calendar">Ver ejercicio</Link></Button>
-          <Button asChild variant="outline"><Link to="/mood/view/tracker">Ver estado de animo</Link></Button>
-          <Button asChild variant="outline"><Link to="/journal/view/entries">Ver diario</Link></Button>
+          <Button asChild variant="outline"><Link to={paths.water.view('weekly')}>Ver hidratacion</Link></Button>
+          <Button asChild variant="outline"><Link to={paths.exercise.view('calendar')}>Ver ejercicio</Link></Button>
+          <Button asChild variant="outline"><Link to={paths.mood.view('tracker')}>Ver estado de animo</Link></Button>
+          <Button asChild variant="outline"><Link to={paths.journal.view('entries')}>Ver diario</Link></Button>
         </CardContent>
       </Card>
     </PageLayout>

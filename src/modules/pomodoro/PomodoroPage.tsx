@@ -7,6 +7,7 @@ import ModuleViewLayout from '@/shared/components/module-views/ModuleViewLayout'
 import type { ModuleViewAction, ModuleViewDefinition } from '@/shared/components/module-views/types';
 import { pomodoroDefaultViewKey, pomodoroViews, type PomodoroViewKey } from '@/modules/pomodoro/views';
 import { Timer, Settings } from 'lucide-react';
+import { paths } from '@/core/routes/paths';
 
 type PomodoroViewProps = {
   selectedDate: Date;
@@ -43,7 +44,7 @@ export default function PomodoroPage() {
   const activeView = pomodoroViewRegistry.find((view) => view.key === resolvedViewKey);
 
   if (!activeView) {
-    return <Navigate to={`/pomodoro/view/${pomodoroDefaultViewKey}`} replace />;
+    return <Navigate to={paths.pomodoro.view(pomodoroDefaultViewKey)} replace />;
   }
 
   if (!user) {
@@ -64,7 +65,7 @@ export default function PomodoroPage() {
       id: 'config',
       label: 'Configuracion',
       icon: <Settings className="h-4 w-4" />,
-      onClick: () => navigate('/pomodoro/config'),
+      onClick: () => navigate(paths.pomodoro.config),
       tooltip: 'Configuracion'
     }
   ];
@@ -78,7 +79,7 @@ export default function PomodoroPage() {
       icon={<Timer className="h-4 w-4 text-white" />}
       views={pomodoroViewRegistry}
       activeViewKey={resolvedViewKey}
-      onViewChange={(key) => navigate(`/pomodoro/view/${key}`)}
+      onViewChange={(key) => navigate(paths.pomodoro.view(key))}
       actions={actions}
     >
       <div className="p-4">

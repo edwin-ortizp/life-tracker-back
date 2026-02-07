@@ -3,6 +3,7 @@ import { UtensilsCrossed, Plus } from 'lucide-react';
 import { DailyWidget } from './DailyWidget';
 import { Button } from '@/shared/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { paths } from '@/core/routes/paths';
 
 interface QuickAccessMealProps {
   date: Date;
@@ -32,7 +33,7 @@ export const QuickAccessMeal: React.FC<QuickAccessMealProps> = ({
 
   const handlePlanMeal = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate('/meal/view/weekly');
+    navigate(paths.meal.view('weekly'));
   };
 
   return (
@@ -40,7 +41,7 @@ export const QuickAccessMeal: React.FC<QuickAccessMealProps> = ({
       title="Comidas"
       icon={UtensilsCrossed}
       variant={variant}
-      onClick={() => navigate('/meal/view/weekly')}
+      onClick={() => navigate(paths.meal.view('weekly'))}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between">

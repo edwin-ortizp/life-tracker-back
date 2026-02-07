@@ -7,6 +7,7 @@ import { useRecipes } from '../controllers/useRecipes.supabase';
 import { useRecipeIngredients } from '../controllers/useRecipeIngredients';
 import { useShoppingList } from '@/modules/shopping-list/controllers/useShoppingList.supabase';
 import { MEAL_TYPES } from '@/modules/meal/models';
+import { paths } from '@/core/routes/paths';
 import AddRecipeModal from './AddRecipeModal';
 import ManageIngredientsModal from './ManageIngredientsModal';
 
@@ -29,7 +30,7 @@ export const RecipeDetail: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <p className="text-gray-500 mb-4">Receta no encontrada</p>
-        <Button onClick={() => navigate('/recipes/view/list')}>
+        <Button onClick={() => navigate(paths.recipes.view('list'))}>
           Volver a Recetas
         </Button>
       </div>
@@ -62,7 +63,7 @@ export const RecipeDetail: React.FC = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate('/recipes/view/list')}
+          onClick={() => navigate(paths.recipes.view('list'))}
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>

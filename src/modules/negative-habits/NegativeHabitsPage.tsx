@@ -16,6 +16,7 @@ import ModuleViewLayout from '@/shared/components/module-views/ModuleViewLayout'
 import type { ModuleViewAction, ModuleViewDefinition } from '@/shared/components/module-views/types';
 import { negativeHabitDefaultViewKey, negativeHabitViews, type NegativeHabitViewKey } from '@/modules/negative-habits/views';
 import { Ban, Settings } from 'lucide-react';
+import { paths } from '@/core/routes/paths';
 
 type NegativeHabitViewProps = {
   selectedDate: Date;
@@ -79,7 +80,7 @@ const NegativeHabitsPage = () => {
   const activeView = negativeHabitViewRegistry.find((view) => view.key === resolvedViewKey);
 
   if (!activeView) {
-    return <Navigate to={`/negative/view/${negativeHabitDefaultViewKey}`} replace />;
+    return <Navigate to={paths.negativeHabits.view(negativeHabitDefaultViewKey)} replace />;
   }
 
   if (!user) {
@@ -104,7 +105,7 @@ const NegativeHabitsPage = () => {
       id: 'config',
       label: 'Configuracion',
       icon: <Settings className="h-4 w-4" />,
-      onClick: () => navigate('/negative/config'),
+      onClick: () => navigate(paths.negativeHabits.config),
       tooltip: 'Configuracion'
     }
   ];
@@ -118,7 +119,7 @@ const NegativeHabitsPage = () => {
       icon={<Ban className="h-4 w-4 text-white" />}
       views={negativeHabitViewRegistry}
       activeViewKey={resolvedViewKey}
-      onViewChange={(key) => navigate(`/negative/view/${key}`)}
+      onViewChange={(key) => navigate(paths.negativeHabits.view(key))}
       actions={actions}
     >
       <div className="p-4 space-y-4">

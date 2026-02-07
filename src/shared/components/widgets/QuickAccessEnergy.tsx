@@ -4,6 +4,7 @@ import { DailyWidget } from './DailyWidget';
 import { Button } from '@/shared/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useEnergyData } from '@/modules/mood/controllers/useEnergyData.supabase';
+import { paths } from '@/core/routes/paths';
 import {
   BatteryWarning,
   BatteryLow,
@@ -55,7 +56,7 @@ export const QuickAccessEnergy: React.FC<QuickAccessEnergyProps> = ({
       icon={Battery}
       variant={variant}
       loading={loading}
-      onClick={() => navigate('/mood/view/tracker')}
+      onClick={() => navigate(paths.mood.view('tracker'))}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -86,7 +87,7 @@ export const QuickAccessEnergy: React.FC<QuickAccessEnergyProps> = ({
             variant="outline"
             onClick={(e) => {
               e.stopPropagation();
-              navigate('/mood/view/tracker');
+              navigate(paths.mood.view('tracker'));
             }}
             className="flex items-center gap-1"
           >

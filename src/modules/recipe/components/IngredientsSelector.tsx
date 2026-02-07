@@ -25,7 +25,8 @@ export const IngredientsSelector: React.FC<IngredientsSelectorProps> = ({
   availableItems
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedItemId, setSelectedItemId] = useState('');
+  const [selectedItem, setSelectedItem] = useState<{ id: string; name: string } | null>(null);
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const [quantity, setQuantity] = useState('1');
   const [unit, setUnit] = useState('');
   const [notes, setNotes] = useState('');
@@ -37,14 +38,14 @@ export const IngredientsSelector: React.FC<IngredientsSelectorProps> = ({
   );
 
   const handleAddIngredient = () => {
-    if (!selectedItemId || !quantity || Number(quantity) <= 0) return;
+    if (!selectedItem || !quantity || Number(quantity) <= 0) return;
 
-    const selectedItem = availableItems.find(item => item.id === selectedItemId);
-    if (!selectedItem) return;
+    const selectedItemData = availableItems.find(item => item.id === selectedItem.id);
+    if (!selectedItemData) return;
 
     const newIngredient: IngredientInput = {
-      shoppingItemId: selectedItemId,
-      shoppingItemName: selectedItem.name,
+      shoppingItemId: selectedItem.id,
+      shoppingItemName: selectedItemData.name,
       quantity: Number(quantity),
       unit: unit.trim() || undefined,
       notes: notes.trim() || undefined
@@ -53,11 +54,12 @@ export const IngredientsSelector: React.FC<IngredientsSelectorProps> = ({
     onChange([...ingredients, newIngredient]);
 
     // Reset form
-    setSelectedItemId('');
+    setSelectedItem(null);
     setQuantity('1');
     setUnit('');
     setNotes('');
     setSearchQuery('');
+    setIsSuggestionsOpen(false);
   };
 
   const handleRemoveIngredient = (itemId: string) => {
@@ -81,19 +83,33 @@ export const IngredientsSelector: React.FC<IngredientsSelectorProps> = ({
             <Input
               placeholder="Buscar producto en tu lista de compras..."
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => {
+                const nextValue = e.target.value;
+                setSearchQuery(nextValue);
+                setIsSuggestionsOpen(nextValue.length > 0);
+                if (!selectedItem || selectedItem.name !== nextValue) {
+                  setSelectedItem(null);
+                }
+              }}
+              onFocus={() => {
+                if (searchQuery.length > 0) {
+                  setIsSuggestionsOpen(true);
+                }
+              }}
               className="text-base h-11"
             />
-            {searchQuery && filteredItems.length > 0 && (
+            {isSuggestionsOpen && searchQuery && filteredItems.length > 0 && (
               <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-64 overflow-y-auto">
                 {filteredItems.slice(0, 15).map(item => (
                   <button
                     key={item.id}
                     type="button"
                     className="w-full px-4 py-3 text-left hover:bg-gray-100 border-b last:border-b-0"
-                    onClick={() => {
-                      setSelectedItemId(item.id);
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setSelectedItem({ id: item.id, name: item.name });
                       setSearchQuery(item.name);
+                      setIsSuggestionsOpen(false);
                     }}
                   >
                     <div className="font-medium text-base">{item.name}</div>
@@ -105,6 +121,9 @@ export const IngredientsSelector: React.FC<IngredientsSelectorProps> = ({
               </div>
             )}
           </div>
+          {selectedItem && (
+            <p className="text-xs text-blue-700">Seleccionado: {selectedItem.name}</p>
+          )}
 
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1">
@@ -142,7 +161,7 @@ export const IngredientsSelector: React.FC<IngredientsSelectorProps> = ({
           <Button
             type="button"
             onClick={handleAddIngredient}
-            disabled={!selectedItemId || !quantity || Number(quantity) <= 0}
+            disabled={!selectedItem || !quantity || Number(quantity) <= 0}
             className="w-full h-10 text-base"
           >
             <Plus className="w-5 h-5 mr-2" />

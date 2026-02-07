@@ -9,6 +9,7 @@ import ModuleViewLayout from '@/shared/components/module-views/ModuleViewLayout'
 import type { ModuleViewAction, ModuleViewDefinition } from '@/shared/components/module-views/types';
 import { habitDefaultViewKey, habitViews, type HabitViewKey } from '@/modules/habit/views';
 import { CheckSquare, Settings } from 'lucide-react';
+import { paths } from '@/core/routes/paths';
 
 type HabitViewProps = {
   selectedDate: Date;
@@ -76,7 +77,7 @@ const HabitPage = () => {
   const activeView = habitViewRegistry.find((view) => view.key === resolvedViewKey);
 
   if (!activeView) {
-    return <Navigate to={`/habit/view/${habitDefaultViewKey}`} replace />;
+    return <Navigate to={paths.habit.view(habitDefaultViewKey)} replace />;
   }
 
   const actions: ModuleViewAction[] = [
@@ -84,7 +85,7 @@ const HabitPage = () => {
       id: 'config',
       label: 'Configuracion',
       icon: <Settings className="h-4 w-4" />,
-      onClick: () => navigate('/habit/config'),
+      onClick: () => navigate(paths.habit.config),
       tooltip: 'Configuracion'
     }
   ];
@@ -98,7 +99,7 @@ const HabitPage = () => {
       icon={<CheckSquare className="h-4 w-4 text-white" />}
       views={habitViewRegistry}
       activeViewKey={resolvedViewKey}
-      onViewChange={(key) => navigate(`/habit/view/${key}`)}
+      onViewChange={(key) => navigate(paths.habit.view(key))}
       actions={actions}
     >
       <div className="p-4 space-y-4">

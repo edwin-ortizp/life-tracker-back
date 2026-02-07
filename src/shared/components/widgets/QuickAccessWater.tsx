@@ -4,6 +4,7 @@ import { DailyWidget } from './DailyWidget';
 import { Button } from '@/shared/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useWaterData } from '@/modules/water/controllers/useWaterData.supabase';
+import { paths } from '@/core/routes/paths';
 
 interface QuickAccessWaterProps {
   date: Date;
@@ -43,7 +44,7 @@ export const QuickAccessWater: React.FC<QuickAccessWaterProps> = ({
       icon={Droplets}
       variant={variant}
       loading={loading}
-      onClick={() => navigate('/water/view/daily')}
+      onClick={() => navigate(paths.water.view('daily'))}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between">

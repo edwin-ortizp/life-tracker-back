@@ -5,6 +5,7 @@ import { Button } from '@/shared/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useMoodData } from '@/modules/mood/controllers/useMoodData.supabase';
 import { calculateMoodAverage } from '@/modules/mood/models';
+import { paths } from '@/core/routes/paths';
 
 interface QuickAccessMoodProps {
   date: Date;
@@ -38,7 +39,7 @@ export const QuickAccessMood: React.FC<QuickAccessMoodProps> = ({
       icon={Smile}
       variant={variant}
       loading={loading}
-      onClick={() => navigate('/mood/view/tracker')}
+      onClick={() => navigate(paths.mood.view('tracker'))}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -69,7 +70,7 @@ export const QuickAccessMood: React.FC<QuickAccessMoodProps> = ({
             variant="outline"
             onClick={(e) => {
               e.stopPropagation();
-              navigate('/mood/view/tracker');
+              navigate(paths.mood.view('tracker'));
             }}
             className="flex items-center gap-1"
           >

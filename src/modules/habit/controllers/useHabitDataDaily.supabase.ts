@@ -39,11 +39,11 @@ export const useHabitDataDaily = (date: Date): UseHabitDataDailyReturn => {
         const lastDayOfMonth = new Date(Number(year), Number(month), 0).getDate();
         const endDate = `${yearMonth}-${String(lastDayOfMonth).padStart(2, '0')}`;
 
-        const { data, error: fetchError } = await HabitService.table('habit_completions')
-          .select('habit_id, date, completed')
-          .eq('user_id', user.id)
-          .gte('date', startDate)
-          .lte('date', endDate);
+        const { data, error: fetchError } = await HabitService.getHabitCompletionsByRange(
+          user.id,
+          startDate,
+          endDate
+        );
 
         if (fetchError) throw fetchError;
 
@@ -82,15 +82,12 @@ export const useHabitDataDaily = (date: Date): UseHabitDataDailyReturn => {
     }));
 
     try {
-      const { error: upsertError } = await HabitService.table('habit_completions')
-        .upsert({
-          user_id: user.id,
-          habit_id: habitId,
-          date: date,
-          completed: newValue
-        }, {
-          onConflict: 'user_id,habit_id,date'
-        });
+      const { error: upsertError } = await HabitService.upsertHabitCompletion({
+        userId: user.id,
+        habitId,
+        date,
+        completed: newValue
+      });
 
       if (upsertError) throw upsertError;
 

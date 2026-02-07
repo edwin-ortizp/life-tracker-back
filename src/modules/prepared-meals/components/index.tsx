@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/components/ui/tooltip';
 import { Calendar, ChefHat, ShoppingCart, Package } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { paths } from '@/core/routes/paths';
 import { usePreparedMeals } from '../controllers/usePreparedMeals.supabase';
 import type { PreparedMeal } from '../models';
 import AddPreparedMealModal from './AddPreparedMealModal';
@@ -28,7 +29,7 @@ export const PreparedMeals: React.FC = () => {
         title="Comidas Preparadas"
         views={[{ key: 'list', label: 'Lista' }]}
         activeViewKey="list"
-        onViewChange={() => navigate('/prepared-meals/view/list')}
+        onViewChange={() => navigate(paths.preparedMeals.view('list'))}
       >
         {/* Desktop: Icon buttons */}
         <TooltipProvider>
@@ -46,7 +47,7 @@ export const PreparedMeals: React.FC = () => {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigate('/prepared-meals/config')}>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigate(paths.preparedMeals.config)}>
                   <Settings className="h-4 w-4" />
                   <span className="sr-only">Configuracion</span>
                 </Button>
@@ -71,38 +72,38 @@ export const PreparedMeals: React.FC = () => {
               <Plus className="mr-2 h-4 w-4" />
               Agregar
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/prepared-meals/config')}>
+            <DropdownMenuItem onClick={() => navigate(paths.preparedMeals.config)}>
               <Settings className="mr-2 h-4 w-4" />
               Configuracion
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {location.pathname !== '/meal/view/weekly' && (
+            {location.pathname !== paths.meal.view('weekly') && (
               <DropdownMenuItem asChild>
-                <Link to="/meal/view/weekly" className="flex items-center">
+                <Link to={paths.meal.view('weekly')} className="flex items-center">
                   <Calendar className="mr-2 h-4 w-4" />
                   Plan de Comidas
                 </Link>
               </DropdownMenuItem>
             )}
-            {!location.pathname.startsWith('/shopping-list') && (
+            {!location.pathname.startsWith(paths.shoppingList.base) && (
               <DropdownMenuItem asChild>
-                <Link to="/shopping-list/view/list" className="flex items-center">
+                <Link to={paths.shoppingList.view('list')} className="flex items-center">
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Lista de Compras
                 </Link>
               </DropdownMenuItem>
             )}
-            {location.pathname !== '/recipes/view/list' && (
+            {location.pathname !== paths.recipes.view('list') && (
               <DropdownMenuItem asChild>
-                <Link to="/recipes/view/list" className="flex items-center">
+                <Link to={paths.recipes.view('list')} className="flex items-center">
                   <ChefHat className="mr-2 h-4 w-4" />
                   Recetas
                 </Link>
               </DropdownMenuItem>
             )}
-            {location.pathname !== '/prepared-meals/view/list' && (
+            {location.pathname !== paths.preparedMeals.view('list') && (
               <DropdownMenuItem asChild>
-                <Link to="/prepared-meals/view/list" className="flex items-center">
+                <Link to={paths.preparedMeals.view('list')} className="flex items-center">
                   <Package className="mr-2 h-4 w-4" />
                   Comidas Preparadas
                 </Link>

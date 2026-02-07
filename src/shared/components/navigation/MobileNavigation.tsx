@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { ChevronDown, TrendingUp, Droplets, Smile, CheckCircle, ListTodo } from 'lucide-react';
 import { useAuth } from '@/shared/hooks/useAuth';
+import { paths } from '@/core/routes/paths';
 import { menuItems } from './DesktopNavigation';
 import type { MenuItem } from './types';
 import { Button } from "@/shared/components/ui/button";
@@ -23,7 +24,7 @@ const MobileNavigation = () => {
     try {
       setIsMenuOpen(false); // Close sheet before navigating
       await signOut();
-      navigate('/login');
+      navigate(paths.auth.login);
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
@@ -33,11 +34,11 @@ const MobileNavigation = () => {
 
   // Quick access shortcuts for widgets
   const quickAccessItems = [
-    { icon: Droplets, label: 'Agua +250ml', path: '/water/view/daily', action: 'quick-water' },
-    { icon: Smile, label: 'Registrar Animo', path: '/mood/view/tracker', action: 'quick-mood' },
-    { icon: CheckCircle, label: 'Marcar Habito', path: '/habit/view/tracker', action: 'quick-habit' },
-    { icon: ListTodo, label: 'Nueva Tarea', path: '/task/view/list', action: 'quick-task' },
-    { icon: TrendingUp, label: 'Resumen Hoy', path: '/stats', action: 'quick-stats' },
+    { icon: Droplets, label: 'Agua +250ml', path: paths.water.view('daily'), action: 'quick-water' },
+    { icon: Smile, label: 'Registrar Animo', path: paths.mood.view('tracker'), action: 'quick-mood' },
+    { icon: CheckCircle, label: 'Marcar Habito', path: paths.habit.view('tracker'), action: 'quick-habit' },
+    { icon: ListTodo, label: 'Nueva Tarea', path: paths.task.view('list'), action: 'quick-task' },
+    { icon: TrendingUp, label: 'Resumen Hoy', path: paths.stats.home, action: 'quick-stats' },
   ];
     const MobileMenuItem = ({ icon: Icon, label, path, onClick }: MenuItem & { onClick?: () => void }) => {
     const basePath = path.includes('/view/') ? path.split('/view/')[0] : path;

@@ -13,6 +13,7 @@ import { useExternalCalendars } from '@/modules/external-calendar/controllers/us
 import { AddCalendarDialog } from '@/modules/external-calendar/components/AddCalendarDialog'
 import { CalendarListItem } from '@/modules/external-calendar/components/CalendarListItem'
 import { CalendarSyncButton } from '@/modules/external-calendar/components/CalendarSyncButton'
+import { paths } from '@/core/routes/paths'
 
 const SettingsPage = () => {
   const { settings, saveSettings } = useUserSettings()
@@ -51,7 +52,7 @@ const SettingsPage = () => {
   const handleLogout = async () => {
     try {
       await signOut()
-      navigate('/login')
+      navigate(paths.auth.login)
     } catch (error) {
       console.error('Error al cerrar sesión:', error)
     }

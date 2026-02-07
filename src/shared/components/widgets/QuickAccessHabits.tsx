@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useHabitDataDaily } from '@/modules/habit/controllers/useHabitDataDaily.supabase';
 import { getLocalDateString } from '@/shared/utils/dates';
 import { HABITS } from '@/modules/habit/models';
+import { paths } from '@/core/routes/paths';
 
 interface QuickAccessHabitsProps {
   date: Date;
@@ -57,7 +58,7 @@ export const QuickAccessHabits: React.FC<QuickAccessHabitsProps> = ({
       icon={CheckCircle}
       variant={variant}
       loading={loading}
-      onClick={() => navigate('/habit/view/tracker')}
+      onClick={() => navigate(paths.habit.view('tracker'))}
     >
       <div className="space-y-2">
         <div className="flex items-center justify-between">

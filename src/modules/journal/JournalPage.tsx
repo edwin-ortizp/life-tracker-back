@@ -16,6 +16,7 @@ import { addDays } from 'date-fns';
 import { useJournalWeekEntries } from '@/modules/journal/controllers/useJournalWeekEntries.supabase';
 import { getStartOfIsoWeek } from '@/shared/utils/isoWeek';
 import { getLocalDateString } from '@/shared/utils/dates';
+import { paths } from '@/core/routes/paths';
 
 type JournalViewProps = {
   selectedDate: Date;
@@ -61,7 +62,7 @@ const JournalEntriesView: React.FC<JournalViewProps> = ({ selectedDate, onDateCh
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold">Semana {weekParam}</h3>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => navigate('/journal/view/life-calendar')}>
+                  <Button variant="outline" size="sm" onClick={() => navigate(paths.journal.view('life-calendar'))}>
                     Volver al Life Calendar
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => onDateChange(new Date())}>
@@ -118,7 +119,7 @@ const JournalPage: React.FC = () => {
   const activeView = journalViewRegistry.find((view) => view.key === resolvedViewKey);
 
   if (!activeView) {
-    return <Navigate to={`/journal/view/${journalDefaultViewKey}`} replace />;
+    return <Navigate to={paths.journal.view(journalDefaultViewKey)} replace />;
   }
 
   if (!user) {
@@ -143,7 +144,7 @@ const JournalPage: React.FC = () => {
       id: 'config',
       label: 'Configuracion',
       icon: <Settings className="h-4 w-4" />,
-      onClick: () => navigate('/journal/config'),
+      onClick: () => navigate(paths.journal.config),
       tooltip: 'Configuracion'
     }
   ];
@@ -157,7 +158,7 @@ const JournalPage: React.FC = () => {
       icon={<BookOpen className="h-4 w-4 text-white" />}
       views={journalViewRegistry}
       activeViewKey={resolvedViewKey}
-      onViewChange={(key) => navigate(`/journal/view/${key}`)}
+      onViewChange={(key) => navigate(paths.journal.view(key))}
       actions={actions}
     >
       <div className="p-4 space-y-4">

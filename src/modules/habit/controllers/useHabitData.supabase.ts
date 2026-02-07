@@ -26,11 +26,11 @@ export const useHabitData = () => {
         const startOfYear = `${currentYear}-01-01`;
         const endOfYear = `${currentYear}-12-31`;
 
-        const { data, error: fetchError } = await HabitService.table('habit_completions')
-          .select('habit_id, date, completed')
-          .eq('user_id', user.id)
-          .gte('date', startOfYear)
-          .lte('date', endOfYear);
+        const { data, error: fetchError } = await HabitService.getHabitCompletionsByRange(
+          user.id,
+          startOfYear,
+          endOfYear
+        );
 
         if (fetchError) throw fetchError;
 
@@ -71,15 +71,12 @@ export const useHabitData = () => {
 
     try {
       // Upsert: insertar o actualizar
-      const { error: upsertError } = await HabitService.table('habit_completions')
-        .upsert({
-          user_id: user.id,
-          habit_id: habitId,
-          date: date,
-          completed: newValue
-        }, {
-          onConflict: 'user_id,habit_id,date'
-        });
+      const { error: upsertError } = await HabitService.upsertHabitCompletion({
+        userId: user.id,
+        habitId,
+        date,
+        completed: newValue
+      });
 
       if (upsertError) throw upsertError;
 

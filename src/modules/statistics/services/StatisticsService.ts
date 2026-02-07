@@ -44,4 +44,13 @@ export class StatisticsService {
       .eq('user_id', userId)
       .eq('date', date);
   }
+
+  static async getHabitCompletionsRange(userId: string, fromDate: string, toDate: string) {
+    return supabase
+      .from('habit_completions')
+      .select('habit_id, date, completed')
+      .eq('user_id', userId)
+      .gte('date', fromDate)
+      .lte('date', toDate);
+  }
 }

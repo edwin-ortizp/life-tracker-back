@@ -27,6 +27,7 @@ import { taskDefaultViewKey, taskViews, type TaskViewKey } from '@/modules/task/
 import { useAuth } from '@/shared/hooks/useAuth';
 import { useTaskData } from '@/modules/task/controllers/useTaskData.supabase';
 import { useTaskKeyboardShortcuts } from '@/modules/task/controllers/useTaskKeyboardShortcuts';
+import { paths } from '@/core/routes/paths';
 import {
   PriorityLegend,
   TaskAiReprioritize,
@@ -477,7 +478,7 @@ const TaskPage: React.FC = () => {
   const activeView = taskViewRegistry.find((view) => view.key === resolvedViewKey);
 
   if (!activeView) {
-    return <Navigate to={`/task/view/${taskDefaultViewKey}`} replace />;
+    return <Navigate to={paths.task.view(taskDefaultViewKey)} replace />;
   }
 
   if (!user) {
@@ -600,7 +601,7 @@ const TaskPage: React.FC = () => {
       id: 'config',
       label: 'Configuracion',
       icon: <Settings className="h-4 w-4" />,
-      onClick: () => navigate('/task/config'),
+      onClick: () => navigate(paths.task.config),
       tooltip: 'Configuracion'
     },
     {
@@ -671,7 +672,7 @@ const TaskPage: React.FC = () => {
       icon={<CheckSquare className="h-4 w-4 text-white" />}
       views={taskViewRegistry}
       activeViewKey={resolvedViewKey}
-      onViewChange={(key) => navigate(`/task/view/${key}`)}
+      onViewChange={(key) => navigate(paths.task.view(key))}
       actions={taskActions}
     >
       <div className="p-4 space-y-4">
