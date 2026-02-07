@@ -17,7 +17,8 @@ import {
   ChevronRight,
   UtensilsCrossed,
   Dumbbell,
-  Flag
+  Flag,
+  Users
 } from 'lucide-react';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { paths } from '@/core/routes/paths';
@@ -35,6 +36,7 @@ export const menuItems: MenuItem[] = [
   { icon: UtensilsCrossed, label: 'Comidas', path: paths.meal.view('weekly') },
   { icon: ClipboardList, label: 'Tareas', path: paths.task.view('list') },
   { icon: KanbanIcon, label: 'Kanban', path: paths.task.view('kanban') },
+  { icon: Users, label: 'Relaciones', path: paths.relationships.index },
   { icon: Flag, label: 'Objetivos', path: paths.goals.base },
   { icon: BarChart, label: 'Estadisticas', path: paths.stats.home },
   { icon: ThumbsDown, label: 'Habitos Negativos', path: paths.negativeHabits.view('weekly') }

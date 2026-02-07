@@ -22,6 +22,7 @@ import { pomodoroRoutes } from '@/modules/pomodoro/routes';
 import { goalsRoutes } from '@/modules/goals/routes';
 import { statisticsRoutes } from '@/modules/statistics/routes';
 import { settingsRoutes } from '@/modules/settings/routes';
+import { relationshipsRoutes } from '@/modules/relationships/routes';
 
 const moduleRegistries = [
   homeRoutes,
@@ -39,7 +40,8 @@ const moduleRegistries = [
   pomodoroRoutes,
   goalsRoutes,
   statisticsRoutes,
-  settingsRoutes
+  settingsRoutes,
+  relationshipsRoutes
 ];
 
 const appChildrenRoutes: RouteObject[] = [

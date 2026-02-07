@@ -97,5 +97,12 @@ export const paths = {
     defaultView: 'list',
     view: (viewKey: string) => `/prepared-meals/view/${viewKey}`,
     config: '/prepared-meals/config'
+  },
+  relationships: {
+    base: '/relationships',
+    index: '/relationships',
+    defaultView: 'board',
+    view: (viewKey: string) => `/relationships/view/${viewKey}`,
+    detail: (relationshipId: string) => `/relationships/${relationshipId}`
   }
 } as const;
