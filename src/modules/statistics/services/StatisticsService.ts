@@ -3,28 +3,22 @@ import { supabase } from '@/core/supabase';
 export class StatisticsService {
   static readonly client = supabase;
 
-  static async getDrinkLogsByDate(userId: string, date: string) {
+  static async getDrinkLogsRange(userId: string, fromDate: string, toDate: string) {
     return supabase
       .from('drink_logs')
-      .select('amount')
+      .select('date, amount')
       .eq('user_id', userId)
-      .eq('date', date);
+      .gte('date', fromDate)
+      .lte('date', toDate);
   }
 
-  static async getExerciseLogsByDate(userId: string, date: string) {
+  static async getExerciseLogsRange(userId: string, fromDate: string, toDate: string) {
     return supabase
       .from('exercise_logs')
-      .select('id, calories')
+      .select('id, date, calories')
       .eq('user_id', userId)
-      .eq('date', date);
-  }
-
-  static async getMoodEntriesByDate(userId: string, date: string) {
-    return supabase
-      .from('mood_entries')
-      .select('value')
-      .eq('user_id', userId)
-      .eq('date', date);
+      .gte('date', fromDate)
+      .lte('date', toDate);
   }
 
   static async getMoodEntriesRange(userId: string, fromDate: string, toDate: string) {
@@ -37,12 +31,13 @@ export class StatisticsService {
       .order('date', { ascending: true });
   }
 
-  static async getJournalEntriesByDate(userId: string, date: string) {
+  static async getJournalEntriesRange(userId: string, fromDate: string, toDate: string) {
     return supabase
       .from('journal_entries')
       .select('date')
       .eq('user_id', userId)
-      .eq('date', date);
+      .gte('date', fromDate)
+      .lte('date', toDate);
   }
 
   static async getHabitCompletionsRange(userId: string, fromDate: string, toDate: string) {

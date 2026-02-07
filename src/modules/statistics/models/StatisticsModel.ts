@@ -1,4 +1,4 @@
-export interface DailyStatsSummary {
+export interface StatsSummary {
   waterMl: number;
   exerciseCount: number;
   exerciseCalories: number;
@@ -13,10 +13,10 @@ export interface DailyStatsSummary {
 export interface MoodTrendPoint {
   date: string;
   label: string;
-  value: number;
+  value: number | null;
 }
 
 export interface StatisticsDashboardData {
-  summary: DailyStatsSummary;
+  summary: StatsSummary;
   moodTrend: MoodTrendPoint[];
 }

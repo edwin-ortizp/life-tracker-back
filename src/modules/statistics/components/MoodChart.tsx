@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 
 interface MoodPoint {
   label: string;
-  value: number;
+  value: number | null;
 }
 
 interface Props {
@@ -27,7 +27,7 @@ export const MoodChart: React.FC<Props> = ({ data, className }) => {
           <XAxis dataKey="label" tick={{ fontSize: 10 }} />
           <YAxis domain={[0, 10]} tick={{ fontSize: 10 }} />
           <Tooltip />
-          <Line type="monotone" dataKey="value" stroke="#f59e0b" />
+          <Line type="monotone" dataKey="value" stroke="#f59e0b" connectNulls={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>

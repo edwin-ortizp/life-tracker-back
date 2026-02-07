@@ -4,12 +4,12 @@ import { getLocalDateString } from '@/shared/utils/dates';
 import { StatisticsService } from '@/modules/statistics/services';
 import { HABITS } from '@/modules/habit/models';
 import type {
-  DailyStatsSummary,
+  StatsSummary,
   MoodTrendPoint,
   StatisticsDashboardData
 } from '@/modules/statistics/models/StatisticsModel';
 
-const emptySummary: DailyStatsSummary = {
+const emptySummary: StatsSummary = {
   waterMl: 0,
   exerciseCount: 0,
   exerciseCalories: 0,
@@ -30,6 +30,19 @@ const daysAgoDateString = (days: number) => {
 const dateLabel = (isoDate: string) => {
   const date = new Date(`${isoDate}T00:00:00`);
   return date.toLocaleDateString('es-ES', { weekday: 'short' });
+};
+
+const getDateRange = (fromDate: string, days: number) => {
+  const dates: string[] = [];
+  const startDate = new Date(`${fromDate}T00:00:00`);
+
+  for (let index = 0; index < days; index += 1) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + index);
+    dates.push(getLocalDateString(date));
+  }
+
+  return dates;
 };
 
 const calculateWeeklyHabitStats = (
@@ -58,25 +71,23 @@ export const useStatisticsController = () => {
       return;
     }
 
-    const today = getLocalDateString(new Date());
-    const sevenDaysAgo = daysAgoDateString(6);
+    const toDate = getLocalDateString(new Date());
+    const fromDate = daysAgoDateString(6);
 
     setStatus('loading');
     setError(null);
 
     try {
-      const [drinkRes, exerciseRes, moodTodayRes, moodRangeRes, journalRes, habitsRangeRes] = await Promise.all([
-        StatisticsService.getDrinkLogsByDate(user.id, today),
-        StatisticsService.getExerciseLogsByDate(user.id, today),
-        StatisticsService.getMoodEntriesByDate(user.id, today),
-        StatisticsService.getMoodEntriesRange(user.id, sevenDaysAgo, today),
-        StatisticsService.getJournalEntriesByDate(user.id, today),
-        StatisticsService.getHabitCompletionsRange(user.id, sevenDaysAgo, today)
+      const [drinkRes, exerciseRes, moodRangeRes, journalRes, habitsRangeRes] = await Promise.all([
+        StatisticsService.getDrinkLogsRange(user.id, fromDate, toDate),
+        StatisticsService.getExerciseLogsRange(user.id, fromDate, toDate),
+        StatisticsService.getMoodEntriesRange(user.id, fromDate, toDate),
+        StatisticsService.getJournalEntriesRange(user.id, fromDate, toDate),
+        StatisticsService.getHabitCompletionsRange(user.id, fromDate, toDate)
       ]);
 
       if (drinkRes.error) throw drinkRes.error;
       if (exerciseRes.error) throw exerciseRes.error;
-      if (moodTodayRes.error) throw moodTodayRes.error;
       if (moodRangeRes.error) throw moodRangeRes.error;
       if (journalRes.error) throw journalRes.error;
       if (habitsRangeRes.error) throw habitsRangeRes.error;
@@ -87,9 +98,9 @@ export const useStatisticsController = () => {
         (acc, row) => acc + (row.calories || 0),
         0
       );
-      const moodEntries = (moodTodayRes.data || []).length;
+      const moodEntries = (moodRangeRes.data || []).length;
       const moodAverage = moodEntries
-        ? (moodTodayRes.data || []).reduce((acc, row) => acc + (row.value || 0), 0) / moodEntries
+        ? (moodRangeRes.data || []).reduce((acc, row) => acc + (row.value || 0), 0) / moodEntries
         : 0;
       const journalEntries = (journalRes.data || []).length;
       const weeklyHabitStats = calculateWeeklyHabitStats(habitsRangeRes.data || [], HABITS.length);
@@ -103,10 +114,12 @@ export const useStatisticsController = () => {
         moodByDate[row.date].count += 1;
       });
 
-      const moodTrend: MoodTrendPoint[] = Object.entries(moodByDate).map(([date, values]) => ({
+      const moodTrend: MoodTrendPoint[] = getDateRange(fromDate, 7).map((date) => ({
         date,
         label: dateLabel(date),
-        value: Number((values.total / values.count).toFixed(2))
+        value: moodByDate[date]
+          ? Number((moodByDate[date].total / moodByDate[date].count).toFixed(2))
+          : null
       }));
 
       setData({

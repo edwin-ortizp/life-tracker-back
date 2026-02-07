@@ -18,7 +18,7 @@ const StatisticsPage: React.FC = () => {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Estadisticas</h1>
-          <p className="text-sm text-muted-foreground">Resumen diario y tendencia emocional de los ultimos 7 dias.</p>
+          <p className="text-sm text-muted-foreground">Resumen de los ultimos 7 dias (incluyendo hoy).</p>
         </div>
         <Button onClick={reload} variant="outline" disabled={status === 'loading'}>
           <RefreshCw className={`mr-2 h-4 w-4 ${status === 'loading' ? 'animate-spin' : ''}`} />
@@ -37,7 +37,7 @@ const StatisticsPage: React.FC = () => {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2"><Droplet className="h-4 w-4" /> Agua hoy</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Droplet className="h-4 w-4" /> Agua (7 dias)</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold">{formatNumber(data.summary.waterMl)} ml</p>
@@ -46,7 +46,7 @@ const StatisticsPage: React.FC = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2"><Dumbbell className="h-4 w-4" /> Ejercicio hoy</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Dumbbell className="h-4 w-4" /> Ejercicio (7 dias)</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold">{formatNumber(data.summary.exerciseCalories)} kcal</p>
@@ -60,13 +60,13 @@ const StatisticsPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold">{data.summary.moodAverage.toFixed(1)} / 10</p>
-            <p className="text-sm text-muted-foreground">{data.summary.moodEntries} registros hoy</p>
+            <p className="text-sm text-muted-foreground">{data.summary.moodEntries} registros en 7 dias</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2"><BookOpen className="h-4 w-4" /> Diario hoy</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><BookOpen className="h-4 w-4" /> Diario (7 dias)</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold">{data.summary.journalEntries}</p>
