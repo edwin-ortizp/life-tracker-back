@@ -3,9 +3,9 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';
 import App from './App';
-import { ThemeProvider } from './themes/ThemeProvider';
+import { ThemeProvider } from './shared/themes/ThemeProvider';
 import './index.css';
-import './styles/pwa.css';
+import './shared/styles/pwa.css';
 
 // Registrar el service worker con mejor manejo de errores
 if ('serviceWorker' in navigator) {

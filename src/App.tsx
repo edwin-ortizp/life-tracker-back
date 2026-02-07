@@ -1,40 +1,41 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import AppLayout from './layouts/AppLayout';
-import { useAuth } from '@/hooks/useAuth';
+import AppLayout from '@/shared/layouts/AppLayout';
+import { useAuth } from '@/shared/hooks/useAuth';
 
 // Importación directa de páginas para carga inicial más rápida
 import Home from './artifacts/Home';
-import PomodoroPage from './pages/PomodoroPage';
-import MoodPage from './pages/MoodPage';
-import TaskPage from './pages/TaskPage';
-import HabitPage from './pages/HabitPage';
-import MealPage from './pages/MealPage';
-import ShoppingListPage from './pages/ShoppingListPage';
-import RecipesPage from './pages/RecipesPage';
-import RecipeDetailPage from './pages/RecipeDetailPage';
-import PreparedMealsPage from './pages/PreparedMealsPage';
-import ExercisePage from './pages/ExercisePage';
-import WaterPage from './pages/WaterPage';
-import JournalPage from './pages/JournalPage';
-import NegativeHabitsPage from './pages/NegativeHabitsPage';
-import SettingsPage from './pages/SettingsPage';
-import HabitRunPage from './pages/HabitRunPage';
-import ShoppingRunPage from './pages/ShoppingRunPage';
-import TaskRunPage from './pages/TaskRunPage';
-import GoalsPage from './pages/GoalsPage';
-import LoginPage from './pages/LoginPage';
-import ExerciseConfigPage from './pages/ExerciseConfigPage';
-import TaskConfigPage from './pages/TaskConfigPage';
-import HabitConfigPage from './pages/HabitConfigPage';
-import MoodConfigPage from './pages/MoodConfigPage';
-import WaterConfigPage from './pages/WaterConfigPage';
-import PomodoroConfigPage from './pages/PomodoroConfigPage';
-import JournalConfigPage from './pages/JournalConfigPage';
-import NegativeHabitsConfigPage from './pages/NegativeHabitsConfigPage';
-import MealConfigPage from './pages/MealConfigPage';
-import ShoppingListConfigPage from './pages/ShoppingListConfigPage';
-import RecipesConfigPage from './pages/RecipesConfigPage';
-import PreparedMealsConfigPage from './pages/PreparedMealsConfigPage';
+import PomodoroPage from './modules/pomodoro/PomodoroPage';
+import MoodPage from './modules/mood/MoodPage';
+import TaskPage from './modules/task/TaskPage';
+import HabitPage from './modules/habit/HabitPage';
+import MealPage from './modules/meal/MealPage';
+import ShoppingListPage from './modules/shopping-list/ShoppingListPage';
+import RecipesPage from './modules/recipe/RecipesPage';
+import RecipeDetailPage from './modules/recipe/RecipeDetailPage';
+import PreparedMealsPage from './modules/prepared-meals/PreparedMealsPage';
+import ExercisePage from './modules/exercise/ExercisePage';
+import WaterPage from './modules/water/WaterPage';
+import JournalPage from './modules/journal/JournalPage';
+import NegativeHabitsPage from './modules/negative-habits/NegativeHabitsPage';
+import SettingsPage from './modules/settings/SettingsPage';
+import HabitRunPage from './modules/habit/HabitRunPage';
+import ShoppingRunPage from './modules/shopping-list/ShoppingRunPage';
+import TaskRunPage from './modules/task/TaskRunPage';
+import GoalsPage from './modules/goals/GoalsPage';
+import LoginPage from './modules/auth/LoginPage';
+import ExerciseConfigPage from './modules/exercise/ExerciseConfigPage';
+import TaskConfigPage from './modules/task/TaskConfigPage';
+import HabitConfigPage from './modules/habit/HabitConfigPage';
+import MoodConfigPage from './modules/mood/MoodConfigPage';
+import WaterConfigPage from './modules/water/WaterConfigPage';
+import PomodoroConfigPage from './modules/pomodoro/PomodoroConfigPage';
+import JournalConfigPage from './modules/journal/JournalConfigPage';
+import NegativeHabitsConfigPage from './modules/negative-habits/NegativeHabitsConfigPage';
+import MealConfigPage from './modules/meal/MealConfigPage';
+import ShoppingListConfigPage from './modules/shopping-list/ShoppingListConfigPage';
+import RecipesConfigPage from './modules/recipe/RecipesConfigPage';
+import PreparedMealsConfigPage from './modules/prepared-meals/PreparedMealsConfigPage';
+import StatisticsPage from './modules/statistics/StatisticsPage';
 
 export const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -110,6 +111,7 @@ function App() {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="goals" element={<GoalsPage />} />
         <Route path="goals/:goalId" element={<GoalsPage />} />
+        <Route path="stats" element={<StatisticsPage />} />
       </Route>
       <Route path="habit/:habitId/run" element={<HabitRunPage />} />
       <Route path="shopping/run" element={<ShoppingRunPage />} />

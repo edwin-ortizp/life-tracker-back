@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import Auth from '../components/Auth';
-import DateSelector from '../components/DateSelector';
-import PageLayout from '@/components/PageLayout';
+import Auth from '../shared/components/Auth';
+import DateSelector from '../shared/components/DateSelector';
+import PageLayout from '@/shared/components/PageLayout';
 import { 
   QuickAccessWater, 
   QuickAccessMood, 
@@ -9,7 +9,7 @@ import {
   QuickAccessTasks, 
   QuickAccessEnergy,
   DailyHabitsChecklist,
-} from '@/components/widgets';
+} from '@/shared/components/widgets';
 
 const DailyTrackerApp = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
