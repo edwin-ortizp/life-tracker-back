@@ -123,3 +123,19 @@ export interface RelationshipTaskCreateInput {
   category?: string;
   isPrivate?: boolean;
 }
+
+export interface RelationshipNoteWithContactUpdateInput {
+  text: string;
+  lastContactAt?: string;
+  nextContactSuggestedAt?: string;
+}
+
+export type RelationshipUrgency = 'overdue' | 'due_soon' | 'upcoming' | 'unscheduled';
+
+export const RELATIONSHIPS_FILTER_KEYS = {
+  OVERDUE: 'overdue',
+  EVENTS_WEEK: 'events_week',
+  NO_NEXT_CONTACT: 'no_next_contact'
+} as const;
+
+export type RelationshipsFilterKey = typeof RELATIONSHIPS_FILTER_KEYS[keyof typeof RELATIONSHIPS_FILTER_KEYS];

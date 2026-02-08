@@ -9,6 +9,7 @@ import type {
   RelationshipEvent,
   RelationshipEventType,
   RelationshipNoteEntry,
+  RelationshipNoteWithContactUpdateInput,
   RelationshipPerson,
   RelationshipTaskCreateInput,
   RelationshipTaskLink
@@ -421,6 +422,52 @@ export const useRelationshipsData = () => {
     }
   }, [user, relationships]);
 
+  const addNoteWithContactUpdate = useCallback(async (
+    relationshipId: string,
+    input: RelationshipNoteWithContactUpdateInput
+  ) => {
+    if (!user || !input.text.trim()) return;
+
+    setStatus('saving');
+    setError(null);
+
+    try {
+      const current = relationships.find((item) => item.id === relationshipId);
+      if (!current) throw new Error('Persona no encontrada');
+
+      const nowIso = new Date().toISOString();
+      const nextNotes: RelationshipNoteEntry[] = [
+        ...(current.notes || []),
+        {
+          timestamp: nowIso,
+          text: input.text.trim()
+        }
+      ];
+
+      const { data, error: updateError } = await RelationshipsService.table('relationships')
+        .update({
+          notes: nextNotes,
+          last_contact_at: input.lastContactAt || null,
+          next_contact_suggested_at: input.nextContactSuggestedAt || null,
+          updated_at: nowIso
+        })
+        .eq('id', relationshipId)
+        .eq('user_id', user.id)
+        .select('*')
+        .single();
+
+      if (updateError) throw updateError;
+
+      const next = mapRelationship(data);
+      setRelationships((prev) => prev.map((item) => (item.id === relationshipId ? next : item)));
+      setStatus('idle');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo guardar la nota y las fechas');
+      setStatus('error');
+      throw err;
+    }
+  }, [user, relationships]);
+
   const addEvent = useCallback(async (input: {
     relationshipId: string;
     title: string;
@@ -683,6 +730,7 @@ export const useRelationshipsData = () => {
     updateRelationship,
     setRelationshipArchived,
     appendNote,
+    addNoteWithContactUpdate,
     addEvent,
     setEventArchived,
     getRelatedTasks,

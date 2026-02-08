@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { Bell, Calendar, MessageCircle, Plus, Search, Users } from 'lucide-react';
+import { AlertTriangle, Bell, Calendar, CheckCircle2, Clock3, MessageCircle, Plus, Search, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -10,27 +10,21 @@ import {
   RELATIONSHIP_EVENT_TYPES,
   RELATIONSHIP_EVENT_TYPE_LABELS,
   type Circle,
+  type RelationshipsFilterKey,
   type RelationshipEvent,
   type RelationshipEventType,
   type RelationshipPerson,
+  type RelationshipUrgency,
   type RelatedTask
 } from '@/modules/relationships/models';
+import { getDaysFromToday, getRelationshipUrgency, parseIsoLikeDate, startOfLocalDay } from '@/modules/relationships/utils/urgency';
 
 const toIsoFromInput = (value: string) => (value ? new Date(value).toISOString() : undefined);
 
 const formatDate = (isoLike?: string) => {
   if (!isoLike) return 'Sin fecha';
-  const date = new Date(isoLike);
+  const date = parseIsoLikeDate(isoLike);
   return date.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
-};
-
-const startOfLocalDay = (input: Date) => new Date(input.getFullYear(), input.getMonth(), input.getDate());
-
-const getDaysFromToday = (isoLike?: string) => {
-  if (!isoLike) return null;
-  const target = startOfLocalDay(new Date(isoLike));
-  const today = startOfLocalDay(new Date());
-  return Math.floor((target.getTime() - today.getTime()) / 86400000);
 };
 
 const getLastContactLabel = (isoLike?: string) => {
@@ -45,23 +39,59 @@ const getLastContactLabel = (isoLike?: string) => {
 
 const getNextContactStatus = (isoLike?: string) => {
   const days = getDaysFromToday(isoLike);
+  const urgency = getRelationshipUrgency(isoLike);
+
   if (days === null) {
-    return { label: 'Sin definir', className: 'text-gray-500', dot: 'bg-gray-400' };
+    return { urgency, label: 'Sin definir', className: 'text-gray-600', dot: 'bg-gray-400' };
   }
   if (days < 0) {
-    return { label: `${formatDate(isoLike)} (vencido ${Math.abs(days)}d)`, className: 'text-red-600', dot: 'bg-red-500' };
+    return { urgency, label: `${formatDate(isoLike)} (vencido ${Math.abs(days)}d)`, className: 'text-red-700', dot: 'bg-red-500' };
   }
-  if (days === 0) {
-    return { label: `${formatDate(isoLike)} (hoy)`, className: 'text-amber-600', dot: 'bg-amber-500' };
+  if (days <= 2) {
+    return {
+      urgency,
+      label: days === 0 ? `${formatDate(isoLike)} (hoy)` : `${formatDate(isoLike)} (en ${days}d)`,
+      className: 'text-amber-700',
+      dot: 'bg-amber-500'
+    };
   }
-  return { label: `${formatDate(isoLike)} (en ${days}d)`, className: 'text-blue-600', dot: 'bg-blue-500' };
+  return { urgency, label: `${formatDate(isoLike)} (en ${days}d)`, className: 'text-emerald-700', dot: 'bg-emerald-500' };
+};
+
+const getUrgencyCardClasses = (urgency: RelationshipUrgency) => {
+  if (urgency === 'overdue') {
+    return {
+      cardClassName: 'border-red-300 bg-red-50/60 shadow-[0_0_0_1px_rgba(239,68,68,0.08)]',
+      icon: <AlertTriangle className="h-4 w-4 text-red-600" />,
+      pulse: true
+    };
+  }
+  if (urgency === 'due_soon') {
+    return {
+      cardClassName: 'border-amber-300 bg-amber-50/60',
+      icon: <Clock3 className="h-4 w-4 text-amber-600" />,
+      pulse: false
+    };
+  }
+  if (urgency === 'upcoming') {
+    return {
+      cardClassName: 'border-emerald-300 bg-emerald-50/50',
+      icon: <CheckCircle2 className="h-4 w-4 text-emerald-600" />,
+      pulse: false
+    };
+  }
+  return {
+    cardClassName: 'border-slate-300 bg-white',
+    icon: <Clock3 className="h-4 w-4 text-slate-500" />,
+    pulse: false
+  };
 };
 
 const getUpcomingEvent = (events: RelationshipEvent[]) => {
   if (events.length === 0) return null;
   const today = startOfLocalDay(new Date());
 
-  const normalized = events.map((event) => ({ event, date: startOfLocalDay(new Date(event.eventDate)) }));
+  const normalized = events.map((event) => ({ event, date: startOfLocalDay(parseIsoLikeDate(event.eventDate)) }));
   const future = normalized
     .filter((entry) => entry.date.getTime() >= today.getTime())
     .sort((a, b) => a.date.getTime() - b.date.getTime());
@@ -91,6 +121,8 @@ export const BirthdayInfo = ({ person }: { person: RelationshipPerson }) => {
 
 export const RelationshipsHeaderBar = ({
   status,
+  activeFilters,
+  onToggleFilter,
   showArchived,
   onToggleArchived,
   searchQuery,
@@ -99,6 +131,8 @@ export const RelationshipsHeaderBar = ({
   onCreateCircle
 }: {
   status: string;
+  activeFilters: RelationshipsFilterKey[];
+  onToggleFilter: (filter: RelationshipsFilterKey) => void;
   showArchived: boolean;
   onToggleArchived: () => void;
   searchQuery: string;
@@ -114,11 +148,15 @@ export const RelationshipsHeaderBar = ({
         </div>
         <div>
           <h2 className="text-xl font-semibold text-slate-900">Relaciones</h2>
-          <p className="text-xs text-slate-500">Estado: {status}</p>
+          {status !== 'idle' && status !== 'error' && (
+            <p className="text-xs text-slate-500">
+              {status === 'loading' ? 'Cargando...' : status === 'saving' ? 'Guardando...' : status}
+            </p>
+          )}
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-2">
         <div className="relative min-w-64">
           <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
@@ -128,6 +166,35 @@ export const RelationshipsHeaderBar = ({
             className="pl-9"
           />
         </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant={activeFilters.includes('overdue') ? 'default' : 'outline'}
+            onClick={() => onToggleFilter('overdue')}
+            className={activeFilters.includes('overdue') ? 'bg-red-600 hover:bg-red-700' : ''}
+          >
+            Vencidos
+          </Button>
+          <Button
+            size="sm"
+            variant={activeFilters.includes('events_week') ? 'default' : 'outline'}
+            onClick={() => onToggleFilter('events_week')}
+            className={activeFilters.includes('events_week') ? 'bg-amber-600 hover:bg-amber-700' : ''}
+          >
+            Eventos esta semana
+          </Button>
+          <Button
+            size="sm"
+            variant={activeFilters.includes('no_next_contact') ? 'default' : 'outline'}
+            onClick={() => onToggleFilter('no_next_contact')}
+            className={activeFilters.includes('no_next_contact') ? 'bg-slate-700 hover:bg-slate-800' : ''}
+          >
+            Sin próximo contacto
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Button variant="outline" onClick={onToggleArchived}>
           {showArchived ? 'Ocultar archivados' : 'Mostrar archivados'}
         </Button>
@@ -148,14 +215,16 @@ export const CirclesSidebar = ({
   circles,
   selectedCircleId,
   counts,
+  overdueCounts,
   onSelectCircle,
   onAddCircle,
   onEditCircle,
   onDeleteCircle
 }: {
   circles: Circle[];
-  selectedCircleId: string | null;
+  selectedCircleId: string | 'all';
   counts: Record<string, number>;
+  overdueCounts: Record<string, number>;
   onSelectCircle: (id: string) => void;
   onAddCircle: () => void;
   onEditCircle: (circle: Circle) => void;
@@ -166,6 +235,19 @@ export const CirclesSidebar = ({
       <CardTitle className="text-lg">Círculos</CardTitle>
     </CardHeader>
     <CardContent className="space-y-2">
+      <button
+        type="button"
+        onClick={() => onSelectCircle('all')}
+        className={`w-full rounded-xl border px-3 py-2 text-left transition-colors ${
+          selectedCircleId === 'all'
+            ? 'border-sky-500 bg-sky-50 text-sky-900'
+            : 'border-slate-200 hover:bg-slate-50'
+        }`}
+      >
+        <div className="font-medium text-sm">Todos los círculos</div>
+        <div className="text-xs text-slate-500">{Object.values(counts).reduce((acc, value) => acc + value, 0)} contactos</div>
+      </button>
+
       {circles.map((circle) => (
         <div
           key={circle.id}
@@ -176,7 +258,14 @@ export const CirclesSidebar = ({
           }`}
         >
           <button type="button" onClick={() => onSelectCircle(circle.id)} className="w-full text-left">
-            <div className="font-medium text-sm">{circle.name}</div>
+            <div className="font-medium text-sm flex items-center justify-between gap-2">
+              <span>{circle.name}</span>
+              {(overdueCounts[circle.id] || 0) > 0 && (
+                <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-700">
+                  {overdueCounts[circle.id]}
+                </span>
+              )}
+            </div>
             <div className="text-xs text-slate-500">{counts[circle.id] || 0} contactos</div>
           </button>
           <div className="mt-2 flex gap-1">
@@ -207,12 +296,13 @@ export const RelationshipSummaryCard = ({
   onOpen: () => void;
 }) => {
   const nextStatus = getNextContactStatus(person.nextContactSuggestedAt);
+  const urgencyVisual = getUrgencyCardClasses(nextStatus.urgency);
 
   return (
     <button
       type="button"
       onClick={onOpen}
-      className="w-full rounded-2xl border border-slate-300 bg-white text-left p-4 hover:shadow-md transition-shadow"
+      className={`w-full rounded-2xl border text-left p-4 hover:shadow-md transition-shadow ${urgencyVisual.cardClassName}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -229,7 +319,8 @@ export const RelationshipSummaryCard = ({
         </div>
 
         <div className={`flex items-center gap-2 ${nextStatus.className}`}>
-          <span className={`h-2.5 w-2.5 rounded-full ${nextStatus.dot}`} />
+          <span className={`h-2.5 w-2.5 rounded-full ${nextStatus.dot} ${urgencyVisual.pulse ? 'animate-pulse' : ''}`} />
+          {urgencyVisual.icon}
           <span>Próximo contacto: {nextStatus.label}</span>
         </div>
 
@@ -541,24 +632,17 @@ export const RelationshipTasksCard = ({
 
 export const useEffectiveCircle = (
   circles: Circle[],
-  relationshipsByCircle: Record<string, RelationshipPerson[]>,
-  selectedCircleId: string | null,
-  showArchived: boolean
+  selectedCircleId: string | 'all'
 ) => {
   const effectiveSelectedCircleId = useMemo(() => {
-    if (selectedCircleId && circles.some((circle) => circle.id === selectedCircleId)) {
+    if (selectedCircleId === 'all') return 'all';
+    if (circles.some((circle) => circle.id === selectedCircleId)) {
       return selectedCircleId;
     }
-    return circles[0]?.id || null;
+    return 'all';
   }, [selectedCircleId, circles]);
 
-  const relationshipsInSelectedCircle = useMemo(() => {
-    if (!effectiveSelectedCircleId) return [];
-    return (relationshipsByCircle[effectiveSelectedCircleId] || []).filter((person) => showArchived || !person.isArchived);
-  }, [relationshipsByCircle, effectiveSelectedCircleId, showArchived]);
-
   return {
-    effectiveSelectedCircleId,
-    relationshipsInSelectedCircle
+    effectiveSelectedCircleId
   };
 };

@@ -4,21 +4,25 @@ import { AlertTriangle, Eye, EyeOff, Plus, Users } from 'lucide-react';
 import ModuleViewLayout from '@/shared/components/module-views/ModuleViewLayout';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
 import type { ModuleViewAction } from '@/shared/components/module-views/types';
 import { paths } from '@/core/routes/paths';
 import { useRelationshipsData } from '@/modules/relationships/controllers/useRelationshipsData.supabase';
 import {
   RELATIONSHIP_CATEGORIES,
+  RELATIONSHIPS_FILTER_KEYS,
   RELATIONSHIP_CATEGORY_LABELS,
+  type RelationshipsFilterKey,
   type RelationshipCategory
 } from '@/modules/relationships/models';
 import {
   CircleSection,
   CirclesSidebar,
+  RelationshipsHeaderBar,
   useEffectiveCircle
 } from '@/modules/relationships/components';
+import { Input } from '@/shared/components/ui/input';
+import { getRelationshipUrgency, hasUpcomingEventInDays, isOverdueRelationship } from '@/modules/relationships/utils/urgency';
 
 const RelationshipsIndexPage = () => {
   const navigate = useNavigate();
@@ -41,9 +45,10 @@ const RelationshipsIndexPage = () => {
   const archivedFromQuery = searchParams.get('archived') === '1';
   const hasNotFoundAlert = searchParams.get('notFound') === '1';
 
-  const [selectedCircleId, setSelectedCircleId] = useState<string | null>(circleFromQuery);
+  const [selectedCircleId, setSelectedCircleId] = useState<string | 'all'>(circleFromQuery || 'all');
   const [showArchived, setShowArchived] = useState(archivedFromQuery);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilters, setActiveFilters] = useState<RelationshipsFilterKey[]>([]);
 
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [isCircleDialogOpen, setIsCircleDialogOpen] = useState(false);
@@ -61,20 +66,15 @@ const RelationshipsIndexPage = () => {
   const [newContactBirthdayMonth, setNewContactBirthdayMonth] = useState('');
   const [newContactBirthdayDay, setNewContactBirthdayDay] = useState('');
 
-  const { effectiveSelectedCircleId } = useEffectiveCircle(
-    circles,
-    relationshipsByCircle,
-    selectedCircleId,
-    showArchived
-  );
+  const { effectiveSelectedCircleId } = useEffectiveCircle(circles, selectedCircleId);
 
-  const syncQuery = useCallback((next: { circle?: string | null; archived?: boolean; removeNotFound?: boolean }) => {
+  const syncQuery = useCallback((next: { circle?: string | 'all'; archived?: boolean; removeNotFound?: boolean }) => {
     const params = new URLSearchParams(searchParams);
 
     const nextCircle = next.circle !== undefined ? next.circle : effectiveSelectedCircleId;
     const nextArchived = next.archived !== undefined ? next.archived : showArchived;
 
-    if (nextCircle) params.set('circle', nextCircle);
+    if (nextCircle && nextCircle !== 'all') params.set('circle', nextCircle);
     else params.delete('circle');
 
     params.set('archived', nextArchived ? '1' : '0');
@@ -90,19 +90,43 @@ const RelationshipsIndexPage = () => {
     }
   }, [hasNotFoundAlert, syncQuery]);
 
-  const visibleRelationships = useMemo(() => {
+  const eventsByRelationship = useMemo(() => {
+    return events.reduce((acc: Record<string, typeof events>, event) => {
+      if (!acc[event.relationshipId]) acc[event.relationshipId] = [];
+      acc[event.relationshipId].push(event);
+      return acc;
+    }, {} as Record<string, typeof events>);
+  }, [events]);
+
+  const baseFilteredRelationships = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
     return relationships.filter((person) => {
       if (!showArchived && person.isArchived) return false;
-      if (!normalizedQuery) return true;
 
-      return (
+      const matchesQuery = !normalizedQuery || (
         person.fullName.toLowerCase().includes(normalizedQuery) ||
         (person.nickname || '').toLowerCase().includes(normalizedQuery)
       );
+      if (!matchesQuery) return false;
+
+      if (activeFilters.length === 0) return true;
+
+      const personEvents = eventsByRelationship[person.id] || [];
+      const checks: Record<RelationshipsFilterKey, boolean> = {
+        [RELATIONSHIPS_FILTER_KEYS.OVERDUE]: getRelationshipUrgency(person.nextContactSuggestedAt) === 'overdue',
+        [RELATIONSHIPS_FILTER_KEYS.EVENTS_WEEK]: hasUpcomingEventInDays(personEvents, 7),
+        [RELATIONSHIPS_FILTER_KEYS.NO_NEXT_CONTACT]: !person.nextContactSuggestedAt
+      };
+
+      return activeFilters.some((filter) => checks[filter]);
     });
-  }, [relationships, showArchived, searchQuery]);
+  }, [relationships, showArchived, searchQuery, activeFilters, eventsByRelationship]);
+
+  const visibleRelationships = useMemo(() => {
+    if (effectiveSelectedCircleId === 'all') return baseFilteredRelationships;
+    return baseFilteredRelationships.filter((person) => person.circleId === effectiveSelectedCircleId);
+  }, [baseFilteredRelationships, effectiveSelectedCircleId]);
 
   const visibleByCircle = useMemo(() => {
     return visibleRelationships.reduce((acc: Record<string, typeof visibleRelationships>, person) => {
@@ -113,22 +137,27 @@ const RelationshipsIndexPage = () => {
   }, [visibleRelationships]);
 
   const visibleCountByCircle = useMemo(() => {
-    return circles.reduce((acc: Record<string, number>, circle) => {
-      acc[circle.id] = visibleByCircle[circle.id]?.length || 0;
+    const countsMap = baseFilteredRelationships.reduce((acc: Record<string, number>, person) => {
+      acc[person.circleId] = (acc[person.circleId] || 0) + 1;
       return acc;
     }, {});
-  }, [circles, visibleByCircle]);
 
-  const eventsByRelationship = useMemo(() => {
-    return events.reduce((acc: Record<string, typeof events>, event) => {
-      if (!acc[event.relationshipId]) acc[event.relationshipId] = [];
-      acc[event.relationshipId].push(event);
+    return circles.reduce((acc: Record<string, number>, circle) => {
+      acc[circle.id] = countsMap[circle.id] || 0;
       return acc;
-    }, {} as Record<string, typeof events>);
-  }, [events]);
+    }, {});
+  }, [circles, baseFilteredRelationships]);
+
+  const overdueCountByCircle = useMemo(() => {
+    return circles.reduce((acc: Record<string, number>, circle) => {
+      const basePeople = (relationshipsByCircle[circle.id] || []).filter((person) => showArchived || !person.isArchived);
+      acc[circle.id] = basePeople.filter((person) => isOverdueRelationship(person)).length;
+      return acc;
+    }, {});
+  }, [circles, relationshipsByCircle, showArchived]);
 
   const circlesToRender = useMemo(() => {
-    if (effectiveSelectedCircleId) {
+    if (effectiveSelectedCircleId !== 'all') {
       const selected = circles.find((circle) => circle.id === effectiveSelectedCircleId);
       return selected ? [selected] : [];
     }
@@ -136,9 +165,15 @@ const RelationshipsIndexPage = () => {
     return circles.filter((circle) => (visibleByCircle[circle.id]?.length || 0) > 0);
   }, [circles, effectiveSelectedCircleId, visibleByCircle]);
 
-  const onSelectCircle = (circleId: string) => {
+  const onSelectCircle = (circleId: string | 'all') => {
     setSelectedCircleId(circleId);
     syncQuery({ circle: circleId });
+  };
+
+  const onToggleFilter = (filter: RelationshipsFilterKey) => {
+    setActiveFilters((prev) => (
+      prev.includes(filter) ? prev.filter((item) => item !== filter) : [...prev, filter]
+    ));
   };
 
   const onToggleArchived = () => {
@@ -197,7 +232,7 @@ const RelationshipsIndexPage = () => {
   };
 
   const onCreateContact = async () => {
-    const resolvedCircleId = newContactCircleId || effectiveSelectedCircleId;
+    const resolvedCircleId = newContactCircleId || (effectiveSelectedCircleId !== 'all' ? effectiveSelectedCircleId : circles[0]?.id);
     if (!resolvedCircleId || !newContactName.trim()) return;
 
     await addRelationship({
@@ -222,7 +257,7 @@ const RelationshipsIndexPage = () => {
 
   const onOpenPerson = (personId: string) => {
     const params = new URLSearchParams();
-    if (effectiveSelectedCircleId) params.set('circle', effectiveSelectedCircleId);
+    if (effectiveSelectedCircleId !== 'all') params.set('circle', effectiveSelectedCircleId);
     params.set('archived', showArchived ? '1' : '0');
     navigate(`${paths.relationships.detail(personId)}?${params.toString()}`);
   };
@@ -275,24 +310,24 @@ const RelationshipsIndexPage = () => {
           </Card>
         )}
 
-        <Card className="border-slate-200">
-          <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm text-slate-500">Estado: {status}</div>
-            <div className="relative min-w-64">
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar por nombre o apodo"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <RelationshipsHeaderBar
+          status={status}
+          activeFilters={activeFilters}
+          onToggleFilter={onToggleFilter}
+          showArchived={showArchived}
+          onToggleArchived={onToggleArchived}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onCreateContact={() => setIsContactDialogOpen(true)}
+          onCreateCircle={() => setIsCircleDialogOpen(true)}
+        />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
           <CirclesSidebar
             circles={circles}
             selectedCircleId={effectiveSelectedCircleId}
             counts={visibleCountByCircle}
+            overdueCounts={overdueCountByCircle}
             onSelectCircle={onSelectCircle}
             onAddCircle={() => setIsCircleDialogOpen(true)}
             onEditCircle={(circle) => onEditCircle(circle.id)}
@@ -361,7 +396,7 @@ const RelationshipsIndexPage = () => {
           </DialogHeader>
           <div className="space-y-3">
             <select
-              value={newContactCircleId || effectiveSelectedCircleId || ''}
+              value={newContactCircleId || (effectiveSelectedCircleId !== 'all' ? effectiveSelectedCircleId : '')}
               onChange={(e) => setNewContactCircleId(e.target.value)}
               className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
             >

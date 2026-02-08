@@ -41,11 +41,12 @@ import {
   type RelationshipEventType,
   type RelationshipPerson
 } from '@/modules/relationships/models';
+import { getDaysFromToday, parseIsoLikeDate } from '@/modules/relationships/utils/urgency';
 import { CATEGORY_LABELS, TASK_CATEGORIES, type TaskCategory } from '@/modules/task/models';
 
 const formatDate = (isoLike?: string) => {
   if (!isoLike) return 'Sin fecha';
-  return new Date(isoLike).toLocaleDateString('es-CO', {
+  return parseIsoLikeDate(isoLike).toLocaleDateString('es-CO', {
     day: '2-digit',
     month: 'short',
     year: 'numeric'
@@ -54,7 +55,7 @@ const formatDate = (isoLike?: string) => {
 
 const formatDateTime = (isoLike?: string) => {
   if (!isoLike) return 'Sin fecha';
-  return new Date(isoLike).toLocaleString('es-CO', {
+  return parseIsoLikeDate(isoLike).toLocaleString('es-CO', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -69,15 +70,6 @@ const formatBirthday = (person: RelationshipPerson) => {
     return `${person.birthdayDay.toString().padStart(2, '0')}/${person.birthdayMonth.toString().padStart(2, '0')}`;
   }
   return 'Sin registro';
-};
-
-const startOfLocalDay = (input: Date) => new Date(input.getFullYear(), input.getMonth(), input.getDate());
-
-const getDaysFromToday = (isoLike?: string) => {
-  if (!isoLike) return null;
-  const target = startOfLocalDay(new Date(isoLike));
-  const today = startOfLocalDay(new Date());
-  return Math.floor((target.getTime() - today.getTime()) / 86400000);
 };
 
 const getNextContactTone = (isoLike?: string) => {
@@ -96,15 +88,45 @@ const getNextContactTone = (isoLike?: string) => {
 
 const toDateInput = (isoLike?: string) => {
   if (!isoLike) return '';
-  const date = new Date(isoLike);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(isoLike)) return isoLike;
+  const date = parseIsoLikeDate(isoLike);
   return date.toISOString().slice(0, 10);
 };
 
 const toDatetimeLocalInput = (isoLike?: string) => {
   if (!isoLike) return '';
-  const date = new Date(isoLike);
+  const date = parseIsoLikeDate(isoLike);
   const pad = (n: number) => n.toString().padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+const addDays = (input: Date, days: number) => {
+  const next = new Date(input);
+  next.setDate(next.getDate() + days);
+  return next;
+};
+
+const startOfLocalDay = (input: Date) => new Date(input.getFullYear(), input.getMonth(), input.getDate());
+
+const toLocalDateTime = (value?: string) => {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed;
+};
+
+const getHumanDateHint = (value: string, mode: 'last' | 'next') => {
+  const parsed = toLocalDateTime(value);
+  if (!parsed) return mode === 'next' ? 'Sin fecha definida' : 'Sin registro';
+
+  const daysDiff = Math.floor((startOfLocalDay(parsed).getTime() - startOfLocalDay(new Date()).getTime()) / 86400000);
+  const weekday = parsed.toLocaleDateString('es-CO', { weekday: 'long' });
+
+  if (daysDiff === 0) return 'hoy';
+  if (daysDiff === -1) return 'ayer';
+  if (daysDiff === 1) return mode === 'next' ? `mañana - ${weekday}` : 'mañana';
+  if (daysDiff < 0) return `hace ${Math.abs(daysDiff)} días`;
+  return `en ${daysDiff} días - ${weekday}`;
 };
 
 const averageFrequencyDays = (timestamps: string[]) => {
@@ -144,7 +166,7 @@ const RelationshipDetailPage = () => {
     getAvailablePrivateTasks,
     updateRelationship,
     setRelationshipArchived,
-    appendNote,
+    addNoteWithContactUpdate,
     addEvent,
     setEventArchived,
     linkExistingTask,
@@ -172,6 +194,9 @@ const RelationshipDetailPage = () => {
   const [eventDate, setEventDate] = useState('');
 
   const [noteText, setNoteText] = useState('');
+  const [noteLastContactAt, setNoteLastContactAt] = useState('');
+  const [noteNextContactAt, setNoteNextContactAt] = useState('');
+  const [noteInlineError, setNoteInlineError] = useState<string | null>(null);
 
   const [taskTab, setTaskTab] = useState('new');
   const [taskTitle, setTaskTitle] = useState('');
@@ -282,12 +307,47 @@ const RelationshipDetailPage = () => {
     setIsEventOpen(false);
   };
 
-  const onAddNote = async () => {
-    if (!noteText.trim()) return;
+  const onOpenNoteDialog = () => {
+    const now = new Date();
+    const lastContactDefault = toDatetimeLocalInput(now.toISOString());
 
-    await appendNote(person.id, noteText.trim());
+    let nextContactDefault = '';
+    const contactFrequencyDays = currentCircle?.contactFrequencyDays;
+    if (contactFrequencyDays && contactFrequencyDays > 0) {
+      nextContactDefault = toDatetimeLocalInput(addDays(now, contactFrequencyDays).toISOString());
+    } else if (person.nextContactSuggestedAt) {
+      nextContactDefault = toDatetimeLocalInput(person.nextContactSuggestedAt);
+    }
+
+    setNoteInlineError(null);
     setNoteText('');
-    setIsNoteOpen(false);
+    setNoteLastContactAt(lastContactDefault);
+    setNoteNextContactAt(nextContactDefault);
+    setIsNoteOpen(true);
+  };
+
+  const onAddNote = async () => {
+    if (!noteText.trim()) {
+      setNoteInlineError('La nota es obligatoria.');
+      return;
+    }
+
+    setNoteInlineError(null);
+
+    try {
+      await addNoteWithContactUpdate(person.id, {
+        text: noteText.trim(),
+        lastContactAt: noteLastContactAt ? new Date(noteLastContactAt).toISOString() : undefined,
+        nextContactSuggestedAt: noteNextContactAt ? new Date(noteNextContactAt).toISOString() : undefined
+      });
+
+      setNoteText('');
+      setNoteLastContactAt('');
+      setNoteNextContactAt('');
+      setIsNoteOpen(false);
+    } catch {
+      setNoteInlineError('No se pudo guardar la nota con las fechas de contacto.');
+    }
   };
 
   const onCreateTask = async () => {
@@ -411,7 +471,7 @@ const RelationshipDetailPage = () => {
                     <div className="text-3xl font-bold text-blue-700">{person.notes.length}</div>
                   </div>
                   <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3">
-                    <div className="text-xs text-slate-500">Frecuencia promedio</div>
+                    <div className="text-xs text-slate-500">Frecuencia promedio (notas)</div>
                     <div className="text-3xl font-bold text-emerald-700">{avgFreq ? `${avgFreq} días` : '-'}</div>
                   </div>
                   <div className="rounded-xl border border-amber-300 bg-amber-50 p-3">
@@ -489,7 +549,7 @@ const RelationshipDetailPage = () => {
                     <MessageCircle className="h-5 w-5" />
                     <span>Comentarios</span>
                   </div>
-                  <Button onClick={() => setIsNoteOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={onOpenNoteDialog} className="bg-blue-600 hover:bg-blue-700">
                     <Plus className="h-4 w-4 mr-1" />
                     Agregar Nota
                   </Button>
@@ -703,7 +763,13 @@ const RelationshipDetailPage = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isNoteOpen} onOpenChange={setIsNoteOpen}>
+      <Dialog
+        open={isNoteOpen}
+        onOpenChange={(open) => {
+          setIsNoteOpen(open);
+          if (!open) setNoteInlineError(null);
+        }}
+      >
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Agregar nota</DialogTitle>
@@ -715,6 +781,30 @@ const RelationshipDetailPage = () => {
               onChange={(e) => setNoteText(e.target.value)}
               className="min-h-[180px]"
             />
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor="note-last-contact">Último contacto</Label>
+                <Input
+                  id="note-last-contact"
+                  type="datetime-local"
+                  value={noteLastContactAt}
+                  onChange={(e) => setNoteLastContactAt(e.target.value)}
+                />
+                <p className="text-xs text-slate-500">{getHumanDateHint(noteLastContactAt, 'last')}</p>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="note-next-contact">Próximo contacto sugerido</Label>
+                <Input
+                  id="note-next-contact"
+                  type="datetime-local"
+                  value={noteNextContactAt}
+                  onChange={(e) => setNoteNextContactAt(e.target.value)}
+                />
+                <p className="text-xs text-slate-500">{getHumanDateHint(noteNextContactAt, 'next')}</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">Calculado por frecuencia del círculo, editable.</p>
+            {noteInlineError && <p className="text-sm text-red-600">{noteInlineError}</p>}
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsNoteOpen(false)}>Cancelar</Button>
               <Button onClick={onAddNote}>Guardar</Button>
