@@ -30,11 +30,12 @@ const POMODORO_DURATION = 30 * 60; // 30 minutos en segundos
 
 interface PomodoroProps {
   selectedDate?: Date;
+  dailyGoalMinutes?: number;
 }
 
-export const Pomodoro = ({ selectedDate }: PomodoroProps) => {
+export const Pomodoro = ({ selectedDate, dailyGoalMinutes = 300 }: PomodoroProps) => {
   const { user } = useAuth();
-  const dailyGoal = 300; // 5 horas en minutos
+  const dailyGoal = dailyGoalMinutes;
   const [showNotificationDialog, setShowNotificationDialog] = useState(false);
   const [selectedSession, setSelectedSession] = useState<PomodoroSession | null>(null);
   

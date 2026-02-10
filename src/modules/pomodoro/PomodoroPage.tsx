@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { Pomodoro } from '@/modules/pomodoro/components';
+import { Pomodoro, PomodoroMonthlySidebar } from '@/modules/pomodoro/components';
 import DateSelector from '@/shared/components/DateSelector';
 import { useAuth } from '@/shared/hooks/useAuth';
+import { useModuleSettings } from '@/shared/hooks/useModuleSettings';
 import ModuleViewLayout from '@/shared/components/module-views/ModuleViewLayout';
 import type { ModuleViewAction, ModuleViewDefinition } from '@/shared/components/module-views/types';
 import { pomodoroDefaultViewKey, pomodoroViews, type PomodoroViewKey } from '@/modules/pomodoro/views';
@@ -12,19 +13,22 @@ import { paths } from '@/core/routes/paths';
 type PomodoroViewProps = {
   selectedDate: Date;
   onDateChange: (date: Date) => void;
+  goalMinutes: number;
 };
 
-const PomodoroTimerView: React.FC<PomodoroViewProps> = ({ selectedDate, onDateChange }) => (
+const PomodoroTimerView: React.FC<PomodoroViewProps> = ({ selectedDate, onDateChange, goalMinutes }) => (
   <div className="space-y-6">
     <DateSelector
       selectedDate={selectedDate}
       onChange={onDateChange}
     />
-    <div className="grid gap-6 md:grid-cols-[1fr_300px]">
-      <div className="space-y-6">
-        <Pomodoro selectedDate={selectedDate} />
-      </div>
-      <div className="space-y-6" />
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <Pomodoro selectedDate={selectedDate} dailyGoalMinutes={goalMinutes} />
+      <PomodoroMonthlySidebar
+        selectedDate={selectedDate}
+        onDateChange={onDateChange}
+        goalMinutes={goalMinutes}
+      />
     </div>
   </div>
 );
@@ -35,6 +39,10 @@ export default function PomodoroPage() {
   const resolvedViewKey = (viewKey || pomodoroDefaultViewKey) as PomodoroViewKey;
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { user } = useAuth();
+  const { settings } = useModuleSettings('pomodoro', { dailyWorkMinutesGoal: 300 });
+  const goalMinutes = Number(settings.dailyWorkMinutesGoal) > 0
+    ? Number(settings.dailyWorkMinutesGoal)
+    : 300;
 
   const pomodoroViewRegistry: Array<ModuleViewDefinition<PomodoroViewProps>> = pomodoroViews.map((view) => ({
     ...view,
@@ -83,7 +91,11 @@ export default function PomodoroPage() {
       actions={actions}
     >
       <div className="p-4">
-        <ActiveView selectedDate={selectedDate} onDateChange={setSelectedDate} />
+        <ActiveView
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
+          goalMinutes={goalMinutes}
+        />
       </div>
     </ModuleViewLayout>
   );
