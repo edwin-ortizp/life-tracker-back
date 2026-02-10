@@ -5,6 +5,7 @@ import { Button } from '@/shared/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useWaterData } from '@/modules/water/controllers/useWaterData.supabase';
 import { paths } from '@/core/routes/paths';
+import { useModuleSettings } from '@/shared/hooks/useModuleSettings';
 
 interface QuickAccessWaterProps {
   date: Date;
@@ -17,6 +18,7 @@ export const QuickAccessWater: React.FC<QuickAccessWaterProps> = ({
 }) => {
   const navigate = useNavigate();
   const { intake, status, addDrink } = useWaterData(date);
+  const { settings } = useModuleSettings('water', { dailyGoalMl: 2000 });
   const loading = status === 'saving' || status === 'pending';
 
   const handleAdd100 = async (e: React.MouseEvent) => {
@@ -35,7 +37,7 @@ export const QuickAccessWater: React.FC<QuickAccessWaterProps> = ({
   };
 
   const totalIntake = intake || 0;
-  const dailyGoal = 2000; // 2L goal
+  const dailyGoal = Number(settings.dailyGoalMl) > 0 ? Number(settings.dailyGoalMl) : 2000;
   const percentage = Math.min((totalIntake / dailyGoal) * 100, 100);
 
   return (

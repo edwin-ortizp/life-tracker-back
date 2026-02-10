@@ -1,5 +1,5 @@
 // src/pages/WaterConfigPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { WaterService } from '@/modules/water/services';
 import ModuleViewLayout from '@/shared/components/module-views/ModuleViewLayout';
@@ -11,6 +11,7 @@ import { Droplet, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { waterViews } from '@/modules/water/views';
+import { useModuleSettings } from '@/shared/hooks/useModuleSettings';
 
 interface DrinkType {
   id: string;
@@ -36,14 +37,14 @@ const WaterConfigPage: React.FC = () => {
     icon: 'Droplet',
     category: 'water'
   });
+  const waterDefaults = { dailyGoalMl: 2000 };
+  const { settings, saveSettings, status: settingsStatus, error: settingsError } = useModuleSettings(
+    'water',
+    waterDefaults
+  );
+  const [goalInput, setGoalInput] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      loadDrinkTypes();
-    }
-  }, [user]);
-
-  const loadDrinkTypes = async () => {
+  const loadDrinkTypes = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -56,7 +57,17 @@ const WaterConfigPage: React.FC = () => {
       setDrinkTypes(data || []);
     }
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      const timeoutId = window.setTimeout(() => {
+        void loadDrinkTypes();
+      }, 0);
+
+      return () => window.clearTimeout(timeoutId);
+    }
+  }, [loadDrinkTypes, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,6 +173,39 @@ const WaterConfigPage: React.FC = () => {
       onViewChange={(key) => navigate(`/water/view/${key}`)}
     >
       <div className="p-4">
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Objetivo diario de hidratación</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="dailyGoalMl">Meta diaria (ml)</Label>
+              <Input
+                id="dailyGoalMl"
+                type="number"
+                value={goalInput ?? settings.dailyGoalMl}
+                onChange={(e) => setGoalInput(Number(e.target.value))}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => saveSettings({ dailyGoalMl: goalInput ?? settings.dailyGoalMl })}
+              >
+                Guardar
+              </Button>
+              {settingsStatus === 'saving' && (
+                <span className="text-xs text-gray-500">Guardando...</span>
+              )}
+              {settingsStatus === 'saved' && (
+                <span className="text-xs text-green-600">Guardado</span>
+              )}
+              {settingsError && (
+                <span className="text-xs text-red-600">{settingsError}</span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>

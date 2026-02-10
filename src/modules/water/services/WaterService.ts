@@ -16,6 +16,12 @@ export type WaterIntakeRow = {
   amount_ml: number;
 };
 
+export type DrinkLogRangeRow = {
+  date: string;
+  hydration_value: number | null;
+  amount: number | null;
+};
+
 export class WaterService {
   static readonly client = supabase;
 
@@ -27,6 +33,17 @@ export class WaterService {
       .eq('date', date)
       .order('timestamp', { ascending: true })
       .returns<DrinkLogRow[]>();
+  }
+
+  static async getDrinkLogsRange(userId: string, start: string, end: string) {
+    return supabase
+      .from('drink_logs')
+      .select('date, hydration_value, amount')
+      .eq('user_id', userId)
+      .gte('date', start)
+      .lte('date', end)
+      .order('date', { ascending: true })
+      .returns<DrinkLogRangeRow[]>();
   }
 
   static async insertDrinkLog(input: {

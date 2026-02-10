@@ -97,3 +97,4 @@ export default Water;
 export * from './WaterCalendar';
 export * from './WeeklyStats';
 export * from './RangeStats';
+export * from './WaterMonthlySidebar';

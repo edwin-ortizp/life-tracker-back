@@ -1,9 +1,10 @@
 // src/pages/WaterPage.tsx
 import React, { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { Water, WaterCalendar, WeeklyStats, RangeStats } from '@/modules/water/components';
+import { Water, WaterCalendar, WeeklyStats, RangeStats, WaterMonthlySidebar } from '@/modules/water/components';
 import DateSelector from '@/shared/components/DateSelector';
 import { useAuth } from '@/shared/hooks/useAuth';
+import { useModuleSettings } from '@/shared/hooks/useModuleSettings';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import ModuleViewLayout from '@/shared/components/module-views/ModuleViewLayout';
 import type { ModuleViewAction, ModuleViewDefinition } from '@/shared/components/module-views/types';
@@ -14,13 +15,15 @@ import { paths } from '@/core/routes/paths';
 type WaterViewProps = {
   selectedDate: Date;
   onDateChange: (date: Date) => void;
+  goalMl: number;
 };
 
-const WaterDailyView: React.FC<WaterViewProps> = ({ selectedDate, onDateChange }) => (
+const WaterDailyView: React.FC<WaterViewProps> = ({ selectedDate, onDateChange, goalMl }) => (
   <div className="space-y-4">
     <DateSelector selectedDate={selectedDate} onChange={onDateChange} />
-    <div className="mt-4">
-      <Water selectedDate={selectedDate} goal={2000} />
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <Water selectedDate={selectedDate} goal={goalMl} />
+      <WaterMonthlySidebar selectedDate={selectedDate} onDateChange={onDateChange} goalMl={goalMl} />
     </div>
   </div>
 );
@@ -43,6 +46,8 @@ const WaterPage: React.FC = () => {
   const resolvedViewKey = (viewKey || waterDefaultViewKey) as WaterViewKey;
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { user } = useAuth();
+  const { settings } = useModuleSettings('water', { dailyGoalMl: 2000 });
+  const goalMl = Number(settings.dailyGoalMl) > 0 ? Number(settings.dailyGoalMl) : 2000;
 
   const waterViewRegistry: Array<ModuleViewDefinition<WaterViewProps>> = waterViews.map((view) => ({
     ...view,
@@ -101,7 +106,7 @@ const WaterPage: React.FC = () => {
       actions={actions}
     >
       <div className="p-4 space-y-4">
-        <ActiveView selectedDate={selectedDate} onDateChange={setSelectedDate} />
+        <ActiveView selectedDate={selectedDate} onDateChange={setSelectedDate} goalMl={goalMl} />
       </div>
     </ModuleViewLayout>
   );
