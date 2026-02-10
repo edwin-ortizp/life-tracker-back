@@ -78,6 +78,16 @@ export class ExerciseService {
       .eq('date', date);
   }
 
+  static async getExerciseLogsRange(userId: string, start: string, end: string) {
+    return supabase
+      .from('exercise_logs')
+      .select('date, calories, duration')
+      .eq('user_id', userId)
+      .gte('date', start)
+      .lte('date', end)
+      .order('date', { ascending: true });
+  }
+
   static async insertExerciseLog(input: {
     userId: string;
     date: string;

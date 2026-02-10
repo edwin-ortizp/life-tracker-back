@@ -123,5 +123,6 @@ export const Exercise = forwardRef<ExerciseRef, ExerciseProps>(({ selectedDate }
 
 Exercise.displayName = 'Exercise';
 // Re-export for easier imports
-
-export default Exercise;export * from './ExerciseCalendar';
+export default Exercise;
+export * from './ExerciseCalendar';
+export * from './ExerciseMonthlySidebar';

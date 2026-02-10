@@ -1,7 +1,7 @@
 // src/pages/ExercisePage.tsx
 import React, { useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { Exercise, ExerciseCalendar } from '@/modules/exercise/components';
+import { Exercise, ExerciseCalendar, ExerciseMonthlySidebar } from '@/modules/exercise/components';
 import DateSelector from '@/shared/components/DateSelector';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -29,8 +29,9 @@ const ExerciseDailyView: React.FC<ExerciseViewProps> = ({
 }) => (
   <div className="space-y-4">
     <DateSelector selectedDate={selectedDate} onChange={onDateChange} />
-    <div className="grid gap-6 md:grid-cols-[1fr_300px]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <Exercise ref={exerciseRef} selectedDate={selectedDate} />
+      <ExerciseMonthlySidebar selectedDate={selectedDate} onDateChange={onDateChange} />
     </div>
   </div>
 );
