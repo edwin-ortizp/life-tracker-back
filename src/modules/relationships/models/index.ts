@@ -126,8 +126,15 @@ export interface RelationshipTaskCreateInput {
 
 export interface RelationshipNoteWithContactUpdateInput {
   text: string;
+  timestamp?: string;
   lastContactAt?: string;
   nextContactSuggestedAt?: string;
+}
+
+export interface RelationshipNoteUpdateInput {
+  noteIndex: number;
+  text: string;
+  timestamp: string;
 }
 
 export type RelationshipUrgency = 'overdue' | 'due_soon' | 'upcoming' | 'unscheduled';

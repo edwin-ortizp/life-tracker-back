@@ -10,6 +10,7 @@ import type {
   RelationshipEventType,
   RelationshipNoteEntry,
   RelationshipNoteWithContactUpdateInput,
+  RelationshipNoteUpdateInput,
   RelationshipPerson,
   RelationshipTaskCreateInput,
   RelationshipTaskLink
@@ -436,10 +437,12 @@ export const useRelationshipsData = () => {
       if (!current) throw new Error('Persona no encontrada');
 
       const nowIso = new Date().toISOString();
+      const noteTimestamp = input.timestamp || nowIso;
+
       const nextNotes: RelationshipNoteEntry[] = [
         ...(current.notes || []),
         {
-          timestamp: nowIso,
+          timestamp: noteTimestamp,
           text: input.text.trim()
         }
       ];
@@ -463,6 +466,51 @@ export const useRelationshipsData = () => {
       setStatus('idle');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar la nota y las fechas');
+      setStatus('error');
+      throw err;
+    }
+  }, [user, relationships]);
+
+  const updateNote = useCallback(async (
+    relationshipId: string,
+    input: RelationshipNoteUpdateInput
+  ) => {
+    if (!user || !input.text.trim()) return;
+
+    setStatus('saving');
+    setError(null);
+
+    try {
+      const current = relationships.find((item) => item.id === relationshipId);
+      if (!current) throw new Error('Persona no encontrada');
+
+      if (input.noteIndex < 0 || input.noteIndex >= (current.notes || []).length) {
+        throw new Error('Índice de nota inválido');
+      }
+
+      const nextNotes = [...(current.notes || [])];
+      nextNotes[input.noteIndex] = {
+        timestamp: input.timestamp,
+        text: input.text.trim()
+      };
+
+      const { data, error: updateError } = await RelationshipsService.table('relationships')
+        .update({
+          notes: nextNotes,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', relationshipId)
+        .eq('user_id', user.id)
+        .select('*')
+        .single();
+
+      if (updateError) throw updateError;
+
+      const next = mapRelationship(data);
+      setRelationships((prev) => prev.map((item) => (item.id === relationshipId ? next : item)));
+      setStatus('idle');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo actualizar la nota');
       setStatus('error');
       throw err;
     }
@@ -731,6 +779,7 @@ export const useRelationshipsData = () => {
     setRelationshipArchived,
     appendNote,
     addNoteWithContactUpdate,
+    updateNote,
     addEvent,
     setEventArchived,
     getRelatedTasks,
