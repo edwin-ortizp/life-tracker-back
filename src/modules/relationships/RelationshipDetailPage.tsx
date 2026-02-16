@@ -167,6 +167,7 @@ const RelationshipDetailPage = () => {
     updateRelationship,
     setRelationshipArchived,
     addNoteWithContactUpdate,
+    updateNote,
     addEvent,
     setEventArchived,
     linkExistingTask,
@@ -177,6 +178,7 @@ const RelationshipDetailPage = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isEventOpen, setIsEventOpen] = useState(false);
   const [isNoteOpen, setIsNoteOpen] = useState(false);
+  const [isEditNoteOpen, setIsEditNoteOpen] = useState(false);
   const [isTaskOpen, setIsTaskOpen] = useState(false);
 
   const [editName, setEditName] = useState('');
@@ -194,9 +196,15 @@ const RelationshipDetailPage = () => {
   const [eventDate, setEventDate] = useState('');
 
   const [noteText, setNoteText] = useState('');
+  const [noteTimestamp, setNoteTimestamp] = useState('');
   const [noteLastContactAt, setNoteLastContactAt] = useState('');
   const [noteNextContactAt, setNoteNextContactAt] = useState('');
   const [noteInlineError, setNoteInlineError] = useState<string | null>(null);
+
+  const [editNoteIndex, setEditNoteIndex] = useState<number>(-1);
+  const [editNoteText, setEditNoteText] = useState('');
+  const [editNoteTimestamp, setEditNoteTimestamp] = useState('');
+  const [editNoteInlineError, setEditNoteInlineError] = useState<string | null>(null);
 
   const [taskTab, setTaskTab] = useState('new');
   const [taskTitle, setTaskTitle] = useState('');
@@ -309,7 +317,8 @@ const RelationshipDetailPage = () => {
 
   const onOpenNoteDialog = () => {
     const now = new Date();
-    const lastContactDefault = toDatetimeLocalInput(now.toISOString());
+    const nowLocalInput = toDatetimeLocalInput(now.toISOString());
+    const lastContactDefault = nowLocalInput;
 
     let nextContactDefault = '';
     const contactFrequencyDays = currentCircle?.contactFrequencyDays;
@@ -321,6 +330,7 @@ const RelationshipDetailPage = () => {
 
     setNoteInlineError(null);
     setNoteText('');
+    setNoteTimestamp(nowLocalInput);
     setNoteLastContactAt(lastContactDefault);
     setNoteNextContactAt(nextContactDefault);
     setIsNoteOpen(true);
@@ -337,16 +347,53 @@ const RelationshipDetailPage = () => {
     try {
       await addNoteWithContactUpdate(person.id, {
         text: noteText.trim(),
+        timestamp: noteTimestamp ? new Date(noteTimestamp).toISOString() : undefined,
         lastContactAt: noteLastContactAt ? new Date(noteLastContactAt).toISOString() : undefined,
         nextContactSuggestedAt: noteNextContactAt ? new Date(noteNextContactAt).toISOString() : undefined
       });
 
       setNoteText('');
+      setNoteTimestamp('');
       setNoteLastContactAt('');
       setNoteNextContactAt('');
       setIsNoteOpen(false);
     } catch {
       setNoteInlineError('No se pudo guardar la nota con las fechas de contacto.');
+    }
+  };
+
+  const onOpenEditNoteDialog = (noteIndex: number) => {
+    const note = person.notes[noteIndex];
+    if (!note) return;
+
+    setEditNoteIndex(noteIndex);
+    setEditNoteText(note.text);
+    setEditNoteTimestamp(toDatetimeLocalInput(note.timestamp));
+    setEditNoteInlineError(null);
+    setIsEditNoteOpen(true);
+  };
+
+  const onSaveEditNote = async () => {
+    if (!editNoteText.trim()) {
+      setEditNoteInlineError('La nota es obligatoria.');
+      return;
+    }
+
+    setEditNoteInlineError(null);
+
+    try {
+      await updateNote(person.id, {
+        noteIndex: editNoteIndex,
+        text: editNoteText.trim(),
+        timestamp: editNoteTimestamp ? new Date(editNoteTimestamp).toISOString() : new Date().toISOString()
+      });
+
+      setEditNoteIndex(-1);
+      setEditNoteText('');
+      setEditNoteTimestamp('');
+      setIsEditNoteOpen(false);
+    } catch {
+      setEditNoteInlineError('No se pudo actualizar la nota.');
     }
   };
 
@@ -558,15 +605,29 @@ const RelationshipDetailPage = () => {
                 <div className="space-y-3">
                   {person.notes.length === 0 && <div className="text-sm text-slate-500">Sin notas registradas.</div>}
 
-                  {person.notes.slice().reverse().map((note, idx) => (
-                    <div key={`${note.timestamp}-${idx}`} className="rounded-xl border border-slate-200 p-4">
-                      <div className="text-sm text-slate-500 mb-2 flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {formatDateTime(note.timestamp)}
+                  {person.notes.slice().reverse().map((note, idx) => {
+                    const originalIndex = person.notes.length - 1 - idx;
+                    return (
+                      <div key={`${note.timestamp}-${idx}`} className="rounded-xl border border-slate-200 p-4">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="text-sm text-slate-500 flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            {formatDateTime(note.timestamp)}
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => onOpenEditNoteDialog(originalIndex)}
+                            className="h-7 px-2"
+                          >
+                            <Pencil className="h-3 w-3 mr-1" />
+                            Editar
+                          </Button>
+                        </div>
+                        <div className="text-lg leading-relaxed whitespace-pre-wrap text-slate-900">{note.text}</div>
                       </div>
-                      <div className="text-lg leading-relaxed whitespace-pre-wrap text-slate-900">{note.text}</div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -781,6 +842,16 @@ const RelationshipDetailPage = () => {
               onChange={(e) => setNoteText(e.target.value)}
               className="min-h-[180px]"
             />
+            <div className="space-y-1">
+              <Label htmlFor="note-timestamp">Fecha del comentario</Label>
+              <Input
+                id="note-timestamp"
+                type="datetime-local"
+                value={noteTimestamp}
+                onChange={(e) => setNoteTimestamp(e.target.value)}
+              />
+              <p className="text-xs text-slate-500">Fecha en la que ocurrió este comentario o interacción</p>
+            </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div className="space-y-1">
                 <Label htmlFor="note-last-contact">Último contacto</Label>
@@ -808,6 +879,43 @@ const RelationshipDetailPage = () => {
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsNoteOpen(false)}>Cancelar</Button>
               <Button onClick={onAddNote}>Guardar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isEditNoteOpen}
+        onOpenChange={(open) => {
+          setIsEditNoteOpen(open);
+          if (!open) setEditNoteInlineError(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Editar nota</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Textarea
+              placeholder="Escribe aquí la nota del contacto..."
+              value={editNoteText}
+              onChange={(e) => setEditNoteText(e.target.value)}
+              className="min-h-[180px]"
+            />
+            <div className="space-y-1">
+              <Label htmlFor="edit-note-timestamp">Fecha del comentario</Label>
+              <Input
+                id="edit-note-timestamp"
+                type="datetime-local"
+                value={editNoteTimestamp}
+                onChange={(e) => setEditNoteTimestamp(e.target.value)}
+              />
+              <p className="text-xs text-slate-500">Fecha en la que ocurrió este comentario o interacción</p>
+            </div>
+            {editNoteInlineError && <p className="text-sm text-red-600">{editNoteInlineError}</p>}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsEditNoteOpen(false)}>Cancelar</Button>
+              <Button onClick={onSaveEditNote}>Guardar cambios</Button>
             </div>
           </div>
         </DialogContent>
