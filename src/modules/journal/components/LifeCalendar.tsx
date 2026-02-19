@@ -12,7 +12,7 @@ const WEEKS_PER_YEAR = 53;
 const CELL_SIZE = 14;
 const CELL_GAP = 2;
 
-export const LifeCalendar: React.FC = () => {
+export const LifeCalendar = () => {
   const navigate = useNavigate();
   const { settings } = useUserSettings();
   const { user } = useAuth();
@@ -84,6 +84,20 @@ export const LifeCalendar: React.FC = () => {
     };
   }, []);
 
+  const compactCellStyle = useMemo(
+    () => ({
+      width: CELL_SIZE,
+      height: CELL_SIZE,
+      minWidth: CELL_SIZE,
+      minHeight: CELL_SIZE,
+      maxWidth: CELL_SIZE,
+      maxHeight: CELL_SIZE,
+      padding: 0,
+      lineHeight: 0
+    }),
+    []
+  );
+
   if (!birthDate || !lifeExpectancyYears) {
     return (
       <div className="p-6">
@@ -109,66 +123,71 @@ export const LifeCalendar: React.FC = () => {
           {isRecalculating ? 'Recalculando...' : 'Recalcular resumen'}
         </button>
       </div>
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 sticky top-0 bg-background/80 backdrop-blur-sm z-10 py-1">
-          <div className="w-12 text-[10px] text-muted-foreground text-right">Año</div>
-          <div className="grid" style={gridStyle}>
-            {Array.from({ length: WEEKS_PER_YEAR }, (_, colIndex) => (
-              <div
-                key={`week-${colIndex + 1}`}
-                className="text-[8px] text-muted-foreground text-center"
-              >
-                {colIndex + 1}
-              </div>
-            ))}
-          </div>
-          <div className="w-8 text-[10px] text-muted-foreground">Edad</div>
-        </div>
-        {Array.from({ length: lifeExpectancyYears }, (_, rowIndex) => {
-          const year = (startYear ?? 0) + rowIndex;
-          const ageLabel = rowIndex;
-          return (
-            <div key={year} className="flex items-center gap-2">
-              <div className="w-12 text-[10px] text-muted-foreground text-right">
-                {year}
-              </div>
-              <div className="grid p-0.5" style={gridStyle}>
-                {Array.from({ length: WEEKS_PER_YEAR }, (_, colIndex) => {
-                  const week = colIndex + 1;
-                  const key = `${year}-W${String(week).padStart(2, '0')}`;
-                  const weekStart = getStartOfIsoWeek(year, week);
-                  const isBeforeBirth = birthDate ? weekStart < startOfWeek(birthDate, { weekStartsOn: 1 }) && year === birthDate.getFullYear() : false;
-                  const isFuture = startOfWeek(weekStart, { weekStartsOn: 1 }) > startOfWeek(new Date(), { weekStartsOn: 1 });
-                  const entriesCount = entriesByWeek.get(key) || 0;
-                  const hasEntry = entriesCount > 0;
-                  const isCurrent = year === currentIsoYear && week === currentIsoWeek;
-
-                  const baseClasses = 'border';
-                  const stateClasses = isBeforeBirth || isFuture
-                    ? 'bg-transparent border-slate-500/40'
-                    : hasEntry
-                    ? 'bg-emerald-500/90 border-emerald-300/90'
-                    : 'bg-slate-900/30 border-slate-500/60';
-                  const highlightClasses = isCurrent ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900' : '';
-
-                  return (
-                    <button
-                      key={`${year}-${week}`}
-                      className={`${baseClasses} ${stateClasses} ${highlightClasses}`}
-                      style={{ width: CELL_SIZE, height: CELL_SIZE }}
-                      onClick={() => navigate(`/journal/view/entries?week=${key}`)}
-                      title={`${key} · ${weekStart.toLocaleDateString('es-ES')} - ${new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES')}`}
-                      aria-label={`Semana ${key}`}
-                    />
-                  );
-                })}
-              </div>
-              <div className="w-8 text-[10px] text-muted-foreground">
-                {ageLabel}
-              </div>
+      <div
+        className="w-full overflow-x-auto overflow-y-visible scroll-container"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="space-y-2 min-w-max">
+          <div className="flex items-center gap-2 sticky top-0 bg-background/80 backdrop-blur-sm z-10 py-1">
+            <div className="w-12 text-[10px] text-muted-foreground text-right">Año</div>
+            <div className="grid" style={gridStyle}>
+              {Array.from({ length: WEEKS_PER_YEAR }, (_, colIndex) => (
+                <div
+                  key={`week-${colIndex + 1}`}
+                  className="text-[8px] text-muted-foreground text-center"
+                >
+                  {colIndex + 1}
+                </div>
+              ))}
             </div>
-          );
-        })}
+            <div className="w-8 text-[10px] text-muted-foreground">Edad</div>
+          </div>
+          {Array.from({ length: lifeExpectancyYears }, (_, rowIndex) => {
+            const year = (startYear ?? 0) + rowIndex;
+            const ageLabel = rowIndex;
+            return (
+              <div key={year} className="flex items-center gap-2">
+                <div className="w-12 text-[10px] text-muted-foreground text-right">
+                  {year}
+                </div>
+                <div className="grid p-0.5" style={gridStyle}>
+                  {Array.from({ length: WEEKS_PER_YEAR }, (_, colIndex) => {
+                    const week = colIndex + 1;
+                    const key = `${year}-W${String(week).padStart(2, '0')}`;
+                    const weekStart = getStartOfIsoWeek(year, week);
+                    const isBeforeBirth = birthDate ? weekStart < startOfWeek(birthDate, { weekStartsOn: 1 }) && year === birthDate.getFullYear() : false;
+                    const isFuture = startOfWeek(weekStart, { weekStartsOn: 1 }) > startOfWeek(new Date(), { weekStartsOn: 1 });
+                    const entriesCount = entriesByWeek.get(key) || 0;
+                    const hasEntry = entriesCount > 0;
+                    const isCurrent = year === currentIsoYear && week === currentIsoWeek;
+
+                    const baseClasses = 'border';
+                    const stateClasses = isBeforeBirth || isFuture
+                      ? 'bg-transparent border-slate-500/40'
+                      : hasEntry
+                      ? 'bg-emerald-500/90 border-emerald-300/90'
+                      : 'bg-slate-900/30 border-slate-500/60';
+                    const highlightClasses = isCurrent ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900' : '';
+
+                    return (
+                      <button
+                        key={`${year}-${week}`}
+                        className={`${baseClasses} ${stateClasses} ${highlightClasses}`}
+                        style={compactCellStyle}
+                        onClick={() => navigate(`/journal/view/entries?week=${key}`)}
+                        title={`${key} · ${weekStart.toLocaleDateString('es-ES')} - ${new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES')}`}
+                        aria-label={`Semana ${key}`}
+                      />
+                    );
+                  })}
+                </div>
+                <div className="w-8 text-[10px] text-muted-foreground">
+                  {ageLabel}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
       </div>
     </div>
