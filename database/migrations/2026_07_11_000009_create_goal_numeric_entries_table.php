@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('note')->nullable();
 
             $table->foreign('goal_id')->references('id')->on('goals')->cascadeOnDelete();
+            $table->timestamps();
         });
     }
 

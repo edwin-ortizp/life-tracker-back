@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('text');
             $table->integer('value');
             $table->string('category')->nullable();
-            $table->timestamp('created_at')->nullable();
+            $table->timestamps();
 
             $table->unique(['user_id', 'text']);
         });

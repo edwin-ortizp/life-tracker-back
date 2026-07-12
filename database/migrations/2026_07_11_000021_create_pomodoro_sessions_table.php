@@ -22,6 +22,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('locked_by_device_id')->nullable();
             $table->timestamp('locked_at')->nullable();
+            $table->timestamps();
         });
     }
 

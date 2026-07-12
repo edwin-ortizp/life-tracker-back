@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('time');
             $table->bigInteger('timestamp');
             $table->text('comment')->nullable();
+            $table->timestamps();
         });
     }
 

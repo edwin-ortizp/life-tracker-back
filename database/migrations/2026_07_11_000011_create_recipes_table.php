@@ -22,7 +22,7 @@ return new class extends Migration
             $table->text('instructions')->nullable();
             $table->json('nutrition')->nullable();
             $table->boolean('favorite')->default(false);
-            $table->timestamp('created_at')->nullable();
+            $table->timestamps();
         });
     }
 

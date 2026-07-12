@@ -19,6 +19,7 @@ return new class extends Migration
             $table->boolean('is_milestone')->default(false);
 
             $table->foreign('goal_id')->references('id')->on('goals')->cascadeOnDelete();
+            $table->timestamps();
         });
     }
 

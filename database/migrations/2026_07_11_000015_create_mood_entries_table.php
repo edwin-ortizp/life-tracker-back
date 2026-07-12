@@ -23,6 +23,7 @@ return new class extends Migration
             $table->uuid('mood_state_id')->nullable();
 
             $table->foreign('mood_state_id')->references('id')->on('mood_states')->nullOnDelete();
+            $table->timestamps();
         });
     }
 

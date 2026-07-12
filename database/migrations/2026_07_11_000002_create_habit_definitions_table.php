@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('time_of_day')->nullable();
             $table->string('goal_duration')->nullable();
             $table->string('base_time')->nullable();
+            $table->timestamps();
         });
     }
 

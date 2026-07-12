@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('goal_id');
             $table->string('title');
             $table->boolean('done')->default(false);
-            $table->timestamp('created_at')->nullable();
+            $table->timestamps();
             $table->timestamp('completed_at')->nullable();
 
             $table->foreign('goal_id')->references('id')->on('goals')->cascadeOnDelete();

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('category')->nullable();
             $table->string('icon')->nullable();
             $table->integer('legacy_id')->nullable();
-            $table->timestamp('created_at')->nullable();
+            $table->timestamps();
 
             $table->unique(['user_id', 'name']);
         });

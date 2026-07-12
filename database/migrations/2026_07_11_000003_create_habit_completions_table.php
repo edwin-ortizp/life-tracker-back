@@ -20,6 +20,7 @@ return new class extends Migration
 
             $table->foreign('habit_id')->references('id')->on('habit_definitions');
             $table->unique(['user_id', 'habit_id', 'date']);
+            $table->timestamps();
         });
     }
 

@@ -23,6 +23,7 @@ return new class extends Migration
 
             $table->foreign('recipe_id')->references('id')->on('recipes')->nullOnDelete();
             $table->unique(['user_id', 'date', 'meal_type']);
+            $table->timestamps();
         });
     }
 

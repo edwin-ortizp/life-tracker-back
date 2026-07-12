@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('note')->nullable();
 
             $table->foreign('habit_id')->references('id')->on('negative_habit_definitions');
+            $table->timestamps();
         });
     }
 

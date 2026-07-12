@@ -27,6 +27,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
 
             $table->foreign('exercise_type_id')->references('id')->on('exercise_types')->nullOnDelete();
+            $table->timestamps();
         });
     }
 

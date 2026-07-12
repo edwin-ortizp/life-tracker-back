@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('quantity', 8, 2);
             $table->string('unit')->nullable();
             $table->text('notes')->nullable();
-            $table->timestamp('created_at')->nullable();
+            $table->timestamps();
 
             $table->foreign('recipe_id')->references('id')->on('recipes')->cascadeOnDelete();
             $table->foreign('shopping_item_id')->references('id')->on('shopping_items')->cascadeOnDelete();

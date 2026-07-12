@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('color')->default('#3b82f6');
             $table->string('icon')->default('Droplet');
             $table->string('category')->nullable();
-            $table->timestamp('created_at')->nullable();
+            $table->timestamps();
 
             $table->unique(['user_id', 'name']);
         });
