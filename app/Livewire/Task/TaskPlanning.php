@@ -29,7 +29,11 @@ class TaskPlanning extends Component
     public bool $isPrivate = false;
 
     public array $categories = [
-        'trabajo' => 'Trabajo', 'personal' => 'Personal', 'salud' => 'Salud', 'finanzas' => 'Finanzas',
+        'jikko' => 'Jikko',
+        'entreagiles' => 'EntreAgiles',
+        'gesthor' => 'Gesthor',
+        'certmind' => 'CertMind',
+        'unicauca' => 'Unicauca', 'personal' => 'Personal', 'salud' => 'Salud', 'finanzas' => 'Finanzas',
         'educacion' => 'Educación', 'hogar' => 'Hogar', 'social' => 'Social', 'creatividad' => 'Creatividad',
         'tecnologia' => 'Tecnología', 'compras' => 'Compras', 'tramites' => 'Trámites', 'otros' => 'Otros',
     ];

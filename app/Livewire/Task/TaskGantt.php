@@ -38,7 +38,11 @@ class TaskGantt extends Component
     public bool $isPrivate = false;
 
     public array $categories = [
-        'trabajo' => 'Trabajo',
+        'jikko' => 'Jikko',
+        'entreagiles' => 'EntreAgiles',
+        'gesthor' => 'Gesthor',
+        'certmind' => 'CertMind',
+        'unicauca' => 'Unicauca',
         'personal' => 'Personal',
         'salud' => 'Salud',
         'finanzas' => 'Finanzas',
