@@ -47,11 +47,24 @@ class Task extends Model
             'is_private' => 'boolean',
             'timer_paused' => 'boolean',
             'timer_active' => 'boolean',
+            'estimated_time' => 'integer',
             'recurrence' => 'array',
             'timer_start_time' => 'array',
             'start_date' => 'datetime',
             'end_date' => 'datetime',
         ];
+    }
+
+    public function getEstimatedTimeLabelAttribute(): ?string
+    {
+        if (! $this->estimated_time) {
+            return null;
+        }
+
+        $hours = intdiv($this->estimated_time, 60);
+        $minutes = $this->estimated_time % 60;
+
+        return $hours ? $hours.' h'.($minutes ? ' '.$minutes.' min' : '') : $minutes.' min';
     }
 
     protected static function booted(): void

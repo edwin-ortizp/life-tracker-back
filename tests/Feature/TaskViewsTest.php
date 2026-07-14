@@ -75,6 +75,93 @@ class TaskViewsTest extends TestCase
         $this->assertDatabaseHas('tasks', ['user_id' => $user->id, 'title' => 'Tarea individual', 'category' => 'personal']);
     }
 
+    public function test_task_duration_shortcuts_calculate_and_persist_schedule(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Livewire::test(TaskList::class)
+            ->call('openForm')
+            ->set('title', 'Bloque de concentración')
+            ->set('startDate', '2026-07-13T09:30')
+            ->call('applyDuration', 90)
+            ->assertSet('endDate', '2026-07-13T11:00')
+            ->assertSet('estimatedTime', 90)
+            ->call('save');
+
+        $this->assertDatabaseHas('tasks', [
+            'user_id' => $user->id,
+            'title' => 'Bloque de concentración',
+            'start_date' => '2026-07-13 09:30:00',
+            'end_date' => '2026-07-13 11:00:00',
+            'estimated_time' => 90,
+        ]);
+    }
+
+    public function test_duration_shortcut_uses_now_when_start_is_missing_and_manual_times_recalculate_it(): void
+    {
+        Carbon::setTestNow('2026-07-13 10:22:45');
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Livewire::test(TaskList::class)
+            ->call('openForm')
+            ->call('applyDuration', 30)
+            ->assertSet('startDate', '2026-07-13T10:22')
+            ->assertSet('endDate', '2026-07-13T10:52')
+            ->set('endDate', '2026-07-13T12:07')
+            ->assertSet('estimatedTime', 105);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_changing_start_shifts_end_by_the_existing_task_duration(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Livewire::test(TaskList::class)
+            ->call('openForm')
+            ->set('startDate', '2026-07-13T09:30')
+            ->set('endDate', '2026-07-15T11:00')
+            ->set('startDate', '2026-07-20T09:30')
+            ->assertSet('endDate', '2026-07-22T11:00')
+            ->assertSet('estimatedTime', 2970);
+    }
+
+    public function test_task_rejects_an_end_before_its_start(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Livewire::test(TaskList::class)
+            ->call('openForm')
+            ->set('title', 'Horario inválido')
+            ->set('startDate', '2026-07-13T12:00')
+            ->set('endDate', '2026-07-13T11:00')
+            ->call('save')
+            ->assertHasErrors('endDate');
+
+        $this->assertDatabaseMissing('tasks', ['title' => 'Horario inválido']);
+    }
+
+    public function test_bulk_creation_preserves_time_and_estimation(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Livewire::test(TaskList::class)
+            ->call('openBulkForm')
+            ->set('bulkTitles', "Primera\nSegunda")
+            ->set('bulkStartDate', '2026-07-13T14:00')
+            ->call('applyBulkDuration', 120)
+            ->call('saveBulk');
+
+        $this->assertDatabaseCount('tasks', 2);
+        $this->assertDatabaseHas('tasks', ['title' => 'Primera', 'start_date' => '2026-07-13 14:00:00', 'end_date' => '2026-07-13 16:00:00', 'estimated_time' => 120]);
+        $this->assertDatabaseHas('tasks', ['title' => 'Segunda', 'start_date' => '2026-07-13 14:00:00', 'end_date' => '2026-07-13 16:00:00', 'estimated_time' => 120]);
+    }
+
     public function test_flow_groups_tasks_by_category_and_keeps_completed_tasks_in_position(): void
     {
         $user = User::factory()->create();
@@ -270,6 +357,27 @@ class TaskViewsTest extends TestCase
 
         Livewire::test(TaskPlanning::class)->call('clearDates', $range->id);
         $this->assertDatabaseHas('tasks', ['id' => $range->id, 'start_date' => null, 'end_date' => null]);
+        Carbon::setTestNow();
+    }
+
+    public function test_planning_moves_keep_task_times_and_estimation(): void
+    {
+        Carbon::setTestNow('2026-07-12 10:00:00');
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $task = Task::create([
+            'title' => 'Con hora',
+            'start_date' => '2026-07-10 09:30:00',
+            'end_date' => '2026-07-10 11:00:00',
+            'estimated_time' => 90,
+        ]);
+        Livewire::test(TaskPlanning::class)->call('moveToDay', $task->id, 1);
+
+        $task->refresh();
+
+        $this->assertTrue($task->start_date->isSameDay('2026-07-13'));
+        $this->assertEquals(90, $task->start_date->diffInMinutes($task->end_date));
+        $this->assertSame(90, $task->estimated_time);
         Carbon::setTestNow();
     }
 }

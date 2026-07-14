@@ -3,6 +3,7 @@
 namespace App\Livewire\Task;
 
 use App\Livewire\Concerns\HandlesRecurringTaskCompletion;
+use App\Livewire\Concerns\InteractsWithTaskSchedule;
 use App\Models\Task;
 use App\Services\TaskGamificationService;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ use Livewire\Component;
 #[Title('Tareas')]
 class TaskList extends Component
 {
-    use HandlesRecurringTaskCompletion;
+    use HandlesRecurringTaskCompletion, InteractsWithTaskSchedule;
 
     #[Url(as: 'status', history: true, keep: true)]
     public string $filter = 'pending'; // pending, completed, all
@@ -54,6 +55,8 @@ class TaskList extends Component
 
     public ?string $endDate = null;
 
+    public ?int $estimatedTime = null;
+
     public bool $isPrivate = false;
 
     public bool $isRecurrent = false;
@@ -74,6 +77,8 @@ class TaskList extends Component
     public ?string $bulkStartDate = null;
 
     public ?string $bulkEndDate = null;
+
+    public ?int $bulkEstimatedTime = null;
 
     public bool $bulkIsPrivate = false;
 
@@ -149,8 +154,7 @@ class TaskList extends Component
                 $this->category = $task->category ?? '';
                 $this->priority = $task->priority ?? '';
                 $this->size = $task->size ?? '';
-                $this->startDate = $task->start_date?->format('Y-m-d');
-                $this->endDate = $task->end_date?->format('Y-m-d');
+                $this->loadTaskSchedule($task);
                 $this->isPrivate = $task->is_private;
                 $this->isRecurrent = $task->is_recurrent;
                 $this->recurrenceIntervalDays = max(1, (int) (($task->recurrence ?? [])['customDays'] ?? 7));
@@ -195,13 +199,17 @@ class TaskList extends Component
             return;
         }
 
+        $schedule = $this->bulkTaskScheduleData();
+        if (! $schedule) {
+            return;
+        }
+
         $data = [
             'description' => $this->bulkDescription ?: null,
             'category' => $this->bulkCategory ?: null,
             'priority' => $this->bulkPriority ?: null,
             'size' => $this->bulkSize ?: null,
-            'start_date' => $this->bulkStartDate ?: null,
-            'end_date' => $this->bulkEndDate ?: null,
+            ...$schedule,
             'is_private' => $this->bulkIsPrivate,
         ];
 
@@ -220,14 +228,18 @@ class TaskList extends Component
             return;
         }
 
+        $schedule = $this->taskScheduleData();
+        if (! $schedule) {
+            return;
+        }
+
         $data = [
             'title' => trim($this->title),
             'description' => $this->description ?: null,
             'category' => $this->category ?: null,
             'priority' => $this->priority ?: null,
             'size' => $this->size ?: null,
-            'start_date' => $this->startDate ?: null,
-            'end_date' => $this->endDate ?: null,
+            ...$schedule,
             'is_private' => $this->isPrivate,
             'is_recurrent' => $this->isRecurrent,
             'recurrence' => $this->isRecurrent ? [
@@ -280,6 +292,7 @@ class TaskList extends Component
         $this->size = '';
         $this->startDate = null;
         $this->endDate = null;
+        $this->estimatedTime = null;
         $this->isPrivate = false;
         $this->isRecurrent = false;
         $this->recurrenceIntervalDays = 7;
@@ -295,6 +308,7 @@ class TaskList extends Component
         $this->bulkSize = '';
         $this->bulkStartDate = null;
         $this->bulkEndDate = null;
+        $this->bulkEstimatedTime = null;
         $this->bulkIsPrivate = false;
         $this->bulkDescriptionMode = 'write';
     }

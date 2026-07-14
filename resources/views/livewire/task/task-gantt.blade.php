@@ -17,7 +17,7 @@
                         <span>{{ $task->title }}</span>
                     </button>
                     <div class="md-gantt-track">
-                        <button wire:click="openForm('{{ $task->id }}')" class="md-gantt-bar {{ $task->completed ? 'is-completed' : '' }} {{ $item['span'] === 1 ? 'is-milestone' : '' }}" style="grid-column: {{ $item['column'] }} / span {{ $item['span'] }};" title="Editar {{ $task->title }} · {{ $item['start']->format('d/m') }}–{{ $item['end']->format('d/m') }}">
+                        <button wire:click="openForm('{{ $task->id }}')" class="md-gantt-bar {{ $task->completed ? 'is-completed' : '' }} {{ $item['span'] === 1 ? 'is-milestone' : '' }}" style="grid-column: {{ $item['column'] }} / span {{ $item['span'] }};" title="Editar {{ $task->title }} · {{ $item['start']->format('d/m H:i') }}–{{ $item['end']->format('d/m H:i') }}{{ $task->estimated_time ? ' · '.$task->estimated_time_label : '' }}">
                             <span>{{ $task->title }}</span>
                         </button>
                     </div>

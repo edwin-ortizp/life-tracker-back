@@ -3,6 +3,7 @@
 namespace App\Livewire\Task;
 
 use App\Livewire\Concerns\HandlesRecurringTaskCompletion;
+use App\Livewire\Concerns\InteractsWithTaskSchedule;
 use App\Models\Task;
 use App\Services\TaskGamificationService;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,7 @@ use Livewire\Component;
 #[Title('Flujo de tareas')]
 class TaskFlow extends Component
 {
-    use HandlesRecurringTaskCompletion;
+    use HandlesRecurringTaskCompletion, InteractsWithTaskSchedule;
 
     private const INITIAL_LANE_LIMIT = 30;
 
@@ -39,6 +40,8 @@ class TaskFlow extends Component
     public ?string $startDate = null;
 
     public ?string $endDate = null;
+
+    public ?int $estimatedTime = null;
 
     public bool $isPrivate = false;
 
@@ -107,8 +110,7 @@ class TaskFlow extends Component
         $this->category = $task->category ?? '';
         $this->priority = $task->priority ?? '';
         $this->size = $task->size ?? '';
-        $this->startDate = $task->start_date?->format('Y-m-d');
-        $this->endDate = $task->end_date?->format('Y-m-d');
+        $this->loadTaskSchedule($task);
         $this->isPrivate = $task->is_private;
         $this->completed = $task->completed;
         $this->descriptionMode = 'write';
@@ -119,13 +121,18 @@ class TaskFlow extends Component
     {
         $this->showForm = false;
         $this->editingId = null;
-        $this->reset('title', 'description', 'category', 'priority', 'size', 'startDate', 'endDate', 'isPrivate', 'completed');
+        $this->reset('title', 'description', 'category', 'priority', 'size', 'startDate', 'endDate', 'estimatedTime', 'isPrivate', 'completed');
         $this->descriptionMode = 'write';
     }
 
     public function save(): void
     {
         if (blank(trim($this->title)) || ! $this->editingId) {
+            return;
+        }
+
+        $schedule = $this->taskScheduleData();
+        if (! $schedule) {
             return;
         }
 
@@ -137,8 +144,7 @@ class TaskFlow extends Component
                 'category' => $this->category ?: null,
                 'priority' => $this->priority ?: null,
                 'size' => $this->size ?: null,
-                'start_date' => $this->startDate ?: null,
-                'end_date' => $this->endDate ?: null,
+                ...$schedule,
                 'is_private' => $this->isPrivate,
             ]);
         }

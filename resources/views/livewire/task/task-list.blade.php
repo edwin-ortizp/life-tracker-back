@@ -100,11 +100,12 @@
                             @endphp
                             <span class="md-chip-tonal"><i class="bi bi-arrow-repeat" style="font-size: 0.625rem;"></i> {{ $recurrenceLabel }}</span>
                         @endif
-                        @if ($task->end_date)
+                        @if ($task->start_date || $task->end_date)
                             <span class="md-chip-tonal">
-                                <i class="bi bi-calendar" style="font-size: 0.625rem;"></i> {{ $task->end_date->format('d M') }}
+                                <i class="bi bi-calendar" style="font-size: 0.625rem;"></i> {{ ($task->start_date ?? $task->end_date)->format('d M, H:i') }}@if($task->end_date && $task->start_date) – {{ $task->end_date->format('H:i') }}@endif
                             </span>
                         @endif
+                        @if ($task->estimated_time)<span class="md-chip-tonal"><i class="bi bi-clock" style="font-size: 0.625rem;"></i> {{ $task->estimated_time_label }}</span>@endif
                     </div>
                 </button>
                 <div class="md-list-item-trailing">
@@ -201,10 +202,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row g-3">
-                            <div class="col-6"><div class="md-text-field"><input type="date" wire:model="bulkStartDate" placeholder=" " id="bulk-task-start"><label for="bulk-task-start">Fecha inicio</label></div></div>
-                            <div class="col-6"><div class="md-text-field"><input type="date" wire:model="bulkEndDate" placeholder=" " id="bulk-task-end"><label for="bulk-task-end">Fecha fin</label></div></div>
-                        </div>
+                        @include('livewire.task.partials.schedule-fields', ['idPrefix' => 'bulk-task', 'startModel' => 'bulkStartDate', 'endModel' => 'bulkEndDate', 'durationAction' => 'applyBulkDuration', 'estimatedTime' => $bulkEstimatedTime])
                         <label class="md-checkbox"><input type="checkbox" wire:model="bulkIsPrivate"><i class="bi bi-lock"></i> Tareas privadas</label>
                     </div>
                 </div>

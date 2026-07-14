@@ -25,7 +25,8 @@
                                 <span class="md-planning-card-meta">
                                     @if ($task->category)<span class="md-chip-tonal">{{ $categories[$task->category] ?? $task->category }}</span>@endif
                                     @if ($task->priority)<span class="md-planning-priority {{ $task->priority }}"></span>@endif
-                                    @if ($scheduledDate)<span><i class="bi bi-calendar3"></i> {{ $scheduledDate->format('d M') }}</span>@endif
+                                    @if ($scheduledDate)<span><i class="bi bi-calendar3"></i> {{ $scheduledDate->format('d M, H:i') }}</span>@endif
+                                    @if ($task->estimated_time)<span><i class="bi bi-clock"></i> {{ $task->estimated_time_label }}</span>@endif
                                 </span>
                             </button>
                             <footer class="md-planning-card-actions">
@@ -58,7 +59,7 @@
                         <div class="col-md-4"><div class="md-text-field"><select wire:model="priority" id="planning-task-priority"><option value="">Sin prioridad</option>@foreach ($priorities as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select><label for="planning-task-priority">Prioridad</label></div></div>
                         <div class="col-md-4"><div class="md-text-field"><select wire:model="size" id="planning-task-size"><option value="">Sin tamaño</option>@foreach ($sizes as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select><label for="planning-task-size">Tamaño</label></div></div>
                     </div>
-                    <div class="row g-3"><div class="col-6"><div class="md-text-field"><input type="date" wire:model="startDate" placeholder=" " id="planning-task-start"><label for="planning-task-start">Fecha inicio</label></div></div><div class="col-6"><div class="md-text-field"><input type="date" wire:model="endDate" placeholder=" " id="planning-task-end"><label for="planning-task-end">Fecha fin</label></div></div></div>
+                    @include('livewire.task.partials.schedule-fields', ['idPrefix' => 'planning-task', 'startModel' => 'startDate', 'endModel' => 'endDate', 'durationAction' => 'applyDuration'])
                     <label class="md-checkbox"><input type="checkbox" wire:model="isPrivate"><i class="bi bi-lock"></i> Tarea privada</label>
                 </div></div>
                 <div class="md-dialog-actions"><button wire:click="closeForm" class="md-btn-text">Cancelar</button><button wire:click="save" class="md-btn-filled"><i class="bi bi-check-lg"></i> Actualizar</button></div>

@@ -3,6 +3,7 @@
 namespace App\Livewire\Task;
 
 use App\Models\Task;
+use App\Livewire\Concerns\InteractsWithTaskSchedule;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Livewire\Attributes\Layout;
@@ -13,6 +14,7 @@ use Livewire\Component;
 #[Title('Gantt de tareas')]
 class TaskGantt extends Component
 {
+    use InteractsWithTaskSchedule;
     public string $month;
 
     public bool $showForm = false;
@@ -34,6 +36,8 @@ class TaskGantt extends Component
     public ?string $startDate = null;
 
     public ?string $endDate = null;
+
+    public ?int $estimatedTime = null;
 
     public bool $isPrivate = false;
 
@@ -100,8 +104,7 @@ class TaskGantt extends Component
         $this->category = $task->category ?? '';
         $this->priority = $task->priority ?? '';
         $this->size = $task->size ?? '';
-        $this->startDate = $task->start_date?->format('Y-m-d');
-        $this->endDate = $task->end_date?->format('Y-m-d');
+        $this->loadTaskSchedule($task);
         $this->isPrivate = $task->is_private;
         $this->descriptionMode = 'write';
         $this->showForm = true;
@@ -111,13 +114,18 @@ class TaskGantt extends Component
     {
         $this->showForm = false;
         $this->editingId = null;
-        $this->reset('title', 'description', 'category', 'priority', 'size', 'startDate', 'endDate', 'isPrivate');
+        $this->reset('title', 'description', 'category', 'priority', 'size', 'startDate', 'endDate', 'estimatedTime', 'isPrivate');
         $this->descriptionMode = 'write';
     }
 
     public function save(): void
     {
         if (blank(trim($this->title)) || ! $this->editingId) {
+            return;
+        }
+
+        $schedule = $this->taskScheduleData();
+        if (! $schedule) {
             return;
         }
 
@@ -130,8 +138,7 @@ class TaskGantt extends Component
                 'category' => $this->category ?: null,
                 'priority' => $this->priority ?: null,
                 'size' => $this->size ?: null,
-                'start_date' => $this->startDate ?: null,
-                'end_date' => $this->endDate ?: null,
+                ...$schedule,
                 'is_private' => $this->isPrivate,
             ]);
         }

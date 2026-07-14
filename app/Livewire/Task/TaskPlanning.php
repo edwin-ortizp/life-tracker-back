@@ -3,6 +3,7 @@
 namespace App\Livewire\Task;
 
 use App\Livewire\Concerns\HandlesRecurringTaskCompletion;
+use App\Livewire\Concerns\InteractsWithTaskSchedule;
 use App\Models\Task;
 use App\Services\TaskGamificationService;
 use Carbon\Carbon;
@@ -14,7 +15,7 @@ use Livewire\Component;
 #[Title('Planificación de tareas')]
 class TaskPlanning extends Component
 {
-    use HandlesRecurringTaskCompletion;
+    use HandlesRecurringTaskCompletion, InteractsWithTaskSchedule;
 
     public bool $showForm = false;
     public string $descriptionMode = 'write';
@@ -26,6 +27,7 @@ class TaskPlanning extends Component
     public string $size = '';
     public ?string $startDate = null;
     public ?string $endDate = null;
+    public ?int $estimatedTime = null;
     public bool $isPrivate = false;
 
     public array $categories = [
@@ -72,24 +74,26 @@ class TaskPlanning extends Component
             return;
         }
 
-        $target = today()->addDays($daysFromToday)->startOfDay();
+        $scheduledAt = $task->start_date ?? $task->end_date;
+        $targetDay = today()->addDays($daysFromToday);
+        $target = $scheduledAt->copy()->setDate($targetDay->year, $targetDay->month, $targetDay->day);
 
         if ($task->start_date && $task->end_date) {
             $scheduledDate = $task->start_date->copy()->startOfDay();
             $shift = $scheduledDate->diffInDays($target, false);
             $task->update([
-                'start_date' => $task->start_date->copy()->addDays($shift),
-                'end_date' => $task->end_date->copy()->addDays($shift),
+                'start_date' => $task->start_date->copy()->addDays($shift)->format('Y-m-d H:i:s'),
+                'end_date' => $task->end_date->copy()->addDays($shift)->format('Y-m-d H:i:s'),
             ]);
             return;
         }
 
         if ($task->start_date) {
-            $task->update(['start_date' => $target]);
+            $task->update(['start_date' => $target->format('Y-m-d H:i:s')]);
             return;
         }
 
-        $task->update(['end_date' => $target]);
+        $task->update(['end_date' => $target->format('Y-m-d H:i:s')]);
     }
 
     public function clearDates(string $id): void
@@ -111,8 +115,7 @@ class TaskPlanning extends Component
         $this->category = $task->category ?? '';
         $this->priority = $task->priority ?? '';
         $this->size = $task->size ?? '';
-        $this->startDate = $task->start_date?->format('Y-m-d');
-        $this->endDate = $task->end_date?->format('Y-m-d');
+        $this->loadTaskSchedule($task);
         $this->isPrivate = $task->is_private;
         $this->descriptionMode = 'write';
         $this->showForm = true;
@@ -122,7 +125,7 @@ class TaskPlanning extends Component
     {
         $this->showForm = false;
         $this->editingId = null;
-        $this->reset('title', 'description', 'category', 'priority', 'size', 'startDate', 'endDate', 'isPrivate');
+        $this->reset('title', 'description', 'category', 'priority', 'size', 'startDate', 'endDate', 'estimatedTime', 'isPrivate');
         $this->descriptionMode = 'write';
     }
 
@@ -132,14 +135,18 @@ class TaskPlanning extends Component
             return;
         }
 
+        $schedule = $this->taskScheduleData();
+        if (! $schedule) {
+            return;
+        }
+
         $task = Task::find($this->editingId);
 
         if ($task) {
             $task->update([
                 'title' => trim($this->title), 'description' => $this->description ?: null,
                 'category' => $this->category ?: null, 'priority' => $this->priority ?: null,
-                'size' => $this->size ?: null, 'start_date' => $this->startDate ?: null,
-                'end_date' => $this->endDate ?: null, 'is_private' => $this->isPrivate,
+                'size' => $this->size ?: null, ...$schedule, 'is_private' => $this->isPrivate,
             ]);
         }
 
