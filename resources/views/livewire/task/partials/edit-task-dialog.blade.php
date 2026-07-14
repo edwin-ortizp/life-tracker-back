@@ -19,7 +19,7 @@
                         <div class="col-md-4"><div class="md-text-field"><select wire:model="priority" id="{{ $dialogId }}-priority"><option value="">Sin prioridad</option>@foreach ($priorities as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select><label for="{{ $dialogId }}-priority">Prioridad</label></div></div>
                         <div class="col-md-4"><div class="md-text-field"><select wire:model="size" id="{{ $dialogId }}-size"><option value="">Sin tamaño</option>@foreach ($sizes as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select><label for="{{ $dialogId }}-size">Tamaño</label></div></div>
                     </div>
-                    @include('livewire.task.partials.schedule-fields', ['idPrefix' => $dialogId, 'startModel' => 'startDate', 'endModel' => 'endDate', 'durationAction' => 'applyDuration'])
+                    @include('livewire.task.partials.schedule-fields', ['idPrefix' => $dialogId, 'startModel' => 'startDate', 'startTimeModel' => 'startTime', 'endModel' => 'endDate', 'endTimeModel' => 'endTime', 'durationAction' => 'applyDuration'])
                     <label class="md-checkbox"><input type="checkbox" wire:model="isPrivate"><i class="bi bi-lock"></i> Tarea privada</label>
                     @if ($showRecurrenceFields ?? false)
                         <div class="d-flex flex-wrap align-items-center gap-3">

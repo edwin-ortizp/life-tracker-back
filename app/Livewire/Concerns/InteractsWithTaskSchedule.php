@@ -7,103 +7,135 @@ use Carbon\Carbon;
 
 trait InteractsWithTaskSchedule
 {
+    public ?string $startTime = null;
+
+    public ?string $endTime = null;
+
+    public ?string $bulkStartTime = null;
+
+    public ?string $bulkEndTime = null;
+
     public function loadTaskSchedule(Task $task): void
     {
-        $this->startDate = $task->start_date?->format('Y-m-d\\TH:i');
-        $this->endDate = $task->end_date?->format('Y-m-d\\TH:i');
+        $this->startDate = $task->start_date?->format('Y-m-d');
+        $this->startTime = $task->start_date?->format('H:i');
+        $this->endDate = $task->end_date?->format('Y-m-d');
+        $this->endTime = $task->end_date?->format('H:i');
         $this->estimatedTime = $task->estimated_time;
     }
 
     public function applyDuration(int $minutes): void
     {
-        $this->applyDurationTo('startDate', 'endDate', 'estimatedTime', $minutes);
+        $this->applyDurationTo('startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime', $minutes);
     }
 
     public function applyBulkDuration(int $minutes): void
     {
-        $this->applyDurationTo('bulkStartDate', 'bulkEndDate', 'bulkEstimatedTime', $minutes);
+        $this->applyDurationTo('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime', $minutes);
     }
 
     public function updatedStartDate(): void
     {
-        $this->synchronizeSchedule('startDate', 'endDate', 'estimatedTime');
+        $this->synchronizeSchedule('startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime');
     }
 
     public function updatingStartDate(?string $newStartDate): void
     {
-        $this->shiftEndWithStart('startDate', 'endDate', $newStartDate);
+        $this->shiftEndWithStart('startDate', 'startTime', 'endDate', 'endTime', $newStartDate, $this->startTime);
     }
 
     public function updatedEndDate(): void
     {
-        $this->synchronizeSchedule('startDate', 'endDate', 'estimatedTime');
+        $this->synchronizeSchedule('startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime');
+    }
+
+    public function updatingStartTime(?string $newStartTime): void
+    {
+        $this->shiftEndWithStart('startDate', 'startTime', 'endDate', 'endTime', $this->startDate, $newStartTime);
+    }
+
+    public function updatedStartTime(): void
+    {
+        $this->synchronizeSchedule('startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime');
+    }
+
+    public function updatedEndTime(): void
+    {
+        $this->synchronizeSchedule('startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime');
     }
 
     public function updatedBulkStartDate(): void
     {
-        $this->synchronizeSchedule('bulkStartDate', 'bulkEndDate', 'bulkEstimatedTime');
+        $this->synchronizeSchedule('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime');
     }
 
     public function updatingBulkStartDate(?string $newStartDate): void
     {
-        $this->shiftEndWithStart('bulkStartDate', 'bulkEndDate', $newStartDate);
+        $this->shiftEndWithStart('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', $newStartDate, $this->bulkStartTime);
     }
 
     public function updatedBulkEndDate(): void
     {
-        $this->synchronizeSchedule('bulkStartDate', 'bulkEndDate', 'bulkEstimatedTime');
+        $this->synchronizeSchedule('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime');
+    }
+
+    public function updatedBulkStartTime(): void
+    {
+        $this->synchronizeSchedule('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime');
+    }
+
+    public function updatedBulkEndTime(): void
+    {
+        $this->synchronizeSchedule('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime');
     }
 
     protected function taskScheduleData(): ?array
     {
-        return $this->scheduleDataFor('startDate', 'endDate', 'estimatedTime');
+        return $this->scheduleDataFor('startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime');
     }
 
     protected function bulkTaskScheduleData(): ?array
     {
-        return $this->scheduleDataFor('bulkStartDate', 'bulkEndDate', 'bulkEstimatedTime', 'bulkEndDate');
+        return $this->scheduleDataFor('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime', 'bulkEndDate');
     }
 
-    private function applyDurationTo(string $startProperty, string $endProperty, string $estimatedProperty, int $minutes): void
+    private function applyDurationTo(string $startDateProperty, string $startTimeProperty, string $endDateProperty, string $endTimeProperty, string $estimatedProperty, int $minutes): void
     {
-        $start = $this->scheduleDate($this->{$startProperty}) ?? now()->setSecond(0);
+        $start = $this->scheduleDate($this->{$startDateProperty}, $this->{$startTimeProperty}) ?? now()->setSecond(0);
 
-        $this->{$startProperty} = $start->format('Y-m-d\\TH:i');
-        $this->{$endProperty} = $start->copy()->addMinutes($minutes)->format('Y-m-d\\TH:i');
+        $this->setScheduleDate($startDateProperty, $startTimeProperty, $start);
+        $this->setScheduleDate($endDateProperty, $endTimeProperty, $start->copy()->addMinutes($minutes));
         $this->{$estimatedProperty} = $minutes;
     }
 
-    private function synchronizeSchedule(string $startProperty, string $endProperty, string $estimatedProperty): void
+    private function synchronizeSchedule(string $startDateProperty, string $startTimeProperty, string $endDateProperty, string $endTimeProperty, string $estimatedProperty): void
     {
-        $start = $this->scheduleDate($this->{$startProperty});
-        $end = $this->scheduleDate($this->{$endProperty});
+        $start = $this->scheduleDate($this->{$startDateProperty}, $this->{$startTimeProperty});
+        $end = $this->scheduleDate($this->{$endDateProperty}, $this->{$endTimeProperty});
 
         if ($start && $end && $end->greaterThanOrEqualTo($start)) {
             $this->{$estimatedProperty} = $start->diffInMinutes($end);
         }
     }
 
-    private function shiftEndWithStart(string $startProperty, string $endProperty, ?string $newStartValue): void
+    private function shiftEndWithStart(string $startDateProperty, string $startTimeProperty, string $endDateProperty, string $endTimeProperty, ?string $newStartDate, ?string $newStartTime): void
     {
-        $oldStart = $this->scheduleDate($this->{$startProperty});
-        $newStart = $this->scheduleDate($newStartValue);
-        $end = $this->scheduleDate($this->{$endProperty});
+        $oldStart = $this->scheduleDate($this->{$startDateProperty}, $this->{$startTimeProperty});
+        $newStart = $this->scheduleDate($newStartDate, $newStartTime);
+        $end = $this->scheduleDate($this->{$endDateProperty}, $this->{$endTimeProperty});
 
         if (! $oldStart || ! $newStart || ! $end || $end->lessThan($oldStart)) {
             return;
         }
 
-        $this->{$endProperty} = $newStart
-            ->copy()
-            ->addSeconds((int) $oldStart->diffInSeconds($end))
-            ->format('Y-m-d\\TH:i');
+        $this->setScheduleDate($endDateProperty, $endTimeProperty, $newStart->copy()->addSeconds((int) $oldStart->diffInSeconds($end)));
     }
 
-    private function scheduleDataFor(string $startProperty, string $endProperty, string $estimatedProperty, ?string $errorProperty = null): ?array
+    private function scheduleDataFor(string $startDateProperty, string $startTimeProperty, string $endDateProperty, string $endTimeProperty, string $estimatedProperty, ?string $errorProperty = null): ?array
     {
-        $start = $this->scheduleDate($this->{$startProperty});
-        $end = $this->scheduleDate($this->{$endProperty});
-        $errorProperty ??= $endProperty;
+        $start = $this->scheduleDate($this->{$startDateProperty}, $this->{$startTimeProperty});
+        $end = $this->scheduleDate($this->{$endDateProperty}, $this->{$endTimeProperty});
+        $errorProperty ??= $endDateProperty;
         $this->resetErrorBag($errorProperty);
 
         if ($start && $end && $end->lessThan($start)) {
@@ -123,8 +155,18 @@ trait InteractsWithTaskSchedule
         ];
     }
 
-    private function scheduleDate(?string $value): ?Carbon
+    private function scheduleDate(?string $date, ?string $time = null): ?Carbon
     {
-        return filled($value) ? Carbon::parse($value) : null;
+        if (! filled($date)) {
+            return null;
+        }
+
+        return Carbon::parse(str_contains($date, 'T') ? $date : $date.' '.($time ?: '00:00'));
+    }
+
+    private function setScheduleDate(string $dateProperty, string $timeProperty, Carbon $date): void
+    {
+        $this->{$dateProperty} = $date->format('Y-m-d');
+        $this->{$timeProperty} = $date->format('H:i');
     }
 }

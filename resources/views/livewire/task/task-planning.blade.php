@@ -59,7 +59,7 @@
                         <div class="col-md-4"><div class="md-text-field"><select wire:model="priority" id="planning-task-priority"><option value="">Sin prioridad</option>@foreach ($priorities as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select><label for="planning-task-priority">Prioridad</label></div></div>
                         <div class="col-md-4"><div class="md-text-field"><select wire:model="size" id="planning-task-size"><option value="">Sin tamaño</option>@foreach ($sizes as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select><label for="planning-task-size">Tamaño</label></div></div>
                     </div>
-                    @include('livewire.task.partials.schedule-fields', ['idPrefix' => 'planning-task', 'startModel' => 'startDate', 'endModel' => 'endDate', 'durationAction' => 'applyDuration'])
+                    @include('livewire.task.partials.schedule-fields', ['idPrefix' => 'planning-task', 'startModel' => 'startDate', 'startTimeModel' => 'startTime', 'endModel' => 'endDate', 'endTimeModel' => 'endTime', 'durationAction' => 'applyDuration'])
                     <label class="md-checkbox"><input type="checkbox" wire:model="isPrivate"><i class="bi bi-lock"></i> Tarea privada</label>
                 </div></div>
                 <div class="md-dialog-actions"><button wire:click="closeForm" class="md-btn-text">Cancelar</button><button wire:click="save" class="md-btn-filled"><i class="bi bi-check-lg"></i> Actualizar</button></div>

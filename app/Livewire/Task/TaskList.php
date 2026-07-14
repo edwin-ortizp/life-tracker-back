@@ -291,7 +291,9 @@ class TaskList extends Component
         $this->priority = '';
         $this->size = '';
         $this->startDate = null;
+        $this->startTime = null;
         $this->endDate = null;
+        $this->endTime = null;
         $this->estimatedTime = null;
         $this->isPrivate = false;
         $this->isRecurrent = false;
@@ -307,7 +309,9 @@ class TaskList extends Component
         $this->bulkPriority = '';
         $this->bulkSize = '';
         $this->bulkStartDate = null;
+        $this->bulkStartTime = null;
         $this->bulkEndDate = null;
+        $this->bulkEndTime = null;
         $this->bulkEstimatedTime = null;
         $this->bulkIsPrivate = false;
         $this->bulkDescriptionMode = 'write';

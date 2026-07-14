@@ -75,6 +75,26 @@ class TaskViewsTest extends TestCase
         $this->assertDatabaseHas('tasks', ['user_id' => $user->id, 'title' => 'Tarea individual', 'category' => 'personal']);
     }
 
+    public function test_individual_task_creation_persists_a_start_without_an_end(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Livewire::test(TaskList::class)
+            ->call('openForm')
+            ->set('title', 'Inicio sin final')
+            ->set('startDate', '2026-07-13')
+            ->call('save')
+            ->assertSet('showForm', false);
+
+        $this->assertDatabaseHas('tasks', [
+            'user_id' => $user->id,
+            'title' => 'Inicio sin final',
+            'start_date' => '2026-07-13 00:00:00',
+            'end_date' => null,
+        ]);
+    }
+
     public function test_task_duration_shortcuts_calculate_and_persist_schedule(): void
     {
         $user = User::factory()->create();
@@ -83,9 +103,11 @@ class TaskViewsTest extends TestCase
         Livewire::test(TaskList::class)
             ->call('openForm')
             ->set('title', 'Bloque de concentración')
-            ->set('startDate', '2026-07-13T09:30')
+            ->set('startDate', '2026-07-13')
+            ->set('startTime', '09:30')
             ->call('applyDuration', 90)
-            ->assertSet('endDate', '2026-07-13T11:00')
+            ->assertSet('endDate', '2026-07-13')
+            ->assertSet('endTime', '11:00')
             ->assertSet('estimatedTime', 90)
             ->call('save');
 
@@ -107,9 +129,11 @@ class TaskViewsTest extends TestCase
         Livewire::test(TaskList::class)
             ->call('openForm')
             ->call('applyDuration', 30)
-            ->assertSet('startDate', '2026-07-13T10:22')
-            ->assertSet('endDate', '2026-07-13T10:52')
-            ->set('endDate', '2026-07-13T12:07')
+            ->assertSet('startDate', '2026-07-13')
+            ->assertSet('startTime', '10:22')
+            ->assertSet('endDate', '2026-07-13')
+            ->assertSet('endTime', '10:52')
+            ->set('endTime', '12:07')
             ->assertSet('estimatedTime', 105);
 
         Carbon::setTestNow();
@@ -122,10 +146,13 @@ class TaskViewsTest extends TestCase
 
         Livewire::test(TaskList::class)
             ->call('openForm')
-            ->set('startDate', '2026-07-13T09:30')
-            ->set('endDate', '2026-07-15T11:00')
-            ->set('startDate', '2026-07-20T09:30')
-            ->assertSet('endDate', '2026-07-22T11:00')
+            ->set('startDate', '2026-07-13')
+            ->set('startTime', '09:30')
+            ->set('endDate', '2026-07-15')
+            ->set('endTime', '11:00')
+            ->set('startDate', '2026-07-20')
+            ->assertSet('endDate', '2026-07-22')
+            ->assertSet('endTime', '11:00')
             ->assertSet('estimatedTime', 2970);
     }
 
@@ -137,8 +164,10 @@ class TaskViewsTest extends TestCase
         Livewire::test(TaskList::class)
             ->call('openForm')
             ->set('title', 'Horario inválido')
-            ->set('startDate', '2026-07-13T12:00')
-            ->set('endDate', '2026-07-13T11:00')
+            ->set('startDate', '2026-07-13')
+            ->set('startTime', '12:00')
+            ->set('endDate', '2026-07-13')
+            ->set('endTime', '11:00')
             ->call('save')
             ->assertHasErrors('endDate');
 
@@ -153,7 +182,8 @@ class TaskViewsTest extends TestCase
         Livewire::test(TaskList::class)
             ->call('openBulkForm')
             ->set('bulkTitles', "Primera\nSegunda")
-            ->set('bulkStartDate', '2026-07-13T14:00')
+            ->set('bulkStartDate', '2026-07-13')
+            ->set('bulkStartTime', '14:00')
             ->call('applyBulkDuration', 120)
             ->call('saveBulk');
 

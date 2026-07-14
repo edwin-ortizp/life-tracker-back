@@ -114,7 +114,7 @@ class TaskGantt extends Component
     {
         $this->showForm = false;
         $this->editingId = null;
-        $this->reset('title', 'description', 'category', 'priority', 'size', 'startDate', 'endDate', 'estimatedTime', 'isPrivate');
+        $this->reset('title', 'description', 'category', 'priority', 'size', 'startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime', 'isPrivate');
         $this->descriptionMode = 'write';
     }
 

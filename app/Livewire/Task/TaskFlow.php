@@ -121,7 +121,7 @@ class TaskFlow extends Component
     {
         $this->showForm = false;
         $this->editingId = null;
-        $this->reset('title', 'description', 'category', 'priority', 'size', 'startDate', 'endDate', 'estimatedTime', 'isPrivate', 'completed');
+        $this->reset('title', 'description', 'category', 'priority', 'size', 'startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime', 'isPrivate', 'completed');
         $this->descriptionMode = 'write';
     }
 

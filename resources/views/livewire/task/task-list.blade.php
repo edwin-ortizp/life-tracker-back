@@ -202,7 +202,7 @@
                                 </div>
                             </div>
                         </div>
-                        @include('livewire.task.partials.schedule-fields', ['idPrefix' => 'bulk-task', 'startModel' => 'bulkStartDate', 'endModel' => 'bulkEndDate', 'durationAction' => 'applyBulkDuration', 'estimatedTime' => $bulkEstimatedTime])
+                        @include('livewire.task.partials.schedule-fields', ['idPrefix' => 'bulk-task', 'startModel' => 'bulkStartDate', 'startTimeModel' => 'bulkStartTime', 'endModel' => 'bulkEndDate', 'endTimeModel' => 'bulkEndTime', 'durationAction' => 'applyBulkDuration', 'estimatedTime' => $bulkEstimatedTime])
                         <label class="md-checkbox"><input type="checkbox" wire:model="bulkIsPrivate"><i class="bi bi-lock"></i> Tareas privadas</label>
                     </div>
                 </div>
