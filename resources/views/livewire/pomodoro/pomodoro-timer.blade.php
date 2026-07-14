@@ -1,4 +1,4 @@
-<x-module-shell module="pomodoro" x-data="pomodoroTimer(@entangle('workDuration'), @entangle('shortBreak'), @entangle('longBreak'))">
+<x-module-shell module="pomodoro" x-data="pomodoroTimer($wire.entangle('workDuration'), $wire.entangle('shortBreak'), $wire.entangle('longBreak'))">
     <x-slot:actions>
         <x-date-navigator :date="$selectedDate" format="D d M Y" />
     </x-slot:actions>

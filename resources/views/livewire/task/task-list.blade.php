@@ -1,4 +1,4 @@
-<x-module-shell module="tasks" x-data="{ showDialog: @entangle('showForm'), showBulkDialog: @entangle('showBulkForm'), showRecurringDialog: @entangle('showRecurringCompletion') }">
+<x-module-shell module="tasks" x-data="{ showDialog: $wire.entangle('showForm'), showBulkDialog: $wire.entangle('showBulkForm'), showRecurringDialog: $wire.entangle('showRecurringCompletion') }">
     <x-slot:actions>
         <x-module-actions
             :primary="['label' => 'Nueva tarea', 'icon' => 'bi-plus-lg', 'action' => 'openForm']"

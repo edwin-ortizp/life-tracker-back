@@ -1,4 +1,4 @@
-<x-module-shell module="meals" x-data="{ showDialog: @entangle('showForm') }">
+<x-module-shell module="meals" x-data="{ showDialog: $wire.entangle('showForm') }">
     <x-slot:actions>
         <div class="md-date-navigator"><button wire:click="previousWeek" class="md-btn-icon" aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><button wire:click="thisWeek" class="md-date-navigator__today">Esta semana</button><span class="md-date-navigator__label">{{ $weekStart->format('d M') }} – {{ $weekStart->copy()->endOfWeek()->format('d M') }}</span><button wire:click="nextWeek" class="md-btn-icon" aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button></div>
     </x-slot:actions>

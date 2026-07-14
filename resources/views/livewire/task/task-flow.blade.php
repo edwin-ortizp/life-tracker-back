@@ -1,4 +1,4 @@
-<x-module-shell module="tasks" x-data="{ showDialog: @entangle('showForm'), showRecurringDialog: @entangle('showRecurringCompletion') }">
+<x-module-shell module="tasks" x-data="{ showDialog: $wire.entangle('showForm'), showRecurringDialog: $wire.entangle('showRecurringCompletion') }">
 <section class="task-flow-page">
     @forelse ($lanes as $lane)
         <section class="task-flow-lane" wire:key="flow-lane-{{ $lane['laneKey'] }}" aria-labelledby="flow-lane-{{ $lane['laneKey'] }}">

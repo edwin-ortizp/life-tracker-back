@@ -1,0 +1,20 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Never serve hidden files if one is accidentally copied into public/.
+    # Keep .well-known available for TLS certificate validation.
+    RewriteRule "(^|/)\.(?!well-known(?:/|$))" - [F,L,NC]
+
+    # Preserve authorization headers for Laravel authentication.
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Send non-file and non-directory requests to Laravel's front controller.
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>

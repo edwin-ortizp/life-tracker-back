@@ -1,4 +1,4 @@
-<x-module-shell module="tasks" x-data="{ showDialog: @entangle('showForm') }">
+<x-module-shell module="tasks" x-data="{ showDialog: $wire.entangle('showForm') }">
     <x-slot:actions><div class="md-date-navigator"><button wire:click="previousMonth" class="md-btn-icon" aria-label="Mes anterior"><i class="bi bi-chevron-left"></i></button><span class="md-date-navigator__label text-capitalize">{{ $monthLabel }}</span><button wire:click="nextMonth" class="md-btn-icon" aria-label="Mes siguiente"><i class="bi bi-chevron-right"></i></button></div></x-slot:actions>
 
     <section class="md-card-elevated p-0 overflow-hidden" aria-label="Cronograma mensual">

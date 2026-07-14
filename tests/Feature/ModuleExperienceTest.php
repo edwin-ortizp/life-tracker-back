@@ -26,7 +26,10 @@ class ModuleExperienceTest extends TestCase
             '/tasks/list', '/tasks/gantt', '/tasks/flow', '/tasks/kanban', '/tasks/planning', '/tasks/progress',
             '/relationships', '/goals', '/statistics', '/negative-habits', '/settings',
         ] as $url) {
-            $response = $this->actingAs($user)->get($url)->assertOk()->assertSee('md-module-shell', false);
+            $response = $this->actingAs($user)->get($url)
+                ->assertOk()
+                ->assertSee('md-module-shell', false)
+                ->assertDontSee('@entangle(', false);
             $this->assertSame(1, substr_count($response->getContent(), '<h1'), "{$url} should render one module heading.");
         }
     }
@@ -41,7 +44,10 @@ class ModuleExperienceTest extends TestCase
             ->assertDontSee('<a href="'.route('water.settings').'" class="md-btn-outlined">', false);
 
         $tasks = $this->actingAs($user)->get('/tasks/list')->assertOk();
-        $tasks->assertSee('Nueva tarea')->assertSee('Varias tareas')->assertSee('Estado de las tareas');
+        $tasks->assertSee('Nueva tarea')
+            ->assertSee('Varias tareas')
+            ->assertSee('Estado de las tareas')
+            ->assertSee("\$wire.entangle('showForm')", false);
         $this->assertSame(1, substr_count($tasks->getContent(), 'md-module-primary-fab'));
 
         $this->actingAs($user)->get('/habits')

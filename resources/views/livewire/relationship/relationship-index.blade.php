@@ -1,4 +1,4 @@
-<x-module-shell module="relationships" x-data="{ showPersonDialog: @entangle('showForm'), showCircleDialog: @entangle('showCircleForm') }">
+<x-module-shell module="relationships" x-data="{ showPersonDialog: $wire.entangle('showForm'), showCircleDialog: $wire.entangle('showCircleForm') }">
     <x-slot:actions>
         <x-module-actions
             :primary="['label' => 'Nueva persona', 'icon' => 'bi-person-plus', 'action' => 'openForm']"

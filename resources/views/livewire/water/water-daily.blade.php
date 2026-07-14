@@ -1,4 +1,4 @@
-<x-module-shell module="water" x-data="{ showDialog: @entangle('showForm') }">
+<x-module-shell module="water" x-data="{ showDialog: $wire.entangle('showForm') }">
     <x-slot:actions>
         <x-date-navigator :date="$selectedDate" format="D d M" />
         <x-module-actions :primary="['label' => 'Registrar', 'icon' => 'bi-plus-lg', 'action' => 'openForm']" />

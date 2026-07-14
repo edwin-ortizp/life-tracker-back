@@ -1,4 +1,4 @@
-<x-module-shell module="tasks" x-data="{ showDialog: @entangle('showForm'), showRecurringDialog: @entangle('showRecurringCompletion') }">
+<x-module-shell module="tasks" x-data="{ showDialog: $wire.entangle('showForm'), showRecurringDialog: $wire.entangle('showRecurringCompletion') }">
     @php
         $definitions = [
             'overdue' => ['Atrasadas', 'bi-exclamation-circle', 'is-overdue'],

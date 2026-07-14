@@ -1,4 +1,4 @@
-<x-module-shell module="goals" x-data="{ showDialog: @entangle('showForm'), openMenu: null }">
+<x-module-shell module="goals" x-data="{ showDialog: $wire.entangle('showForm'), openMenu: null }">
     <x-slot:actions>
         <x-module-actions :primary="['label' => 'Nuevo objetivo', 'icon' => 'bi-plus-lg', 'action' => 'openForm']" />
     </x-slot:actions>

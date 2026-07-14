@@ -1,0 +1,31 @@
+# This directory contains the Laravel application source and must never be
+# exposed as a public document root. Configure the domain to serve public/.
+# These rules are a defence in depth for shared hosts while that is enforced.
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Deny hidden files and directories, while allowing ACME certificates.
+    RewriteRule "(^|/)\.(?!well-known(?:/|$))" - [F,L,NC]
+
+    # Deny application source, dependencies, logs, tests and build tooling.
+    RewriteRule "^(?:app|archive|bootstrap|config|database|node_modules|resources|routes|scripts|src|storage|tests|vendor)(?:/|$)" - [F,L,NC]
+
+    # Hostinger shared hosting serves public_html as the fixed document root.
+    # Keep Laravel's public/ directory as the only web-facing application tree.
+    RewriteCond %{REQUEST_URI} !^/public(?:/|$) [NC]
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Keep the most sensitive files protected even if mod_rewrite is unavailable.
+<FilesMatch "(?i)^(?:\.env(?:\..*)?|artisan|auth\.json|composer\.(?:json|lock)|firebase-admin-key\.json|package(?:-lock)?\.json|phpunit\.xml(?:\.dist)?|vite\.config\..*)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>

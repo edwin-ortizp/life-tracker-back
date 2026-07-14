@@ -1,4 +1,4 @@
-<x-module-shell module="tasks" x-data="{ showRecurringDialog: @entangle('showRecurringCompletion') }">
+<x-module-shell module="tasks" x-data="{ showRecurringDialog: $wire.entangle('showRecurringCompletion') }">
     {{-- Kanban Grid --}}
     <div class="row g-3">
         @php

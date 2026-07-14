@@ -1,4 +1,4 @@
-<x-module-shell module="mood" x-data="{ showMoodDialog: @entangle('showMoodForm'), showEnergyDialog: @entangle('showEnergyForm') }">
+<x-module-shell module="mood" x-data="{ showMoodDialog: $wire.entangle('showMoodForm'), showEnergyDialog: $wire.entangle('showEnergyForm') }">
     <x-slot:actions>
         <x-date-navigator :date="$selectedDate" format="D d M" />
         <x-module-actions
