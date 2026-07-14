@@ -390,6 +390,23 @@ class TaskViewsTest extends TestCase
         Carbon::setTestNow();
     }
 
+    public function test_planning_can_assign_a_task_without_dates_to_a_day(): void
+    {
+        Carbon::setTestNow('2026-07-12 10:00:00');
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $task = Task::create(['title' => 'Sin programar']);
+
+        Livewire::test(TaskPlanning::class)->call('moveToDay', $task->id, 1);
+
+        $this->assertDatabaseHas('tasks', [
+            'id' => $task->id,
+            'start_date' => null,
+            'end_date' => '2026-07-13 00:00:00',
+        ]);
+        Carbon::setTestNow();
+    }
+
     public function test_planning_moves_keep_task_times_and_estimation(): void
     {
         Carbon::setTestNow('2026-07-12 10:00:00');

@@ -76,7 +76,9 @@ class TaskPlanning extends Component
 
         $scheduledAt = $task->start_date ?? $task->end_date;
         $targetDay = today()->addDays($daysFromToday);
-        $target = $scheduledAt->copy()->setDate($targetDay->year, $targetDay->month, $targetDay->day);
+        $target = $scheduledAt
+            ? $scheduledAt->copy()->setDate($targetDay->year, $targetDay->month, $targetDay->day)
+            : $targetDay->copy()->startOfDay();
 
         if ($task->start_date && $task->end_date) {
             $scheduledDate = $task->start_date->copy()->startOfDay();
