@@ -23,6 +23,8 @@ return new class extends Migration
             $table->integer('negative_count')->default(0);
             $table->json('numeric_goal')->nullable();
             $table->timestamps();
+
+            $table->unique(['id', 'user_id']);
         });
     }
 

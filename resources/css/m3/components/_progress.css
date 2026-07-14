@@ -1,0 +1,52 @@
+/* ===== M3 Progress Indicators ===== */
+
+/* Linear progress */
+.md-progress-linear {
+  width: 100%;
+  height: 4px;
+  background: var(--md-sys-color-surface-container-highest);
+  border-radius: var(--md-sys-shape-corner-full);
+  overflow: hidden;
+}
+
+.md-progress-linear-bar {
+  height: 100%;
+  background: var(--md-sys-color-primary);
+  border-radius: var(--md-sys-shape-corner-full);
+  transition: width var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard);
+}
+
+/* Color variants */
+.md-progress-linear--success .md-progress-linear-bar {
+  background: var(--md-custom-color-success);
+}
+
+.md-progress-linear--warning .md-progress-linear-bar {
+  background: var(--md-custom-color-warning);
+}
+
+.md-progress-linear--error .md-progress-linear-bar {
+  background: var(--md-sys-color-error);
+}
+
+/* Circular progress */
+.md-progress-circular {
+  display: inline-block;
+  position: relative;
+}
+
+.md-progress-circular svg {
+  transform: rotate(-90deg);
+}
+
+.md-progress-circular-track {
+  fill: none;
+  stroke: var(--md-sys-color-surface-container-highest);
+}
+
+.md-progress-circular-bar {
+  fill: none;
+  stroke: var(--md-sys-color-primary);
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard);
+}

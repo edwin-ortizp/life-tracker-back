@@ -23,6 +23,8 @@ return new class extends Migration
             $table->json('nutrition')->nullable();
             $table->boolean('favorite')->default(false);
             $table->timestamps();
+
+            $table->unique(['id', 'user_id']);
         });
     }
 

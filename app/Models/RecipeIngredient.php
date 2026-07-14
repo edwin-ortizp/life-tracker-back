@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToUser;
 use Illuminate\Database\Eloquent\Model;
 
 class RecipeIngredient extends Model
 {
+    use BelongsToUser;
+
     protected $fillable = [
         'recipe_id',
         'shopping_item_id',

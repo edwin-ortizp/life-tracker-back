@@ -18,7 +18,10 @@ return new class extends Migration
             $table->bigInteger('timestamp');
             $table->text('note')->nullable();
 
-            $table->foreign('habit_id')->references('id')->on('negative_habit_definitions');
+            $table->foreign(['habit_id', 'user_id'])
+                ->references(['id', 'user_id'])
+                ->on('negative_habit_definitions')
+                ->cascadeOnDelete();
             $table->timestamps();
         });
     }

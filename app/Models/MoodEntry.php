@@ -18,6 +18,8 @@ class MoodEntry extends Model
         'time',
         'timestamp',
         'mood_state_id',
+        'source',
+        'source_key',
     ];
 
     protected function casts(): array

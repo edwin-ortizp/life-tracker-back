@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Models\Traits\BelongsToUser;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Relationship extends Model
 {
@@ -37,6 +39,11 @@ class Relationship extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(fn (self $relationship) => $relationship->taskAssociations()->delete());
+    }
+
     public function circle()
     {
         return $this->belongsTo(Circle::class);
@@ -45,5 +52,16 @@ class Relationship extends Model
     public function relationshipEvents()
     {
         return $this->hasMany(RelationshipEvent::class);
+    }
+
+    public function taskAssociations(): MorphMany
+    {
+        return $this->morphMany(TaskAssociation::class, 'target');
+    }
+
+    public function tasks(): MorphToMany
+    {
+        return $this->morphToMany(Task::class, 'target', 'task_associations', 'target_id', 'task_id')
+            ->withTimestamps();
     }
 }

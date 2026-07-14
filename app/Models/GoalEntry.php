@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToUser;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class GoalEntry extends Model
 {
-    use HasUuids;
+    use BelongsToUser, HasUuids;
 
     protected $fillable = [
         'goal_id',

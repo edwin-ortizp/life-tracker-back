@@ -19,6 +19,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->integer('contact_frequency_days')->nullable();
             $table->timestamps();
+
+            $table->unique(['id', 'user_id']);
         });
     }
 

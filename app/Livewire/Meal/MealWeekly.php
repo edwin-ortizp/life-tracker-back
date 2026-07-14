@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Meal;
 
+use App\Livewire\Concerns\HasUrlDate;
 use App\Models\MealPlanEntry;
 use Carbon\Carbon;
 use Livewire\Component;
@@ -12,7 +13,7 @@ use Livewire\Attributes\Title;
 #[Title('Comidas')]
 class MealWeekly extends Component
 {
-    public string $selectedDate;
+    use HasUrlDate;
 
     public bool $showForm = false;
     public string $formDate = '';
@@ -32,7 +33,7 @@ class MealWeekly extends Component
 
     public function mount()
     {
-        $this->selectedDate = now()->toDateString();
+        $this->initializeSelectedDate();
     }
 
     public function previousWeek()

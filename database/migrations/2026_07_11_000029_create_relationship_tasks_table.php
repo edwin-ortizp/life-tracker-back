@@ -18,9 +18,15 @@ return new class extends Migration
             $table->uuid('task_id');
             $table->timestamps();
 
-            $table->foreign('relationship_id')->references('id')->on('relationships')->cascadeOnDelete();
-            $table->foreign('task_id')->references('id')->on('tasks')->cascadeOnDelete();
-            $table->unique(['relationship_id', 'task_id']);
+            $table->foreign(['relationship_id', 'user_id'])
+                ->references(['id', 'user_id'])
+                ->on('relationships')
+                ->cascadeOnDelete();
+            $table->foreign(['task_id', 'user_id'])
+                ->references(['id', 'user_id'])
+                ->on('tasks')
+                ->cascadeOnDelete();
+            $table->unique(['user_id', 'relationship_id', 'task_id']);
         });
     }
 

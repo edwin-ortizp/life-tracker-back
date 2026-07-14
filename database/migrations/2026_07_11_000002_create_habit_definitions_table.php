@@ -13,12 +13,16 @@ return new class extends Migration
     {
         Schema::create('habit_definitions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('icon')->nullable();
             $table->string('time_of_day')->nullable();
             $table->string('goal_duration')->nullable();
             $table->string('base_time')->nullable();
             $table->timestamps();
+
+            $table->unique(['id', 'user_id']);
+            $table->unique(['user_id', 'name', 'time_of_day']);
         });
     }
 

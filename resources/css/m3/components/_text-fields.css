@@ -1,0 +1,157 @@
+/* ===== M3 Outlined Text Fields ===== */
+
+.md-text-field {
+  position: relative;
+  width: 100%;
+}
+
+.md-text-field input,
+.md-text-field textarea,
+.md-text-field select {
+  width: 100%;
+  padding: 16px;
+  padding-top: 20px;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface);
+  background: transparent;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  outline: none;
+  transition: border-color var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.md-text-field textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.md-text-field select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2345464F' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+.md-text-field label {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  color: var(--md-sys-color-on-surface-variant);
+  pointer-events: none;
+  transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+  background: var(--md-sys-color-surface-container-high);
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.md-text-field textarea ~ label {
+  top: 20px;
+  transform: none;
+}
+
+/* Float label when focused or has value */
+.md-text-field input:focus ~ label,
+.md-text-field input:not(:placeholder-shown) ~ label,
+.md-text-field textarea:focus ~ label,
+.md-text-field textarea:not(:placeholder-shown) ~ label,
+.md-text-field select:focus ~ label,
+.md-text-field select:valid ~ label {
+  top: 0;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: var(--md-sys-color-primary);
+}
+
+.md-text-field input:not(:focus):not(:placeholder-shown) ~ label,
+.md-text-field textarea:not(:focus):not(:placeholder-shown) ~ label,
+.md-text-field select:not(:focus):valid ~ label {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Focus state */
+.md-text-field input:focus,
+.md-text-field textarea:focus,
+.md-text-field select:focus {
+  border-color: var(--md-sys-color-primary);
+  border-width: 2px;
+  padding: 15px;
+  padding-top: 19px;
+}
+
+.md-text-field textarea:focus {
+  padding: 15px;
+  padding-top: 19px;
+}
+
+/* Error state */
+.md-text-field.md-error input,
+.md-text-field.md-error textarea,
+.md-text-field.md-error select {
+  border-color: var(--md-sys-color-error);
+}
+
+.md-text-field.md-error label {
+  color: var(--md-sys-color-error);
+}
+
+.md-text-field .md-supporting-text {
+  font-size: 0.75rem;
+  margin-top: 4px;
+  padding-left: 16px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-text-field.md-error .md-supporting-text {
+  color: var(--md-sys-color-error);
+}
+
+/* Label background for dialog context */
+.md-dialog .md-text-field label {
+  background: var(--md-sys-color-surface-container-high);
+}
+
+/* Checkbox M3 style */
+.md-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px 0;
+  color: var(--md-sys-color-on-surface);
+  font-size: 0.875rem;
+}
+
+.md-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--md-sys-color-on-surface-variant);
+  border-radius: 2px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--md-sys-motion-duration-short1) var(--md-sys-motion-easing-standard);
+}
+
+.md-checkbox input[type="checkbox"]:checked {
+  background: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+}
+
+.md-checkbox input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 6px;
+  height: 10px;
+  border: solid var(--md-sys-color-on-primary);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}

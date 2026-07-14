@@ -1,170 +1,155 @@
-<div>
-    {{-- Header with date navigation --}}
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h4 class="mb-0"><i class="bi bi-emoji-smile text-success"></i> Estado de Ánimo</h4>
-        <div class="d-flex align-items-center gap-2">
-            <button wire:click="previousDay" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-chevron-left"></i>
-            </button>
-            <button wire:click="today" class="btn btn-sm {{ $selectedDate === now()->toDateString() ? 'btn-primary' : 'btn-outline-primary' }}">
-                Hoy
-            </button>
-            <span class="fw-medium">{{ \Carbon\Carbon::parse($selectedDate)->translatedFormat('D d M') }}</span>
-            <button wire:click="nextDay" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-chevron-right"></i>
-            </button>
-        </div>
-    </div>
+<x-module-shell module="mood" x-data="{ showMoodDialog: @entangle('showMoodForm'), showEnergyDialog: @entangle('showEnergyForm') }">
+    <x-slot:actions>
+        <x-date-navigator :date="$selectedDate" format="D d M" />
+        <x-module-actions
+            :primary="['label' => 'Registrar estado', 'icon' => 'bi-emoji-smile', 'action' => 'openMoodForm']"
+            :secondary="[
+                ['label' => 'Registrar energía', 'icon' => 'bi-lightning-charge', 'action' => 'openEnergyForm'],
+                ['label' => 'Escribir en el diario', 'icon' => 'bi-journal-text', 'href' => route('journal', ['date' => $selectedDate])],
+            ]" />
+    </x-slot:actions>
 
     {{-- Quick Summary --}}
     <div class="row g-3 mb-3">
         <div class="col-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div style="font-size: 2.5rem;">{{ $moodEntries->first()?->emoji ?? '😶' }}</div>
-                    <small class="text-muted">Último estado</small>
-                </div>
+            <div class="md-card-elevated text-center" style="height: 100%;">
+                <div style="font-size: 2.5rem; margin-bottom: 8px;">{{ $moodEntries->first()?->emoji ?? '😶' }}</div>
+                <span class="md-label-medium" style="color: var(--md-sys-color-on-surface-variant);">Último estado</span>
             </div>
         </div>
         <div class="col-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="fw-bold text-warning fs-2">
-                        <i class="bi bi-lightning-charge"></i>
-                        {{ $avgEnergy ? number_format($avgEnergy, 1) : '-' }}/5
-                    </div>
-                    <small class="text-muted">Energía promedio</small>
+            <div class="md-card-elevated text-center" style="height: 100%;">
+                <div class="md-headline-small" style="color: var(--md-custom-color-warning);">
+                    <i class="bi bi-lightning-charge"></i>
+                    {{ $avgEnergy ? number_format($avgEnergy, 1) : '-' }}/5
                 </div>
+                <span class="md-label-medium" style="color: var(--md-sys-color-on-surface-variant);">Energía promedio</span>
             </div>
         </div>
     </div>
-
-    {{-- Add Buttons --}}
-    <div class="row g-2 mb-3">
-        <div class="col-6">
-            <button wire:click="openMoodForm" class="btn btn-success w-100">
-                <i class="bi bi-emoji-smile"></i> Registrar Estado
-            </button>
-        </div>
-        <div class="col-6">
-            <button wire:click="openEnergyForm" class="btn btn-warning w-100">
-                <i class="bi bi-lightning-charge"></i> Registrar Energía
-            </button>
-        </div>
-    </div>
-
-    {{-- Mood Selection Form --}}
-    @if ($showMoodForm)
-        <div class="card mb-3 border-success">
-            <div class="card-header bg-success bg-opacity-10 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">¿Cómo te sientes?</h6>
-                <button wire:click="closeMoodForm" class="btn-close btn-sm"></button>
-            </div>
-            <div class="card-body">
-                <div class="d-flex flex-wrap gap-2 justify-content-center">
-                    @foreach ($moodStates as $state)
-                        <button wire:click="saveMood('{{ $state->id }}')"
-                                class="btn btn-outline-secondary text-center p-2"
-                                style="width: 80px;"
-                                title="{{ $state->text }}">
-                            <div style="font-size: 1.5rem;">{{ $state->emoji }}</div>
-                            <small class="d-block text-truncate">{{ $state->text }}</small>
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    @endif
-
-    {{-- Energy Form --}}
-    @if ($showEnergyForm)
-        <div class="card mb-3 border-warning">
-            <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">Nivel de Energía</h6>
-                <button wire:click="closeEnergyForm" class="btn-close btn-sm"></button>
-            </div>
-            <div class="card-body">
-                <div class="d-flex justify-content-center gap-2 mb-3">
-                    @for ($i = 1; $i <= 5; $i++)
-                        <button wire:click="$set('energyLevel', {{ $i }})"
-                                class="btn {{ $energyLevel >= $i ? 'btn-warning' : 'btn-outline-secondary' }} rounded-circle d-flex align-items-center justify-content-center"
-                                style="width: 48px; height: 48px;">
-                            <i class="bi bi-lightning-charge-fill"></i>
-                        </button>
-                    @endfor
-                </div>
-                <div class="text-center mb-3">
-                    <span class="fw-bold fs-5">{{ $energyLevel }}/5</span>
-                </div>
-                <div class="mb-3">
-                    <input type="text" wire:model="energyComment" class="form-control" placeholder="Comentario (opcional)">
-                </div>
-                <button wire:click="saveEnergy" class="btn btn-warning w-100">
-                    <i class="bi bi-check-lg"></i> Guardar
-                </button>
-            </div>
-        </div>
-    @endif
 
     {{-- Mood Entries --}}
-    <div class="card mb-3 border-0 shadow-sm">
-        <div class="card-header bg-transparent border-0">
-            <h6 class="mb-0"><i class="bi bi-emoji-smile"></i> Estados del día</h6>
+    <div class="md-card-elevated mb-3" style="padding: 0; overflow: hidden;">
+        <div style="padding: 16px 16px 8px 16px;">
+            <h3 class="md-title-small mb-0" style="color: var(--md-sys-color-on-surface);">
+                <i class="bi bi-emoji-smile" style="color: var(--md-sys-color-on-surface-variant);"></i> Estados del día
+            </h3>
         </div>
-        <div class="card-body pt-0">
-            @forelse ($moodEntries as $entry)
-                <div class="d-flex align-items-center justify-content-between py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
-                    <div class="d-flex align-items-center gap-3">
-                        <span style="font-size: 1.5rem;">{{ $entry->emoji }}</span>
-                        <div>
-                            <span class="fw-medium">{{ $entry->text }}</span>
-                            <br>
-                            <small class="text-muted">{{ $entry->time }}</small>
-                        </div>
-                    </div>
-                    <button wire:click="deleteMood('{{ $entry->id }}')" wire:confirm="¿Eliminar este registro?" class="btn btn-sm btn-outline-danger">
+        @forelse ($moodEntries as $entry)
+            <div class="md-list-item">
+                <div class="md-list-item-leading">
+                    <span style="font-size: 1.5rem;">{{ $entry->emoji }}</span>
+                </div>
+                <div class="md-list-item-content">
+                    <div class="md-list-item-headline">{{ $entry->text }}</div>
+                    <div class="md-list-item-supporting">{{ $entry->time }}</div>
+                </div>
+                <div class="md-list-item-trailing">
+                    <button wire:click="deleteMood('{{ $entry->id }}')" wire:confirm="¿Eliminar este registro?" class="md-btn-icon" style="color: var(--md-sys-color-error);">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
-            @empty
-                <div class="text-center py-3 text-muted">
-                    <p class="mb-0">Sin registros de estado</p>
-                </div>
-            @endforelse
-        </div>
+            </div>
+        @empty
+            <div class="text-center py-4" style="color: var(--md-sys-color-on-surface-variant);">
+                <p class="md-body-medium mb-0">Sin registros de estado</p>
+            </div>
+        @endforelse
     </div>
 
     {{-- Energy Entries --}}
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-transparent border-0">
-            <h6 class="mb-0"><i class="bi bi-lightning-charge text-warning"></i> Energía del día</h6>
+    <div class="md-card-elevated" style="padding: 0; overflow: hidden;">
+        <div style="padding: 16px 16px 8px 16px;">
+            <h3 class="md-title-small mb-0" style="color: var(--md-sys-color-on-surface);">
+                <i class="bi bi-lightning-charge" style="color: var(--md-custom-color-warning);"></i> Energía del día
+            </h3>
         </div>
-        <div class="card-body pt-0">
-            @forelse ($energyEntries as $entry)
-                <div class="d-flex align-items-center justify-content-between py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="d-flex gap-1">
-                            @for ($i = 1; $i <= 5; $i++)
-                                <i class="bi bi-lightning-charge-fill {{ $i <= $entry->level ? 'text-warning' : 'text-muted opacity-25' }}"></i>
-                            @endfor
-                        </div>
-                        <div>
-                            <span class="fw-medium">{{ $entry->level }}/5</span>
-                            @if ($entry->comment)
-                                <br><small class="text-muted">{{ $entry->comment }}</small>
-                            @endif
-                            <br><small class="text-muted">{{ $entry->time }}</small>
-                        </div>
+        @forelse ($energyEntries as $entry)
+            <div class="md-list-item">
+                <div class="md-list-item-leading">
+                    <div class="d-flex gap-1">
+                        @for ($i = 1; $i <= 5; $i++)
+                            <i class="bi bi-lightning-charge-fill" style="color: {{ $i <= $entry->level ? 'var(--md-custom-color-warning)' : 'var(--md-sys-color-outline-variant)' }}; font-size: 0.75rem;"></i>
+                        @endfor
                     </div>
-                    <button wire:click="deleteEnergy('{{ $entry->id }}')" wire:confirm="¿Eliminar este registro?" class="btn btn-sm btn-outline-danger">
+                </div>
+                <div class="md-list-item-content">
+                    <div class="md-list-item-headline">{{ $entry->level }}/5</div>
+                    @if ($entry->comment)
+                        <div class="md-list-item-supporting">{{ $entry->comment }}</div>
+                    @endif
+                    <div class="md-list-item-supporting">{{ $entry->time }}</div>
+                </div>
+                <div class="md-list-item-trailing">
+                    <button wire:click="deleteEnergy('{{ $entry->id }}')" wire:confirm="¿Eliminar este registro?" class="md-btn-icon" style="color: var(--md-sys-color-error);">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
-            @empty
-                <div class="text-center py-3 text-muted">
-                    <p class="mb-0">Sin registros de energía</p>
-                </div>
-            @endforelse
-        </div>
+            </div>
+        @empty
+            <div class="text-center py-4" style="color: var(--md-sys-color-on-surface-variant);">
+                <p class="md-body-medium mb-0">Sin registros de energía</p>
+            </div>
+        @endforelse
     </div>
-</div>
+
+    {{-- Mood Dialog --}}
+    <template x-if="showMoodDialog">
+        <div>
+            <div class="md-dialog-scrim" @click="showMoodDialog = false"></div>
+            <div class="md-dialog" @click.stop style="max-width: 480px;">
+                <h2 class="md-dialog-headline md-headline-small">¿Cómo te sientes?</h2>
+                <div class="md-dialog-content">
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        @foreach ($moodStates as $state)
+                            <button wire:click="saveMood('{{ $state->id }}')"
+                                    class="md-card-outlined text-center"
+                                    style="width: 80px; padding: 12px 8px; cursor: pointer; border: 1px solid var(--md-sys-color-outline-variant);"
+                                    title="{{ $state->text }}">
+                                <div style="font-size: 1.75rem;">{{ $state->emoji }}</div>
+                                <span class="md-label-small d-block text-truncate" style="color: var(--md-sys-color-on-surface-variant);">{{ $state->text }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="md-dialog-actions">
+                    <button @click="showMoodDialog = false" class="md-btn-text">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    {{-- Energy Dialog --}}
+    <template x-if="showEnergyDialog">
+        <div>
+            <div class="md-dialog-scrim" @click="showEnergyDialog = false"></div>
+            <div class="md-dialog" @click.stop>
+                <h2 class="md-dialog-headline md-headline-small">Nivel de Energía</h2>
+                <div class="md-dialog-content">
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        @for ($i = 1; $i <= 5; $i++)
+                            <button wire:click="$set('energyLevel', {{ $i }})"
+                                    class="md-btn-icon"
+                                    style="width: 48px; height: 48px; {{ $energyLevel >= $i ? 'background: var(--md-custom-color-warning-container); color: var(--md-custom-color-on-warning-container);' : '' }}">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                            </button>
+                        @endfor
+                    </div>
+                    <div class="text-center mb-3">
+                        <span class="md-headline-small" style="color: var(--md-custom-color-warning);">{{ $energyLevel }}/5</span>
+                    </div>
+                    <div class="md-text-field">
+                        <input type="text" wire:model="energyComment" placeholder=" " id="energy-comment">
+                        <label for="energy-comment">Comentario (opcional)</label>
+                    </div>
+                </div>
+                <div class="md-dialog-actions">
+                    <button @click="showEnergyDialog = false" class="md-btn-text">Cancelar</button>
+                    <button wire:click="saveEnergy" class="md-btn-filled" style="background: var(--md-custom-color-warning); color: var(--md-custom-color-on-warning);">
+                        <i class="bi bi-check-lg"></i> Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+</x-module-shell>

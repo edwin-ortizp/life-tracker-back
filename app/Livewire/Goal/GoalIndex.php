@@ -7,11 +7,13 @@ use App\Models\GoalEntry;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 
 #[Layout('layouts.app')]
 #[Title('Objetivos')]
 class GoalIndex extends Component
 {
+    #[Url(as: 'status', history: true, keep: true)]
     public string $statusFilter = 'active'; // active, completed, abandoned, all
     public bool $showForm = false;
     public ?string $editingId = null;
@@ -21,6 +23,16 @@ class GoalIndex extends Component
     public string $description = '';
     public ?string $startDate = null;
     public ?string $dueDate = null;
+
+    public function mount(): void
+    {
+        $this->normalizeStatusFilter();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->normalizeStatusFilter();
+    }
 
     public function openForm(?string $id = null)
     {
@@ -84,6 +96,13 @@ class GoalIndex extends Component
         $this->description = '';
         $this->startDate = null;
         $this->dueDate = null;
+    }
+
+    private function normalizeStatusFilter(): void
+    {
+        if (!in_array($this->statusFilter, ['active', 'completed', 'abandoned', 'all'], true)) {
+            $this->statusFilter = 'active';
+        }
     }
 
     public function render()

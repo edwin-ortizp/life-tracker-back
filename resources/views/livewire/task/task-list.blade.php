@@ -1,186 +1,220 @@
-<div>
-    {{-- Header --}}
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h4 class="mb-0"><i class="bi bi-list-task text-info"></i> Tareas</h4>
-        <div class="d-flex gap-2">
-            <span class="badge bg-warning text-dark">{{ $pendingCount }} pendientes</span>
-            <span class="badge bg-success">{{ $completedCount }} completadas</span>
-        </div>
-    </div>
+<x-module-shell module="tasks" x-data="{ showDialog: @entangle('showForm'), showBulkDialog: @entangle('showBulkForm'), showRecurringDialog: @entangle('showRecurringCompletion') }">
+    <x-slot:actions>
+        <x-module-actions
+            :primary="['label' => 'Nueva tarea', 'icon' => 'bi-plus-lg', 'action' => 'openForm']"
+            :secondary="[['label' => 'Varias tareas', 'icon' => 'bi-list-stars', 'action' => 'openBulkForm']]" />
+    </x-slot:actions>
 
-    {{-- Filters --}}
-    <div class="card mb-3 border-0 shadow-sm">
-        <div class="card-body py-2">
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-                <div class="btn-group btn-group-sm">
-                    <button wire:click="$set('filter', 'pending')" class="btn {{ $filter === 'pending' ? 'btn-info' : 'btn-outline-info' }}">
-                        Pendientes
-                    </button>
-                    <button wire:click="$set('filter', 'completed')" class="btn {{ $filter === 'completed' ? 'btn-info' : 'btn-outline-info' }}">
-                        Completadas
-                    </button>
-                    <button wire:click="$set('filter', 'all')" class="btn {{ $filter === 'all' ? 'btn-info' : 'btn-outline-info' }}">
-                        Todas
-                    </button>
-                </div>
-                <select wire:model.live="categoryFilter" class="form-select form-select-sm" style="width: auto;">
-                    <option value="">Categoría</option>
-                    @foreach ($categories as $key => $label)
-                        <option value="{{ $key }}">{{ $label }}</option>
-                    @endforeach
-                </select>
-                <select wire:model.live="priorityFilter" class="form-select form-select-sm" style="width: auto;">
-                    <option value="">Prioridad</option>
-                    @foreach ($priorities as $key => $label)
-                        <option value="{{ $key }}">{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-    </div>
-
-    {{-- Add Button --}}
-    <div class="d-grid mb-3">
-        <button wire:click="openForm" class="btn btn-info text-white">
-            <i class="bi bi-plus-lg"></i> Nueva Tarea
-        </button>
-    </div>
-
-    {{-- Add/Edit Form --}}
-    @if ($showForm)
-        <div class="card mb-3 border-info">
-            <div class="card-header bg-info bg-opacity-10 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">{{ $editingId ? 'Editar' : 'Nueva' }} Tarea</h6>
-                <button wire:click="closeForm" class="btn-close btn-sm"></button>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label">Título</label>
-                    <input type="text" wire:model="title" class="form-control" placeholder="¿Qué necesitas hacer?">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Descripción</label>
-                    <textarea wire:model="description" class="form-control" rows="2" placeholder="Detalles opcionales..."></textarea>
-                </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Categoría</label>
-                        <select wire:model="category" class="form-select">
-                            <option value="">Sin categoría</option>
-                            @foreach ($categories as $key => $label)
-                                <option value="{{ $key }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Prioridad</label>
-                        <select wire:model="priority" class="form-select">
-                            <option value="">Sin prioridad</option>
-                            @foreach ($priorities as $key => $label)
-                                <option value="{{ $key }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Tamaño</label>
-                        <select wire:model="size" class="form-select">
-                            <option value="">Sin tamaño</option>
-                            @foreach ($sizes as $key => $label)
-                                <option value="{{ $key }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label">Fecha inicio</label>
-                        <input type="date" wire:model="startDate" class="form-control">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label">Fecha fin</label>
-                        <input type="date" wire:model="endDate" class="form-control">
-                    </div>
-                </div>
-                <div class="form-check mb-3">
-                    <input type="checkbox" wire:model="isPrivate" class="form-check-input" id="isPrivate">
-                    <label class="form-check-label" for="isPrivate">
-                        <i class="bi bi-lock"></i> Tarea privada
-                    </label>
-                </div>
-                <button wire:click="save" class="btn btn-info text-white w-100">
-                    <i class="bi bi-check-lg"></i> {{ $editingId ? 'Actualizar' : 'Crear' }}
+    {{-- Filters as M3 chips --}}
+    <div class="md-card-filled mb-3">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <div class="md-chip-group">
+                <button wire:click="$set('filter', 'pending')"
+                        class="md-chip md-chip-filter {{ $filter === 'pending' ? 'selected' : '' }}">
+                    <i class="bi bi-clock"></i> Pendientes
+                </button>
+                <button wire:click="$set('filter', 'completed')"
+                        class="md-chip md-chip-filter {{ $filter === 'completed' ? 'selected' : '' }}">
+                    <i class="bi bi-check-lg"></i> Completadas
+                </button>
+                <button wire:click="$set('filter', 'all')"
+                        class="md-chip md-chip-filter {{ $filter === 'all' ? 'selected' : '' }}">
+                    Todas
                 </button>
             </div>
-        </div>
-    @endif
 
-    {{-- Task List --}}
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            @forelse ($tasks as $task)
-                <div class="d-flex align-items-start gap-3 p-3 {{ !$loop->last ? 'border-bottom' : '' }} {{ $task->completed ? 'bg-light' : '' }}">
-                    <button wire:click="toggleComplete('{{ $task->id }}')"
-                            class="btn p-0 mt-1 flex-shrink-0">
-                        <div class="d-flex align-items-center justify-content-center rounded-circle {{ $task->completed ? 'bg-success text-white' : 'border border-2' }}"
-                             style="width: 28px; height: 28px;">
-                            @if ($task->completed)
-                                <i class="bi bi-check-lg small"></i>
-                            @endif
-                        </div>
-                    </button>
-                    <div class="flex-grow-1 min-w-0">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="{{ $task->completed ? 'text-decoration-line-through text-muted' : 'fw-medium' }}">
-                                {{ $task->title }}
-                            </span>
-                            @if ($task->is_private)
-                                <i class="bi bi-lock-fill text-muted small"></i>
-                            @endif
-                        </div>
-                        @if ($task->description)
-                            <small class="text-muted d-block text-truncate">{{ $task->description }}</small>
-                        @endif
-                        <div class="d-flex flex-wrap gap-1 mt-1">
-                            @if ($task->priority)
-                                @php
-                                    $priorityColors = [
-                                        'urgent-important' => 'danger',
-                                        'not-urgent-important' => 'warning',
-                                        'urgent-not-important' => 'orange',
-                                        'not-urgent-not-important' => 'secondary',
-                                    ];
-                                    $pColor = $priorityColors[$task->priority] ?? 'secondary';
-                                @endphp
-                                <span class="badge bg-{{ $pColor }} bg-opacity-10 text-{{ $pColor }}">{{ $priorities[$task->priority] ?? $task->priority }}</span>
-                            @endif
-                            @if ($task->category)
-                                <span class="badge bg-info bg-opacity-10 text-info">{{ $categories[$task->category] ?? $task->category }}</span>
-                            @endif
-                            @if ($task->size)
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ $task->size }}</span>
-                            @endif
-                            @if ($task->end_date)
-                                <span class="badge bg-dark bg-opacity-10 text-dark">
-                                    <i class="bi bi-calendar"></i> {{ $task->end_date->format('d M') }}
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="d-flex gap-1 flex-shrink-0">
-                        <button wire:click="openForm('{{ $task->id }}')" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button wire:click="delete('{{ $task->id }}')" wire:confirm="¿Eliminar esta tarea?" class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
+            <div class="d-flex gap-2 ms-auto">
+                <div class="md-text-field" style="width: auto; min-width: 140px;">
+                    <select wire:model.live="categoryFilter">
+                        <option value="">Todas</option>
+                        @foreach ($categories as $key => $label)
+                            <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <label>Categoría</label>
                 </div>
-            @empty
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-list-task" style="font-size: 2rem;"></i>
-                    <p class="mt-2 mb-0">No hay tareas {{ $filter === 'pending' ? 'pendientes' : ($filter === 'completed' ? 'completadas' : '') }}</p>
+                <div class="md-text-field" style="width: auto; min-width: 140px;">
+                    <select wire:model.live="priorityFilter">
+                        <option value="">Todas</option>
+                        @foreach ($priorities as $key => $label)
+                            <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <label>Prioridad</label>
                 </div>
-            @endforelse
+            </div>
         </div>
     </div>
-</div>
+
+    {{-- Task List --}}
+    <div class="md-card-elevated" style="padding: 0; overflow: hidden;">
+        @forelse ($tasks as $task)
+            <div class="md-list-item {{ $task->completed ? 'md-list-item--completed' : '' }}">
+                <div class="md-list-item-leading">
+                    <button wire:click.stop="toggleComplete('{{ $task->id }}')"
+                            class="md-list-checkbox {{ $task->completed ? 'checked' : '' }}">
+                        @if ($task->completed)
+                            <i class="bi bi-check-lg"></i>
+                        @endif
+                    </button>
+                </div>
+                <button wire:click="openForm('{{ $task->id }}')" class="md-list-item-content md-task-open-button" aria-label="Abrir tarea: {{ $task->title }}">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="md-list-item-headline {{ $task->completed ? '' : 'fw-medium' }}">
+                            {{ $task->title }}
+                        </span>
+                        @if ($task->is_private)
+                            <i class="bi bi-lock-fill" style="color: var(--md-sys-color-on-surface-variant); font-size: 0.75rem;"></i>
+                        @endif
+                    </div>
+                    @if ($task->description)
+                        <div class="md-list-item-supporting text-truncate">{{ $task->description }}</div>
+                    @endif
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                        @if ($task->priority)
+                            @php
+                                $priorityChipClass = match($task->priority) {
+                                    'urgent-important' => 'md-chip-tonal--error',
+                                    'not-urgent-important' => 'md-chip-tonal--warning',
+                                    'urgent-not-important' => 'md-chip-tonal--info',
+                                    default => 'md-chip-tonal',
+                                };
+                            @endphp
+                            <span class="md-chip-tonal {{ $priorityChipClass }}">{{ $priorities[$task->priority] ?? $task->priority }}</span>
+                        @endif
+                        @if ($task->category)
+                            <span class="md-chip-tonal md-chip-tonal--primary">{{ $categories[$task->category] ?? $task->category }}</span>
+                        @endif
+                        @if ($task->size)
+                            <span class="md-chip-tonal">{{ $task->size }}</span>
+                        @endif
+                        @if ($task->is_recurrent)
+                            @php
+                                $recurrence = $task->recurrence ?? [];
+                                $recurrenceLabel = match ($recurrence['pattern'] ?? 'custom') {
+                                    'daily' => 'Diaria',
+                                    'weekly' => 'Semanal',
+                                    'monthly' => 'Mensual',
+                                    default => 'Cada '.max(1, (int) ($recurrence['customDays'] ?? 1)).' días',
+                                };
+                            @endphp
+                            <span class="md-chip-tonal"><i class="bi bi-arrow-repeat" style="font-size: 0.625rem;"></i> {{ $recurrenceLabel }}</span>
+                        @endif
+                        @if ($task->end_date)
+                            <span class="md-chip-tonal">
+                                <i class="bi bi-calendar" style="font-size: 0.625rem;"></i> {{ $task->end_date->format('d M') }}
+                            </span>
+                        @endif
+                    </div>
+                </button>
+                <div class="md-list-item-trailing">
+                    <button wire:click.stop="openForm('{{ $task->id }}')" class="md-btn-icon" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button wire:click.stop="delete('{{ $task->id }}')" wire:confirm="¿Eliminar esta tarea?" class="md-btn-icon" title="Eliminar" style="color: var(--md-sys-color-error);">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        @empty
+            <div class="text-center py-5" style="color: var(--md-sys-color-on-surface-variant);">
+                <i class="bi bi-list-task" style="font-size: 3rem; opacity: 0.4;"></i>
+                <p class="md-body-large mt-3 mb-0">No hay tareas {{ $filter === 'pending' ? 'pendientes' : ($filter === 'completed' ? 'completadas' : '') }}</p>
+            </div>
+        @endforelse
+    </div>
+
+    <x-slot:rail>
+        <x-context-widget title="Estado de las tareas" icon="bi-list-check">
+            <dl class="md-context-list">
+                <div><dt>Pendientes</dt><dd>{{ $pendingCount }}</dd></div>
+                <div><dt>Completadas</dt><dd>{{ $completedCount }}</dd></div>
+                <div><dt>Total</dt><dd>{{ $pendingCount + $completedCount }}</dd></div>
+            </dl>
+        </x-context-widget>
+        <x-context-widget title="Vistas relacionadas" icon="bi-signpost-split">
+            <div class="md-context-links">
+                <a href="{{ route('tasks.planning') }}"><i class="bi bi-calendar-week"></i> Planificación</a>
+                <a href="{{ route('tasks.progress') }}"><i class="bi bi-trophy"></i> Progreso</a>
+            </div>
+        </x-context-widget>
+    </x-slot:rail>
+
+    @include('livewire.task.partials.edit-task-dialog', [
+        'dialogId' => 'task',
+        'dialogTitle' => $editingId ? 'Editar tarea' : 'Nueva tarea',
+        'saveLabel' => $editingId ? 'Actualizar' : 'Crear',
+        'showRecurrenceFields' => true,
+    ])
+
+    {{-- Dialog: Create several tasks --}}
+    <template x-if="showBulkDialog">
+        <div>
+            <div class="md-dialog-scrim" wire:click="closeBulkForm"></div>
+            <div class="md-dialog md-dialog--wide" @click.stop>
+                <h2 class="md-dialog-headline md-headline-small">Crear varias tareas</h2>
+                <div class="md-dialog-content">
+                    <div class="d-flex flex-column gap-3">
+                        <p class="md-body-medium mb-0">Escribe una tarea por línea. Los demás campos se aplicarán a todas.</p>
+                        <div class="md-text-field">
+                            <textarea wire:model="bulkTitles" placeholder=" " id="bulk-task-titles" rows="6"></textarea>
+                            <label for="bulk-task-titles">Tareas</label>
+                            @error('bulkTitles')
+                                <div class="md-supporting-text" style="color: var(--md-sys-color-error);">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        @include('partials.markdown-editor', [
+                            'model' => 'bulkDescription',
+                            'mode' => 'bulkDescriptionMode',
+                            'modeValue' => $bulkDescriptionMode,
+                            'content' => $bulkDescription,
+                            'id' => 'bulk-task-desc',
+                            'placeholder' => 'Descripción común. Admite Markdown.',
+                            'rows' => 3,
+                        ])
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="md-text-field">
+                                    <select wire:model="bulkCategory" id="bulk-task-cat">
+                                        <option value="">Sin categoría</option>
+                                        @foreach ($categories as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach
+                                    </select>
+                                    <label for="bulk-task-cat">Categoría</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="md-text-field">
+                                    <select wire:model="bulkPriority" id="bulk-task-pri">
+                                        <option value="">Sin prioridad</option>
+                                        @foreach ($priorities as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach
+                                    </select>
+                                    <label for="bulk-task-pri">Prioridad</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="md-text-field">
+                                    <select wire:model="bulkSize" id="bulk-task-size">
+                                        <option value="">Sin tamaño</option>
+                                        @foreach ($sizes as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach
+                                    </select>
+                                    <label for="bulk-task-size">Tamaño</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-6"><div class="md-text-field"><input type="date" wire:model="bulkStartDate" placeholder=" " id="bulk-task-start"><label for="bulk-task-start">Fecha inicio</label></div></div>
+                            <div class="col-6"><div class="md-text-field"><input type="date" wire:model="bulkEndDate" placeholder=" " id="bulk-task-end"><label for="bulk-task-end">Fecha fin</label></div></div>
+                        </div>
+                        <label class="md-checkbox"><input type="checkbox" wire:model="bulkIsPrivate"><i class="bi bi-lock"></i> Tareas privadas</label>
+                    </div>
+                </div>
+                <div class="md-dialog-actions">
+                    <button wire:click="closeBulkForm" class="md-btn-text">Cancelar</button>
+                    <button wire:click="saveBulk" class="md-btn-filled"><i class="bi bi-check-lg"></i> Crear tareas</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    @include('livewire.task.partials.recurring-completion-dialog')
+</x-module-shell>

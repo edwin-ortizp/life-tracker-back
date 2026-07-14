@@ -12,7 +12,17 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'full_name', 'avatar_url', 'life_expectancy_years',
+        'name',
+        'email',
+        'password',
+        'full_name',
+        'avatar_url',
+        'life_expectancy_years',
+        'current_weight_kg',
+        'height_cm',
+        'birth_date',
+        'activity_level',
+        'daily_water_goal',
     ];
 
     protected $hidden = [
@@ -24,6 +34,10 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'current_weight_kg' => 'decimal:2',
+            'height_cm' => 'integer',
+            'birth_date' => 'date',
+            'daily_water_goal' => 'integer',
         ];
     }
 
@@ -45,6 +59,16 @@ class User extends Authenticatable
     public function habitCompletions()
     {
         return $this->hasMany(HabitCompletion::class);
+    }
+
+    public function habitDefinitions()
+    {
+        return $this->hasMany(HabitDefinition::class);
+    }
+
+    public function negativeHabitDefinitions()
+    {
+        return $this->hasMany(NegativeHabitDefinition::class);
     }
 
     public function tasks()
@@ -87,6 +111,11 @@ class User extends Authenticatable
         return $this->hasMany(JournalEntry::class);
     }
 
+    public function integrationTokens()
+    {
+        return $this->hasMany(IntegrationToken::class);
+    }
+
     public function shoppingItems()
     {
         return $this->hasMany(ShoppingItem::class);
@@ -105,5 +134,20 @@ class User extends Authenticatable
     public function relationships()
     {
         return $this->hasMany(Relationship::class);
+    }
+
+    public function taskAssociations()
+    {
+        return $this->hasMany(TaskAssociation::class);
+    }
+
+    public function healthEvents()
+    {
+        return $this->hasMany(HealthEvent::class);
+    }
+
+    public function vehicles()
+    {
+        return $this->hasMany(Vehicle::class);
     }
 }

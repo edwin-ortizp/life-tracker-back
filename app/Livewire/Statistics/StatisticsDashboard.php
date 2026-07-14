@@ -14,12 +14,31 @@ use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 
 #[Layout('layouts.app')]
 #[Title('Estadísticas')]
 class StatisticsDashboard extends Component
 {
+    #[Url(as: 'days', history: true, keep: true)]
     public int $days = 7;
+
+    public function mount(): void
+    {
+        $this->normalizeDays();
+    }
+
+    public function updatedDays(): void
+    {
+        $this->normalizeDays();
+    }
+
+    private function normalizeDays(): void
+    {
+        if (!in_array($this->days, [7, 14, 30], true)) {
+            $this->days = 7;
+        }
+    }
 
     public function render()
     {

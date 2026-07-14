@@ -1,177 +1,188 @@
-<div>
-    {{-- Header --}}
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h4 class="mb-0"><i class="bi bi-people text-info"></i> Relaciones</h4>
-        <span class="badge bg-info">{{ $totalCount }} personas</span>
+<x-module-shell module="relationships" x-data="{ showPersonDialog: @entangle('showForm'), showCircleDialog: @entangle('showCircleForm') }">
+    <x-slot:actions>
+        <x-module-actions
+            :primary="['label' => 'Nueva persona', 'icon' => 'bi-person-plus', 'action' => 'openForm']"
+            :secondary="[['label' => 'Nuevo círculo', 'icon' => 'bi-plus-circle', 'action' => 'openCircleForm']]" />
+    </x-slot:actions>
+
+    <div class="md-summary-strip mb-3" aria-label="Resumen de relaciones">
+        <span class="md-count-badge--info">{{ $totalCount }} personas</span>
     </div>
 
     {{-- Filters --}}
-    <div class="card mb-3 border-0 shadow-sm">
-        <div class="card-body py-2">
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-                <select wire:model.live="circleFilter" class="form-select form-select-sm" style="width: auto;">
-                    <option value="">Todos los círculos</option>
+    <div class="md-card-filled mb-3">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <div class="md-text-field" style="width: auto; min-width: 160px;">
+                <select wire:model.live="circleFilter" id="rel-circle">
+                    <option value="">Todos</option>
                     @foreach ($circles as $circle)
                         <option value="{{ $circle->id }}">{{ $circle->name }}</option>
                     @endforeach
                 </select>
-                <div class="form-check form-check-inline">
-                    <input type="checkbox" wire:model.live="showArchived" class="form-check-input" id="showArchived">
-                    <label class="form-check-label small" for="showArchived">Mostrar archivados</label>
-                </div>
+                <label for="rel-circle">Círculo</label>
             </div>
+            <label class="md-checkbox">
+                <input type="checkbox" wire:model.live="showArchived">
+                Mostrar archivados
+            </label>
         </div>
     </div>
-
-    {{-- Action Buttons --}}
-    <div class="d-flex gap-2 mb-3">
-        <button wire:click="openForm" class="btn btn-info text-white flex-grow-1">
-            <i class="bi bi-person-plus"></i> Agregar Persona
-        </button>
-        <button wire:click="openCircleForm" class="btn btn-outline-info">
-            <i class="bi bi-plus-circle"></i> Círculo
-        </button>
-    </div>
-
-    {{-- Circle Form --}}
-    @if ($showCircleForm)
-        <div class="card mb-3 border-info">
-            <div class="card-header bg-info bg-opacity-10 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">Nuevo Círculo</h6>
-                <button wire:click="closeCircleForm" class="btn-close btn-sm"></button>
-            </div>
-            <div class="card-body">
-                <div class="row g-2 mb-3">
-                    <div class="col-8">
-                        <input type="text" wire:model="circleName" class="form-control" placeholder="Nombre del círculo">
-                    </div>
-                    <div class="col-4">
-                        <div class="input-group">
-                            <input type="number" wire:model="contactFrequencyDays" class="form-control" min="1">
-                            <span class="input-group-text small">días</span>
-                        </div>
-                    </div>
-                </div>
-                <button wire:click="saveCircle" class="btn btn-info text-white w-100">
-                    <i class="bi bi-check-lg"></i> Crear Círculo
-                </button>
-            </div>
-        </div>
-    @endif
-
-    {{-- Person Form --}}
-    @if ($showForm)
-        <div class="card mb-3 border-info">
-            <div class="card-header bg-info bg-opacity-10 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">{{ $editingId ? 'Editar' : 'Nueva' }} Persona</h6>
-                <button wire:click="closeForm" class="btn-close btn-sm"></button>
-            </div>
-            <div class="card-body">
-                <div class="row g-2 mb-3">
-                    <div class="col-7">
-                        <label class="form-label">Nombre completo</label>
-                        <input type="text" wire:model="fullName" class="form-control" placeholder="Nombre completo">
-                    </div>
-                    <div class="col-5">
-                        <label class="form-label">Apodo</label>
-                        <input type="text" wire:model="nickname" class="form-control" placeholder="Opcional">
-                    </div>
-                </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label">Círculo</label>
-                        <select wire:model="circleId" class="form-select">
-                            <option value="">Sin círculo</option>
-                            @foreach ($circles as $circle)
-                                <option value="{{ $circle->id }}">{{ $circle->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label">Categoría</label>
-                        <select wire:model="category" class="form-select">
-                            <option value="">Sin categoría</option>
-                            <option value="familia">Familia</option>
-                            <option value="amigo">Amigo</option>
-                            <option value="trabajo">Trabajo</option>
-                            <option value="pareja">Pareja</option>
-                            <option value="otro">Otro</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label">Mes cumpleaños</label>
-                        <select wire:model="birthdayMonth" class="form-select">
-                            <option value="">-</option>
-                            @for ($m = 1; $m <= 12; $m++)
-                                <option value="{{ $m }}">{{ \Carbon\Carbon::create(2000, $m, 1)->translatedFormat('F') }}</option>
-                            @endfor
-                        </select>
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label">Día</label>
-                        <input type="number" wire:model="birthdayDay" class="form-control" min="1" max="31" placeholder="Día">
-                    </div>
-                </div>
-                <button wire:click="save" class="btn btn-info text-white w-100">
-                    <i class="bi bi-check-lg"></i> {{ $editingId ? 'Actualizar' : 'Guardar' }}
-                </button>
-            </div>
-        </div>
-    @endif
 
     {{-- Relationships List --}}
     @forelse ($relationships as $rel)
-        <div class="card mb-2 border-0 shadow-sm {{ $rel->is_archived ? 'opacity-50' : '' }}">
-            <div class="card-body py-2">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center"
-                             style="width: 40px; height: 40px; min-width: 40px;">
-                            <i class="bi bi-person-fill text-info"></i>
-                        </div>
-                        <div>
-                            <div class="fw-medium">{{ $rel->full_name }}</div>
-                            <div class="d-flex flex-wrap gap-1">
-                                @if ($rel->circle)
-                                    <span class="badge bg-info bg-opacity-10 text-info">{{ $rel->circle->name }}</span>
-                                @endif
-                                @if ($rel->category)
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ $rel->category }}</span>
-                                @endif
-                                @if ($rel->birthday_month && $rel->birthday_day)
-                                    <span class="badge bg-warning bg-opacity-10 text-warning">
-                                        <i class="bi bi-cake2"></i> {{ $rel->birthday_day }}/{{ $rel->birthday_month }}
-                                    </span>
-                                @endif
-                                @if ($rel->last_contact_at)
-                                    <small class="text-muted">Contacto: {{ $rel->last_contact_at->diffForHumans() }}</small>
-                                @endif
-                            </div>
+        <div class="md-card-outlined mb-2" style="{{ $rel->is_archived ? 'opacity: 0.5;' : '' }}">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="md-list-icon-circle" style="background: var(--md-custom-color-info-container); color: var(--md-custom-color-on-info-container);">
+                        <i class="bi bi-person-fill" style="font-size: 1rem;"></i>
+                    </div>
+                    <div>
+                        <div class="md-title-small" style="color: var(--md-sys-color-on-surface);">{{ $rel->full_name }}</div>
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            @if ($rel->circle)
+                                <span class="md-chip-tonal md-chip-tonal--info">{{ $rel->circle->name }}</span>
+                            @endif
+                            @if ($rel->category)
+                                <span class="md-chip-tonal">{{ $rel->category }}</span>
+                            @endif
+                            @if ($rel->birthday_month && $rel->birthday_day)
+                                <span class="md-chip-tonal md-chip-tonal--warning">
+                                    <i class="bi bi-cake2" style="font-size: 0.5625rem;"></i> {{ $rel->birthday_day }}/{{ $rel->birthday_month }}
+                                </span>
+                            @endif
+                            @if ($rel->last_contact_at)
+                                <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant); align-self: center;">{{ $rel->last_contact_at->diffForHumans() }}</span>
+                            @endif
                         </div>
                     </div>
-                    <div class="d-flex gap-1">
-                        <button wire:click="markContact('{{ $rel->id }}')" class="btn btn-sm btn-outline-success" title="Marcar contacto">
-                            <i class="bi bi-chat-dots"></i>
-                        </button>
-                        <button wire:click="openForm('{{ $rel->id }}')" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button wire:click="toggleArchive('{{ $rel->id }}')" class="btn btn-sm btn-outline-warning" title="{{ $rel->is_archived ? 'Desarchivar' : 'Archivar' }}">
-                            <i class="bi bi-archive"></i>
-                        </button>
-                        <button wire:click="delete('{{ $rel->id }}')" wire:confirm="¿Eliminar esta persona?" class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
+                </div>
+                <div class="d-flex gap-1">
+                    <button wire:click="markContact('{{ $rel->id }}')" class="md-btn-icon" title="Marcar contacto" style="color: var(--md-custom-color-success);">
+                        <i class="bi bi-chat-dots"></i>
+                    </button>
+                    <button wire:click="openForm('{{ $rel->id }}')" class="md-btn-icon" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button wire:click="toggleArchive('{{ $rel->id }}')" class="md-btn-icon" title="{{ $rel->is_archived ? 'Desarchivar' : 'Archivar' }}" style="color: var(--md-custom-color-warning);">
+                        <i class="bi bi-archive"></i>
+                    </button>
+                    <button wire:click="delete('{{ $rel->id }}')" wire:confirm="¿Eliminar esta persona?" class="md-btn-icon" style="color: var(--md-sys-color-error);">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </div>
             </div>
         </div>
     @empty
-        <div class="text-center py-5 text-muted">
-            <i class="bi bi-people" style="font-size: 3rem;"></i>
-            <p class="mt-2 mb-0">Sin personas registradas</p>
+        <div class="text-center py-5" style="color: var(--md-sys-color-on-surface-variant);">
+            <i class="bi bi-people" style="font-size: 3rem; opacity: 0.4;"></i>
+            <p class="md-body-large mt-3 mb-0">Sin personas registradas</p>
         </div>
     @endforelse
-</div>
+
+    {{-- Circle Dialog --}}
+    <template x-if="showCircleDialog">
+        <div>
+            <div class="md-dialog-scrim" @click="showCircleDialog = false"></div>
+            <div class="md-dialog" @click.stop>
+                <h2 class="md-dialog-headline md-headline-small">Nuevo Círculo</h2>
+                <div class="md-dialog-content">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="md-text-field">
+                            <input type="text" wire:model="circleName" placeholder=" " id="circle-name">
+                            <label for="circle-name">Nombre del círculo</label>
+                        </div>
+                        <div class="md-text-field">
+                            <input type="number" wire:model="contactFrequencyDays" placeholder=" " id="circle-freq" min="1">
+                            <label for="circle-freq">Frecuencia (días)</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="md-dialog-actions">
+                    <button @click="showCircleDialog = false" class="md-btn-text">Cancelar</button>
+                    <button wire:click="saveCircle" class="md-btn-filled">
+                        <i class="bi bi-check-lg"></i> Crear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    {{-- Person Dialog --}}
+    <template x-if="showPersonDialog">
+        <div>
+            <div class="md-dialog-scrim" @click="showPersonDialog = false"></div>
+            <div class="md-dialog" @click.stop>
+                <h2 class="md-dialog-headline md-headline-small">{{ $editingId ? 'Editar' : 'Nueva' }} Persona</h2>
+                <div class="md-dialog-content">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="row g-3">
+                            <div class="col-7">
+                                <div class="md-text-field">
+                                    <input type="text" wire:model="fullName" placeholder=" " id="rel-name">
+                                    <label for="rel-name">Nombre completo</label>
+                                </div>
+                            </div>
+                            <div class="col-5">
+                                <div class="md-text-field">
+                                    <input type="text" wire:model="nickname" placeholder=" " id="rel-nick">
+                                    <label for="rel-nick">Apodo</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="md-text-field">
+                                    <select wire:model="circleId" id="rel-circle-sel">
+                                        <option value="">Sin círculo</option>
+                                        @foreach ($circles as $circle)
+                                            <option value="{{ $circle->id }}">{{ $circle->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <label for="rel-circle-sel">Círculo</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="md-text-field">
+                                    <select wire:model="category" id="rel-cat">
+                                        <option value="">Sin categoría</option>
+                                        <option value="familia">Familia</option>
+                                        <option value="amigo">Amigo</option>
+                                        <option value="trabajo">Trabajo</option>
+                                        <option value="pareja">Pareja</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                    <label for="rel-cat">Categoría</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="md-text-field">
+                                    <select wire:model="birthdayMonth" id="rel-bm">
+                                        <option value="">-</option>
+                                        @for ($m = 1; $m <= 12; $m++)
+                                            <option value="{{ $m }}">{{ \Carbon\Carbon::create(2000, $m, 1)->translatedFormat('F') }}</option>
+                                        @endfor
+                                    </select>
+                                    <label for="rel-bm">Mes cumpleaños</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="md-text-field">
+                                    <input type="number" wire:model="birthdayDay" placeholder=" " id="rel-bd" min="1" max="31">
+                                    <label for="rel-bd">Día</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="md-dialog-actions">
+                    <button @click="showPersonDialog = false" class="md-btn-text">Cancelar</button>
+                    <button wire:click="save" class="md-btn-filled">
+                        <i class="bi bi-check-lg"></i> {{ $editingId ? 'Actualizar' : 'Guardar' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+</x-module-shell>

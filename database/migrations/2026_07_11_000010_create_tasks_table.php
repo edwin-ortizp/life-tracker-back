@@ -36,7 +36,11 @@ return new class extends Migration
             $table->integer('estimated_time')->nullable();
             $table->timestamps();
 
-            $table->foreign('goal_id')->references('id')->on('goals')->nullOnDelete();
+            $table->foreign(['goal_id', 'user_id'])
+                ->references(['id', 'user_id'])
+                ->on('goals')
+                ->restrictOnDelete();
+            $table->unique(['id', 'user_id']);
             $table->index(['user_id', 'completed']);
             $table->index(['user_id', 'task_code']);
         });

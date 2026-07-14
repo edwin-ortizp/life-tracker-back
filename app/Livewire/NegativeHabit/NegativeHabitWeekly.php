@@ -2,6 +2,7 @@
 
 namespace App\Livewire\NegativeHabit;
 
+use App\Livewire\Concerns\HasUrlDate;
 use App\Models\NegativeHabitDefinition;
 use App\Models\NegativeHabitLog;
 use Carbon\Carbon;
@@ -13,14 +14,14 @@ use Livewire\Attributes\Title;
 #[Title('Hábitos Negativos')]
 class NegativeHabitWeekly extends Component
 {
-    public string $selectedDate;
+    use HasUrlDate;
     public bool $showLogForm = false;
     public int $selectedHabitId = 0;
     public string $note = '';
 
     public function mount()
     {
-        $this->selectedDate = now()->toDateString();
+        $this->initializeSelectedDate();
     }
 
     public function previousWeek()

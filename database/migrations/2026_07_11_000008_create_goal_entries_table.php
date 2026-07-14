@@ -13,12 +13,16 @@ return new class extends Migration
     {
         Schema::create('goal_entries', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->uuid('goal_id');
             $table->text('text');
             $table->date('date');
             $table->boolean('is_milestone')->default(false);
 
-            $table->foreign('goal_id')->references('id')->on('goals')->cascadeOnDelete();
+            $table->foreign(['goal_id', 'user_id'])
+                ->references(['id', 'user_id'])
+                ->on('goals')
+                ->cascadeOnDelete();
             $table->timestamps();
         });
     }

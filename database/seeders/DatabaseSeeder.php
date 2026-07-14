@@ -9,14 +9,15 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call([
-            HabitDefinitionSeeder::class,
-            NegativeHabitDefinitionSeeder::class,
+        $user = User::factory()->create([
+            'name' => 'Alexander Ortiz',
+            'email' => 'edwin.ortizp123@gmail.com',
         ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            MaintenanceTemplateSeeder::class,
+            HabitDefinitionSeeder::class,
+            NegativeHabitDefinitionSeeder::class,
         ]);
     }
 }

@@ -16,6 +16,8 @@ class EnergyEntry extends Model
         'time',
         'timestamp',
         'comment',
+        'source',
+        'source_key',
     ];
 
     protected function casts(): array

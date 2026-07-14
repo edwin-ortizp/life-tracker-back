@@ -1,0 +1,30 @@
+/* M3 Layout — main content area responsive to navigation */
+
+.md-main-content {
+  margin-left: var(--md-sys-layout-rail-width);
+  padding: 24px;
+  min-height: 100vh;
+  background: var(--md-sys-color-surface);
+  transition: margin-left var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard);
+}
+
+@media (max-width: 767.98px) {
+  .md-main-content {
+    margin-left: 0;
+    padding: 16px;
+    padding-bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px);
+  }
+}
+
+/* Scrim overlay for drawer */
+.md-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.32);
+  z-index: 200;
+}
+
+/* Body scroll lock when dialog/drawer open */
+body.md-scroll-locked {
+  overflow: hidden;
+}

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Journal;
 
+use App\Livewire\Concerns\HasUrlDate;
 use App\Models\JournalEntry;
 use Carbon\Carbon;
 use Livewire\Component;
@@ -12,14 +13,14 @@ use Livewire\Attributes\Title;
 #[Title('Diario')]
 class JournalEntries extends Component
 {
-    public string $selectedDate;
+    use HasUrlDate;
     public string $text = '';
     public bool $isEditing = false;
     public string $viewMode = 'write'; // write, preview
 
     public function mount()
     {
-        $this->selectedDate = now()->toDateString();
+        $this->initializeSelectedDate();
         $this->loadEntry();
     }
 

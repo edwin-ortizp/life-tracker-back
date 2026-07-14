@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Mood;
 
+use App\Livewire\Concerns\HasUrlDate;
 use App\Models\EnergyEntry;
 use App\Models\MoodEntry;
 use App\Models\MoodState;
@@ -14,7 +15,7 @@ use Livewire\Attributes\Title;
 #[Title('Estado de Ánimo')]
 class MoodTracker extends Component
 {
-    public string $selectedDate;
+    use HasUrlDate;
 
     // Mood form
     public string $selectedMoodStateId = '';
@@ -27,7 +28,7 @@ class MoodTracker extends Component
 
     public function mount()
     {
-        $this->selectedDate = now()->toDateString();
+        $this->initializeSelectedDate();
     }
 
     public function previousDay()

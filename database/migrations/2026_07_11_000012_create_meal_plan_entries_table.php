@@ -21,7 +21,10 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->integer('calories')->nullable();
 
-            $table->foreign('recipe_id')->references('id')->on('recipes')->nullOnDelete();
+            $table->foreign(['recipe_id', 'user_id'])
+                ->references(['id', 'user_id'])
+                ->on('recipes')
+                ->restrictOnDelete();
             $table->unique(['user_id', 'date', 'meal_type']);
             $table->timestamps();
         });

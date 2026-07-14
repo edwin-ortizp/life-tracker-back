@@ -6,72 +6,51 @@
     <title>Iniciar Sesión - Life Tracker</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <style>
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-card {
-            max-width: 420px;
-            width: 100%;
-            border-radius: 16px;
-            border: none;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-        }
-        .brand-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-        }
-    </style>
+    @vite(['resources/css/app.css'])
 </head>
-<body>
-    <div class="card login-card">
-        <div class="card-body p-4 p-md-5">
+<body style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--md-sys-color-surface);">
+    <div style="max-width: 420px; width: 100%; padding: 0 16px;">
+        <div class="md-card-elevated" style="padding: 32px;">
             <div class="text-center mb-4">
-                <div class="brand-icon">
-                    <i class="bi bi-heart-pulse text-white" style="font-size: 2rem;"></i>
+                <div class="md-card-icon md-card-icon--primary mx-auto mb-3" style="width: 64px; height: 64px; border-radius: var(--md-sys-shape-corner-large); font-size: 2rem;">
+                    <i class="bi bi-heart-pulse"></i>
                 </div>
-                <h4 class="fw-bold">Life Tracker</h4>
-                <p class="text-muted">Inicia sesión para continuar</p>
+                <h1 class="md-headline-medium" style="color: var(--md-sys-color-on-surface);">Life Tracker</h1>
+                <p class="md-body-medium" style="color: var(--md-sys-color-on-surface-variant);">Inicia sesión para continuar</p>
             </div>
 
             @if ($errors->any())
-                <div class="alert alert-danger py-2">
-                    {{ $errors->first() }}
+                <div class="md-card-filled mb-3" style="background: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container); padding: 12px 16px;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                        <span class="md-body-medium">{{ $errors->first() }}</span>
+                    </div>
                 </div>
             @endif
 
             <form method="POST" action="{{ route('login') }}">
                 @csrf
-                <div class="mb-3">
-                    <label for="email" class="form-label">Correo electrónico</label>
-                    <input type="email" class="form-control" id="email" name="email"
-                           value="{{ old('email') }}" required autofocus>
+                <div class="d-flex flex-column gap-3">
+                    <div class="md-text-field">
+                        <input type="email" name="email" value="{{ old('email') }}" required autofocus placeholder=" " id="login-email">
+                        <label for="login-email">Correo electrónico</label>
+                    </div>
+                    <div class="md-text-field">
+                        <input type="password" name="password" required placeholder=" " id="login-pw">
+                        <label for="login-pw">Contraseña</label>
+                    </div>
+                    <label class="md-checkbox">
+                        <input type="checkbox" name="remember">
+                        Recordarme
+                    </label>
+                    <button type="submit" class="md-btn-filled w-100" style="height: 48px; font-size: 1rem;">
+                        <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                    </button>
                 </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">Contraseña</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                </div>
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                    <label class="form-check-label" for="remember">Recordarme</label>
-                </div>
-                <button type="submit" class="btn btn-primary w-100 py-2">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
-                </button>
             </form>
 
-            <div class="text-center mt-3">
-                <a href="{{ route('register') }}" class="text-decoration-none">
+            <div class="text-center mt-4">
+                <a href="{{ route('register') }}" class="md-btn-text" style="font-size: 0.875rem;">
                     ¿No tienes cuenta? Regístrate
                 </a>
             </div>

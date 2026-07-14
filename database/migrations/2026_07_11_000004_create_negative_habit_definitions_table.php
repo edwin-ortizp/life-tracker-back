@@ -13,11 +13,15 @@ return new class extends Migration
     {
         Schema::create('negative_habit_definitions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('icon')->nullable();
             $table->string('category')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
+
+            $table->unique(['id', 'user_id']);
+            $table->unique(['user_id', 'name']);
         });
     }
 

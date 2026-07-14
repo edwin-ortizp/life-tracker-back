@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Exercise;
 
+use App\Livewire\Concerns\HasUrlDate;
 use App\Models\ExerciseLog;
 use App\Models\ExerciseType;
 use Carbon\Carbon;
@@ -13,7 +14,7 @@ use Livewire\Attributes\Title;
 #[Title('Ejercicio')]
 class ExerciseDaily extends Component
 {
-    public string $selectedDate;
+    use HasUrlDate;
 
     // Form
     public bool $showForm = false;
@@ -30,7 +31,7 @@ class ExerciseDaily extends Component
 
     public function mount()
     {
-        $this->selectedDate = now()->toDateString();
+        $this->initializeSelectedDate();
     }
 
     public function previousDay()

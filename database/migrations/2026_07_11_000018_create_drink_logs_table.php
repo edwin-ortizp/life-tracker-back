@@ -22,7 +22,10 @@ return new class extends Migration
             $table->bigInteger('timestamp');
             $table->uuid('drink_type_id')->nullable();
 
-            $table->foreign('drink_type_id')->references('id')->on('drink_types')->nullOnDelete();
+            $table->foreign(['drink_type_id', 'user_id'])
+                ->references(['id', 'user_id'])
+                ->on('drink_types')
+                ->restrictOnDelete();
             $table->timestamps();
         });
     }

@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Models\Traits\BelongsToUser;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Goal extends Model
 {
@@ -30,9 +32,9 @@ class Goal extends Model
         ];
     }
 
-    public function goalTasks()
+    protected static function booted(): void
     {
-        return $this->hasMany(GoalTask::class);
+        static::deleting(fn (self $goal) => $goal->taskAssociations()->delete());
     }
 
     public function goalEntries()
@@ -43,5 +45,16 @@ class Goal extends Model
     public function goalNumericEntries()
     {
         return $this->hasMany(GoalNumericEntry::class);
+    }
+
+    public function taskAssociations(): MorphMany
+    {
+        return $this->morphMany(TaskAssociation::class, 'target');
+    }
+
+    public function tasks(): MorphToMany
+    {
+        return $this->morphToMany(Task::class, 'target', 'task_associations', 'target_id', 'task_id')
+            ->withTimestamps();
     }
 }

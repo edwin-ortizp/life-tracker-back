@@ -1,0 +1,131 @@
+/* ===== M3 Lists ===== */
+
+.md-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.md-list-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  min-height: 56px;
+  color: var(--md-sys-color-on-surface);
+  transition: background var(--md-sys-motion-duration-short1) var(--md-sys-motion-easing-standard);
+}
+
+.md-list-item:not(:last-child) {
+  border-bottom: 1px solid var(--md-sys-color-surface-variant);
+}
+
+.md-list-item:hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+}
+
+.md-list-item-leading {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.md-list-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.md-list-item-headline {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--md-sys-color-on-surface);
+  line-height: 1.5rem;
+}
+
+.md-list-item-supporting {
+  font-size: 0.875rem;
+  color: var(--md-sys-color-on-surface-variant);
+  line-height: 1.25rem;
+  margin-top: 2px;
+}
+
+.md-list-item-trailing {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Leading avatar circle */
+.md-list-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--md-sys-shape-corner-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+/* Leading icon circle */
+.md-list-icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--md-sys-shape-corner-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+/* Completion checkbox for tasks/habits */
+.md-list-checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--md-sys-shape-corner-full);
+  border: 2px solid var(--md-sys-color-on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  transition: all var(--md-sys-motion-duration-short1) var(--md-sys-motion-easing-standard);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.md-list-checkbox:hover {
+  border-color: var(--md-sys-color-primary);
+}
+
+.md-list-checkbox.checked {
+  background: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.md-list-checkbox.checked i {
+  font-size: 0.875rem;
+}
+
+/* Divider */
+.md-divider {
+  height: 1px;
+  background: var(--md-sys-color-surface-variant);
+  margin: 0;
+  border: none;
+}
+
+/* Completed / strikethrough state */
+.md-list-item--completed .md-list-item-headline {
+  text-decoration: line-through;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-list-item--completed {
+  opacity: 0.7;
+}

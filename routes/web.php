@@ -17,15 +17,31 @@ Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->
 // Protected routes
 Route::middleware('auth')->group(function () {
     Route::get('/', \App\Livewire\Home\Dashboard::class)->name('home');
-    Route::get('/water', \App\Livewire\Water\WaterDaily::class)->name('water');
+    Route::redirect('/water', '/water/daily')->name('water');
+    Route::get('/water/daily', \App\Livewire\Water\WaterDaily::class)->name('water.daily');
+    Route::get('/water/calendar', \App\Livewire\Water\WaterCalendar::class)->name('water.calendar');
+    Route::get('/water/weekly', \App\Livewire\Water\WaterWeekly::class)->name('water.weekly');
+    Route::get('/water/range', \App\Livewire\Water\WaterRange::class)->name('water.range');
+    Route::get('/water/settings', \App\Livewire\Water\WaterSettings::class)->name('water.settings');
     Route::get('/exercise', \App\Livewire\Exercise\ExerciseDaily::class)->name('exercise');
+    Route::get('/health', \App\Livewire\Health\HealthIndex::class)->name('health');
+    Route::get('/health/body', \App\Livewire\Health\HealthBodyMap::class)->name('health.body');
+    Route::get('/vehicles', \App\Livewire\Vehicle\VehicleIndex::class)->name('vehicles');
     Route::get('/habits', \App\Livewire\Habit\HabitTracker::class)->name('habits');
+    Route::get('/habits/weekly', \App\Livewire\Habit\HabitWeekly::class)->name('habits.weekly');
     Route::get('/mood', \App\Livewire\Mood\MoodTracker::class)->name('mood');
     Route::get('/journal', \App\Livewire\Journal\JournalEntries::class)->name('journal');
+    Route::get('/journal/life', \App\Livewire\Journal\JournalLifeCalendar::class)->name('journal.life');
+    Route::get('/journal/life/week', \App\Livewire\Journal\JournalLifeWeek::class)->name('journal.life.week');
     Route::get('/pomodoro', \App\Livewire\Pomodoro\PomodoroTimer::class)->name('pomodoro');
     Route::get('/meals', \App\Livewire\Meal\MealWeekly::class)->name('meals');
-    Route::get('/tasks', \App\Livewire\Task\TaskList::class)->name('tasks');
+    Route::redirect('/tasks', '/tasks/list')->name('tasks');
+    Route::get('/tasks/list', \App\Livewire\Task\TaskList::class)->name('tasks.list');
+    Route::get('/tasks/gantt', \App\Livewire\Task\TaskGantt::class)->name('tasks.gantt');
+    Route::get('/tasks/flow', \App\Livewire\Task\TaskFlow::class)->name('tasks.flow');
     Route::get('/tasks/kanban', \App\Livewire\Task\TaskKanban::class)->name('tasks.kanban');
+    Route::get('/tasks/planning', \App\Livewire\Task\TaskPlanning::class)->name('tasks.planning');
+    Route::get('/tasks/progress', \App\Livewire\Task\TaskProgress::class)->name('tasks.progress');
     Route::get('/relationships', \App\Livewire\Relationship\RelationshipIndex::class)->name('relationships');
     Route::get('/goals', \App\Livewire\Goal\GoalIndex::class)->name('goals');
     Route::get('/statistics', \App\Livewire\Statistics\StatisticsDashboard::class)->name('statistics');

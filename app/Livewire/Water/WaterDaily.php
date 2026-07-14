@@ -2,9 +2,14 @@
 
 namespace App\Livewire\Water;
 
+use App\Livewire\Concerns\HasUrlDate;
 use App\Models\DrinkLog;
 use App\Models\DrinkType;
+use App\Support\WaterGoal;
+use App\Support\WaterProgress;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -13,7 +18,7 @@ use Livewire\Attributes\Title;
 #[Title('Hidratación')]
 class WaterDaily extends Component
 {
-    public string $selectedDate;
+    use HasUrlDate;
     public int $dailyGoal = 2500;
 
     // Form fields
@@ -22,9 +27,19 @@ class WaterDaily extends Component
     public bool $showForm = false;
     public ?string $editingId = null;
 
+    // Drink catalog fields
+    public bool $showCatalog = false;
+    public bool $showDrinkTypeForm = false;
+    public ?string $editingDrinkTypeId = null;
+    public string $catalogDrinkName = '';
+    public string $catalogDrinkIcon = '💧';
+    public string $catalogHydrationFactor = '1.00';
+    public string $catalogMessage = '';
+
     public function mount()
     {
-        $this->selectedDate = now()->toDateString();
+        $this->initializeSelectedDate();
+        $this->dailyGoal = WaterGoal::forUser(Auth::user());
     }
 
     public function previousDay()
@@ -64,6 +79,100 @@ class WaterDaily extends Component
         $this->showForm = false;
         $this->editingId = null;
         $this->resetForm();
+    }
+
+    public function openCatalog(): void
+    {
+        $this->showCatalog = true;
+        $this->catalogMessage = '';
+    }
+
+    public function closeCatalog(): void
+    {
+        $this->showCatalog = false;
+        $this->showDrinkTypeForm = false;
+        $this->resetDrinkTypeForm();
+    }
+
+    public function openDrinkTypeForm(?string $id = null): void
+    {
+        $this->resetDrinkTypeForm();
+
+        if ($id && ($drinkType = DrinkType::find($id))) {
+            $this->editingDrinkTypeId = $drinkType->id;
+            $this->catalogDrinkName = $drinkType->name;
+            $this->catalogDrinkIcon = $drinkType->icon ?: '💧';
+            $this->catalogHydrationFactor = (string) $drinkType->hydration_factor;
+        }
+
+        $this->showDrinkTypeForm = true;
+    }
+
+    public function closeDrinkTypeForm(): void
+    {
+        $this->showDrinkTypeForm = false;
+        $this->resetDrinkTypeForm();
+    }
+
+    public function saveDrinkType(): void
+    {
+        $this->catalogDrinkName = trim($this->catalogDrinkName);
+        $this->catalogDrinkIcon = trim($this->catalogDrinkIcon);
+
+        $drinkType = $this->editingDrinkTypeId
+            ? DrinkType::find($this->editingDrinkTypeId)
+            : new DrinkType();
+
+        if (!$drinkType) {
+            $this->catalogMessage = 'La bebida ya no está disponible.';
+            $this->closeDrinkTypeForm();
+
+            return;
+        }
+
+        $data = $this->validate([
+            'catalogDrinkName' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('drink_types', 'name')
+                    ->where(fn ($query) => $query->where('user_id', Auth::id()))
+                    ->ignore($drinkType->id),
+            ],
+            'catalogDrinkIcon' => ['required', 'string', 'max:40'],
+            'catalogHydrationFactor' => ['required', 'numeric', 'min:0', 'max:9.99'],
+        ]);
+
+        $drinkType->fill([
+            'name' => $data['catalogDrinkName'],
+            'icon' => $data['catalogDrinkIcon'],
+            'hydration_factor' => $data['catalogHydrationFactor'],
+        ])->save();
+
+        $this->catalogMessage = $this->editingDrinkTypeId
+            ? 'Bebida actualizada. Los registros históricos no se modificaron.'
+            : 'Bebida creada.';
+        $this->closeDrinkTypeForm();
+    }
+
+    public function deleteDrinkType(string $id): void
+    {
+        $drinkType = DrinkType::find($id);
+
+        if (!$drinkType) {
+            $this->catalogMessage = 'La bebida ya no está disponible.';
+
+            return;
+        }
+
+        if (DrinkLog::where('drink_type_id', $drinkType->id)->exists()) {
+            $this->catalogMessage = 'No se puede eliminar una bebida con registros históricos.';
+
+            return;
+        }
+
+        $drinkType->delete();
+        $this->catalogMessage = 'Bebida eliminada.';
     }
 
     public function quickAdd(string $drinkTypeId, int $amount)
@@ -129,6 +238,15 @@ class WaterDaily extends Component
         $this->amount = 250;
     }
 
+    private function resetDrinkTypeForm(): void
+    {
+        $this->resetErrorBag();
+        $this->editingDrinkTypeId = null;
+        $this->catalogDrinkName = '';
+        $this->catalogDrinkIcon = '💧';
+        $this->catalogHydrationFactor = '1.00';
+    }
+
     public function render()
     {
         $logs = DrinkLog::where('date', $this->selectedDate)
@@ -146,6 +264,7 @@ class WaterDaily extends Component
             'totalAmount' => $totalAmount,
             'drinkTypes' => $drinkTypes,
             'percentage' => $percentage,
+            'monthData' => WaterProgress::month(Carbon::parse($this->selectedDate), $this->dailyGoal),
         ]);
     }
 }

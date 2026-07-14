@@ -28,7 +28,11 @@ return new class extends Migration
             $table->timestamp('archived_at')->nullable();
             $table->timestamps();
 
-            $table->foreign('circle_id')->references('id')->on('circles')->nullOnDelete();
+            $table->foreign(['circle_id', 'user_id'])
+                ->references(['id', 'user_id'])
+                ->on('circles')
+                ->restrictOnDelete();
+            $table->unique(['id', 'user_id']);
         });
     }
 

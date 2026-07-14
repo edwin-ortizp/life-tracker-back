@@ -1,0 +1,100 @@
+/* M3 Type Scale — using Instrument Sans (already loaded via Bunny CDN) */
+
+.md-display-large {
+  font-size: 3.5625rem; /* 57px */
+  line-height: 4rem;
+  font-weight: 400;
+  letter-spacing: -0.25px;
+}
+
+.md-display-medium {
+  font-size: 2.8125rem; /* 45px */
+  line-height: 3.25rem;
+  font-weight: 400;
+}
+
+.md-display-small {
+  font-size: 2.25rem; /* 36px */
+  line-height: 2.75rem;
+  font-weight: 400;
+}
+
+.md-headline-large {
+  font-size: 2rem; /* 32px */
+  line-height: 2.5rem;
+  font-weight: 400;
+}
+
+.md-headline-medium {
+  font-size: 1.75rem; /* 28px */
+  line-height: 2.25rem;
+  font-weight: 400;
+}
+
+.md-headline-small {
+  font-size: 1.5rem; /* 24px */
+  line-height: 2rem;
+  font-weight: 400;
+}
+
+.md-title-large {
+  font-size: 1.375rem; /* 22px */
+  line-height: 1.75rem;
+  font-weight: 500;
+}
+
+.md-title-medium {
+  font-size: 1rem; /* 16px */
+  line-height: 1.5rem;
+  font-weight: 500;
+  letter-spacing: 0.15px;
+}
+
+.md-title-small {
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.25rem;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+}
+
+.md-body-large {
+  font-size: 1rem; /* 16px */
+  line-height: 1.5rem;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+}
+
+.md-body-medium {
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.25rem;
+  font-weight: 400;
+  letter-spacing: 0.25px;
+}
+
+.md-body-small {
+  font-size: 0.75rem; /* 12px */
+  line-height: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.4px;
+}
+
+.md-label-large {
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.25rem;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+}
+
+.md-label-medium {
+  font-size: 0.75rem; /* 12px */
+  line-height: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.md-label-small {
+  font-size: 0.6875rem; /* 11px */
+  line-height: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}

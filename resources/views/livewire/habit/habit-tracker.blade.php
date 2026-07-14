@@ -1,83 +1,118 @@
-<div>
-    {{-- Header with date navigation --}}
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h4 class="mb-0"><i class="bi bi-check2-square text-primary"></i> Hábitos</h4>
-        <div class="d-flex align-items-center gap-2">
-            <button wire:click="previousDay" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-chevron-left"></i>
-            </button>
-            <button wire:click="today" class="btn btn-sm {{ $selectedDate === now()->toDateString() ? 'btn-primary' : 'btn-outline-primary' }}">
-                Hoy
-            </button>
-            <span class="fw-medium">{{ \Carbon\Carbon::parse($selectedDate)->translatedFormat('D d M') }}</span>
-            <button wire:click="nextDay" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-chevron-right"></i>
-            </button>
-        </div>
-    </div>
+<x-module-shell module="habits">
+    <x-slot:actions>
+        <x-date-navigator :date="$selectedDate" format="D d M" />
+    </x-slot:actions>
 
-    {{-- Progress bar --}}
-    <div class="card mb-3">
-        <div class="card-body py-3">
+    <section class="habit-coach-card habit-coach-card--{{ $coachCard['tone'] }} mb-3" aria-labelledby="habit-coach-title">
+        <div class="habit-coach-card__glow" aria-hidden="true"></div>
+        <div class="habit-coach-card__icon" aria-hidden="true"><i class="bi {{ $coachCard['icon'] }}"></i></div>
+        <div class="habit-coach-card__content">
+            <div class="habit-coach-card__eyebrow">{{ $coachCard['eyebrow'] }}</div>
+            <h2 id="habit-coach-title" class="habit-coach-card__title">{{ $coachCard['title'] }}</h2>
+            <p class="habit-coach-card__message">{{ $coachCard['message'] }}</p>
+            @if ($coachCard['suggestedHabitId'])
+                <button type="button"
+                        class="habit-coach-card__cue"
+                        x-data
+                        @click="document.getElementById('habit-item-{{ $coachCard['suggestedHabitId'] }}')?.focus()">
+                    Ir al hábito sugerido <i class="bi bi-arrow-down" aria-hidden="true"></i>
+                </button>
+            @endif
+        </div>
+        <div class="habit-coach-card__progress">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-muted">Progreso del día</span>
-                <span class="fw-bold">{{ $completedCount }}/{{ $totalCount }}</span>
+                <span class="md-label-medium">Progreso del día</span>
+                <strong>{{ $completedCount }}/{{ $totalCount }}</strong>
             </div>
-            <div class="progress" style="height: 8px;">
-                <div class="progress-bar bg-success" style="width: {{ $totalCount > 0 ? ($completedCount / $totalCount * 100) : 0 }}%"></div>
+            <div class="md-progress-linear md-progress-linear--success" role="progressbar" aria-label="Progreso de hábitos del día" aria-valuenow="{{ $completedCount }}" aria-valuemin="0" aria-valuemax="{{ max($totalCount, 1) }}">
+                <div class="md-progress-linear-bar" style="width: {{ $totalCount > 0 ? ($completedCount / $totalCount * 100) : 0 }}%"></div>
             </div>
         </div>
-    </div>
+    </section>
 
     {{-- Habits grouped by time of day --}}
     @php
         $timeLabels = [
-            'morning' => ['label' => 'Mañana', 'icon' => 'bi-sunrise', 'color' => 'warning'],
-            'afternoon' => ['label' => 'Tarde', 'icon' => 'bi-sun', 'color' => 'info'],
-            'night' => ['label' => 'Noche', 'icon' => 'bi-moon-stars', 'color' => 'indigo'],
-            'anytime' => ['label' => 'Cualquier momento', 'icon' => 'bi-clock', 'color' => 'secondary'],
+            'morning' => ['label' => 'Mañana', 'icon' => 'bi-sunrise', 'container' => 'var(--md-custom-color-warning-container)', 'onContainer' => 'var(--md-custom-color-on-warning-container)'],
+            'afternoon' => ['label' => 'Tarde', 'icon' => 'bi-sun', 'container' => 'var(--md-custom-color-info-container)', 'onContainer' => 'var(--md-custom-color-on-info-container)'],
+            'night' => ['label' => 'Noche', 'icon' => 'bi-moon-stars', 'container' => 'var(--md-sys-color-tertiary-container)', 'onContainer' => 'var(--md-sys-color-on-tertiary-container)'],
+            'anytime' => ['label' => 'Cualquier momento', 'icon' => 'bi-clock', 'container' => 'var(--md-sys-color-secondary-container)', 'onContainer' => 'var(--md-sys-color-on-secondary-container)'],
         ];
     @endphp
 
     @foreach (['morning', 'afternoon', 'night', 'anytime'] as $timeOfDay)
         @if (isset($groupedHabits[$timeOfDay]) && $groupedHabits[$timeOfDay]->count() > 0)
-            <div class="card mb-3">
-                <div class="card-header bg-transparent border-0 pb-0">
-                    <h6 class="mb-0">
-                        <i class="bi {{ $timeLabels[$timeOfDay]['icon'] }} text-{{ $timeLabels[$timeOfDay]['color'] }}"></i>
-                        {{ $timeLabels[$timeOfDay]['label'] }}
-                        <span class="badge bg-{{ $timeLabels[$timeOfDay]['color'] }} bg-opacity-10 text-{{ $timeLabels[$timeOfDay]['color'] }} ms-2">
+            @php
+                $sectionId = "habit-time-{$timeOfDay}-{$selectedDate}";
+                $headingId = "{$sectionId}-heading";
+            @endphp
+            <div wire:key="habit-section-{{ $timeOfDay }}-{{ $selectedDate }}"
+                 class="md-card-elevated mb-3"
+                 style="padding: 0; overflow: hidden;"
+                 x-data="{ open: @js(in_array($timeOfDay, $initiallyOpenTimeOfDay, true)) }">
+                <div style="padding: 16px 16px 8px 16px;">
+                    <button type="button"
+                            id="{{ $headingId }}"
+                            class="d-flex align-items-center gap-2 w-100 text-start"
+                            style="border: 0; background: transparent; padding: 0; cursor: pointer;"
+                            @click="open = !open"
+                            :aria-expanded="open.toString()"
+                            aria-controls="{{ $sectionId }}">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: var(--md-sys-shape-corner-full); background: {{ $timeLabels[$timeOfDay]['container'] }}; color: {{ $timeLabels[$timeOfDay]['onContainer'] }};">
+                            <i class="bi {{ $timeLabels[$timeOfDay]['icon'] }}"></i>
+                        </div>
+                        <span class="md-title-small" style="color: var(--md-sys-color-on-surface);">{{ $timeLabels[$timeOfDay]['label'] }}</span>
+                        <span class="md-chip-tonal" style="background: {{ $timeLabels[$timeOfDay]['container'] }}; color: {{ $timeLabels[$timeOfDay]['onContainer'] }};">
                             {{ $groupedHabits[$timeOfDay]->filter(fn($h) => !empty($completions[$h->id]))->count() }}/{{ $groupedHabits[$timeOfDay]->count() }}
                         </span>
-                    </h6>
+                        <i class="bi ms-auto" :class="open ? 'bi-chevron-up' : 'bi-chevron-down'" aria-hidden="true"></i>
+                    </button>
                 </div>
-                <div class="card-body pt-2">
+                <div id="{{ $sectionId }}" role="region" aria-labelledby="{{ $headingId }}" x-cloak x-show="open">
                     @foreach ($groupedHabits[$timeOfDay] as $habit)
-                        @php
-                            $isCompleted = !empty($completions[$habit->id]);
-                        @endphp
-                        <div wire:click="toggleHabit({{ $habit->id }})"
-                             class="d-flex align-items-center gap-3 p-2 rounded-3 mb-1 cursor-pointer {{ $isCompleted ? 'bg-success bg-opacity-10' : '' }}"
-                             style="cursor: pointer; transition: all 0.2s;"
-                             wire:key="habit-{{ $habit->id }}">
-                            <div class="d-flex align-items-center justify-content-center rounded-circle {{ $isCompleted ? 'bg-success text-white' : 'border border-2' }}"
-                                 style="width: 32px; height: 32px; min-width: 32px;">
-                                @if ($isCompleted)
-                                    <i class="bi bi-check-lg"></i>
-                                @endif
+                        @php $isCompleted = !empty($completions[$habit->id]); @endphp
+                        <button type="button"
+                             id="habit-item-{{ $habit->id }}"
+                             wire:click="toggleHabit({{ $habit->id }})"
+                             wire:loading.attr="disabled"
+                             wire:target="toggleHabit({{ $habit->id }})"
+                             aria-pressed="{{ $isCompleted ? 'true' : 'false' }}"
+                             class="md-list-item habit-list-action w-100 text-start {{ $isCompleted ? 'md-list-item--completed' : '' }}"
+                             style="{{ $isCompleted ? 'background: color-mix(in srgb, var(--md-custom-color-success) 8%, transparent);' : '' }}"
+                             wire:key="habit-{{ $selectedDate }}-{{ $habit->id }}">
+                            <div class="md-list-item-leading">
+                                <div class="md-list-checkbox {{ $isCompleted ? 'checked' : '' }}" style="{{ $isCompleted ? 'background: var(--md-custom-color-success); border-color: var(--md-custom-color-success);' : '' }}">
+                                    @if ($isCompleted)
+                                        <i class="bi bi-check-lg" style="color: var(--md-custom-color-on-success);"></i>
+                                    @endif
+                                </div>
                             </div>
-                            <span class="fs-5">{{ $habit->icon }}</span>
-                            <div class="flex-grow-1">
-                                <span class="{{ $isCompleted ? 'text-decoration-line-through text-muted' : '' }}">
-                                    {{ $habit->name }}
-                                </span>
-                                <br>
-                                <small class="text-muted">{{ $habit->goal_duration }} · {{ $habit->base_time }}</small>
+                            <div class="d-flex align-items-center gap-2 flex-grow-1">
+                                <span style="font-size: 1.25rem;">{{ $habit->icon }}</span>
+                                <div class="md-list-item-content">
+                                    <div class="md-list-item-headline">{{ $habit->name }}</div>
+                                    <div class="md-list-item-supporting">{{ $habit->goal_duration }} · {{ $habit->base_time }}</div>
+                                </div>
                             </div>
-                        </div>
+                        </button>
                     @endforeach
                 </div>
             </div>
         @endif
     @endforeach
-</div>
+
+    @include('livewire.habit.partials.completion-feedback')
+
+    <x-slot:rail>
+        <x-context-widget title="{{ $monthData['label'] }}" icon="bi-calendar3">
+            @include('livewire.habit.partials.month-calendar')
+        </x-context-widget>
+        <x-context-widget title="Constancia" icon="bi-fire" tone="success">
+            <dl class="md-context-list">
+                <div><dt>Mejor racha activa</dt><dd>{{ $monthData['best_streak'] }} días</dd></div>
+                <div><dt>Progreso de hoy</dt><dd>{{ $completedCount }}/{{ $totalCount }}</dd></div>
+            </dl>
+            <a href="{{ route('habits.weekly', ['date' => $selectedDate]) }}" class="md-btn-text w-100 mt-2">Abrir resumen semanal</a>
+        </x-context-widget>
+    </x-slot:rail>
+</x-module-shell>

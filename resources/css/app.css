@@ -7,3 +7,23 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* M3 Design System */
+@import './m3/_tokens.css';
+@import './m3/_typography.css';
+@import './m3/_layout.css';
+@import './m3/components/_navigation.css';
+@import './m3/components/_buttons.css';
+@import './m3/components/_cards.css';
+@import './m3/components/_dialogs.css';
+@import './m3/components/_chips.css';
+@import './m3/components/_text-fields.css';
+@import './m3/components/_lists.css';
+@import './m3/components/_progress.css';
+@import './m3/components/_badges.css';
+@import './m3/components/_module-shell.css';
+@import './m3/components/_tasks.css';
+@import './m3/components/_health.css';
+@import './m3/components/_habits.css';
+@import './m3/components/_life-calendar.css';
+@import './m3/components/_markdown.css';

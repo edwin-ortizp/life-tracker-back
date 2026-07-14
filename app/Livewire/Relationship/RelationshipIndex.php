@@ -7,12 +7,16 @@ use App\Models\Relationship;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 
 #[Layout('layouts.app')]
 #[Title('Relaciones')]
 class RelationshipIndex extends Component
 {
+    #[Url(as: 'circle', history: true, keep: true)]
     public string $circleFilter = '';
+
+    #[Url(as: 'archived', history: true, keep: true)]
     public bool $showArchived = false;
 
     // Person form
@@ -29,6 +33,16 @@ class RelationshipIndex extends Component
     public bool $showCircleForm = false;
     public string $circleName = '';
     public int $contactFrequencyDays = 30;
+
+    public function mount(): void
+    {
+        $this->normalizeCircleFilter();
+    }
+
+    public function updatedCircleFilter(): void
+    {
+        $this->normalizeCircleFilter();
+    }
 
     public function openForm(?string $id = null)
     {
@@ -132,6 +146,13 @@ class RelationshipIndex extends Component
         $this->category = '';
         $this->birthdayMonth = null;
         $this->birthdayDay = null;
+    }
+
+    private function normalizeCircleFilter(): void
+    {
+        if ($this->circleFilter !== '' && !Circle::whereKey($this->circleFilter)->exists()) {
+            $this->circleFilter = '';
+        }
     }
 
     public function render()

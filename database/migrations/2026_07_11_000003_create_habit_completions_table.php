@@ -18,7 +18,10 @@ return new class extends Migration
             $table->date('date');
             $table->boolean('completed')->default(false);
 
-            $table->foreign('habit_id')->references('id')->on('habit_definitions');
+            $table->foreign(['habit_id', 'user_id'])
+                ->references(['id', 'user_id'])
+                ->on('habit_definitions')
+                ->cascadeOnDelete();
             $table->unique(['user_id', 'habit_id', 'date']);
             $table->timestamps();
         });

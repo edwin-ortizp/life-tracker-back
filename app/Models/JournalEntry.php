@@ -15,6 +15,8 @@ class JournalEntry extends Model
         'date',
         'text',
         'display_time',
+        'source',
+        'source_key',
     ];
 
     protected function casts(): array

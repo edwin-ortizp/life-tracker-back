@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('recipe_ingredients', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->uuid('recipe_id');
             $table->uuid('shopping_item_id');
             $table->decimal('quantity', 8, 2);
@@ -20,9 +21,15 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            $table->foreign('recipe_id')->references('id')->on('recipes')->cascadeOnDelete();
-            $table->foreign('shopping_item_id')->references('id')->on('shopping_items')->cascadeOnDelete();
-            $table->unique(['recipe_id', 'shopping_item_id']);
+            $table->foreign(['recipe_id', 'user_id'])
+                ->references(['id', 'user_id'])
+                ->on('recipes')
+                ->cascadeOnDelete();
+            $table->foreign(['shopping_item_id', 'user_id'])
+                ->references(['id', 'user_id'])
+                ->on('shopping_items')
+                ->cascadeOnDelete();
+            $table->unique(['user_id', 'recipe_id', 'shopping_item_id']);
         });
     }
 

@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Task;
 
+use App\Livewire\Concerns\HandlesRecurringTaskCompletion;
 use App\Models\Task;
+use App\Services\TaskGamificationService;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -11,11 +13,21 @@ use Livewire\Attributes\Title;
 #[Title('Kanban')]
 class TaskKanban extends Component
 {
-    public function toggleComplete(string $id)
+    use HandlesRecurringTaskCompletion;
+
+    public function toggleComplete(string $id, TaskGamificationService $gamification): void
     {
         $task = Task::find($id);
         if ($task) {
-            $task->update(['completed' => !$task->completed]);
+            if ($this->prepareRecurringCompletion($task)) {
+                return;
+            }
+
+            $result = $gamification->toggle($task);
+
+            if ($result['completed']) {
+                $this->dispatch('task-completed', ...$result);
+            }
         }
     }
 

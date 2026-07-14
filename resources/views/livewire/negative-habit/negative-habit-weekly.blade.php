@@ -1,80 +1,66 @@
-<div>
-    {{-- Header --}}
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h4 class="mb-0"><i class="bi bi-hand-thumbs-down text-danger"></i> Hábitos Negativos</h4>
-        <div class="d-flex align-items-center gap-2">
-            <button wire:click="previousWeek" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-chevron-left"></i>
-            </button>
-            <button wire:click="thisWeek" class="btn btn-sm btn-outline-primary">
-                Esta semana
-            </button>
-            <span class="fw-medium">{{ $weekStart->format('d M') }} - {{ $weekEnd->format('d M') }}</span>
-            <button wire:click="nextWeek" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-chevron-right"></i>
-            </button>
-        </div>
-    </div>
+<x-module-shell module="negative-habits" x-data="{ showLogDialog: @entangle('showLogForm') }">
+    <x-slot:actions>
+        <div class="md-date-navigator"><button wire:click="previousWeek" class="md-btn-icon" aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><button wire:click="thisWeek" class="md-date-navigator__today">Esta semana</button><span class="md-date-navigator__label">{{ $weekStart->format('d M') }} – {{ $weekEnd->format('d M') }}</span><button wire:click="nextWeek" class="md-btn-icon" aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button></div>
+    </x-slot:actions>
 
     {{-- Weekly Summary --}}
-    <div class="card mb-3 border-0 shadow-sm">
-        <div class="card-body text-center py-3">
-            <div class="fw-bold fs-3 {{ $weeklyCount > 0 ? 'text-danger' : 'text-success' }}">{{ $weeklyCount }}</div>
-            <small class="text-muted">incidencias esta semana</small>
-        </div>
+    <div class="md-card-filled text-center mb-3" style="padding: 20px;">
+        <div class="md-headline-medium {{ $weeklyCount > 0 ? '' : '' }}" style="color: {{ $weeklyCount > 0 ? 'var(--md-sys-color-error)' : 'var(--md-custom-color-success)' }};">{{ $weeklyCount }}</div>
+        <span class="md-label-medium" style="color: var(--md-sys-color-on-surface-variant);">incidencias esta semana</span>
     </div>
 
-    {{-- Log Form Modal --}}
-    @if ($showLogForm)
-        <div class="card mb-3 border-danger">
-            <div class="card-header bg-danger bg-opacity-10 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">Registrar Incidencia</h6>
-                <button wire:click="closeLogForm" class="btn-close btn-sm"></button>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label">Nota (opcional)</label>
-                    <input type="text" wire:model="note" class="form-control" placeholder="¿Qué pasó?">
-                </div>
-                <button wire:click="saveLog" class="btn btn-danger w-100">
-                    <i class="bi bi-plus-lg"></i> Registrar
-                </button>
-            </div>
-        </div>
-    @endif
-
     {{-- Habits grouped by category --}}
-    @php
-        $grouped = $habits->groupBy('category');
-    @endphp
+    @php $grouped = $habits->groupBy('category'); @endphp
 
     @foreach ($grouped as $category => $categoryHabits)
-        <div class="card mb-3 border-0 shadow-sm">
-            <div class="card-header bg-transparent border-0">
-                <h6 class="mb-0 text-capitalize">{{ $category }}</h6>
+        <div class="md-card-elevated mb-3" style="padding: 0; overflow: hidden;">
+            <div style="padding: 16px 16px 8px 16px;">
+                <span class="md-title-small text-capitalize" style="color: var(--md-sys-color-on-surface);">{{ $category }}</span>
             </div>
-            <div class="card-body pt-0">
-                @foreach ($categoryHabits as $habit)
-                    @php
-                        $habitLogs = $logs->get($habit->id, collect());
-                        $count = $habitLogs->count();
-                    @endphp
-                    <div class="d-flex align-items-center justify-content-between py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
-                        <div class="d-flex align-items-center gap-2">
-                            <span style="font-size: 1.2rem;">{{ $habit->icon }}</span>
-                            <div>
-                                <span class="fw-medium">{{ $habit->name }}</span>
-                                @if ($count > 0)
-                                    <span class="badge bg-danger ms-2">{{ $count }}</span>
-                                @endif
-                            </div>
+            @foreach ($categoryHabits as $habit)
+                @php
+                    $habitLogs = $logs->get($habit->id, collect());
+                    $count = $habitLogs->count();
+                @endphp
+                <div class="md-list-item">
+                    <div class="d-flex align-items-center gap-2 flex-grow-1">
+                        <span style="font-size: 1.2rem;">{{ $habit->icon }}</span>
+                        <div class="md-list-item-content">
+                            <div class="md-list-item-headline">{{ $habit->name }}</div>
                         </div>
-                        <button wire:click="openLogForm({{ $habit->id }})" class="btn btn-sm btn-outline-danger">
+                        @if ($count > 0)
+                            <span class="md-badge" style="min-width: 20px; height: 20px;">{{ $count }}</span>
+                        @endif
+                    </div>
+                    <div class="md-list-item-trailing">
+                        <button wire:click="openLogForm({{ $habit->id }})" class="md-btn-icon" style="color: var(--md-sys-color-error);">
                             <i class="bi bi-plus"></i>
                         </button>
                     </div>
-                @endforeach
-            </div>
+                </div>
+            @endforeach
         </div>
     @endforeach
-</div>
+
+    {{-- Log Dialog --}}
+    <template x-if="showLogDialog">
+        <div>
+            <div class="md-dialog-scrim" @click="showLogDialog = false"></div>
+            <div class="md-dialog" @click.stop>
+                <h2 class="md-dialog-headline md-headline-small">Registrar Incidencia</h2>
+                <div class="md-dialog-content">
+                    <div class="md-text-field">
+                        <input type="text" wire:model="note" placeholder=" " id="neg-note">
+                        <label for="neg-note">Nota (opcional)</label>
+                    </div>
+                </div>
+                <div class="md-dialog-actions">
+                    <button @click="showLogDialog = false" class="md-btn-text">Cancelar</button>
+                    <button wire:click="saveLog" class="md-btn-filled" style="background: var(--md-sys-color-error); color: var(--md-sys-color-on-error);">
+                        <i class="bi bi-plus-lg"></i> Registrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+</x-module-shell>

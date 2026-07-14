@@ -1,63 +1,18 @@
-<div>
-    {{-- Header --}}
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h4 class="mb-0"><i class="bi bi-egg-fried text-warning"></i> Comidas</h4>
-        <div class="d-flex align-items-center gap-2">
-            <button wire:click="previousWeek" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-chevron-left"></i>
-            </button>
-            <button wire:click="thisWeek" class="btn btn-sm btn-outline-primary">
-                Esta semana
-            </button>
-            <span class="fw-medium">{{ $weekStart->format('d M') }} - {{ $weekStart->copy()->endOfWeek()->format('d M') }}</span>
-            <button wire:click="nextWeek" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-chevron-right"></i>
-            </button>
-        </div>
-    </div>
-
-    {{-- Form Modal --}}
-    @if ($showForm)
-        <div class="card mb-3 border-warning">
-            <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">
-                    {{ $editingId ? 'Editar' : 'Agregar' }} - {{ $mealTypes[$formMealType] ?? $formMealType }}
-                    ({{ \Carbon\Carbon::parse($formDate)->translatedFormat('D d') }})
-                </h6>
-                <button wire:click="closeForm" class="btn-close btn-sm"></button>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label">Comida</label>
-                    <input type="text" wire:model="formName" class="form-control" placeholder="¿Qué vas a comer?">
-                </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-8">
-                        <label class="form-label">Notas</label>
-                        <input type="text" wire:model="formNotes" class="form-control" placeholder="Opcional">
-                    </div>
-                    <div class="col-4">
-                        <label class="form-label">Calorías</label>
-                        <input type="number" wire:model="formCalories" class="form-control" placeholder="kcal">
-                    </div>
-                </div>
-                <button wire:click="save" class="btn btn-warning w-100">
-                    <i class="bi bi-check-lg"></i> {{ $editingId ? 'Actualizar' : 'Guardar' }}
-                </button>
-            </div>
-        </div>
-    @endif
+<x-module-shell module="meals" x-data="{ showDialog: @entangle('showForm') }">
+    <x-slot:actions>
+        <div class="md-date-navigator"><button wire:click="previousWeek" class="md-btn-icon" aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><button wire:click="thisWeek" class="md-date-navigator__today">Esta semana</button><span class="md-date-navigator__label">{{ $weekStart->format('d M') }} – {{ $weekStart->copy()->endOfWeek()->format('d M') }}</span><button wire:click="nextWeek" class="md-btn-icon" aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button></div>
+    </x-slot:actions>
 
     {{-- Weekly Grid --}}
-    <div class="table-responsive">
-        <table class="table table-bordered align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th style="width: 100px;"></th>
+    <div class="md-card-elevated" style="padding: 0; overflow-x: auto;">
+        <table class="table table-bordered align-middle mb-0" style="border-color: var(--md-sys-color-outline-variant);">
+            <thead>
+                <tr style="background: var(--md-sys-color-surface-container-high);">
+                    <th style="width: 100px; color: var(--md-sys-color-on-surface-variant); border-color: var(--md-sys-color-outline-variant);"></th>
                     @foreach ($weekDates as $date)
-                        <th class="text-center {{ $date->isToday() ? 'table-primary' : '' }}">
-                            <div class="small">{{ $date->translatedFormat('D') }}</div>
-                            <div class="fw-bold">{{ $date->format('d') }}</div>
+                        <th class="text-center" style="border-color: var(--md-sys-color-outline-variant); {{ $date->isToday() ? 'background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);' : 'color: var(--md-sys-color-on-surface);' }}">
+                            <div class="md-label-small">{{ $date->translatedFormat('D') }}</div>
+                            <div class="md-title-medium">{{ $date->format('d') }}</div>
                         </th>
                     @endforeach
                 </tr>
@@ -65,23 +20,23 @@
             <tbody>
                 @foreach ($mealTypes as $typeKey => $typeLabel)
                     <tr>
-                        <td class="fw-medium small">{{ $typeLabel }}</td>
+                        <td class="md-label-large" style="color: var(--md-sys-color-on-surface); border-color: var(--md-sys-color-outline-variant);">{{ $typeLabel }}</td>
                         @foreach ($weekDates as $date)
                             @php
                                 $key = $date->format('Y-m-d') . '|' . $typeKey;
                                 $entry = $entries->get($key)?->first();
                             @endphp
-                            <td class="text-center p-1 {{ $date->isToday() ? 'table-primary' : '' }}" style="cursor: pointer; min-width: 100px;"
+                            <td class="text-center p-1" style="cursor: pointer; min-width: 100px; border-color: var(--md-sys-color-outline-variant); {{ $date->isToday() ? 'background: color-mix(in srgb, var(--md-sys-color-primary) 5%, transparent);' : '' }}"
                                 wire:click="openForm('{{ $date->format('Y-m-d') }}', '{{ $typeKey }}')">
                                 @if ($entry)
-                                    <div class="small fw-medium text-truncate" style="max-width: 90px;" title="{{ $entry->name }}">
+                                    <div class="md-label-medium text-truncate" style="max-width: 90px; color: var(--md-sys-color-on-surface);" title="{{ $entry->name }}">
                                         {{ $entry->name }}
                                     </div>
                                     @if ($entry->calories)
-                                        <small class="text-muted">{{ $entry->calories }} kcal</small>
+                                        <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);">{{ $entry->calories }} kcal</span>
                                     @endif
                                 @else
-                                    <small class="text-muted">+</small>
+                                    <span class="md-label-medium" style="color: var(--md-sys-color-outline);">+</span>
                                 @endif
                             </td>
                         @endforeach
@@ -90,4 +45,47 @@
             </tbody>
         </table>
     </div>
-</div>
+
+    {{-- Dialog --}}
+    <template x-if="showDialog">
+        <div>
+            <div class="md-dialog-scrim" @click="showDialog = false"></div>
+            <div class="md-dialog" @click.stop>
+                <h2 class="md-dialog-headline md-headline-small">
+                    {{ $editingId ? 'Editar' : 'Agregar' }} - {{ $mealTypes[$formMealType] ?? $formMealType }}
+                    <span class="md-body-medium d-block" style="color: var(--md-sys-color-on-surface-variant);">
+                        {{ \Carbon\Carbon::parse($formDate)->translatedFormat('D d M') }}
+                    </span>
+                </h2>
+                <div class="md-dialog-content">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="md-text-field">
+                            <input type="text" wire:model="formName" placeholder=" " id="meal-name">
+                            <label for="meal-name">Comida</label>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-8">
+                                <div class="md-text-field">
+                                    <input type="text" wire:model="formNotes" placeholder=" " id="meal-notes">
+                                    <label for="meal-notes">Notas (opcional)</label>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="md-text-field">
+                                    <input type="number" wire:model="formCalories" placeholder=" " id="meal-cal">
+                                    <label for="meal-cal">Calorías</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="md-dialog-actions">
+                    <button @click="showDialog = false" class="md-btn-text">Cancelar</button>
+                    <button wire:click="save" class="md-btn-filled" style="background: var(--md-custom-color-warning); color: var(--md-custom-color-on-warning);">
+                        <i class="bi bi-check-lg"></i> {{ $editingId ? 'Actualizar' : 'Guardar' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+</x-module-shell>

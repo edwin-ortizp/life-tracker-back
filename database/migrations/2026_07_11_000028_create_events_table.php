@@ -24,7 +24,10 @@ return new class extends Migration
             $table->timestamp('archived_at')->nullable();
             $table->timestamps();
 
-            $table->foreign('relationship_id')->references('id')->on('relationships')->cascadeOnDelete();
+            $table->foreign(['relationship_id', 'user_id'])
+                ->references(['id', 'user_id'])
+                ->on('relationships')
+                ->cascadeOnDelete();
         });
     }
 

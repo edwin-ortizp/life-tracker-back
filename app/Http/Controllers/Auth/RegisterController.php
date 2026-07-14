@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\DefaultHabitDefinitions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -38,6 +39,8 @@ class RegisterController extends Controller
 
     private function seedDefaultUserData(User $user): void
     {
+        DefaultHabitDefinitions::createFor($user);
+
         $exerciseTypes = [
             ['name' => 'Pasos', 'calories_per_hour' => 200, 'steps_equivalent' => 1312, 'category' => 'cardio', 'icon' => '👣', 'legacy_id' => 1],
             ['name' => 'Trotar', 'calories_per_hour' => 500, 'steps_equivalent' => 1200, 'category' => 'cardio', 'icon' => '🏃', 'legacy_id' => 2],

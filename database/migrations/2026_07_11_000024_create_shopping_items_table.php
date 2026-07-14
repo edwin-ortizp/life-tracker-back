@@ -26,6 +26,8 @@ return new class extends Migration
             $table->string('unit')->nullable();
             $table->string('barcode')->nullable();
             $table->timestamps();
+
+            $table->unique(['id', 'user_id']);
         });
     }
 
