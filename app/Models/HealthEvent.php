@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Traits\BelongsToUser;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
@@ -70,6 +71,11 @@ class HealthEvent extends Model
     public function taskAssociations(): MorphMany
     {
         return $this->morphMany(TaskAssociation::class, 'target');
+    }
+
+    public function logs(): HasMany
+    {
+        return $this->hasMany(HealthLog::class)->orderBy('date');
     }
 
     public function tasks(): MorphToMany

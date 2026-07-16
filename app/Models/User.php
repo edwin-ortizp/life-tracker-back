@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -144,6 +143,11 @@ class User extends Authenticatable
     public function healthEvents()
     {
         return $this->hasMany(HealthEvent::class);
+    }
+
+    public function healthLogs()
+    {
+        return $this->hasMany(HealthLog::class);
     }
 
     public function vehicles()

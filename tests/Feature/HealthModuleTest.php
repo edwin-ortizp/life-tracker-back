@@ -7,6 +7,7 @@ use App\Livewire\Health\HealthIndex;
 use App\Livewire\Task\TaskGantt;
 use App\Livewire\Task\TaskPlanning;
 use App\Models\HealthEvent;
+use App\Models\HealthLog;
 use App\Models\Task;
 use App\Models\TaskAssociation;
 use App\Models\User;
@@ -77,9 +78,9 @@ class HealthModuleTest extends TestCase
             ->set('title', 'Dolor de espalda')
             ->set('eventDate', '2026-07-12')
             ->set('bodyArea', 'back')
-            ->set('severity', 6)
+            ->set('initialIntensity', 11)
             ->call('save')
-            ->assertHasErrors(['severity' => 'between']);
+            ->assertHasErrors(['initialIntensity' => 'between']);
 
         Livewire::test(HealthIndex::class)
             ->call('openForm')
@@ -87,11 +88,12 @@ class HealthModuleTest extends TestCase
             ->set('title', 'Dolor de espalda')
             ->set('eventDate', '2026-07-12')
             ->set('bodyArea', 'back')
-            ->set('severity', 3)
+            ->set('initialIntensity', 3)
             ->call('save');
 
         $this->assertDatabaseHas('health_events', ['type' => 'symptom', 'title' => 'Dolor de espalda']);
         $this->assertSame('back', HealthEvent::where('type', 'symptom')->firstOrFail()->details['body_area']);
+        $this->assertDatabaseHas('health_logs', ['intensity' => 3, 'date' => '2026-07-12 00:00:00']);
 
         Livewire::test(HealthIndex::class)
             ->call('openForm')
@@ -99,6 +101,7 @@ class HealthModuleTest extends TestCase
             ->set('title', 'Malestar respiratorio')
             ->set('eventDate', '2026-07-12')
             ->set('illness', 'flu')
+            ->set('initialIntensity', 5)
             ->call('save');
 
         $this->assertSame('flu', HealthEvent::where('type', 'illness')->firstOrFail()->details['condition']);
@@ -111,6 +114,66 @@ class HealthModuleTest extends TestCase
 
         $this->assertDatabaseCount('health_events', 2);
         $this->assertDatabaseHas('tasks', ['user_id' => $user->id, 'title' => 'Averiguar vacuna contra la fiebre amarilla', 'category' => 'salud']);
+    }
+
+    public function test_health_logs_track_daily_evolution_and_recovery(): void
+    {
+        Carbon::setTestNow('2026-07-12 10:00:00');
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Livewire::test(HealthIndex::class)
+            ->call('openForm')
+            ->set('type', 'symptom')
+            ->set('title', 'Dolor de garganta')
+            ->set('eventDate', '2026-07-10')
+            ->set('bodyArea', 'mouth_throat')
+            ->set('initialIntensity', 3)
+            ->call('save');
+
+        $event = HealthEvent::firstOrFail();
+        $initialLog = $event->logs()->firstOrFail();
+        $this->assertSame(3, $initialLog->intensity);
+
+        Livewire::test(HealthIndex::class)
+            ->call('openLogForm', $event->id)
+            ->set('logDate', '2026-07-11')
+            ->set('logIntensity', 7)
+            ->set('logNotes', 'Empeoró durante la noche')
+            ->call('saveLog')
+            ->assertSet('showLogForm', false)
+            ->call('openLogForm', $event->id)
+            ->set('logDate', '2026-07-09')
+            ->set('logIntensity', 5)
+            ->call('saveLog')
+            ->assertHasErrors(['logDate'])
+            ->call('editLog', $initialLog->id)
+            ->set('logIntensity', 2)
+            ->call('updateLog');
+
+        $this->assertDatabaseHas('health_logs', ['id' => $initialLog->id, 'intensity' => 2]);
+        $this->assertDatabaseCount('health_logs', 2);
+
+        Livewire::test(HealthIndex::class)
+            ->call('openRecoveryForm', $event->id)
+            ->set('recoveryDate', '2026-07-12')
+            ->set('recoveryIntensity', 1)
+            ->call('saveRecovery');
+
+        $this->assertSame('2026-07-12', $event->fresh()->end_date->toDateString());
+        $this->assertDatabaseHas('health_logs', ['health_event_id' => $event->id, 'date' => '2026-07-12 00:00:00', 'intensity' => 1]);
+
+        Livewire::test(HealthIndex::class)
+            ->call('reopenEvolution', $event->id)
+            ->call('openLogForm', $event->id)
+            ->assertSet('showLogForm', true);
+        $this->assertNull($event->fresh()->end_date);
+
+        HealthLog::findOrFail($initialLog->id)->delete();
+        $this->assertDatabaseCount('health_logs', 2);
+        $event->delete();
+        $this->assertDatabaseCount('health_logs', 0);
+        Carbon::setTestNow();
     }
 
     public function test_health_events_are_private_to_their_owner_and_filters_are_url_backed(): void
@@ -149,8 +212,12 @@ class HealthModuleTest extends TestCase
         Carbon::setTestNow('2026-07-12 10:00:00');
         $user = User::factory()->create();
         $this->actingAs($user);
-        $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Dolor lumbar', 'event_date' => '2026-07-10', 'details' => ['body_area' => 'back', 'severity' => 4]]);
-        $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Dolor de cabeza', 'event_date' => '2026-07-11', 'details' => ['body_area' => 'head', 'severity' => 2]]);
+        $lumbarPain = $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Dolor lumbar', 'event_date' => '2026-07-01', 'details' => ['body_area' => 'back']]);
+        $lumbarPain->logs()->createMany([
+            ['date' => '2026-07-10', 'intensity' => 4],
+            ['date' => '2026-07-11', 'intensity' => 2],
+        ]);
+        $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Dolor de cabeza', 'event_date' => '2026-07-11', 'details' => ['body_area' => 'head', 'severity' => 4]]);
 
         $this->get('/health/body')->assertOk()->assertSee('Vista del cuerpo')->assertSee('Mapa corporal');
 
@@ -158,7 +225,8 @@ class HealthModuleTest extends TestCase
             ->test(HealthBodyMap::class)
             ->assertSet('period', '30')
             ->assertSee('Espalda')
-            ->assertSee('Cabeza');
+            ->assertSee('Cabeza')
+            ->assertViewHas('areas', fn ($areas) => $areas['back']['count'] === 2 && $areas['back']['severity'] === 6);
 
         Carbon::setTestNow();
     }
@@ -176,6 +244,7 @@ class HealthModuleTest extends TestCase
             ->assertViewHas('nextEvent', fn (?HealthEvent $event) => $event?->is($next))
             ->assertViewHas('upcomingCount', 2)
             ->assertViewHas('pendingHealthTasks', 1)
+            ->assertViewHas('healthTasks', fn ($tasks) => $tasks->contains('title', 'Pedir autorización'))
             ->assertSee('Control cercano');
 
         Carbon::setTestNow();

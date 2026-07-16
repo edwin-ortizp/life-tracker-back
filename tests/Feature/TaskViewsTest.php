@@ -192,38 +192,41 @@ class TaskViewsTest extends TestCase
         $this->assertDatabaseHas('tasks', ['title' => 'Segunda', 'start_date' => '2026-07-13 14:00:00', 'end_date' => '2026-07-13 16:00:00', 'estimated_time' => 120]);
     }
 
-    public function test_flow_groups_tasks_by_category_and_keeps_completed_tasks_in_position(): void
+    public function test_flow_prioritizes_pending_tasks_and_keeps_completed_tasks_in_lane_history(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user);
 
         $first = Task::create(['title' => 'Primera tecnología', 'category' => 'tecnologia']);
-        $completed = Task::create(['title' => 'Completada en medio', 'category' => 'tecnologia', 'completed' => true]);
+        $completed = Task::create(['title' => 'Completada reciente', 'category' => 'tecnologia', 'completed' => true, 'completed_at' => now()->subDay()]);
+        Task::create(['title' => 'Completada anterior', 'category' => 'tecnologia', 'completed' => true, 'completed_at' => now()->subDays(2)]);
         $last = Task::create(['title' => 'Última tecnología', 'category' => 'tecnologia']);
         Task::create(['title' => 'Sin categoría', 'category' => null]);
 
         Livewire::test(TaskFlow::class)
             ->assertSee('Tecnología')
             ->assertSee('Sin categoría')
-            ->assertSeeInOrder(['Primera tecnología', 'Completada en medio', 'Última tecnología'])
+            ->assertSee('2 pendientes')
+            ->assertSee('2 completadas')
+            ->assertSeeInOrder(['Primera tecnología', 'Última tecnología', 'Historial del carril', 'Completada reciente', 'Completada anterior'])
             ->call('moveNext', $first->id);
 
         $first->refresh();
         $completed->refresh();
         $last->refresh();
 
-        $this->assertSame(2, $first->flow_position);
-        $this->assertSame(1, $completed->flow_position);
+        $this->assertSame(4, $first->flow_position);
+        $this->assertSame(2, $completed->flow_position);
         $this->assertTrue($completed->completed);
+        $this->assertSame(1, $last->flow_position);
 
         Livewire::test(TaskFlow::class)
-            ->call('movePrevious', $completed->id)
-            ->call('moveNext', $last->id);
+            ->call('movePrevious', $completed->id);
 
         $completed->refresh();
         $last->refresh();
-        $this->assertSame(1, $completed->flow_position);
-        $this->assertSame(3, $last->flow_position);
+        $this->assertSame(2, $completed->flow_position);
+        $this->assertSame(1, $last->flow_position);
     }
 
     public function test_flow_edits_and_completes_tasks_without_leaving_the_view(): void
@@ -245,7 +248,28 @@ class TaskViewsTest extends TestCase
         $this->assertDatabaseHas('tasks', ['id' => $task->id, 'title' => 'Editada sin salir', 'completed' => true]);
     }
 
-    public function test_flow_loads_thirty_tasks_per_lane_then_can_load_more(): void
+    public function test_flow_reopens_a_task_from_its_lane_history(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $task = Task::create([
+            'title' => 'Retomar propuesta',
+            'category' => 'tecnologia',
+            'completed' => true,
+            'completed_at' => now(),
+        ]);
+
+        Livewire::test(TaskFlow::class)
+            ->assertSee('0 pendientes')
+            ->assertSee('1 completadas')
+            ->assertSee('Historial del carril')
+            ->call('toggleComplete', $task->id)
+            ->assertSee('1 pendientes');
+
+        $this->assertDatabaseHas('tasks', ['id' => $task->id, 'completed' => false, 'completed_at' => null]);
+    }
+
+    public function test_flow_loads_thirty_pending_tasks_per_lane_then_can_load_more(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user);
@@ -253,10 +277,14 @@ class TaskViewsTest extends TestCase
         foreach (range(1, 31) as $number) {
             Task::create(['title' => "Tecnología {$number}", 'category' => 'tecnologia']);
         }
+        Task::create(['title' => 'Tecnología completada', 'category' => 'tecnologia', 'completed' => true, 'completed_at' => now()]);
 
         Livewire::test(TaskFlow::class)
+            ->assertSee('31 pendientes')
+            ->assertSee('1 completadas')
             ->assertSee('Tecnología 30')
             ->assertDontSee('Tecnología 31')
+            ->assertSee('Tecnología completada')
             ->call('loadMore', 'tecnologia')
             ->assertSee('Tecnología 31');
     }
@@ -294,6 +322,23 @@ class TaskViewsTest extends TestCase
         $task = Task::where('title', 'Backup de la base de datos')->firstOrFail();
         $this->assertTrue($task->is_recurrent);
         $this->assertSame(['pattern' => 'custom', 'frequency' => 1, 'customDays' => 7], $task->recurrence);
+    }
+
+    public function test_editing_a_recurrent_task_loads_its_recurrence_interval(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $task = Task::create([
+            'title' => 'Revisión quincenal',
+            'is_recurrent' => true,
+            'recurrence' => ['pattern' => 'custom', 'frequency' => 1, 'customDays' => 15],
+        ]);
+
+        Livewire::test(TaskList::class)
+            ->call('openForm', $task->id)
+            ->assertSet('isRecurrent', true)
+            ->assertSet('recurrenceIntervalDays', 15)
+            ->assertSee('Repetir cada (días)');
     }
 
     public function test_gantt_shows_ranges_milestones_and_tasks_without_dates(): void

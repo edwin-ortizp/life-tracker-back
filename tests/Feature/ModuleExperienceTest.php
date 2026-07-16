@@ -47,6 +47,9 @@ class ModuleExperienceTest extends TestCase
         $tasks->assertSee('Nueva tarea')
             ->assertSee('Varias tareas')
             ->assertSee('Estado de las tareas')
+            ->assertSee('<div class="md-module-primary">', false)
+            ->assertDontSee('<main class="md-module-primary">', false)
+            ->assertSee('<div class="col-12 col-md-3">', false)
             ->assertSee("\$wire.entangle('showForm')", false);
         $this->assertSame(1, substr_count($tasks->getContent(), 'md-module-primary-fab'));
 

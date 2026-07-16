@@ -42,9 +42,13 @@
 
     <div class="md-module-content">
         @isset($rail)
-            <div class="md-module-workspace">
-                <main class="md-module-primary">{{ $slot }}</main>
-                <aside class="md-context-rail" aria-label="Contexto del módulo">{{ $rail }}</aside>
+            <div class="row g-3">
+                <div class="col-12 col-md-9">
+                    <div class="md-module-primary">{{ $slot }}</div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <aside class="md-context-rail" aria-label="Contexto del módulo">{{ $rail }}</aside>
+                </div>
             </div>
         @else
             {{ $slot }}

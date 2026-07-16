@@ -191,20 +191,27 @@ class TaskFlow extends Component
     private function buildLane(?string $category, string $label, ?string $laneKey = null): ?array
     {
         $laneKey ??= $category;
-        $pendingTasks = $this->tasksForCategory($category)->where('completed', false);
+        $categoryTasks = $this->tasksForCategory($category);
+        $pendingTasks = (clone $categoryTasks)->where('completed', false);
+        $completedTasks = (clone $categoryTasks)->where('completed', true);
+        $pendingTotal = (clone $pendingTasks)->count();
+        $completedTotal = (clone $completedTasks)->count();
 
-        if (! $pendingTasks->exists()) {
+        if ($pendingTotal === 0 && $completedTotal === 0) {
             return null;
         }
 
-        $total = $this->tasksForCategory($category)->count();
-        $tasks = $this->tasksForCategory($category)
+        $tasks = $pendingTasks
             ->orderBy('flow_position')
             ->orderBy('id')
             ->limit($this->laneLimit($laneKey))
             ->get();
+        $completedHistory = $completedTasks
+            ->orderByDesc('completed_at')
+            ->orderByDesc('id')
+            ->get();
 
-        return compact('category', 'label', 'laneKey', 'tasks', 'total');
+        return compact('category', 'label', 'laneKey', 'tasks', 'pendingTotal', 'completedTotal', 'completedHistory');
     }
 
     private function laneLimit(string $laneKey): int
@@ -223,11 +230,13 @@ class TaskFlow extends Component
     {
         DB::transaction(function () use ($id, $direction): void {
             $task = Task::query()->lockForUpdate()->find($id);
-            if (! $task) {
+            if (! $task || $task->completed) {
                 return;
             }
 
-            $lane = $this->tasksForCategory($task->category)->lockForUpdate();
+            $lane = $this->tasksForCategory($task->category)
+                ->where('completed', false)
+                ->lockForUpdate();
             $neighbor = $direction === 'previous'
                 ? $lane->where('flow_position', '<', $task->flow_position)->orderByDesc('flow_position')->orderByDesc('id')->first()
                 : $lane->where('flow_position', '>', $task->flow_position)->orderBy('flow_position')->orderBy('id')->first();

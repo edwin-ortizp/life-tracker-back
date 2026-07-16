@@ -27,27 +27,27 @@ class HealthBodyMap extends Component
 
     public function render()
     {
-        $symptoms = HealthEvent::query()->where('type', 'symptom');
-
-        if ($this->period !== 'all') {
-            $symptoms->whereDate('event_date', '>=', today()->subDays((int) $this->period - 1));
-        }
+        $symptoms = HealthEvent::query()->where('type', 'symptom')->with('logs');
 
         $stats = collect(HealthEvent::BODY_AREAS)
             ->except('other')
             ->map(fn () => ['count' => 0, 'severity' => 0]);
 
-        $symptoms->get()->each(function (HealthEvent $event) use ($stats): void {
+        $since = $this->period === 'all' ? null : today()->subDays((int) $this->period - 1)->startOfDay();
+
+        $symptoms->get()->each(function (HealthEvent $event) use ($stats, $since): void {
             $area = $event->details['body_area'] ?? null;
 
             if (! $area || ! $stats->has($area)) {
                 return;
             }
 
-            $stats[$area] = [
-                'count' => $stats[$area]['count'] + 1,
-                'severity' => $stats[$area]['severity'] + ($event->details['severity'] ?? 1),
-            ];
+            $logs = $event->logs->filter(fn ($log) => ! $since || $log->date->greaterThanOrEqualTo($since));
+            if ($event->logs->isNotEmpty()) {
+                $stats[$area] = ['count' => $stats[$area]['count'] + $logs->count(), 'severity' => $stats[$area]['severity'] + $logs->sum('intensity')];
+            } elseif (! $since || $event->event_date->greaterThanOrEqualTo($since)) {
+                $stats[$area] = ['count' => $stats[$area]['count'] + 1, 'severity' => $stats[$area]['severity'] + ($event->details['severity'] ?? 1)];
+            }
         });
 
         $maximumSeverity = max(1, $stats->max('severity'));
