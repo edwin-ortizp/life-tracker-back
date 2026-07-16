@@ -28,7 +28,7 @@
     @forelse ($goals as $goal)
         <div class="md-card-outlined mb-2">
             <div class="d-flex align-items-start justify-content-between">
-                <div class="flex-grow-1">
+                <a href="{{ route('goals.show', $goal) }}" wire:navigate class="flex-grow-1 text-decoration-none" style="min-width: 0; color: inherit;">
                     <div class="d-flex align-items-center gap-2">
                         @if ($goal->status === 'active')
                             <i class="bi bi-flag-fill" style="color: var(--md-sys-color-primary);"></i>
@@ -42,7 +42,7 @@
                     @if ($goal->description)
                         <p class="md-body-small mt-1 mb-1" style="color: var(--md-sys-color-on-surface-variant);">{{ $goal->description }}</p>
                     @endif
-                    <div class="d-flex gap-2 mt-1">
+                    <div class="d-flex gap-2 mt-1 flex-wrap-wrap">
                         @if ($goal->start_date)
                             <span class="md-chip-tonal"><i class="bi bi-calendar" style="font-size: 0.625rem;"></i> {{ $goal->start_date->format('d M Y') }}</span>
                         @endif
@@ -52,7 +52,7 @@
                             </span>
                         @endif
                     </div>
-                </div>
+                </a>
                 <div class="position-relative">
                     <button class="md-btn-icon" @click="openMenu = openMenu === '{{ $goal->id }}' ? null : '{{ $goal->id }}'">
                         <i class="bi bi-three-dots-vertical"></i>
@@ -122,6 +122,16 @@
                             <label for="goal-desc">Descripción</label>
                         </div>
                         <div class="row g-3">
+                            <div class="col-12">
+                                <div class="md-text-field">
+                                    <select wire:model="formStatus" id="goal-status">
+                                        <option value="active">Activo</option>
+                                        <option value="completed">Completado</option>
+                                        <option value="abandoned">Abandonado</option>
+                                    </select>
+                                    <label for="goal-status">Estado</label>
+                                </div>
+                            </div>
                             <div class="col-6">
                                 <div class="md-text-field">
                                     <input type="date" wire:model="startDate" placeholder=" " id="goal-start">
@@ -135,6 +145,42 @@
                                 </div>
                             </div>
                         </div>
+                        <label class="goal-kpi-toggle mt-1">
+                            <input wire:model.live="kpiEnabled" type="checkbox">
+                            <span><i class="bi bi-graph-up-arrow"></i> Configurar KPI único</span>
+                        </label>
+                        @if ($kpiEnabled)
+                            <div class="goal-kpi-form">
+                                <div class="md-text-field">
+                                    <input wire:model="kpiName" placeholder=" " id="goal-kpi-name">
+                                    <label for="goal-kpi-name">Nombre del KPI</label>
+                                    @error('kpiName')<small class="text-danger">{{ $message }}</small>@enderror
+                                </div>
+                                <div class="md-text-field">
+                                    <input wire:model="kpiUnit" placeholder=" " id="goal-kpi-unit">
+                                    <label for="goal-kpi-unit">Unidad</label>
+                                    @error('kpiUnit')<small class="text-danger">{{ $message }}</small>@enderror
+                                </div>
+                                <div class="md-text-field">
+                                    <select wire:model="kpiDirection" id="goal-kpi-direction">
+                                        <option value="increase">Aumentar hasta la meta</option>
+                                        <option value="decrease">Reducir hasta la meta</option>
+                                    </select>
+                                    <label for="goal-kpi-direction">Dirección</label>
+                                </div>
+                                <div class="md-text-field">
+                                    <input wire:model="kpiStartValue" type="number" step="0.01" placeholder=" " id="goal-kpi-start">
+                                    <label for="goal-kpi-start">Valor inicial</label>
+                                    @error('kpiStartValue')<small class="text-danger">{{ $message }}</small>@enderror
+                                </div>
+                                <div class="md-text-field">
+                                    <input wire:model="kpiTargetValue" type="number" step="0.01" placeholder=" " id="goal-kpi-target">
+                                    <label for="goal-kpi-target">Valor objetivo</label>
+                                    @error('kpiTargetValue')<small class="text-danger">{{ $message }}</small>@enderror
+                                </div>
+                                <p class="goal-kpi-form__hint">Con fechas de inicio y límite, el detalle comparará el avance real con el ritmo esperado.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 <div class="md-dialog-actions">

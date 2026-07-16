@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/tasks/progress', \App\Livewire\Task\TaskProgress::class)->name('tasks.progress');
     Route::get('/relationships', \App\Livewire\Relationship\RelationshipIndex::class)->name('relationships');
     Route::get('/goals', \App\Livewire\Goal\GoalIndex::class)->name('goals');
+    Route::get('/goals/{goal}', \App\Livewire\Goal\GoalDetail::class)->name('goals.show');
     Route::get('/statistics', \App\Livewire\Statistics\StatisticsDashboard::class)->name('statistics');
     Route::get('/negative-habits', \App\Livewire\NegativeHabit\NegativeHabitWeekly::class)->name('negative-habits');
     Route::get('/settings', \App\Livewire\Settings\SettingsPage::class)->name('settings');
