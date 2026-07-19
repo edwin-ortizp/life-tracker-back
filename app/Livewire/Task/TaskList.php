@@ -6,17 +6,19 @@ use App\Livewire\Concerns\HandlesRecurringTaskCompletion;
 use App\Livewire\Concerns\InteractsWithTaskSchedule;
 use App\Models\Task;
 use App\Services\TaskGamificationService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
 #[Title('Tareas')]
 class TaskList extends Component
 {
-    use HandlesRecurringTaskCompletion, InteractsWithTaskSchedule;
+    use HandlesRecurringTaskCompletion, InteractsWithTaskSchedule, WithPagination;
 
     #[Url(as: 'status', history: true, keep: true)]
     public string $filter = 'pending'; // pending, completed, all
@@ -26,6 +28,12 @@ class TaskList extends Component
 
     #[Url(as: 'priority', history: true, keep: true)]
     public string $priorityFilter = '';
+
+    #[Url(as: 'date', history: true, keep: true)]
+    public string $dateFilter = '';
+
+    #[Url(as: 'q', history: true, keep: true)]
+    public string $search = '';
 
     #[Url(as: 'edit')]
     public ?string $editTask = null;
@@ -128,16 +136,30 @@ class TaskList extends Component
     public function updatedFilter(): void
     {
         $this->normalizeFilters();
+        $this->resetPage();
     }
 
     public function updatedCategoryFilter(): void
     {
         $this->normalizeFilters();
+        $this->resetPage();
     }
 
     public function updatedPriorityFilter(): void
     {
         $this->normalizeFilters();
+        $this->resetPage();
+    }
+
+    public function updatedDateFilter(): void
+    {
+        $this->normalizeFilters();
+        $this->resetPage();
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
     }
 
     public function openForm(?string $id = null)
@@ -188,12 +210,12 @@ class TaskList extends Component
 
     public function saveBulk(): void
     {
-        $titles = collect(preg_split('/\R/', $this->bulkTitles) ?: [])
-            ->map(fn (string $title) => trim($title))
+        $lines = collect(preg_split('/\R/', $this->bulkTitles) ?: [])
+            ->map(fn (string $line) => trim($line))
             ->filter()
             ->values();
 
-        if ($titles->isEmpty()) {
+        if ($lines->isEmpty()) {
             $this->addError('bulkTitles', 'Escribe al menos una tarea.');
 
             return;
@@ -204,7 +226,7 @@ class TaskList extends Component
             return;
         }
 
-        $data = [
+        $baseData = [
             'description' => $this->bulkDescription ?: null,
             'category' => $this->bulkCategory ?: null,
             'priority' => $this->bulkPriority ?: null,
@@ -213,13 +235,61 @@ class TaskList extends Component
             'is_private' => $this->bulkIsPrivate,
         ];
 
-        DB::transaction(function () use ($titles, $data) {
-            foreach ($titles as $title) {
-                Task::create([...$data, 'title' => $title, 'task_code' => rand(10000, 99999)]);
+        DB::transaction(function () use ($lines, $baseData) {
+            foreach ($lines as $line) {
+                $parsed = $this->parseObsidianLine($line);
+                $data = array_filter($parsed['overrides'], fn ($v) => $v !== null) + $baseData;
+                $data['title'] = $parsed['title'];
+                $data['task_code'] = rand(10000, 99999);
+                Task::create($data);
             }
         });
 
         $this->closeBulkForm();
+    }
+
+    private function parseObsidianLine(string $line): array
+    {
+        $overrides = [];
+
+        $priorityMap = [
+            "\u{1F53A}" => 'urgent-important',
+            "\u{1F53C}" => 'not-urgent-important',
+            "\u{1F53D}" => 'not-urgent-not-important',
+        ];
+
+        foreach ($priorityMap as $emoji => $priority) {
+            if (str_contains($line, $emoji)) {
+                $overrides['priority'] = $priority;
+                $line = str_replace($emoji, '', $line);
+            }
+        }
+
+        $datePattern = '/([\x{1F4C5}\x{1F6EB}\x{231B}\x{2705}])\s*(\d{4}-\d{2}-\d{2})/u';
+
+        if (preg_match_all($datePattern, $line, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $emoji = $match[1];
+                $date = $match[2];
+
+                match ($emoji) {
+                    "\u{1F4C5}" => $overrides['end_date'] = Carbon::parse($date),
+                    "\u{1F6EB}" => $overrides['start_date'] = Carbon::parse($date),
+                    "\u{231B}" => $overrides['start_date'] ??= Carbon::parse($date),
+                    "\u{2705}" => (function () use (&$overrides, $date) {
+                        $overrides['completed'] = true;
+                        $overrides['completed_at'] = Carbon::parse($date);
+                    })(),
+                    default => null,
+                };
+            }
+
+            $line = preg_replace($datePattern, '', $line);
+        }
+
+        $title = trim(preg_replace('/\s+/', ' ', $line));
+
+        return ['title' => $title, 'overrides' => $overrides];
     }
 
     public function save()
@@ -323,12 +393,16 @@ class TaskList extends Component
             $this->filter = 'pending';
         }
 
-        if ($this->categoryFilter !== '' && ! array_key_exists($this->categoryFilter, $this->categories)) {
+        if ($this->categoryFilter !== '' && $this->categoryFilter !== '__none__' && ! array_key_exists($this->categoryFilter, $this->categories)) {
             $this->categoryFilter = '';
         }
 
         if ($this->priorityFilter !== '' && ! array_key_exists($this->priorityFilter, $this->priorities)) {
             $this->priorityFilter = '';
+        }
+
+        if ($this->dateFilter !== '' && ! in_array($this->dateFilter, ['sin-fecha', 'vencidas', 'hoy', 'proximas'], true)) {
+            $this->dateFilter = '';
         }
     }
 
@@ -342,7 +416,9 @@ class TaskList extends Component
             $query->where('completed', true);
         }
 
-        if ($this->categoryFilter) {
+        if ($this->categoryFilter === '__none__') {
+            $query->whereNull('category');
+        } elseif ($this->categoryFilter) {
             $query->where('category', $this->categoryFilter);
         }
 
@@ -350,17 +426,59 @@ class TaskList extends Component
             $query->where('priority', $this->priorityFilter);
         }
 
+        match ($this->dateFilter) {
+            'sin-fecha' => $query->whereNull('start_date')->whereNull('end_date'),
+            'vencidas' => $query->where('completed', false)->where(fn ($q) => $q
+                ->where('end_date', '<', now())
+                ->orWhere(fn ($q2) => $q2->whereNull('end_date')->where('start_date', '<', now()))
+            ),
+            'hoy' => $query->where(fn ($q) => $q
+                ->whereDate('start_date', today())
+                ->orWhereDate('end_date', today())
+            ),
+            'proximas' => $query->where(fn ($q) => $q
+                ->where('start_date', '>', now())
+                ->orWhere(fn ($q2) => $q2->whereNull('start_date')->where('end_date', '>', now()))
+            ),
+            default => null,
+        };
+
+        if ($this->search !== '') {
+            $term = '%'.$this->search.'%';
+            $query->where(fn ($q) => $q
+                ->where('title', 'like', $term)
+                ->orWhere('description', 'like', $term)
+            );
+        }
+
         $tasks = $query->orderByRaw('CASE WHEN priority = "urgent-important" THEN 1 WHEN priority = "not-urgent-important" THEN 2 WHEN priority = "urgent-not-important" THEN 3 ELSE 4 END')
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(25);
 
-        $pendingCount = Task::where('completed', false)->count();
-        $completedCount = Task::where('completed', true)->count();
+        $stats = Task::selectRaw('
+            SUM(CASE WHEN completed = 0 THEN 1 ELSE 0 END) as pending_count,
+            SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed_count,
+            SUM(CASE WHEN completed = 1 AND DATE(completed_at) = CURDATE() THEN 1 ELSE 0 END) as completed_today,
+            SUM(CASE WHEN completed = 0 AND (DATE(start_date) = CURDATE() OR DATE(end_date) = CURDATE()) THEN 1 ELSE 0 END) as planned_today,
+            SUM(CASE WHEN completed = 0 AND (end_date < NOW() OR (end_date IS NULL AND start_date < NOW())) THEN 1 ELSE 0 END) as overdue_count
+        ')->first();
+
+        $categoryBreakdown = Task::where('completed', true)
+            ->whereDate('completed_at', today())
+            ->whereNotNull('category')
+            ->selectRaw('category, COUNT(*) as total')
+            ->groupBy('category')
+            ->pluck('total', 'category')
+            ->toArray();
 
         return view('livewire.task.task-list', [
             'tasks' => $tasks,
-            'pendingCount' => $pendingCount,
-            'completedCount' => $completedCount,
+            'pendingCount' => (int) $stats->pending_count,
+            'completedCount' => (int) $stats->completed_count,
+            'completedToday' => (int) $stats->completed_today,
+            'plannedToday' => (int) $stats->planned_today,
+            'overdueCount' => (int) $stats->overdue_count,
+            'categoryBreakdown' => $categoryBreakdown,
         ]);
     }
 }

@@ -30,63 +30,73 @@
     <section class="health-timeline" aria-label="Cronología de salud">
         @forelse($events as $event)
             @php($task = $event->tasks->sortBy('created_at')->first())
-            <article class="health-event {{ $event->event_date->isFuture() ? 'is-upcoming' : '' }}">
+            @php($logs = in_array($event->type, ['symptom', 'illness'], true) ? $event->logs : collect())
+            <article class="health-event {{ $event->event_date->isFuture() ? 'is-upcoming' : '' }}" x-data="{ expanded: false }">
                 <div class="health-event-date">
                     <strong>{{ $event->event_date->translatedFormat('d') }}</strong>
                     <span>{{ strtoupper($event->event_date->translatedFormat('M')) }}</span>
                     <small>{{ $event->event_date->format('Y') }}</small>
                 </div>
                 <div class="health-event-marker"><i class="bi {{ match($event->type) { 'appointment' => 'bi-hospital', 'checkup' => 'bi-clipboard2-pulse', 'procedure' => 'bi-bandaid', 'symptom' => 'bi-activity', 'illness' => 'bi-thermometer-half', 'vaccination' => 'bi-shield-plus' } }}"></i></div>
-                <div class="health-event-card md-card-elevated">
-                    <div class="d-flex gap-3 justify-content-between align-items-start">
-                        <div>
-                            <span class="health-type-chip">{{ $types[$event->type] }}</span>
-                            <h2 class="md-title-large mt-2 mb-1">{{ $event->title }}</h2>
-                            @if($event->end_date)<p class="health-date-range mb-0">Hasta {{ $event->end_date->translatedFormat('d \d\e F \d\e Y') }}</p>@endif
-                        </div>
-                        <div class="d-flex gap-1">
+                <div class="health-event-card">
+                    <div class="health-event-summary" @click="expanded = !expanded" role="button" tabindex="0" @keydown.enter="expanded = !expanded" :aria-expanded="expanded.toString()">
+                        <span class="health-summary-date-inline"><i class="bi bi-calendar3"></i> {{ $event->event_date->translatedFormat('d M Y') }}</span>
+                        <span class="health-type-chip">{{ $types[$event->type] }}</span>
+                        <span class="health-summary-title">{{ $event->title }}</span>
+                        @if(isset($event->details['severity']))<span class="health-severity-badge">{{ $event->details['severity'] }}/10</span>@endif
+                        @if($logs->isNotEmpty())<span class="health-summary-logs">{{ $logs->count() }}d</span>@endif
+                        <i class="bi bi-chevron-down health-summary-chevron" :class="expanded && 'is-open'"></i>
+                    </div>
+
+                    <div class="health-event-panel" x-show="expanded" x-cloak x-transition.opacity.duration.200ms>
+                        <div class="health-panel-actions">
                             <button wire:click="openForm('{{ $event->id }}')" class="md-btn-icon" title="Editar"><i class="bi bi-pencil"></i></button>
                             <button wire:click="deleteEvent('{{ $event->id }}')" wire:confirm="¿Eliminar este evento? La tarea asociada se conservará." class="md-btn-icon" title="Eliminar"><i class="bi bi-trash"></i></button>
                         </div>
-                    </div>
 
-                    @if($event->details)
-                        <div class="health-details mt-3">
-                            @if(isset($event->details['body_area']))<span><i class="bi bi-person-arms-up"></i> {{ \App\Models\HealthEvent::bodyAreaLabel($event->details['body_area'], $event->details['body_area_note'] ?? null) }}</span>@endif
-                            @if(isset($event->details['severity']))<span><i class="bi bi-bar-chart-fill"></i> Intensidad {{ $event->details['severity'] }}/10</span>@endif
-                            @if(isset($event->details['condition']))<span><i class="bi bi-capsule"></i> {{ \App\Models\HealthEvent::illnessLabel($event->details['condition'], $event->details['condition_note'] ?? null) }}</span>@endif
-                            @if(isset($event->details['provider']))<span><i class="bi bi-person-badge"></i> {{ $event->details['provider'] }}</span>@endif
-                            @if(isset($event->details['specialty']))<span><i class="bi bi-heart-pulse"></i> {{ $event->details['specialty'] }}</span>@endif
-                            @if(isset($event->details['vaccine_name']))<span><i class="bi bi-shield-check"></i> {{ $event->details['vaccine_name'] }}{{ isset($event->details['dose']) ? ' · '.$event->details['dose'] : '' }}</span>@endif
-                        </div>
-                    @endif
-                    @if($event->notes)<p class="health-notes mb-0 mt-3">{{ $event->notes }}</p>@endif
-                    @if(in_array($event->type, ['symptom', 'illness'], true))
-                        @php($logs = $event->logs)
-                        <section class="health-evolution mt-3" aria-label="Evolución diaria de {{ $event->title }}">
-                            <div class="health-evolution__header">
-                                <div><span class="health-type-chip">Evolución</span><h3 class="md-title-medium mb-0">{{ $event->end_date ? 'Recuperación registrada' : '¿Cómo te sientes?' }}</h3></div>
-                                @if(! $event->end_date)<div class="d-flex gap-1"><button wire:click="openLogForm('{{ $event->id }}')" class="md-btn-text"><i class="bi bi-plus-lg"></i> Registrar día</button><button wire:click="openRecoveryForm('{{ $event->id }}')" class="md-btn-text"><i class="bi bi-check2-circle"></i> Marcar recuperación</button></div>@else<div><button wire:click="reopenEvolution('{{ $event->id }}')" class="md-btn-text"><i class="bi bi-arrow-counterclockwise"></i> Aún continúa</button></div>@endif
+                        @if($event->end_date)<p class="health-date-range mb-2">Hasta {{ $event->end_date->translatedFormat('d \d\e F \d\e Y') }}</p>@endif
+
+                        @if($event->details)
+                            <div class="health-details">
+                                @if(isset($event->details['body_area']))<span><i class="bi bi-person-arms-up"></i> {{ \App\Models\HealthEvent::bodyAreaLabel($event->details['body_area'], $event->details['body_area_note'] ?? null) }}</span>@endif
+                                @if(isset($event->details['severity']))<span><i class="bi bi-bar-chart-fill"></i> Intensidad {{ $event->details['severity'] }}/10</span>@endif
+                                @if(isset($event->details['condition']))<span><i class="bi bi-capsule"></i> {{ \App\Models\HealthEvent::illnessLabel($event->details['condition'], $event->details['condition_note'] ?? null) }}</span>@endif
+                                @if(isset($event->details['provider']))<span><i class="bi bi-person-badge"></i> {{ $event->details['provider'] }}</span>@endif
+                                @if(isset($event->details['specialty']))<span><i class="bi bi-heart-pulse"></i> {{ $event->details['specialty'] }}</span>@endif
+                                @if(isset($event->details['vaccine_name']))<span><i class="bi bi-shield-check"></i> {{ $event->details['vaccine_name'] }}{{ isset($event->details['dose']) ? ' · '.$event->details['dose'] : '' }}</span>@endif
                             </div>
-                            @if($logs->isNotEmpty())
-                                @php($chartVersion = $logs->map(fn ($log) => $log->updated_at->timestamp)->max())
-                                <div wire:ignore wire:key="health-chart-{{ $event->id }}-{{ $chartVersion }}" class="health-evolution__chart" data-health-chart='@json($logs->map(fn ($log) => ['date' => $log->date->translatedFormat('d M'), 'intensity' => $log->intensity])->values())' aria-label="Evolución de intensidad diaria"></div>
-                                <div class="health-log-list">@foreach($logs as $log)<div class="health-log-row"><time datetime="{{ $log->date->toDateString() }}">{{ $log->date->translatedFormat('D d M') }}</time><strong>{{ $log->intensity }}<small>/10</small></strong><span>{{ $log->notes }}</span><div><button wire:click="editLog('{{ $log->id }}')" class="md-btn-icon" title="Editar día"><i class="bi bi-pencil"></i></button><button wire:click="deleteLog('{{ $log->id }}')" wire:confirm="¿Eliminar este registro diario?" class="md-btn-icon" title="Eliminar día"><i class="bi bi-trash"></i></button></div></div>@endforeach</div>
-                            @elseif(isset($event->details['severity']))
-                                <p class="health-evolution__legacy mb-0"><i class="bi bi-info-circle"></i> Intensidad inicial: {{ $event->details['severity'] }}/10.</p>
-                            @else
-                                <p class="health-evolution__legacy mb-0">Aún no hay días registrados.</p>
-                            @endif
-                        </section>
-                    @endif
-                    @if($task)
-                        <a href="{{ route('tasks.planning') }}" class="health-task-link mt-3">
-                            <i class="bi {{ $task->completed ? 'bi-check-circle-fill' : 'bi-calendar-check' }}"></i>
-                            <span>{{ $task->completed ? 'Acción completada' : 'Ver en Planificación' }}</span><i class="bi bi-arrow-right"></i>
-                        </a>
-                    @elseif($event->event_date->isFuture())
-                        <p class="health-no-task mt-3 mb-0"><i class="bi bi-info-circle"></i> Este registro no requiere una acción de agenda.</p>
-                    @endif
+                        @endif
+                        @if($event->notes)<p class="health-notes mb-0 mt-2">{{ $event->notes }}</p>@endif
+
+                        @if(in_array($event->type, ['symptom', 'illness'], true))
+                            <section class="health-evolution mt-3" aria-label="Evolución diaria de {{ $event->title }}">
+                                <div class="health-evolution__header">
+                                    <div><span class="health-type-chip">Evolución</span><h3 class="md-title-medium mb-0">{{ $event->end_date ? 'Recuperación registrada' : '¿Cómo te sientes?' }}</h3></div>
+                                    @if(! $event->end_date)<div class="d-flex gap-1"><button wire:click="openLogForm('{{ $event->id }}')" class="md-btn-text"><i class="bi bi-plus-lg"></i> Registrar día</button><button wire:click="openRecoveryForm('{{ $event->id }}')" class="md-btn-text"><i class="bi bi-check2-circle"></i> Marcar recuperación</button></div>@else<div><button wire:click="reopenEvolution('{{ $event->id }}')" class="md-btn-text"><i class="bi bi-arrow-counterclockwise"></i> Aún continúa</button></div>@endif
+                                </div>
+                                @if($logs->isNotEmpty())
+                                    <template x-if="expanded">
+                                        @php($chartVersion = $logs->map(fn ($log) => $log->updated_at->timestamp)->max())
+                                        <div wire:ignore wire:key="health-chart-{{ $event->id }}-{{ $chartVersion }}" class="health-evolution__chart" data-health-chart='@json($logs->map(fn ($log) => ['date' => $log->date->translatedFormat('d M'), 'intensity' => $log->intensity])->values())' aria-label="Evolución de intensidad diaria"></div>
+                                    </template>
+                                    <div class="health-log-list">@foreach($logs as $log)<div class="health-log-row"><time datetime="{{ $log->date->toDateString() }}">{{ $log->date->translatedFormat('D d M') }}</time><strong>{{ $log->intensity }}<small>/10</small></strong><span>{{ $log->notes }}</span><div><button wire:click="editLog('{{ $log->id }}')" class="md-btn-icon" title="Editar día"><i class="bi bi-pencil"></i></button><button wire:click="deleteLog('{{ $log->id }}')" wire:confirm="¿Eliminar este registro diario?" class="md-btn-icon" title="Eliminar día"><i class="bi bi-trash"></i></button></div></div>@endforeach</div>
+                                @elseif(isset($event->details['severity']))
+                                    <p class="health-evolution__legacy mb-0"><i class="bi bi-info-circle"></i> Intensidad inicial: {{ $event->details['severity'] }}/10.</p>
+                                @else
+                                    <p class="health-evolution__legacy mb-0">Aún no hay días registrados.</p>
+                                @endif
+                            </section>
+                        @endif
+
+                        @if($task)
+                            <a href="{{ route('tasks.planning') }}" class="health-task-link mt-3">
+                                <i class="bi {{ $task->completed ? 'bi-check-circle-fill' : 'bi-calendar-check' }}"></i>
+                                <span>{{ $task->completed ? 'Acción completada' : 'Ver en Planificación' }}</span><i class="bi bi-arrow-right"></i>
+                            </a>
+                        @elseif($event->event_date->isFuture())
+                            <p class="health-no-task mt-3 mb-0"><i class="bi bi-info-circle"></i> Este registro no requiere una acción de agenda.</p>
+                        @endif
+                    </div>
                 </div>
             </article>
         @empty

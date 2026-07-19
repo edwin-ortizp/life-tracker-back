@@ -7,7 +7,7 @@
 
     {{-- Filters as M3 chips --}}
     <div class="md-card-filled mb-3">
-        <div class="d-flex flex-wrap gap-2 align-items-center">
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
             <div class="md-chip-group">
                 <button wire:click="$set('filter', 'pending')"
                         class="md-chip md-chip-filter {{ $filter === 'pending' ? 'selected' : '' }}">
@@ -23,25 +23,52 @@
                 </button>
             </div>
 
-            <div class="d-flex gap-2 ms-auto">
-                <div class="md-text-field" style="width: auto; min-width: 140px;">
-                    <select wire:model.live="categoryFilter">
-                        <option value="">Todas</option>
-                        @foreach ($categories as $key => $label)
-                            <option value="{{ $key }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    <label>Categoría</label>
-                </div>
-                <div class="md-text-field" style="width: auto; min-width: 140px;">
-                    <select wire:model.live="priorityFilter">
-                        <option value="">Todas</option>
-                        @foreach ($priorities as $key => $label)
-                            <option value="{{ $key }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    <label>Prioridad</label>
-                </div>
+            <div class="md-chip-group">
+                <button wire:click="$set('dateFilter', '')"
+                        class="md-chip md-chip-filter {{ $dateFilter === '' ? 'selected' : '' }}">
+                    <i class="bi bi-calendar3"></i> Cualquier fecha
+                </button>
+                <button wire:click="$set('dateFilter', 'sin-fecha')"
+                        class="md-chip md-chip-filter {{ $dateFilter === 'sin-fecha' ? 'selected' : '' }}">
+                    Sin fecha
+                </button>
+                <button wire:click="$set('dateFilter', 'vencidas')"
+                        class="md-chip md-chip-filter {{ $dateFilter === 'vencidas' ? 'selected' : '' }}">
+                    <i class="bi bi-exclamation-circle"></i> Vencidas
+                </button>
+                <button wire:click="$set('dateFilter', 'hoy')"
+                        class="md-chip md-chip-filter {{ $dateFilter === 'hoy' ? 'selected' : '' }}">
+                    Hoy
+                </button>
+                <button wire:click="$set('dateFilter', 'proximas')"
+                        class="md-chip md-chip-filter {{ $dateFilter === 'proximas' ? 'selected' : '' }}">
+                    Próximas
+                </button>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <div class="md-text-field" style="width: auto; min-width: 200px; flex: 1;">
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder=" " id="task-search">
+                <label for="task-search"><i class="bi bi-search"></i> Buscar</label>
+            </div>
+            <div class="md-text-field" style="width: auto; min-width: 140px;">
+                <select wire:model.live="categoryFilter">
+                    <option value="">Todas</option>
+                    <option value="__none__">Sin categoría</option>
+                    @foreach ($categories as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+                <label>Categoría</label>
+            </div>
+            <div class="md-text-field" style="width: auto; min-width: 140px;">
+                <select wire:model.live="priorityFilter">
+                    <option value="">Todas</option>
+                    @foreach ($priorities as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+                <label>Prioridad</label>
             </div>
         </div>
     </div>
@@ -88,6 +115,11 @@
                         @if ($task->size)
                             <span class="md-chip-tonal">{{ $task->size }}</span>
                         @endif
+                        @if ($task->subtask_progress)
+                            <span class="md-chip-tonal md-chip-tonal--info">
+                                <i class="bi bi-check2-square" style="font-size: 0.625rem;"></i> {{ $task->subtask_progress['completed'] }}/{{ $task->subtask_progress['total'] }} subtareas
+                            </span>
+                        @endif
                         @if ($task->is_recurrent)
                             @php
                                 $recurrence = $task->recurrence ?? [];
@@ -100,7 +132,12 @@
                             @endphp
                             <span class="md-chip-tonal"><i class="bi bi-arrow-repeat" style="font-size: 0.625rem;"></i> {{ $recurrenceLabel }}</span>
                         @endif
-                        @if ($task->start_date || $task->end_date)
+                        @if (!$task->start_date && !$task->end_date)
+                            <span class="md-chip-tonal">Sin fecha</span>
+                        @else
+                            @if (!$task->completed && ($task->end_date ?? $task->start_date)->isPast())
+                                <span class="md-chip-tonal md-chip-tonal--error"><i class="bi bi-exclamation-circle" style="font-size: 0.625rem;"></i> Vencida</span>
+                            @endif
                             <span class="md-chip-tonal">
                                 <i class="bi bi-calendar" style="font-size: 0.625rem;"></i> {{ ($task->start_date ?? $task->end_date)->format('d M, H:i') }}@if($task->end_date && $task->start_date) – {{ $task->end_date->format('H:i') }}@endif
                             </span>
@@ -125,14 +162,33 @@
         @endforelse
     </div>
 
+    <div class="mt-3">
+        {{ $tasks->links() }}
+    </div>
+
     <x-slot:rail>
-        <x-context-widget title="Estado de las tareas" icon="bi-list-check">
+        <x-context-widget title="Hoy" icon="bi-lightning-charge" tone="success">
+            <div class="text-center mb-2">
+                <span style="font-size: 2rem; font-weight: 700; color: var(--md-sys-color-primary);">{{ $completedToday }}</span>
+                <span class="md-body-small d-block" style="color: var(--md-sys-color-on-surface-variant);">completadas hoy</span>
+            </div>
             <dl class="md-context-list">
+                <div><dt>Planificadas hoy</dt><dd>{{ $plannedToday }}</dd></div>
                 <div><dt>Pendientes</dt><dd>{{ $pendingCount }}</dd></div>
-                <div><dt>Completadas</dt><dd>{{ $completedCount }}</dd></div>
-                <div><dt>Total</dt><dd>{{ $pendingCount + $completedCount }}</dd></div>
+                @if ($overdueCount > 0)
+                    <div style="color: var(--md-sys-color-error);"><dt>Vencidas</dt><dd>{{ $overdueCount }}</dd></div>
+                @endif
             </dl>
         </x-context-widget>
+        @if (!empty($categoryBreakdown))
+            <x-context-widget title="Completadas hoy" icon="bi-bar-chart">
+                <dl class="md-context-list">
+                    @foreach ($categoryBreakdown as $cat => $count)
+                        <div><dt>{{ $categories[$cat] ?? $cat }}</dt><dd>{{ $count }}</dd></div>
+                    @endforeach
+                </dl>
+            </x-context-widget>
+        @endif
         <x-context-widget title="Vistas relacionadas" icon="bi-signpost-split">
             <div class="md-context-links">
                 <a href="{{ route('tasks.planning') }}"><i class="bi bi-calendar-week"></i> Planificación</a>

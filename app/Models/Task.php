@@ -55,6 +55,24 @@ class Task extends Model
         ];
     }
 
+    public function getSubtaskProgressAttribute(): ?array
+    {
+        if (! $this->description) {
+            return null;
+        }
+
+        preg_match_all('/^[\s]*-\s*\[([ xX])\]/m', $this->description, $matches);
+
+        if (empty($matches[0])) {
+            return null;
+        }
+
+        $total = count($matches[1]);
+        $completed = count(array_filter($matches[1], fn ($m) => strtolower($m) === 'x'));
+
+        return ['completed' => $completed, 'total' => $total];
+    }
+
     public function getEstimatedTimeLabelAttribute(): ?string
     {
         if (! $this->estimated_time) {

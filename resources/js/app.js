@@ -76,6 +76,48 @@ function discoverHealthCharts(root = document) {
 document.addEventListener('DOMContentLoaded', () => {
     discoverHealthCharts();
     new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => mutation.addedNodes.forEach(discoverHealthCharts));
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach(discoverHealthCharts);
+            mutation.removedNodes.forEach((node) => {
+                if (node.nodeType !== Node.ELEMENT_NODE) return;
+                const targets = node.matches?.('[data-health-chart]')
+                    ? [node]
+                    : [...(node.querySelectorAll?.('[data-health-chart]') ?? [])];
+                targets.forEach((el) => {
+                    const chart = charts.get(el);
+                    if (chart) { chart.destroy(); charts.delete(el); }
+                });
+            });
+        });
     }).observe(document.body, { childList: true, subtree: true });
+
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'l' && e.target.matches('textarea.md-markdown-editor-input')) {
+            e.preventDefault();
+            const ta = e.target;
+            const start = ta.selectionStart;
+            const value = ta.value;
+
+            const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+            const lineEnd = value.indexOf('\n', start);
+            const lineText = value.substring(lineStart, lineEnd === -1 ? value.length : lineEnd);
+            const after = value.substring(lineStart + lineText.length);
+
+            const unchecked = '- [ ] ';
+            const checked = '- [x] ';
+
+            if (lineText.startsWith(unchecked)) {
+                ta.value = value.substring(0, lineStart) + checked + lineText.substring(unchecked.length) + after;
+                ta.selectionStart = ta.selectionEnd = start;
+            } else if (lineText.startsWith(checked)) {
+                ta.value = value.substring(0, lineStart) + lineText.substring(checked.length) + after;
+                ta.selectionStart = ta.selectionEnd = start - checked.length;
+            } else {
+                ta.value = value.substring(0, lineStart) + unchecked + value.substring(lineStart);
+                ta.selectionStart = ta.selectionEnd = start + unchecked.length;
+            }
+
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
 });

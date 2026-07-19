@@ -1,2 +1,73 @@
+/* ===== Health Timeline ===== */
+
+.health-timeline { display: flex; flex-direction: column; gap: 2px; }
+.health-event { display: grid; grid-template-columns: 52px 40px 1fr; align-items: start; }
+.health-event.is-upcoming .health-event-date strong { color: var(--md-sys-color-primary); }
+
+.health-event-date { display: flex; flex-direction: column; align-items: center; padding-top: 12px; line-height: 1.1; }
+.health-event-date strong { font-size: 1.25rem; color: var(--md-sys-color-on-surface); }
+.health-event-date span { font-size: .65rem; font-weight: 600; letter-spacing: .06em; color: var(--md-sys-color-on-surface-variant); }
+.health-event-date small { font-size: .6rem; color: var(--md-sys-color-on-surface-variant); }
+
+.health-event-marker { display: flex; justify-content: center; padding-top: 14px; position: relative; }
+.health-event-marker i { font-size: 1rem; color: var(--md-sys-color-primary); }
+.health-event-marker::after { content: ''; position: absolute; top: 38px; bottom: -2px; left: 50%; width: 1px; background: var(--md-sys-color-outline-variant); }
+.health-event:last-child .health-event-marker::after { display: none; }
+
+.health-event-card { border-radius: var(--md-sys-shape-corner-medium); overflow: hidden; }
+
+.health-event-summary { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; cursor: pointer; border-radius: var(--md-sys-shape-corner-medium); background: var(--md-sys-color-surface-container-low); transition: background var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard); user-select: none; }
+.health-event-summary:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, var(--md-sys-color-surface-container-low)); }
+.health-event-summary:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: -2px; }
+
+.health-type-chip { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: var(--md-sys-shape-corner-small); background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); font-size: .68rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+
+.health-summary-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .875rem; font-weight: 500; color: var(--md-sys-color-on-surface); }
+
+.health-severity-badge { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 10px; font-size: .68rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; background: var(--md-sys-color-tertiary-container); color: var(--md-sys-color-on-tertiary-container); }
+
+.health-summary-logs { font-size: .68rem; color: var(--md-sys-color-on-surface-variant); white-space: nowrap; flex-shrink: 0; }
+
+.health-summary-chevron { font-size: .75rem; color: var(--md-sys-color-on-surface-variant); transition: transform var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard); flex-shrink: 0; }
+.health-summary-chevron.is-open { transform: rotate(180deg); }
+
+.health-summary-date-inline { display: none; }
+
+.health-event-panel { padding: 12px; border-top: 1px solid var(--md-sys-color-outline-variant); background: var(--md-sys-color-surface-container-low); }
+.health-event-panel .health-details { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 8px; }
+.health-event-panel .health-details span { display: inline-flex; align-items: center; gap: 4px; font-size: .78rem; color: var(--md-sys-color-on-surface-variant); }
+.health-event-panel .health-details span i { font-size: .85rem; }
+
+.health-notes { font-size: .8rem; color: var(--md-sys-color-on-surface-variant); line-height: 1.5; }
+
+.health-panel-actions { display: flex; gap: 4px; justify-content: flex-end; margin-bottom: 8px; }
+
+.health-date-range { font-size: .75rem; color: var(--md-sys-color-on-surface-variant); }
+
+.health-task-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--md-sys-shape-corner-small); background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); font-size: .78rem; text-decoration: none; transition: background var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard); }
+.health-task-link:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, var(--md-sys-color-surface-container)); }
+.health-task-link span { flex: 1; }
+
+.health-no-task { font-size: .75rem; color: var(--md-sys-color-on-surface-variant); display: flex; align-items: center; gap: 6px; }
+
+.health-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 48px 24px; text-align: center; }
+.health-empty i { font-size: 2.5rem; color: var(--md-sys-color-primary); }
+
+.health-filter-label { font-size: .75rem; font-weight: 600; color: var(--md-sys-color-on-surface-variant); margin-bottom: 6px; }
+
+.health-dialog { max-width: 560px; }
+.health-dialog--small { max-width: 400px; }
+.health-form-hint { font-size: .75rem; color: var(--md-sys-color-on-surface-variant); display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; }
+
+@media (max-width: 767.98px) {
+    .health-event { grid-template-columns: 1fr; }
+    .health-event-date, .health-event-marker { display: none; }
+    .health-event-marker::after { display: none; }
+    .health-summary-date-inline { display: inline-flex; align-items: center; gap: 4px; font-size: .68rem; color: var(--md-sys-color-on-surface-variant); white-space: nowrap; flex-shrink: 0; }
+    .health-summary-date-inline i { font-size: .7rem; }
+}
+
+/* ===== Health Evolution ===== */
+
 .health-evolution { overflow: hidden; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); background: var(--md-sys-color-surface-container-low); }.health-evolution__header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 14px 8px; }.health-evolution__header .md-btn-text { padding: 6px 8px; font-size: .75rem; }.health-evolution__chart { min-height: 220px; padding: 0 8px 0 0; background: linear-gradient(to bottom, color-mix(in srgb, var(--md-sys-color-primary-container) 36%, transparent), transparent); }.health-log-list { padding: 0 14px 8px; }.health-log-row { display: grid; grid-template-columns: 74px 42px minmax(0, 1fr) auto; align-items: center; gap: 8px; min-height: 38px; border-top: 1px solid var(--md-sys-color-outline-variant); font-size: .75rem; }.health-log-row time, .health-log-row span { color: var(--md-sys-color-on-surface-variant); }.health-log-row strong { color: var(--md-sys-color-primary); }.health-log-row strong small { font-weight: 500; }.health-log-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.health-log-row .md-btn-icon { width: 28px; height: 28px; font-size: .75rem; }.health-evolution__legacy { padding: 12px 14px; color: var(--md-sys-color-on-surface-variant); font-size: .75rem; } @media (max-width: 767.98px) { .health-evolution__header { align-items: flex-start; flex-direction: column; }.health-evolution__chart { min-height: 190px; }.health-log-row { grid-template-columns: 68px 38px minmax(0, 1fr) auto; gap: 5px; } }
 .health-context-tasks a span { display: grid; min-width: 0; }.health-context-tasks a span:first-line { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.health-context-tasks a small { color: var(--md-sys-color-on-surface-variant); font-size: .68rem; font-weight: 500; }
