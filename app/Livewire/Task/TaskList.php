@@ -32,6 +32,9 @@ class TaskList extends Component
     #[Url(as: 'date', history: true, keep: true)]
     public string $dateFilter = '';
 
+    #[Url(as: 'size', history: true, keep: true)]
+    public string $sizeFilter = '';
+
     #[Url(as: 'q', history: true, keep: true)]
     public string $search = '';
 
@@ -157,10 +160,17 @@ class TaskList extends Component
         $this->resetPage();
     }
 
+    public function updatedSizeFilter(): void
+    {
+        $this->normalizeFilters();
+        $this->resetPage();
+    }
+
     public function updatedSearch(): void
     {
         $this->resetPage();
     }
+
 
     public function openForm(?string $id = null)
     {
@@ -404,6 +414,10 @@ class TaskList extends Component
         if ($this->dateFilter !== '' && ! in_array($this->dateFilter, ['sin-fecha', 'vencidas', 'hoy', 'proximas'], true)) {
             $this->dateFilter = '';
         }
+
+        if ($this->sizeFilter !== '' && ! array_key_exists($this->sizeFilter, $this->sizes)) {
+            $this->sizeFilter = '';
+        }
     }
 
     public function render()
@@ -424,6 +438,10 @@ class TaskList extends Component
 
         if ($this->priorityFilter) {
             $query->where('priority', $this->priorityFilter);
+        }
+
+        if ($this->sizeFilter) {
+            $query->where('size', $this->sizeFilter);
         }
 
         match ($this->dateFilter) {

@@ -27,11 +27,13 @@ trait InteractsWithTaskSchedule
     public function applyDuration(int $minutes): void
     {
         $this->applyDurationTo('startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime', $minutes);
+        $this->size = $this->sizeFromMinutes($minutes);
     }
 
     public function applyBulkDuration(int $minutes): void
     {
         $this->applyDurationTo('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime', $minutes);
+        $this->bulkSize = $this->sizeFromMinutes($minutes);
     }
 
     public function updatedStartDate(): void
@@ -110,11 +112,14 @@ trait InteractsWithTaskSchedule
 
     private function synchronizeSchedule(string $startDateProperty, string $startTimeProperty, string $endDateProperty, string $endTimeProperty, string $estimatedProperty): void
     {
+        $sizeProperty = str_starts_with($estimatedProperty, 'bulk') ? 'bulkSize' : 'size';
         $start = $this->scheduleDate($this->{$startDateProperty}, $this->{$startTimeProperty});
         $end = $this->scheduleDate($this->{$endDateProperty}, $this->{$endTimeProperty});
 
         if ($start && $end && $end->greaterThanOrEqualTo($start)) {
-            $this->{$estimatedProperty} = $start->diffInMinutes($end);
+            $minutes = (int) $start->diffInMinutes($end);
+            $this->{$estimatedProperty} = $minutes;
+            $this->{$sizeProperty} = $this->sizeFromMinutes($minutes);
         }
     }
 
@@ -168,5 +173,16 @@ trait InteractsWithTaskSchedule
     {
         $this->{$dateProperty} = $date->format('Y-m-d');
         $this->{$timeProperty} = $date->format('H:i');
+    }
+
+    private function sizeFromMinutes(int $minutes): string
+    {
+        return match (true) {
+            $minutes < 30 => 'XS',
+            $minutes < 60 => 'S',
+            $minutes < 120 => 'M',
+            $minutes < 240 => 'L',
+            default => 'XL',
+        };
     }
 }

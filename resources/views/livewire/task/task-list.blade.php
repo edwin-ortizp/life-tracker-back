@@ -5,70 +5,144 @@
             :secondary="[['label' => 'Varias tareas', 'icon' => 'bi-list-stars', 'action' => 'openBulkForm']]" />
     </x-slot:actions>
 
-    {{-- Filters as M3 chips --}}
-    <div class="md-card-filled mb-3">
-        <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-            <div class="md-chip-group">
-                <button wire:click="$set('filter', 'pending')"
-                        class="md-chip md-chip-filter {{ $filter === 'pending' ? 'selected' : '' }}">
-                    <i class="bi bi-clock"></i> Pendientes
+    {{-- Search + Filters --}}
+    <div x-data="{ openMenu: null }" @click.outside="openMenu = null" class="mb-3">
+        {{-- Search bar --}}
+        <div class="md-search-bar mb-2">
+            <i class="bi bi-search md-search-bar__icon"></i>
+            <input type="text" wire:model.live.debounce.300ms="search"
+                   class="md-search-bar__input" placeholder="Buscar tareas...">
+            @if($search)
+                <button wire:click="$set('search', '')" class="md-search-bar__clear">
+                    <i class="bi bi-x-lg"></i>
                 </button>
-                <button wire:click="$set('filter', 'completed')"
-                        class="md-chip md-chip-filter {{ $filter === 'completed' ? 'selected' : '' }}">
-                    <i class="bi bi-check-lg"></i> Completadas
+            @endif
+        </div>
+
+        {{-- Chip rail --}}
+        <div class="md-chip-rail">
+            {{-- Status --}}
+            <button wire:click="$set('filter', 'pending')"
+                    class="md-chip md-chip-filter {{ $filter === 'pending' ? 'selected' : '' }}">
+                Pendientes
+            </button>
+            <button wire:click="$set('filter', 'completed')"
+                    class="md-chip md-chip-filter {{ $filter === 'completed' ? 'selected' : '' }}">
+                Completadas
+            </button>
+            <button wire:click="$set('filter', 'all')"
+                    class="md-chip md-chip-filter {{ $filter === 'all' ? 'selected' : '' }}">
+                Todas
+            </button>
+
+            <div class="md-chip-rail__divider"></div>
+
+            {{-- Date --}}
+            <button wire:click="$set('dateFilter', '{{ $dateFilter === 'hoy' ? '' : 'hoy' }}')"
+                    class="md-chip md-chip-filter {{ $dateFilter === 'hoy' ? 'selected' : '' }}">
+                Hoy
+            </button>
+            <button wire:click="$set('dateFilter', '{{ $dateFilter === 'vencidas' ? '' : 'vencidas' }}')"
+                    class="md-chip md-chip-filter {{ $dateFilter === 'vencidas' ? 'selected' : '' }}">
+                Vencidas
+            </button>
+            <button wire:click="$set('dateFilter', '{{ $dateFilter === 'proximas' ? '' : 'proximas' }}')"
+                    class="md-chip md-chip-filter {{ $dateFilter === 'proximas' ? 'selected' : '' }}">
+                Próximas
+            </button>
+            <button wire:click="$set('dateFilter', '{{ $dateFilter === 'sin-fecha' ? '' : 'sin-fecha' }}')"
+                    class="md-chip md-chip-filter {{ $dateFilter === 'sin-fecha' ? 'selected' : '' }}">
+                Sin fecha
+            </button>
+
+            <div class="md-chip-rail__divider"></div>
+
+            {{-- Category chip-menu --}}
+            <div class="md-chip-menu" :class="{ 'open': openMenu === 'category' }">
+                <button @click="openMenu = openMenu === 'category' ? null : 'category'"
+                        class="md-chip md-chip-filter {{ $categoryFilter ? 'selected' : '' }}">
+                    {{ $categoryFilter ? ($categoryFilter === '__none__' ? 'Sin categoría' : ($categories[$categoryFilter] ?? 'Categoría')) : 'Categoría' }}
+                    <i class="bi bi-chevron-down md-chip-menu__arrow"></i>
                 </button>
-                <button wire:click="$set('filter', 'all')"
-                        class="md-chip md-chip-filter {{ $filter === 'all' ? 'selected' : '' }}">
-                    Todas
-                </button>
+                <div x-show="openMenu === 'category'"
+                     x-transition:enter="transition ease-out duration-100"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-75"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     class="md-chip-menu__dropdown" x-cloak>
+                    <button wire:click="$set('categoryFilter', '')" @click="openMenu = null"
+                            class="md-chip-menu__item {{ $categoryFilter === '' ? 'active' : '' }}">
+                        Todas
+                    </button>
+                    <button wire:click="$set('categoryFilter', '__none__')" @click="openMenu = null"
+                            class="md-chip-menu__item {{ $categoryFilter === '__none__' ? 'active' : '' }}">
+                        Sin categoría
+                    </button>
+                    @foreach ($categories as $key => $label)
+                        <button wire:click="$set('categoryFilter', '{{ $key }}')" @click="openMenu = null"
+                                class="md-chip-menu__item {{ $categoryFilter === $key ? 'active' : '' }}">
+                            {{ $label }}
+                        </button>
+                    @endforeach
+                </div>
             </div>
 
-            <div class="md-chip-group">
-                <button wire:click="$set('dateFilter', '')"
-                        class="md-chip md-chip-filter {{ $dateFilter === '' ? 'selected' : '' }}">
-                    <i class="bi bi-calendar3"></i> Cualquier fecha
+            {{-- Priority chip-menu --}}
+            <div class="md-chip-menu" :class="{ 'open': openMenu === 'priority' }">
+                <button @click="openMenu = openMenu === 'priority' ? null : 'priority'"
+                        class="md-chip md-chip-filter {{ $priorityFilter ? 'selected' : '' }}">
+                    {{ $priorityFilter ? $priorities[$priorityFilter] : 'Prioridad' }}
+                    <i class="bi bi-chevron-down md-chip-menu__arrow"></i>
                 </button>
-                <button wire:click="$set('dateFilter', 'sin-fecha')"
-                        class="md-chip md-chip-filter {{ $dateFilter === 'sin-fecha' ? 'selected' : '' }}">
-                    Sin fecha
-                </button>
-                <button wire:click="$set('dateFilter', 'vencidas')"
-                        class="md-chip md-chip-filter {{ $dateFilter === 'vencidas' ? 'selected' : '' }}">
-                    <i class="bi bi-exclamation-circle"></i> Vencidas
-                </button>
-                <button wire:click="$set('dateFilter', 'hoy')"
-                        class="md-chip md-chip-filter {{ $dateFilter === 'hoy' ? 'selected' : '' }}">
-                    Hoy
-                </button>
-                <button wire:click="$set('dateFilter', 'proximas')"
-                        class="md-chip md-chip-filter {{ $dateFilter === 'proximas' ? 'selected' : '' }}">
-                    Próximas
-                </button>
-            </div>
-        </div>
-        <div class="d-flex flex-wrap gap-2 align-items-center">
-            <div class="md-text-field" style="width: auto; min-width: 200px; flex: 1;">
-                <input type="text" wire:model.live.debounce.300ms="search" placeholder=" " id="task-search">
-                <label for="task-search"><i class="bi bi-search"></i> Buscar</label>
-            </div>
-            <div class="md-text-field" style="width: auto; min-width: 140px;">
-                <select wire:model.live="categoryFilter">
-                    <option value="">Todas</option>
-                    <option value="__none__">Sin categoría</option>
-                    @foreach ($categories as $key => $label)
-                        <option value="{{ $key }}">{{ $label }}</option>
-                    @endforeach
-                </select>
-                <label>Categoría</label>
-            </div>
-            <div class="md-text-field" style="width: auto; min-width: 140px;">
-                <select wire:model.live="priorityFilter">
-                    <option value="">Todas</option>
+                <div x-show="openMenu === 'priority'"
+                     x-transition:enter="transition ease-out duration-100"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-75"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     class="md-chip-menu__dropdown" x-cloak>
+                    <button wire:click="$set('priorityFilter', '')" @click="openMenu = null"
+                            class="md-chip-menu__item {{ $priorityFilter === '' ? 'active' : '' }}">
+                        Todas
+                    </button>
                     @foreach ($priorities as $key => $label)
-                        <option value="{{ $key }}">{{ $label }}</option>
+                        <button wire:click="$set('priorityFilter', '{{ $key }}')" @click="openMenu = null"
+                                class="md-chip-menu__item {{ $priorityFilter === $key ? 'active' : '' }}">
+                            {{ $label }}
+                        </button>
                     @endforeach
-                </select>
-                <label>Prioridad</label>
+                </div>
+            </div>
+
+            {{-- Size chip-menu --}}
+            <div class="md-chip-menu md-chip-menu--end" :class="{ 'open': openMenu === 'size' }">
+                <button @click="openMenu = openMenu === 'size' ? null : 'size'"
+                        class="md-chip md-chip-filter {{ $sizeFilter ? 'selected' : '' }}">
+                    {{ $sizeFilter ? $sizes[$sizeFilter] : 'Tamaño' }}
+                    <i class="bi bi-chevron-down md-chip-menu__arrow"></i>
+                </button>
+                <div x-show="openMenu === 'size'"
+                     x-transition:enter="transition ease-out duration-100"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-75"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     class="md-chip-menu__dropdown" x-cloak>
+                    <button wire:click="$set('sizeFilter', '')" @click="openMenu = null"
+                            class="md-chip-menu__item {{ $sizeFilter === '' ? 'active' : '' }}">
+                        Todos
+                    </button>
+                    @foreach ($sizes as $key => $label)
+                        <button wire:click="$set('sizeFilter', '{{ $key }}')" @click="openMenu = null"
+                                class="md-chip-menu__item {{ $sizeFilter === $key ? 'active' : '' }}">
+                            {{ $label }}
+                        </button>
+                    @endforeach
+                </div>
             </div>
         </div>
     </div>
