@@ -33,4 +33,9 @@ class Recipe extends Model
     {
         return $this->hasMany(RecipeIngredient::class);
     }
+
+    public function mealPlanItems()
+    {
+        return $this->hasMany(MealPlanEntryItem::class);
+    }
 }

@@ -5,27 +5,18 @@
             :secondary="[['label' => 'Nuevo pendiente', 'icon' => 'bi-check2-square', 'action' => 'openTaskForm']]" />
     </x-slot:actions>
 
-    <section class="md-card-outlined mb-4 p-3">
-        <div class="row g-3 align-items-end">
-            <div class="col-md-7">
-                <div class="health-filter-label">Tipo de registro</div>
-                <div class="d-flex flex-wrap gap-2">
-                    <button wire:click="$set('typeFilter', '')" class="md-chip-filter {{ $typeFilter === '' ? 'selected' : '' }}">Todos</button>
-                    @foreach($types as $key => $label)
-                        <button wire:click="$set('typeFilter', '{{ $key }}')" class="md-chip-filter {{ $typeFilter === $key ? 'selected' : '' }}">{{ $label }}</button>
-                    @endforeach
-                </div>
-            </div>
-            <div class="col-md-5">
-                <div class="health-filter-label">Momento</div>
-                <div class="d-flex gap-2">
-                    @foreach(['all' => 'Todo', 'upcoming' => 'Próximos', 'history' => 'Historial'] as $value => $label)
-                        <button wire:click="$set('period', '{{ $value }}')" class="md-chip-filter {{ $period === $value ? 'selected' : '' }}">{{ $label }}</button>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </section>
+    <div class="md-chip-rail mb-4">
+        <button wire:click="$set('typeFilter', '')" class="md-chip md-chip-filter {{ $typeFilter === '' ? 'selected' : '' }}">Todos</button>
+        @foreach($types as $key => $label)
+            <button wire:click="$set('typeFilter', '{{ $key }}')" class="md-chip md-chip-filter {{ $typeFilter === $key ? 'selected' : '' }}">{{ $label }}</button>
+        @endforeach
+
+        <div class="md-chip-rail__divider"></div>
+
+        @foreach(['all' => 'Todo', 'upcoming' => 'Próximos', 'history' => 'Historial'] as $value => $label)
+            <button wire:click="$set('period', '{{ $value }}')" class="md-chip md-chip-filter {{ $period === $value ? 'selected' : '' }}">{{ $label }}</button>
+        @endforeach
+    </div>
 
     <section class="health-timeline" aria-label="Cronología de salud">
         @forelse($events as $event)

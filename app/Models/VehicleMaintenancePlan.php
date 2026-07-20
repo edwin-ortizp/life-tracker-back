@@ -17,7 +17,23 @@ class VehicleMaintenancePlan extends Model
         return ['baseline_date' => 'date', 'baseline_usage' => 'decimal:2', 'interval_usage' => 'decimal:2', 'active' => 'boolean'];
     }
 
-    public function vehicle() { return $this->belongsTo(Vehicle::class); }
-    public function template() { return $this->belongsTo(MaintenanceTemplate::class, 'maintenance_template_id'); }
-    public function maintenanceLogs() { return $this->hasMany(VehicleMaintenanceLog::class); }
+    public function vehicle()
+    {
+        return $this->belongsTo(Vehicle::class);
+    }
+
+    public function template()
+    {
+        return $this->belongsTo(MaintenanceTemplate::class, 'maintenance_template_id');
+    }
+
+    public function maintenanceLogs()
+    {
+        return $this->hasMany(VehicleMaintenanceLog::class);
+    }
+
+    public function latestMaintenanceLog()
+    {
+        return $this->hasOne(VehicleMaintenanceLog::class)->ofMany(['performed_on' => 'max', 'created_at' => 'max']);
+    }
 }

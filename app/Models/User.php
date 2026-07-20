@@ -125,6 +125,11 @@ class User extends Authenticatable
         return $this->hasMany(Recipe::class);
     }
 
+    public function mealPlanEntries()
+    {
+        return $this->hasMany(MealPlanEntry::class);
+    }
+
     public function circles()
     {
         return $this->hasMany(Circle::class);

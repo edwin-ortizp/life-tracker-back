@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build && node scripts/publish-vite-css.mjs",
-        "dev": "vite"
+        "dev": "vite",
+        "test:js": "node --test tests/JavaScript/pomodoro-timer.test.js"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

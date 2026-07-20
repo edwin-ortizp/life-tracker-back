@@ -7,6 +7,8 @@
     <title>{{ $title ?? 'Life Tracker' }}</title>
     <link rel="manifest" href="{{ asset('manifest.json') }}">
     <meta name="theme-color" content="#2B5BB5">
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     @include('partials.app-styles')
@@ -136,6 +138,13 @@
         </div>
     </nav>
 
+    {{-- Local Environment Watermark --}}
+    @if(app()->environment('local'))
+    <div style="position:fixed;top:0;left:0;right:0;height:20px;background:rgba(245,158,11,0.8);color:#000;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;z-index:99999;pointer-events:none;letter-spacing:.5px;">
+        LOCAL ENVIRONMENT
+    </div>
+    @endif
+
     {{-- Main Content --}}
     <main class="md-main-content">
         {{ $slot }}
@@ -176,6 +185,6 @@
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    @livewireScripts
+    @livewireScriptConfig
 </body>
 </html>

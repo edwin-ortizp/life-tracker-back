@@ -28,9 +28,9 @@ class PomodoroTimer extends Component
 
     public int $weekendGoal = 120;
 
-    public int $manualHours = 0;
+    public string $manualStart = '';
 
-    public int $manualMinutes = 30;
+    public string $manualEnd = '';
 
     public string $manualDescription = '';
 
@@ -38,95 +38,105 @@ class PomodoroTimer extends Component
     {
         $this->initializeSelectedDate();
 
-        $setting = ModuleSetting::firstOrCreate(
-            ['module' => 'pomodoro'],
-            ['settings' => [
-                'weekday_goal_minutes' => 300,
-                'weekend_goal_minutes' => 120,
-            ]],
-        );
+        $settings = ModuleSetting::where('module', 'pomodoro')->value('settings') ?? [];
 
-        $this->weekdayGoal = (int) ($setting->settings['weekday_goal_minutes'] ?? 300);
-        $this->weekendGoal = (int) ($setting->settings['weekend_goal_minutes'] ?? 120);
+        $this->workDuration = (int) ($settings['work_duration_minutes'] ?? 25);
+        $this->shortBreak = (int) ($settings['short_break_minutes'] ?? 5);
+        $this->longBreak = (int) ($settings['long_break_minutes'] ?? 15);
+        $this->weekdayGoal = (int) ($settings['weekday_goal_minutes'] ?? 300);
+        $this->weekendGoal = (int) ($settings['weekend_goal_minutes'] ?? 120);
     }
 
-    public function saveSession(int $duration, string $description = ''): void
+    public function saveSession(int $startedAt, int $endedAt, string $description, string $clientToken): void
     {
-        Validator::make([
-            'duration' => $duration,
+        $validated = Validator::make([
+            'started_at' => $startedAt,
+            'ended_at' => $endedAt,
             'description' => $description,
+            'client_token' => $clientToken,
         ], [
-            'duration' => ['required', 'integer', 'min:60', 'max:86400'],
+            'started_at' => ['required', 'integer', 'min:1'],
+            'ended_at' => ['required', 'integer', 'gt:started_at'],
             'description' => ['nullable', 'string', 'max:1000'],
-        ])->validate();
+            'client_token' => ['required', 'uuid'],
+        ])->after(function ($validator) use ($startedAt, $endedAt): void {
+            $duration = $endedAt - $startedAt;
 
-        $now = now();
+            if ($duration < 60 || $duration > 86400) {
+                $validator->errors()->add('ended_at', 'La sesión debe durar entre 1 minuto y 24 horas.');
+            }
 
-        PomodoroSession::create([
-            'date' => $now->toDateString(),
-            'start_time' => ['timestamp' => $now->copy()->subSeconds($duration)->timestamp],
-            'end_time' => ['timestamp' => $now->timestamp],
+            if ($endedAt > now()->addSeconds(5)->timestamp) {
+                $validator->errors()->add('ended_at', 'La sesión todavía no ha terminado.');
+            }
+        })->validate();
+
+        $start = Carbon::createFromTimestamp($validated['started_at'], config('app.timezone'));
+        $duration = $validated['ended_at'] - $validated['started_at'];
+
+        PomodoroSession::firstOrCreate([
+            'client_token' => $validated['client_token'],
+        ], [
+            'date' => $start->toDateString(),
+            'start_time' => ['timestamp' => $validated['started_at']],
+            'end_time' => ['timestamp' => $validated['ended_at']],
             'duration' => $duration,
             'completed' => true,
-            'description' => trim($description) ?: null,
+            'description' => trim($validated['description']) ?: null,
         ]);
 
-        $this->selectedDate = $now->toDateString();
+        $this->selectedDate = $start->toDateString();
     }
 
     public function saveManualSession(): void
     {
         $validated = $this->validate([
-            'selectedDate' => ['required', 'date_format:Y-m-d'],
-            'manualHours' => ['required', 'integer', 'min:0', 'max:16'],
-            'manualMinutes' => ['required', 'integer', 'min:0', 'max:59'],
+            'manualStart' => ['required', 'date_format:Y-m-d\TH:i'],
+            'manualEnd' => ['required', 'date_format:Y-m-d\TH:i'],
             'manualDescription' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $duration = ($validated['manualHours'] * 3600) + ($validated['manualMinutes'] * 60);
+        $start = $this->parseManualDateTime($validated['manualStart']);
+        $end = $this->parseManualDateTime($validated['manualEnd']);
 
-        if ($duration === 0) {
-            $this->addError('manualMinutes', 'Registra al menos un minuto de trabajo.');
+        if ($end->lessThanOrEqualTo($start)) {
+            $this->addError('manualEnd', 'La fecha y hora de fin debe ser posterior al inicio.');
 
             return;
         }
 
-        $date = Carbon::parse($this->selectedDate)->startOfDay();
-        $end = $date->isToday() ? now() : $date->copy()->endOfDay();
+        if ($end->isFuture()) {
+            $this->addError('manualEnd', 'No puedes registrar tiempo que todavía no ha transcurrido.');
+
+            return;
+        }
+
+        $duration = $start->diffInSeconds($end);
+
+        if ($duration > 57600) {
+            $this->addError('manualEnd', 'El registro manual no puede superar 16 horas.');
+
+            return;
+        }
 
         PomodoroSession::create([
-            'date' => $date->toDateString(),
-            'start_time' => ['timestamp' => $end->copy()->subSeconds($duration)->timestamp],
+            'date' => $start->toDateString(),
+            'start_time' => ['timestamp' => $start->timestamp],
             'end_time' => ['timestamp' => $end->timestamp],
             'duration' => $duration,
             'completed' => true,
             'description' => trim($validated['manualDescription']) ?: null,
         ]);
 
-        $this->manualHours = 0;
-        $this->manualMinutes = 30;
+        $this->selectedDate = $start->toDateString();
+        $this->manualStart = '';
+        $this->manualEnd = '';
         $this->manualDescription = '';
     }
 
     public function deleteSession(string $id): void
     {
         PomodoroSession::findOrFail($id)->delete();
-    }
-
-    public function saveGoals(): void
-    {
-        $validated = $this->validate([
-            'weekdayGoal' => ['required', 'integer', 'min:0', 'max:1440'],
-            'weekendGoal' => ['required', 'integer', 'min:0', 'max:1440'],
-        ]);
-
-        $setting = ModuleSetting::firstOrCreate(['module' => 'pomodoro']);
-        $setting->update([
-            'settings' => array_merge($setting->settings ?? [], [
-                'weekday_goal_minutes' => $validated['weekdayGoal'],
-                'weekend_goal_minutes' => $validated['weekendGoal'],
-            ]),
-        ]);
     }
 
     public function previousDay(): void
@@ -212,6 +222,7 @@ class PomodoroTimer extends Component
             'totalMinutes' => $totalMinutes,
             'sessionCount' => $sessionCount,
             'progressPercentage' => $progressPercentage,
+            'manualDurationSeconds' => $this->manualDurationSeconds(),
             'monthData' => [
                 'label' => $month->translatedFormat('F Y'),
                 'weeks' => $monthDays->chunk(7),
@@ -224,5 +235,26 @@ class PomodoroTimer extends Component
     private function goalFor(Carbon $date): int
     {
         return $date->isWeekend() ? $this->weekendGoal : $this->weekdayGoal;
+    }
+
+    private function manualDurationSeconds(): ?int
+    {
+        if ($this->manualStart === '' || $this->manualEnd === '') {
+            return null;
+        }
+
+        try {
+            $start = $this->parseManualDateTime($this->manualStart);
+            $end = $this->parseManualDateTime($this->manualEnd);
+
+            return $end->greaterThan($start) ? $start->diffInSeconds($end) : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function parseManualDateTime(string $value): Carbon
+    {
+        return Carbon::createFromFormat('!Y-m-d\TH:i', $value, config('app.timezone'));
     }
 }

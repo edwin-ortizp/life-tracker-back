@@ -1,4 +1,10 @@
-<x-module-shell module="pomodoro" x-data="pomodoroTimer($wire.entangle('workDuration'), $wire.entangle('shortBreak'), $wire.entangle('longBreak'))">
+<x-module-shell module="pomodoro" x-data="pomodoroTimer({
+    workDuration: {{ $workDuration }},
+    shortBreak: {{ $shortBreak }},
+    longBreak: {{ $longBreak }},
+    storageKey: 'life-tracker:pomodoro:{{ auth()->id() }}',
+    saveSession: (startedAt, endedAt, description, clientToken) => $wire.saveSession(startedAt, endedAt, description, clientToken)
+})">
     <x-slot:actions>
         <x-date-navigator :date="$selectedDate" format="D d M Y" />
     </x-slot:actions>
@@ -10,18 +16,6 @@
 
     <div class="md-module-workspace">
         <div class="md-module-primary">
-
-    <section class="md-card-outlined mb-3">
-        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
-            <button wire:click="previousDay" class="md-btn-icon" title="Día anterior"><i class="bi bi-chevron-left"></i></button>
-            <div class="md-text-field" style="min-width: 180px;">
-                <input wire:model.live="selectedDate" type="date" id="pomodoro-date" placeholder=" ">
-                <label for="pomodoro-date">Día consultado</label>
-            </div>
-            <button wire:click="nextDay" class="md-btn-icon" title="Día siguiente"><i class="bi bi-chevron-right"></i></button>
-            <button wire:click="today" class="md-btn-tonal ms-auto" style="min-height: 36px;">Hoy</button>
-        </div>
-    </section>
 
     <section class="md-card-elevated mb-3">
         <div class="d-flex align-items-start justify-content-between gap-3 mb-3 flex-wrap">
@@ -65,41 +59,39 @@
         </div>
 
         <div class="d-flex justify-content-center gap-3">
-            <button @click="toggle()" class="md-btn-filled" style="height: 48px; padding: 0 32px;" :style="mode === 'work' ? 'background: var(--md-sys-color-error); color: var(--md-sys-color-on-error);' : ''">
-                <i class="bi" :class="isRunning ? 'bi-pause-fill' : 'bi-play-fill'"></i><span x-text="isRunning ? 'Pausar' : 'Iniciar'"></span>
+            <button @click="toggle()" class="md-btn-filled" style="height: 48px; padding: 0 32px;" :style="mode === 'work' ? 'background: var(--md-sys-color-error); color: var(--md-sys-color-on-error);' : ''" :disabled="isCompleting">
+                <i class="bi" :class="isRunning ? 'bi-pause-fill' : 'bi-play-fill'"></i><span x-text="isCompleting ? 'Guardando…' : (isRunning ? 'Pausar' : 'Iniciar')"></span>
             </button>
-            <button @click="reset()" class="md-btn-outlined" style="height: 48px; padding: 0 24px;"><i class="bi bi-arrow-counterclockwise"></i></button>
+            <button @click="reset()" class="md-btn-outlined" style="height: 48px; padding: 0 24px;" :disabled="isCompleting || pendingCompletion"><i class="bi bi-arrow-counterclockwise"></i></button>
         </div>
+        <p x-show="errorMessage" x-text="errorMessage" class="md-body-small mt-3 mb-0" style="color: var(--md-sys-color-error);" role="alert"></p>
 
         <div class="mt-4 mx-auto" style="max-width: 320px;">
             <div class="md-text-field"><input type="text" x-model="description" placeholder=" " id="pom-desc"><label for="pom-desc">¿En qué trabajas?</label></div>
         </div>
     </section>
 
-    <div class="row g-3 mb-3">
-        <div class="col-lg-6">
-            <section class="md-card-outlined h-100">
-                <h2 class="md-title-small mb-3"><i class="bi bi-plus-circle"></i> Registrar tiempo manual</h2>
-                <form wire:submit="saveManualSession" class="row g-3">
-                    <div class="col-6"><div class="md-text-field"><input wire:model="manualHours" type="number" min="0" max="16" id="manual-hours" placeholder=" "><label for="manual-hours">Horas</label></div></div>
-                    <div class="col-6"><div class="md-text-field"><input wire:model="manualMinutes" type="number" min="0" max="59" id="manual-minutes" placeholder=" "><label for="manual-minutes">Minutos</label></div></div>
-                    <div class="col-12"><div class="md-text-field"><input wire:model="manualDescription" type="text" id="manual-description" placeholder=" "><label for="manual-description">Descripción (opcional)</label></div></div>
-                    @error('manualMinutes') <div class="col-12 md-body-small" style="color: var(--md-sys-color-error);">{{ $message }}</div> @enderror
-                    <div class="col-12"><button type="submit" class="md-btn-tonal"><i class="bi bi-save"></i> Guardar registro</button></div>
-                </form>
-            </section>
-        </div>
-        <div class="col-lg-6">
-            <section class="md-card-outlined h-100">
-                <h2 class="md-title-small mb-3"><i class="bi bi-gear"></i> Metas de trabajo</h2>
-                <form wire:submit="saveGoals" class="row g-3">
-                    <div class="col-6"><div class="md-text-field"><input wire:model="weekdayGoal" type="number" min="0" max="1440" id="weekday-goal" placeholder=" "><label for="weekday-goal">Lun–vie (min)</label></div></div>
-                    <div class="col-6"><div class="md-text-field"><input wire:model="weekendGoal" type="number" min="0" max="1440" id="weekend-goal" placeholder=" "><label for="weekend-goal">Fin de semana</label></div></div>
-                    <div class="col-12"><button type="submit" class="md-btn-text">Guardar metas</button></div>
-                </form>
-            </section>
-        </div>
-    </div>
+    <section class="md-card-outlined mb-3">
+        <h2 class="md-title-small mb-1"><i class="bi bi-plus-circle"></i> Registrar tiempo manual</h2>
+        <p class="md-body-small mb-3" style="color: var(--md-sys-color-on-surface-variant);">Indica el intervalo trabajado; la duración se calculará automáticamente.</p>
+        <form wire:submit="saveManualSession" class="row g-3">
+            <div class="col-md-6">
+                <div class="md-text-field"><input wire:model.live="manualStart" type="datetime-local" id="manual-start" placeholder=" "><label for="manual-start">Inicio</label></div>
+                @error('manualStart') <small style="color: var(--md-sys-color-error);">{{ $message }}</small> @enderror
+            </div>
+            <div class="col-md-6">
+                <div class="md-text-field"><input wire:model.live="manualEnd" type="datetime-local" id="manual-end" placeholder=" "><label for="manual-end">Fin</label></div>
+                @error('manualEnd') <small style="color: var(--md-sys-color-error);">{{ $message }}</small> @enderror
+            </div>
+            <div class="col-12"><div class="md-text-field"><input wire:model="manualDescription" type="text" id="manual-description" placeholder=" "><label for="manual-description">Descripción (opcional)</label></div></div>
+            @if ($manualDurationSeconds !== null)
+                <div class="col-12 md-body-medium" role="status">
+                    Duración calculada: <strong>{{ intdiv($manualDurationSeconds, 3600) }} h {{ intdiv($manualDurationSeconds % 3600, 60) }} min</strong>
+                </div>
+            @endif
+            <div class="col-12"><button type="submit" class="md-btn-tonal"><i class="bi bi-save"></i> Guardar registro</button></div>
+        </form>
+    </section>
 
     <section class="md-card-elevated mb-3" style="padding: 0; overflow: hidden;">
         <div style="padding: 16px 16px 8px;"><h2 class="md-title-small mb-0"><i class="bi bi-calendar-week"></i> Esta semana · {{ $weekStart->format('d M') }} – {{ $weekStart->copy()->endOfWeek()->format('d M') }}</h2></div>
@@ -136,14 +128,6 @@
         @endforelse
     </section>
 
-    <section class="md-card-outlined mt-3">
-        <h2 class="md-title-small mb-3"><i class="bi bi-sliders"></i> Duración del temporizador</h2>
-        <div class="row g-3">
-            <div class="col-4"><div class="md-text-field"><input type="number" wire:model.live="workDuration" placeholder=" " id="pom-work" min="1" max="60"><label for="pom-work">Trabajo</label></div></div>
-            <div class="col-4"><div class="md-text-field"><input type="number" wire:model.live="shortBreak" placeholder=" " id="pom-short" min="1" max="30"><label for="pom-short">Desc. corto</label></div></div>
-            <div class="col-4"><div class="md-text-field"><input type="number" wire:model.live="longBreak" placeholder=" " id="pom-long" min="1" max="60"><label for="pom-long">Desc. largo</label></div></div>
-        </div>
-    </section>
         </div>
         <aside class="md-context-rail">
             <x-context-widget title="{{ $monthData['label'] }}" icon="bi-calendar3">
@@ -156,28 +140,3 @@
     </div>
 </x-module-shell>
 
-@script
-<script>
-Alpine.data('pomodoroTimer', (workDuration, shortBreak, longBreak) => ({
-    mode: 'work', isRunning: false, timeLeft: workDuration * 60, totalTime: workDuration * 60, interval: null, description: '',
-    get displayTime() { return `${String(Math.floor(this.timeLeft / 60)).padStart(2, '0')}:${String(this.timeLeft % 60).padStart(2, '0')}` },
-    get progress() { return this.totalTime > 0 ? (this.totalTime - this.timeLeft) / this.totalTime : 0 },
-    setMode(mode) { this.stop(); this.mode = mode; this.totalTime = (mode === 'work' ? workDuration : mode === 'shortBreak' ? shortBreak : longBreak) * 60; this.timeLeft = this.totalTime },
-    toggle() { this.isRunning ? this.stop() : this.start() },
-    start() { if (this.isRunning) return; this.isRunning = true; this.interval = setInterval(() => { this.timeLeft--; if (this.timeLeft <= 0) this.complete() }, 1000) },
-    stop() { this.isRunning = false; if (this.interval) { clearInterval(this.interval); this.interval = null } },
-    reset() { this.stop(); this.timeLeft = this.totalTime },
-    complete() {
-        this.stop();
-        if (this.mode === 'work') { $wire.saveSession(this.totalTime, this.description); this.description = ''; if ('Notification' in window && Notification.permission === 'granted') new Notification('Pomodoro completado', { body: 'Tiempo de descanso.' }) }
-        else if ('Notification' in window && Notification.permission === 'granted') new Notification('Descanso terminado', { body: 'De vuelta al trabajo.' });
-        this.timeLeft = this.totalTime;
-    },
-    init() {
-        if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
-        this.$watch('workDuration', (value) => { if (this.mode === 'work' && !this.isRunning) { this.totalTime = value * 60; this.timeLeft = this.totalTime } });
-    },
-    destroy() { this.stop() }
-}));
-</script>
-@endscript

@@ -1,4 +1,4 @@
-@props(['module' => null])
+@props(['module' => null, 'title' => null, 'subtitle' => null, 'icon' => null])
 
 @php
     $routeName = request()->route()?->getName() ?? '';
@@ -21,12 +21,12 @@
 <section {{ $attributes->class(['md-module-shell']) }} data-module="{{ $moduleKey }}">
     <header class="md-module-header">
         <div class="md-module-heading">
-            <div class="md-module-icon" aria-hidden="true"><i class="bi {{ $definition['icon'] ?? 'bi-grid' }}"></i></div>
+            <div class="md-module-icon" aria-hidden="true"><i class="bi {{ $icon ?? $definition['icon'] ?? 'bi-grid' }}"></i></div>
             <div>
                 <p class="md-module-eyebrow mb-1">Life Tracker</p>
-                <h1 class="md-module-title">{{ $definition['title'] ?? 'Life Tracker' }}</h1>
-                @if (! empty($definition['subtitle']))
-                    <p class="md-module-subtitle">{{ $definition['subtitle'] }}</p>
+                <h1 class="md-module-title">{{ $title ?? $definition['title'] ?? 'Life Tracker' }}</h1>
+                @if ($subtitle !== null || ! empty($definition['subtitle']))
+                    <p class="md-module-subtitle">{{ $subtitle ?? $definition['subtitle'] }}</p>
                 @endif
             </div>
         </div>

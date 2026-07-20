@@ -14,14 +14,11 @@ class ShoppingItem extends Model
         'name',
         'stock',
         'to_buy',
-        'price',
         'category',
-        'place',
         'consume_by',
         'status',
         'next_purchase',
         'unit',
-        'barcode',
     ];
 
     protected function casts(): array
@@ -29,7 +26,11 @@ class ShoppingItem extends Model
         return [
             'consume_by' => 'date',
             'next_purchase' => 'boolean',
-            'price' => 'decimal:2',
         ];
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(ShoppingItemVariant::class);
     }
 }

@@ -21,7 +21,7 @@ return [
             ['label' => 'Objetivos', 'route' => 'goals', 'icon' => 'bi-flag', 'active' => ['goals*']],
         ]],
         'food' => ['label' => 'Alimentación', 'icon' => 'bi-egg-fried', 'items' => [
-            ['label' => 'Comidas', 'route' => 'meals', 'icon' => 'bi-egg-fried', 'active' => ['meals*']],
+            ['label' => 'Comidas', 'route' => 'meals.weekly', 'icon' => 'bi-egg-fried', 'active' => ['meals*']],
         ]],
         'life' => ['label' => 'Vida personal', 'icon' => 'bi-person-heart', 'items' => [
             ['label' => 'Diario', 'route' => 'journal', 'icon' => 'bi-journal-text', 'active' => ['journal*']],
@@ -92,10 +92,20 @@ return [
     'pomodoro' => [
         'title' => 'Pomodoro', 'subtitle' => 'Tiempo de enfoque, pausas y constancia.', 'icon' => 'bi-stopwatch',
         'patterns' => ['pomodoro*'], 'preserve' => ['date'],
+        'tabs' => [
+            ['label' => 'Temporizador', 'route' => 'pomodoro', 'icon' => 'bi-stopwatch', 'active' => ['pomodoro']],
+            ['label' => 'Ajustes', 'route' => 'pomodoro.settings', 'icon' => 'bi-sliders', 'active' => ['pomodoro.settings']],
+        ],
     ],
     'meals' => [
         'title' => 'Comidas', 'subtitle' => 'Planifica la semana sin perder de vista el día.', 'icon' => 'bi-egg-fried',
         'patterns' => ['meals*'], 'preserve' => ['date'],
+        'tabs' => [
+            ['label' => 'Planificación', 'route' => 'meals.weekly', 'icon' => 'bi-calendar-week', 'active' => ['meals.weekly']],
+            ['label' => 'Recetas', 'route' => 'meals.recipes', 'icon' => 'bi-book', 'active' => ['meals.recipes']],
+            ['label' => 'Ingredientes', 'route' => 'meals.ingredients', 'icon' => 'bi-basket', 'active' => ['meals.ingredients']],
+            ['label' => 'Compras', 'route' => 'meals.shopping', 'icon' => 'bi-cart3', 'active' => ['meals.shopping']],
+        ],
     ],
     'tasks' => [
         'title' => 'Tareas', 'subtitle' => 'Decide, ordena y completa el trabajo con claridad.', 'icon' => 'bi-list-check',

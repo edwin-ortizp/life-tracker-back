@@ -10,14 +10,11 @@
         <div class="health-body-total"><strong>{{ $totalSymptoms }}</strong><span>síntomas<br>registrados</span></div>
     </section>
 
-    <section class="md-card-outlined p-3 mb-3">
-        <div class="health-filter-label">Período analizado</div>
-        <div class="d-flex flex-wrap gap-2">
-            @foreach(['30' => 'Últimos 30 días', '90' => 'Últimos 90 días', 'all' => 'Todo el historial'] as $value => $label)
-                <button wire:click="$set('period', '{{ $value }}')" class="md-chip-filter {{ $period === $value ? 'selected' : '' }}">{{ $label }}</button>
-            @endforeach
-        </div>
-    </section>
+    <div class="md-chip-rail mb-3">
+        @foreach(['30' => 'Últimos 30 días', '90' => 'Últimos 90 días', 'all' => 'Todo el historial'] as $value => $label)
+            <button wire:click="$set('period', '{{ $value }}')" class="md-chip md-chip-filter {{ $period === $value ? 'selected' : '' }}">{{ $label }}</button>
+        @endforeach
+    </div>
 
     <section class="health-body-layout">
         <div class="md-card-elevated health-body-map-card">

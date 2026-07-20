@@ -1,0 +1,21 @@
+@if($showVehicleForm)
+    <div class="md-dialog-backdrop"><div class="md-dialog vehicle-form-dialog">
+        <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="md-title-large mb-0">{{ $editingVehicleId ? 'Editar vehículo' : 'Nuevo vehículo' }}</h2><button wire:click="$set('showVehicleForm', false)" class="md-btn-icon"><i class="bi bi-x-lg"></i></button></div>
+        <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Nombre *</label><input wire:model="vehicleName" class="form-control" placeholder="Ej. Mazda 2"></div>
+            <div class="col-md-3"><label class="form-label">Tipo *</label><select wire:model="vehicleType" class="form-select"><option value="automovil">Automóvil</option><option value="motocicleta">Motocicleta</option><option value="bicicleta">Bicicleta</option><option value="patineta">Patineta</option><option value="otro">Otro</option></select></div>
+            <div class="col-md-3"><label class="form-label">Fuente de propulsión *</label><select wire:model.live="powerSource" class="form-select"><option value="gasolina">Gasolina</option><option value="diesel">Diésel</option><option value="electrico">Eléctrica</option><option value="hibrido">Híbrida</option><option value="humana">Humana</option><option value="ninguna">Ninguna</option></select></div>
+            <div class="col-md-4"><label class="form-label">Transmisión *</label><select wire:model="transmissionType" class="form-select"><option value="manual">Manual</option><option value="automatica">Automática</option><option value="cvt">CVT</option><option value="automatizada">Automatizada</option><option value="no_aplica">No aplica / desconozco</option></select></div>
+            @if(in_array($powerSource, ['gasolina', 'diesel', 'hibrido'], true))
+                <div class="col-md-4"><label class="form-label">Unidad de combustible</label><select wire:model="fuelVolumeUnit" class="form-select"><option value="gal">Galón</option><option value="L">Litro</option></select><div class="md-body-small text-muted mt-1">Afecta la presentación y próximos registros; no modifica el historial.</div></div>
+            @endif
+            <div class="col-md-4"><label class="form-label">Marca</label><input wire:model="make" class="form-control"></div><div class="col-md-4"><label class="form-label">Modelo</label><input wire:model="model" class="form-control"></div>
+            <div class="col-md-4"><label class="form-label">Año</label><input wire:model="year" type="number" class="form-control"></div><div class="col-md-4"><label class="form-label">Placa / identificador</label><input wire:model="registrationIdentifier" class="form-control"></div><div class="col-md-4"><label class="form-label">VIN</label><input wire:model="vin" class="form-control"></div>
+            <div class="col-md-2"><label class="form-label">Unidad de uso</label><select wire:model="usageUnit" class="form-select"><option value="">—</option><option value="km">km</option><option value="hours">Horas</option></select></div>
+            <div class="col-md-3"><label class="form-label">Contador actual</label><input wire:model="currentUsage" type="number" min="0" step=".01" class="form-control">@error('currentUsage')<small class="text-danger">{{ $message }}</small>@enderror</div>
+            <div class="col-md-3"><label class="form-label">Cilindraje (cc)</label><input wire:model="engineDisplacement" type="number" min="0" step=".01" class="form-control"></div><div class="col-md-4"><label class="form-label">Tanque (L)</label><input wire:model="tankCapacity" type="number" min="0" step=".01" class="form-control"></div><div class="col-md-4"><label class="form-label">Batería (kWh)</label><input wire:model="batteryCapacity" type="number" min="0" step=".01" class="form-control"></div>
+            <div class="col-12"><label class="form-label">Foto</label><input wire:model="photo" type="file" accept="image/*" class="form-control">@error('photo')<small class="text-danger">{{ $message }}</small>@enderror</div>
+        </div>
+        <div class="md-dialog-actions mt-4"><button wire:click="$set('showVehicleForm', false)" class="md-btn-text">Cancelar</button><button wire:click="saveVehicle" class="md-btn-filled">Guardar vehículo</button></div>
+    </div></div>
+@endif

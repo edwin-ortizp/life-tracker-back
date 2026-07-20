@@ -11,14 +11,22 @@ class Vehicle extends Model
     use BelongsToUser, HasUuids;
 
     protected $fillable = [
-        'name', 'vehicle_type', 'power_source', 'transmission_type', 'fuel_volume_unit', 'usage_unit', 'current_usage', 'make', 'model',
+        'name', 'vehicle_type', 'power_source', 'transmission_type', 'fuel_volume_unit', 'usage_unit', 'current_usage',
+        'manual_usage_reading', 'manual_usage_recorded_at', 'make', 'model',
         'year', 'registration_identifier', 'vin', 'engine_displacement', 'tank_capacity',
         'battery_capacity', 'photo_path',
     ];
 
     protected function casts(): array
     {
-        return ['current_usage' => 'decimal:2', 'engine_displacement' => 'decimal:2', 'tank_capacity' => 'decimal:2', 'battery_capacity' => 'decimal:2'];
+        return [
+            'current_usage' => 'decimal:2',
+            'manual_usage_reading' => 'decimal:2',
+            'manual_usage_recorded_at' => 'datetime',
+            'engine_displacement' => 'decimal:2',
+            'tank_capacity' => 'decimal:2',
+            'battery_capacity' => 'decimal:2',
+        ];
     }
 
     public function maintenancePlans() { return $this->hasMany(VehicleMaintenancePlan::class); }

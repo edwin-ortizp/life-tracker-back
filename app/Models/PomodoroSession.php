@@ -17,6 +17,7 @@ class PomodoroSession extends Model
         'duration',
         'completed',
         'description',
+        'client_token',
         'locked_by_device_id',
         'locked_at',
     ];

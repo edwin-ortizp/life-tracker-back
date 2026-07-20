@@ -9,7 +9,7 @@
     </div>
 
     {{-- Filters --}}
-    <div class="md-chip-group mb-3">
+    <div class="md-chip-rail mb-3">
         <button wire:click="$set('statusFilter', 'active')" class="md-chip md-chip-filter {{ $statusFilter === 'active' ? 'selected' : '' }}">
             Activos
         </button>

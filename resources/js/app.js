@@ -1,3 +1,8 @@
+import { Alpine, Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
+import { registerPomodoroTimer } from './pomodoro-timer';
+
+registerPomodoroTimer(Alpine);
+
 const charts = new WeakMap();
 const pendingCharts = new WeakSet();
 let apexChartsPromise;
@@ -66,26 +71,105 @@ async function renderHealthChart(element) {
     chart.render();
 }
 
-function discoverHealthCharts(root = document) {
-    if (root.nodeType === Node.ELEMENT_NODE && root.matches?.('[data-health-chart]')) {
-        renderHealthChart(root);
+async function renderDashboardChart(element) {
+    if (charts.has(element) || pendingCharts.has(element)) {
+        return;
     }
-    root.querySelectorAll?.('[data-health-chart]').forEach(renderHealthChart);
+
+    pendingCharts.add(element);
+
+    const points = JSON.parse(element.dataset.dashboardChart ?? '[]');
+    if (points.length === 0) {
+        pendingCharts.delete(element);
+        return;
+    }
+
+    apexChartsPromise ??= import('apexcharts').then((module) => module.default);
+    const ApexCharts = await apexChartsPromise;
+    const chart = new ApexCharts(element, {
+        chart: {
+            type: 'area',
+            height: 200,
+            toolbar: { show: false },
+            fontFamily: 'inherit',
+            animations: { easing: 'easeinout', speed: 450 },
+        },
+        series: [
+            { name: 'Hidratación', data: points.map((point) => point.water) },
+            { name: 'Hábitos', data: points.map((point) => point.habits) },
+        ],
+        colors: [color('--md-sys-color-primary'), color('--md-sys-color-tertiary')],
+        stroke: { curve: 'smooth', width: 3 },
+        fill: {
+            type: 'gradient',
+            gradient: { shadeIntensity: 0, opacityFrom: 0.28, opacityTo: 0.02, stops: [0, 92, 100] },
+        },
+        markers: { size: 3, strokeWidth: 2, strokeColors: color('--md-sys-color-surface') },
+        dataLabels: { enabled: false },
+        grid: { borderColor: color('--md-sys-color-outline-variant'), strokeDashArray: 4, padding: { left: 2, right: 8 } },
+        xaxis: {
+            categories: points.map((point) => point.date),
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+            labels: { style: { colors: color('--md-sys-color-on-surface-variant'), fontSize: '11px' } },
+        },
+        yaxis: {
+            min: 0,
+            max: 100,
+            tickAmount: 4,
+            labels: {
+                formatter: (value) => `${Math.round(value)}%`,
+                style: { colors: color('--md-sys-color-on-surface-variant'), fontSize: '11px' },
+            },
+        },
+        tooltip: {
+            theme: document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
+            y: { formatter: (value) => `${value}%` },
+        },
+        legend: {
+            show: true,
+            position: 'top',
+            horizontalAlign: 'left',
+            fontSize: '12px',
+            labels: { colors: color('--md-sys-color-on-surface-variant') },
+            markers: { size: 5 },
+        },
+    });
+
+    charts.set(element, chart);
+    pendingCharts.delete(element);
+    chart.render();
+}
+
+const chartRenderers = {
+    '[data-health-chart]': renderHealthChart,
+    '[data-dashboard-chart]': renderDashboardChart,
+};
+
+function discoverCharts(root = document) {
+    Object.entries(chartRenderers).forEach(([selector, render]) => {
+        if (root.nodeType === Node.ELEMENT_NODE && root.matches?.(selector)) {
+            render(root);
+        }
+        root.querySelectorAll?.(selector).forEach(render);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    discoverHealthCharts();
+    discoverCharts();
     new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach(discoverHealthCharts);
+            mutation.addedNodes.forEach(discoverCharts);
             mutation.removedNodes.forEach((node) => {
                 if (node.nodeType !== Node.ELEMENT_NODE) return;
-                const targets = node.matches?.('[data-health-chart]')
-                    ? [node]
-                    : [...(node.querySelectorAll?.('[data-health-chart]') ?? [])];
-                targets.forEach((el) => {
-                    const chart = charts.get(el);
-                    if (chart) { chart.destroy(); charts.delete(el); }
+                Object.keys(chartRenderers).forEach((selector) => {
+                    const targets = node.matches?.(selector)
+                        ? [node]
+                        : [...(node.querySelectorAll?.(selector) ?? [])];
+                    targets.forEach((el) => {
+                        const chart = charts.get(el);
+                        if (chart) { chart.destroy(); charts.delete(el); }
+                    });
                 });
             });
         });
@@ -121,3 +205,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+Livewire.start();

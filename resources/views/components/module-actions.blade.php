@@ -1,6 +1,7 @@
 @props([
     'primary',
     'secondary' => [],
+    'mobileStyle' => 'fab',
 ])
 
 @php
@@ -47,6 +48,6 @@
             </div>
         @endif
 
-        {!! $renderAction($primary, 'md-fab md-fab-extended md-module-primary-fab') !!}
+        {!! $renderAction($primary, $mobileStyle === 'fab' ? 'md-fab md-fab-extended md-module-primary-fab' : 'md-btn-filled md-module-primary-inline') !!}
     </div>
 </div>

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Pomodoro\PomodoroSettings;
 use App\Livewire\Pomodoro\PomodoroTimer;
 use App\Models\ModuleSetting;
 use App\Models\PomodoroSession;
@@ -22,18 +23,20 @@ class PomodoroTimerTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_manual_session_uses_selected_date_and_updates_progress(): void
+    public function test_manual_session_uses_real_interval_and_updates_progress(): void
     {
         Carbon::setTestNow('2026-07-13 10:00:00');
         $user = User::factory()->create();
 
         Livewire::actingAs($user)
             ->test(PomodoroTimer::class)
-            ->set('selectedDate', '2026-07-13')
-            ->set('manualHours', 1)
-            ->set('manualMinutes', 30)
+            ->set('selectedDate', '2026-07-10')
+            ->set('manualStart', '2026-07-13T08:30')
+            ->set('manualEnd', '2026-07-13T10:00')
             ->set('manualDescription', 'Preparar entrega')
+            ->assertSee('Duración calculada:')
             ->call('saveManualSession')
+            ->assertSet('selectedDate', '2026-07-13')
             ->assertSee('90 min')
             ->assertSee('30%');
 
@@ -41,11 +44,52 @@ class PomodoroTimerTest extends TestCase
         $this->assertSame($user->id, $session->user_id);
         $this->assertSame('2026-07-13', $session->date->toDateString());
         $this->assertSame(5400, $session->duration);
+        $this->assertSame(Carbon::parse('2026-07-13 08:30')->timestamp, $session->start_time['timestamp']);
+        $this->assertSame(Carbon::parse('2026-07-13 10:00')->timestamp, $session->end_time['timestamp']);
         $this->assertTrue($session->completed);
         $this->assertSame('Preparar entrega', $session->description);
     }
 
-    public function test_weekend_goal_is_used_and_goals_are_saved_per_user(): void
+    public function test_manual_session_can_cross_midnight_and_uses_start_date(): void
+    {
+        Carbon::setTestNow('2026-07-14 08:00:00');
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(PomodoroTimer::class)
+            ->set('manualStart', '2026-07-13T23:30')
+            ->set('manualEnd', '2026-07-14T01:00')
+            ->call('saveManualSession')
+            ->assertHasNoErrors();
+
+        $session = PomodoroSession::firstOrFail();
+        $this->assertSame('2026-07-13', $session->date->toDateString());
+        $this->assertSame(5400, $session->duration);
+    }
+
+    public function test_manual_session_rejects_invalid_future_and_overlong_intervals(): void
+    {
+        Carbon::setTestNow('2026-07-14 08:00:00');
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(PomodoroTimer::class)
+            ->set('manualStart', '2026-07-14T07:30')
+            ->set('manualEnd', '2026-07-14T07:00')
+            ->call('saveManualSession')
+            ->assertHasErrors(['manualEnd'])
+            ->set('manualEnd', '2026-07-14T09:00')
+            ->call('saveManualSession')
+            ->assertHasErrors(['manualEnd'])
+            ->set('manualStart', '2026-07-13T14:00')
+            ->set('manualEnd', '2026-07-14T07:00')
+            ->call('saveManualSession')
+            ->assertHasErrors(['manualEnd']);
+
+        $this->assertDatabaseCount('pomodoro_sessions', 0);
+    }
+
+    public function test_weekend_goal_is_used_and_settings_are_saved_per_user(): void
     {
         Carbon::setTestNow('2026-07-13 10:00:00');
         $user = User::factory()->create();
@@ -62,32 +106,78 @@ class PomodoroTimerTest extends TestCase
             ->test(PomodoroTimer::class)
             ->set('selectedDate', '2026-07-12')
             ->assertSee('Meta: 120 min')
-            ->assertSee('50%')
+            ->assertSee('50%');
+
+        Livewire::actingAs($user)
+            ->test(PomodoroSettings::class)
+            ->assertSet('workDuration', 25)
+            ->set('workDuration', 50)
+            ->set('shortBreak', 10)
+            ->set('longBreak', 20)
             ->set('weekdayGoal', 360)
             ->set('weekendGoal', 180)
-            ->call('saveGoals');
+            ->call('save')
+            ->assertSee('Ajustes de Pomodoro actualizados.');
 
         $setting = ModuleSetting::where('module', 'pomodoro')->firstOrFail();
+        $this->assertSame(50, $setting->settings['work_duration_minutes']);
+        $this->assertSame(10, $setting->settings['short_break_minutes']);
+        $this->assertSame(20, $setting->settings['long_break_minutes']);
         $this->assertSame(360, $setting->settings['weekday_goal_minutes']);
         $this->assertSame(180, $setting->settings['weekend_goal_minutes']);
+
+        Livewire::actingAs($user)
+            ->test(PomodoroTimer::class)
+            ->assertSet('workDuration', 50)
+            ->assertSet('shortBreak', 10)
+            ->assertSet('longBreak', 20);
     }
 
-    public function test_timer_session_is_stored_in_seconds_for_today(): void
+    public function test_timer_session_uses_real_timestamps_and_is_idempotent(): void
     {
         Carbon::setTestNow('2026-07-13 10:00:00');
         $user = User::factory()->create();
 
-        Livewire::actingAs($user)
+        $start = Carbon::parse('2026-07-13 09:35')->timestamp;
+        $end = Carbon::parse('2026-07-13 10:00')->timestamp;
+        $token = 'e59067e6-7051-4b66-9e64-2f39e467a7b8';
+
+        $component = Livewire::actingAs($user)
             ->test(PomodoroTimer::class)
             ->set('selectedDate', '2026-07-10')
-            ->call('saveSession', 1500, 'Trabajo concentrado')
+            ->call('saveSession', $start, $end, 'Trabajo concentrado', $token)
             ->assertSet('selectedDate', '2026-07-13');
 
+        $component->call('saveSession', $start, $end, 'Trabajo concentrado', $token);
+
         $session = PomodoroSession::firstOrFail();
+        $this->assertDatabaseCount('pomodoro_sessions', 1);
         $this->assertSame($user->id, $session->user_id);
         $this->assertSame('2026-07-13', $session->date->toDateString());
         $this->assertSame(1500, $session->duration);
         $this->assertSame('Trabajo concentrado', $session->description);
+        $this->assertSame($token, $session->client_token);
+    }
+
+    public function test_pomodoro_routes_require_authentication_and_render_tabs(): void
+    {
+        $this->get('/pomodoro')->assertRedirect('/login');
+        $this->get('/pomodoro/settings')->assertRedirect('/login');
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/pomodoro')
+            ->assertOk()
+            ->assertSee('Temporizador')
+            ->assertSee('Ajustes')
+            ->assertDontSee('Día consultado');
+
+        $this->actingAs($user)
+            ->get('/pomodoro/settings')
+            ->assertOk()
+            ->assertSee('Duración del temporizador')
+            ->assertSee('Metas de trabajo');
     }
 
     public function test_duration_migration_normalizes_millisecond_timestamps(): void

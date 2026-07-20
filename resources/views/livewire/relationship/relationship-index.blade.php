@@ -10,21 +10,32 @@
     </div>
 
     {{-- Filters --}}
-    <div class="md-card-filled mb-3">
-        <div class="d-flex flex-wrap gap-3 align-items-center">
-            <div class="md-text-field" style="width: auto; min-width: 160px;">
-                <select wire:model.live="circleFilter" id="rel-circle">
-                    <option value="">Todos</option>
-                    @foreach ($circles as $circle)
-                        <option value="{{ $circle->id }}">{{ $circle->name }}</option>
-                    @endforeach
-                </select>
-                <label for="rel-circle">Círculo</label>
-            </div>
-            <label class="md-checkbox">
-                <input type="checkbox" wire:model.live="showArchived">
-                Mostrar archivados
-            </label>
+    <div x-data="{ openMenu: null }" @click.outside="openMenu = null" class="mb-3">
+        <div class="md-chip-rail">
+            <button wire:click="$toggle('showArchived')"
+                    class="md-chip md-chip-filter {{ $showArchived ? 'selected' : '' }}">
+                <i class="bi bi-archive"></i> Archivados
+            </button>
+
+            @if ($circles->isNotEmpty())
+                <div class="md-chip-rail__divider"></div>
+
+                <div class="md-chip-menu" :class="{ 'open': openMenu === 'circle' }">
+                    <button @click="openMenu = openMenu === 'circle' ? null : 'circle'"
+                            class="md-chip md-chip-filter {{ $circleFilter ? 'selected' : '' }}">
+                        {{ $circleFilter ? $circles->firstWhere('id', $circleFilter)?->name : 'Círculo' }}
+                        <i class="bi bi-chevron-down md-chip-menu__arrow"></i>
+                    </button>
+                    <div x-show="openMenu === 'circle'" x-transition x-cloak class="md-chip-menu__dropdown">
+                        <button wire:click="$set('circleFilter', '')" @click="openMenu = null"
+                                class="md-chip-menu__item {{ $circleFilter === '' ? 'active' : '' }}">Todos</button>
+                        @foreach ($circles as $circle)
+                            <button wire:click="$set('circleFilter', '{{ $circle->id }}')" @click="openMenu = null"
+                                    class="md-chip-menu__item {{ $circleFilter === $circle->id ? 'active' : '' }}">{{ $circle->name }}</button>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 

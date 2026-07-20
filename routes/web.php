@@ -27,6 +27,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/health', \App\Livewire\Health\HealthIndex::class)->name('health');
     Route::get('/health/body', \App\Livewire\Health\HealthBodyMap::class)->name('health.body');
     Route::get('/vehicles', \App\Livewire\Vehicle\VehicleIndex::class)->name('vehicles');
+    Route::get('/vehicles/maintenance-catalog', \App\Livewire\Vehicle\VehicleCatalog::class)->name('vehicles.catalog');
+    Route::get('/vehicles/{vehicle}', \App\Livewire\Vehicle\VehicleShow::class)->name('vehicles.show');
+    Route::get('/vehicles/{vehicle}/fuel', \App\Livewire\Vehicle\VehicleFuel::class)->name('vehicles.fuel');
+    Route::get('/vehicles/{vehicle}/maintenance', \App\Livewire\Vehicle\VehicleMaintenance::class)->name('vehicles.maintenance');
     Route::get('/habits', \App\Livewire\Habit\HabitTracker::class)->name('habits');
     Route::get('/habits/weekly', \App\Livewire\Habit\HabitWeekly::class)->name('habits.weekly');
     Route::get('/mood', \App\Livewire\Mood\MoodTracker::class)->name('mood');
@@ -34,7 +38,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/journal/life', \App\Livewire\Journal\JournalLifeCalendar::class)->name('journal.life');
     Route::get('/journal/life/week', \App\Livewire\Journal\JournalLifeWeek::class)->name('journal.life.week');
     Route::get('/pomodoro', \App\Livewire\Pomodoro\PomodoroTimer::class)->name('pomodoro');
-    Route::get('/meals', \App\Livewire\Meal\MealWeekly::class)->name('meals');
+    Route::get('/pomodoro/settings', \App\Livewire\Pomodoro\PomodoroSettings::class)->name('pomodoro.settings');
+    Route::redirect('/meals', '/meals/weekly')->name('meals');
+    Route::get('/meals/weekly', \App\Livewire\Meal\MealWeekly::class)->name('meals.weekly');
+    Route::get('/meals/recipes', \App\Livewire\Meal\MealRecipes::class)->name('meals.recipes');
+    Route::get('/meals/ingredients', \App\Livewire\Meal\MealIngredients::class)->name('meals.ingredients');
+    Route::get('/meals/shopping', \App\Livewire\Meal\MealShopping::class)->name('meals.shopping');
     Route::redirect('/tasks', '/tasks/list')->name('tasks');
     Route::get('/tasks/list', \App\Livewire\Task\TaskList::class)->name('tasks.list');
     Route::get('/tasks/gantt', \App\Livewire\Task\TaskGantt::class)->name('tasks.gantt');
