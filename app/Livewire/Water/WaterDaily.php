@@ -24,6 +24,7 @@ class WaterDaily extends Component
     // Form fields
     public string $drinkTypeId = '';
     public int $amount = 250;
+    public string $time = '';
     public bool $showForm = false;
     public ?string $editingId = null;
 
@@ -65,11 +66,13 @@ class WaterDaily extends Component
                 $this->editingId = $id;
                 $this->drinkTypeId = $log->drink_type_id ?? '';
                 $this->amount = $log->amount;
+                $this->time = $log->time;
             }
         } else {
             $this->editingId = null;
             $this->drinkTypeId = '';
             $this->amount = 250;
+            $this->time = now()->format('H:i');
         }
         $this->showForm = true;
     }
@@ -196,30 +199,41 @@ class WaterDaily extends Component
 
     public function save()
     {
+        $this->validate([
+            'drinkTypeId' => ['required', 'string'],
+            'amount' => ['required', 'integer', 'min:1'],
+            'time' => ['required', 'date_format:H:i'],
+        ]);
+
         $drinkType = DrinkType::find($this->drinkTypeId);
         if (!$drinkType || $this->amount <= 0) return;
 
         $hydrationValue = (int) round($this->amount * $drinkType->hydration_factor);
-        $now = now();
 
         if ($this->editingId) {
             $log = DrinkLog::find($this->editingId);
             if ($log) {
+                $timestamp = Carbon::createFromFormat('Y-m-d H:i', $log->date->toDateString().' '.$this->time)->timestamp;
+
                 $log->update([
                     'drink_type' => $drinkType->name,
                     'amount' => $this->amount,
                     'hydration_value' => $hydrationValue,
+                    'time' => $this->time,
+                    'timestamp' => $timestamp,
                     'drink_type_id' => $this->drinkTypeId,
                 ]);
             }
         } else {
+            $timestamp = Carbon::createFromFormat('Y-m-d H:i', $this->selectedDate.' '.$this->time)->timestamp;
+
             DrinkLog::create([
                 'date' => $this->selectedDate,
                 'drink_type' => $drinkType->name,
                 'amount' => $this->amount,
                 'hydration_value' => $hydrationValue,
-                'time' => $now->format('H:i'),
-                'timestamp' => $now->timestamp,
+                'time' => $this->time,
+                'timestamp' => $timestamp,
                 'drink_type_id' => $this->drinkTypeId,
             ]);
         }
@@ -236,6 +250,7 @@ class WaterDaily extends Component
     {
         $this->drinkTypeId = '';
         $this->amount = 250;
+        $this->time = '';
     }
 
     private function resetDrinkTypeForm(): void

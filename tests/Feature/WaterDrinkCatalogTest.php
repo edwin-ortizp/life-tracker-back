@@ -6,6 +6,7 @@ use App\Livewire\Water\WaterDaily;
 use App\Models\DrinkLog;
 use App\Models\DrinkType;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -151,6 +152,35 @@ class WaterDrinkCatalogTest extends TestCase
             'drink_type_id' => $drinkType->id,
             'drink_type' => 'Infusión',
             'hydration_value' => 213,
+        ]);
+    }
+
+    public function test_user_can_edit_a_hydration_logs_time(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $drinkType = DrinkType::create(['name' => 'Agua', 'icon' => '💧', 'hydration_factor' => 1]);
+        $log = DrinkLog::create([
+            'date' => '2026-07-20',
+            'drink_type' => 'Agua',
+            'amount' => 250,
+            'hydration_value' => 250,
+            'time' => '08:00',
+            'timestamp' => Carbon::parse('2026-07-20 08:00')->timestamp,
+            'drink_type_id' => $drinkType->id,
+        ]);
+
+        Livewire::test(WaterDaily::class, ['date' => '2026-07-20'])
+            ->call('openForm', $log->id)
+            ->assertSet('time', '08:00')
+            ->set('time', '14:35')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('drink_logs', [
+            'id' => $log->id,
+            'time' => '14:35',
+            'timestamp' => Carbon::parse('2026-07-20 14:35')->timestamp,
         ]);
     }
 }

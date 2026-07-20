@@ -120,6 +120,11 @@ class User extends Authenticatable
         return $this->hasMany(ShoppingItem::class);
     }
 
+    public function shoppingItemAliases()
+    {
+        return $this->hasMany(ShoppingItemAlias::class);
+    }
+
     public function recipes()
     {
         return $this->hasMany(Recipe::class);

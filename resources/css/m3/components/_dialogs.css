@@ -4,7 +4,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.32);
-  z-index: 300;
+  z-index: 1200;
 }
 
 /* Backwards-compatible wrapper for dialogs that keep their scrim and content together. */
@@ -12,7 +12,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.32);
-  z-index: 300;
+  z-index: 1200;
 }
 
 .md-dialog {
@@ -29,7 +29,7 @@
   max-height: calc(100vh - 48px);
   overflow-y: auto;
   box-shadow: var(--md-sys-elevation-3);
-  z-index: 310;
+  z-index: 1210;
 }
 
 .md-dialog-icon {

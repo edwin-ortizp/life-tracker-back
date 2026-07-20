@@ -7,6 +7,7 @@ use App\Models\ShoppingItem;
 use App\Models\ShoppingItemVariant;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -52,6 +53,12 @@ class MealShopping extends Component
         if ($item) {
             $item->update(['next_purchase' => !$item->next_purchase]);
         }
+    }
+
+    #[On('ingredients-imported')]
+    public function refreshIngredients(): void
+    {
+        // The event is enough to trigger a fresh render of the shopping list.
     }
 
     public function render()

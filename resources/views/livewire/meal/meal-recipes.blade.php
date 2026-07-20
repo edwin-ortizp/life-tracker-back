@@ -228,26 +228,28 @@
                             </div>
 
                             @foreach ($ingredients as $index => $ingredient)
-                                <div class="row g-2 mb-2 align-items-center" wire:key="ingredient-{{ $index }}">
-                                    <div class="col-5">
-                                        <div class="md-text-field">
-                                            <input type="text" wire:model="ingredients.{{ $index }}.name" placeholder=" " id="ing-name-{{ $index }}" list="shopping-items-list">
-                                            <label for="ing-name-{{ $index }}">Ingrediente</label>
+                                <div class="row g-2 mb-2 align-items-start" wire:key="ingredient-{{ $index }}">
+                                    <div class="col-12 col-md-5">
+                                        <div @class(['md-text-field', 'md-error' => $errors->has("ingredients.$index.name")])>
+                                            <input type="text" wire:model="ingredients.{{ $index }}.name" placeholder=" " id="ing-name-{{ $index }}" list="shopping-items-list" required aria-invalid="{{ $errors->has("ingredients.$index.name") ? 'true' : 'false' }}">
+                                            <label for="ing-name-{{ $index }}">Ingrediente *</label>
+                                            @error("ingredients.$index.name")<div class="md-supporting-text">{{ $message }}</div>@enderror
                                         </div>
                                     </div>
-                                    <div class="col-2">
-                                        <div class="md-text-field">
-                                            <input type="text" wire:model="ingredients.{{ $index }}.quantity" placeholder=" " id="ing-qty-{{ $index }}">
-                                            <label for="ing-qty-{{ $index }}">Cant.</label>
+                                    <div class="col-6 col-md-2">
+                                        <div @class(['md-text-field', 'md-error' => $errors->has("ingredients.$index.quantity")])>
+                                            <input type="number" wire:model="ingredients.{{ $index }}.quantity" placeholder=" " id="ing-qty-{{ $index }}" min="0.01" max="999999.99" step="0.01" required inputmode="decimal" aria-invalid="{{ $errors->has("ingredients.$index.quantity") ? 'true' : 'false' }}">
+                                            <label for="ing-qty-{{ $index }}">Cantidad *</label>
+                                            @error("ingredients.$index.quantity")<div class="md-supporting-text">{{ $message }}</div>@enderror
                                         </div>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-5 col-md-3">
                                         <div class="md-text-field">
                                             <input type="text" wire:model="ingredients.{{ $index }}.unit" placeholder=" " id="ing-unit-{{ $index }}">
                                             <label for="ing-unit-{{ $index }}">Unidad</label>
                                         </div>
                                     </div>
-                                    <div class="col-2 text-end">
+                                    <div class="col-1 col-md-2 text-end">
                                         <button wire:click="removeIngredient({{ $index }})" type="button" class="md-btn-icon md-btn-icon--small">
                                             <i class="bi bi-x-lg"></i>
                                         </button>

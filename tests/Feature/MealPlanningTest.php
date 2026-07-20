@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\Meal\MealIngredients;
+use App\Livewire\Meal\MealRecipes;
 use App\Livewire\Meal\MealShopping;
 use App\Livewire\Meal\MealWeekly;
 use App\Models\MealPlanEntry;
@@ -18,6 +19,25 @@ use Tests\TestCase;
 class MealPlanningTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_recipe_requires_a_positive_quantity_for_each_ingredient(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Livewire::test(MealRecipes::class)
+            ->call('openForm')
+            ->set('name', 'Sopa de tomate')
+            ->call('addIngredient')
+            ->set('ingredients.0.name', 'Tomate')
+            ->call('save')
+            ->assertHasErrors(['ingredients.0.quantity' => 'required'])
+            ->assertSee('La cantidad es obligatoria.')
+            ->assertSet('showForm', true);
+
+        $this->assertDatabaseCount('recipes', 0);
+        $this->assertDatabaseCount('recipe_ingredients', 0);
+    }
 
     public function test_a_meal_can_combine_recipes_and_custom_items_with_calculated_calories(): void
     {

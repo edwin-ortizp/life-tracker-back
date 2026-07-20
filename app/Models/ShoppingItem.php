@@ -33,4 +33,9 @@ class ShoppingItem extends Model
     {
         return $this->hasMany(ShoppingItemVariant::class);
     }
+
+    public function aliases()
+    {
+        return $this->hasMany(ShoppingItemAlias::class);
+    }
 }

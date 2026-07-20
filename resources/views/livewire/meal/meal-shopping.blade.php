@@ -1,4 +1,8 @@
 <x-module-shell module="meals">
+    <x-slot:actions>
+        <livewire:meal.bulk-ingredient-assistant context="shopping" />
+    </x-slot:actions>
+
     {{-- Search + Filters --}}
     <div x-data="{ openMenu: null }" @click.outside="openMenu = null" class="mb-3">
         <div class="md-search-bar mb-2">

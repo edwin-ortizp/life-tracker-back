@@ -145,10 +145,29 @@ class MealRecipes extends Component
 
     public function save()
     {
+        $this->ingredients = array_values(array_filter(
+            $this->ingredients,
+            fn (array $ingredient) => collect($ingredient)->contains(
+                fn ($value) => $value !== null && trim((string) $value) !== ''
+            )
+        ));
+
         $this->validate([
             'name' => 'required|string|max:255',
             'difficulty' => 'required|in:facil,medio,dificil',
             'mealType' => 'required|in:desayuno,almuerzo,comida,merienda,cena',
+            'ingredients' => 'array',
+            'ingredients.*.name' => 'nullable|required_without:ingredients.*.shopping_item_id|string|max:255',
+            'ingredients.*.shopping_item_id' => 'nullable|string',
+            'ingredients.*.quantity' => 'required|numeric|gt:0|max:999999.99',
+            'ingredients.*.unit' => 'nullable|string|max:50',
+            'ingredients.*.notes' => 'nullable|string|max:1000',
+        ], [
+            'ingredients.*.name.required_without' => 'El ingrediente es obligatorio.',
+            'ingredients.*.quantity.required' => 'La cantidad es obligatoria.',
+            'ingredients.*.quantity.numeric' => 'La cantidad debe ser un número.',
+            'ingredients.*.quantity.gt' => 'La cantidad debe ser mayor que cero.',
+            'ingredients.*.quantity.max' => 'La cantidad es demasiado grande.',
         ]);
 
         $nutrition = array_filter([
@@ -194,7 +213,7 @@ class MealRecipes extends Component
             if ($shoppingItemId) {
                 $recipe->recipeIngredients()->create([
                     'shopping_item_id' => $shoppingItemId,
-                    'quantity' => $ingredient['quantity'] ?: null,
+                    'quantity' => $ingredient['quantity'],
                     'unit' => $ingredient['unit'] ?: null,
                     'notes' => $ingredient['notes'] ?: null,
                 ]);

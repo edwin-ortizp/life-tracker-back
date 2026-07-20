@@ -106,6 +106,11 @@
                             <input type="number" wire:model="amount" placeholder=" " id="water-amount" min="1" step="50">
                             <label for="water-amount">Cantidad (ml)</label>
                         </div>
+                        <div class="md-text-field">
+                            <input type="time" wire:model="time" placeholder=" " id="water-time">
+                            <label for="water-time">Hora</label>
+                            @error('time')<div class="md-supporting-text" style="color: var(--md-sys-color-error);">{{ $message }}</div>@enderror
+                        </div>
                         <div class="d-flex flex-wrap gap-2">
                             @foreach ([100, 200, 250, 330, 500] as $preset)
                                 <button wire:click="$set('amount', {{ $preset }})" class="md-btn-outlined" style="height: 32px; padding: 0 14px; font-size: 0.8125rem;">

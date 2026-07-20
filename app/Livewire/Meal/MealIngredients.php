@@ -3,8 +3,10 @@
 namespace App\Livewire\Meal;
 
 use App\Models\ShoppingItem;
+use App\Services\Meal\IngredientImportService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -35,6 +37,9 @@ class MealIngredients extends Component
     // Variants (dynamic rows)
     public array $variants = [];
 
+    // Alternative names used by the bulk import assistant
+    public array $aliases = [];
+
     public array $categoryOptions = [
         'frutas_verduras' => 'Frutas y verduras',
         'carnes' => 'Carnes y pescados',
@@ -57,7 +62,7 @@ class MealIngredients extends Component
         $this->resetValidation();
 
         if ($id) {
-            $item = ShoppingItem::with('variants')->find($id);
+            $item = ShoppingItem::with(['variants', 'aliases'])->find($id);
             if (!$item) return;
 
             $this->editingId = $item->id;
@@ -77,6 +82,10 @@ class MealIngredients extends Component
                 'presentation' => $v->presentation ?? '',
                 'notes' => $v->notes ?? '',
             ])->toArray();
+            $this->aliases = $item->aliases->map(fn ($alias) => [
+                'id' => $alias->id,
+                'alias' => $alias->alias,
+            ])->toArray();
         } else {
             $this->editingId = null;
             $this->name = '';
@@ -88,6 +97,7 @@ class MealIngredients extends Component
             $this->nextPurchase = false;
             $this->unit = '';
             $this->variants = [];
+            $this->aliases = [];
         }
 
         $this->showForm = true;
@@ -110,7 +120,18 @@ class MealIngredients extends Component
         $this->variants = array_values($this->variants);
     }
 
-    public function save()
+    public function addAlias(): void
+    {
+        $this->aliases[] = ['id' => null, 'alias' => ''];
+    }
+
+    public function removeAlias(int $index): void
+    {
+        unset($this->aliases[$index]);
+        $this->aliases = array_values($this->aliases);
+    }
+
+    public function save(IngredientImportService $importer)
     {
         $this->validate([
             'name' => 'required|string|max:255',
@@ -121,7 +142,10 @@ class MealIngredients extends Component
             'variants.*.barcode' => 'nullable|string|max:255',
             'variants.*.presentation' => 'nullable|string|max:255',
             'variants.*.notes' => 'nullable|string|max:2000',
+            'aliases.*.alias' => 'nullable|string|max:255',
         ]);
+
+        $importer->assertNameAvailable(trim($this->name), $this->editingId);
 
         $data = [
             'name' => trim($this->name),
@@ -134,7 +158,7 @@ class MealIngredients extends Component
             'unit' => $this->unit ?: null,
         ];
 
-        DB::transaction(function () use ($data) {
+        DB::transaction(function () use ($data, $importer) {
             if ($this->editingId) {
                 $item = ShoppingItem::find($this->editingId);
                 if (!$item) return;
@@ -170,6 +194,7 @@ class MealIngredients extends Component
             }
 
             $item->variants()->when($keptIds, fn ($query) => $query->whereNotIn('id', $keptIds))->delete();
+            $importer->syncAliases($item, $this->aliases);
         });
 
         $this->closeForm();
@@ -186,6 +211,12 @@ class MealIngredients extends Component
     public function delete(string $id)
     {
         ShoppingItem::where('id', $id)->delete();
+    }
+
+    #[On('ingredients-imported')]
+    public function refreshIngredients(): void
+    {
+        // The event is enough to trigger a fresh render of the catalog.
     }
 
     public function render()

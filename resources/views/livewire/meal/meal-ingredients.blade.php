@@ -1,5 +1,6 @@
 <x-module-shell module="meals" x-data="{ showDialog: $wire.entangle('showForm') }">
     <x-slot:actions>
+        <livewire:meal.bulk-ingredient-assistant context="ingredients" />
         <button wire:click="openForm" class="md-btn-filled-tonal">
             <i class="bi bi-plus-lg"></i> Nuevo ingrediente
         </button>
@@ -133,10 +134,10 @@
         </x-context-widget>
     </x-slot:rail>
 
-    <template x-if="showDialog">
-        <div>
+    @teleport('body')
+        <div x-show="showDialog" x-cloak>
             <div class="md-dialog-scrim" @click="$wire.closeForm()"></div>
-            <section class="md-dialog md-dialog--large" role="dialog" aria-modal="true" aria-labelledby="ingredient-dialog-title" @click.stop>
+            <section wire:key="ingredient-dialog-{{ $editingId ?? 'new' }}" class="md-dialog md-dialog--large" role="dialog" aria-modal="true" aria-labelledby="ingredient-dialog-title" @click.stop>
                 <header class="md-dialog-header">
                     <div>
                         <h2 id="ingredient-dialog-title" class="md-headline-small mb-1">{{ $editingId ? 'Editar ingrediente' : 'Nuevo ingrediente' }}</h2>
@@ -170,6 +171,27 @@
                                 <div class="col-12"><div class="md-text-field"><input type="date" wire:model="consumeBy" placeholder=" " id="ingredient-consume-by"><label for="ingredient-consume-by">Consumir antes</label></div></div>
                             </div>
                             <label class="d-flex align-items-center gap-2 mt-3" style="cursor: pointer;"><input type="checkbox" wire:model="nextPurchase" class="md-checkbox"><span class="md-body-medium">Incluir en lista de compras</span></label>
+                        </section>
+
+                        <section class="md-form-section">
+                            <div class="md-form-section__header">
+                                <div><i class="bi bi-tags"></i><span>Alias y equivalencias</span><span class="md-chip md-chip--small">{{ count($aliases) }}</span></div>
+                                <button wire:click="addAlias" type="button" class="md-btn-text md-btn-text--small"><i class="bi bi-plus-lg"></i> Agregar</button>
+                            </div>
+                            <p class="md-body-small mb-3" style="color: var(--md-sys-color-on-surface-variant);">Nombres alternativos que reconocerá el asistente, por ejemplo «arroz» para «Arroz blanco».</p>
+                            @forelse ($aliases as $index => $alias)
+                                <div class="d-flex align-items-start gap-2 mb-2" wire:key="alias-{{ $alias['id'] ?? 'new-'.$index }}">
+                                    <div class="md-text-field flex-grow-1">
+                                        <input type="text" wire:model="aliases.{{ $index }}.alias" placeholder=" " id="ingredient-alias-{{ $index }}">
+                                        <label for="ingredient-alias-{{ $index }}">Alias {{ $index + 1 }}</label>
+                                        @error("aliases.$index.alias")<div class="md-supporting-text">{{ $message }}</div>@enderror
+                                    </div>
+                                    <button wire:click="removeAlias({{ $index }})" type="button" class="md-btn-icon md-btn-icon--small md-btn-danger mt-2" aria-label="Quitar alias"><i class="bi bi-trash"></i></button>
+                                </div>
+                            @empty
+                                <div class="md-form-empty" style="min-height: 96px;"><i class="bi bi-tags"></i><p>Este ingrediente aún no tiene nombres alternativos.</p></div>
+                            @endforelse
+                            @error('aliases')<small class="text-danger d-block mt-2">{{ $message }}</small>@enderror
                         </section>
                     </div>
 
@@ -206,5 +228,5 @@
                 </footer>
             </section>
         </div>
-    </template>
+    @endteleport
 </x-module-shell>
