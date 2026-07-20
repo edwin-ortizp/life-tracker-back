@@ -17,11 +17,23 @@
         </div>
 
         <div class="md-chip-rail">
-            <button wire:click="toggleGroupBy"
-                    class="md-chip md-chip-filter">
-                <i class="bi bi-{{ $groupBy === 'category' ? 'tag' : 'geo-alt' }}"></i>
-                {{ $groupBy === 'category' ? 'Por categoría' : 'Por tienda' }}
+            <button wire:click="setViewMode('compact')"
+                    class="md-chip md-chip-filter {{ $viewMode === 'compact' ? 'selected' : '' }}">
+                <i class="bi bi-list"></i> Compacta
             </button>
+            <button wire:click="setViewMode('grouped')"
+                    class="md-chip md-chip-filter {{ $viewMode === 'grouped' ? 'selected' : '' }}">
+                <i class="bi bi-collection"></i> Agrupada
+            </button>
+
+            @if ($viewMode === 'grouped')
+                <div class="md-chip-rail__divider"></div>
+
+                <button wire:click="toggleGroupBy" class="md-chip md-chip-filter selected">
+                    <i class="bi bi-{{ $groupBy === 'category' ? 'tag' : 'geo-alt' }}"></i>
+                    {{ $groupBy === 'category' ? 'Por categoría' : 'Por tienda' }}
+                </button>
+            @endif
 
             @if ($places->isNotEmpty())
                 <div class="md-chip-rail__divider"></div>
@@ -47,21 +59,21 @@
 
     {{-- Needed from meal plan --}}
     @if ($neededItems->isNotEmpty())
-        <div class="md-card-elevated p-3 mb-3" style="border-left: 3px solid var(--md-sys-color-tertiary);">
-            <h3 class="md-title-small mb-2" style="color: var(--md-sys-color-tertiary);">
-                <i class="bi bi-calendar-week"></i> Necesarios esta semana (desde recetas)
-            </h3>
-            <div class="d-flex flex-wrap gap-2">
+        <details class="shopping-needed mb-3">
+            <summary>
+                <span class="shopping-needed__icon"><i class="bi bi-calendar-week"></i></span>
+                <span><strong>{{ $neededCount }} necesarios esta semana</strong><small>Calculados desde tus recetas</small></span>
+                <i class="bi bi-chevron-down shopping-needed__arrow"></i>
+            </summary>
+            <div class="shopping-needed__content">
                 @foreach ($neededItems as $needed)
                     @php $item = $needed['shopping_item']; @endphp
                     @if ($item)
-                        <span class="md-chip md-chip--small {{ $item->next_purchase ? '' : 'md-chip--outlined' }}">
+                        <span class="shopping-needed__item {{ $item->next_purchase ? 'is-added' : '' }}">
                             {{ $item->name }}
-                            <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);">
-                                ({{ $needed['quantity'] !== null ? rtrim(rtrim(number_format($needed['quantity'], 2, '.', ''), '0'), '.') : '?' }} {{ $needed['unit'] ?? '' }})
-                            </span>
+                            <small>{{ $needed['quantity'] !== null ? rtrim(rtrim(number_format($needed['quantity'], 2, '.', ''), '0'), '.') : '?' }} {{ $needed['unit'] ?? '' }}</small>
                             @if (!$item->next_purchase)
-                                <button wire:click="toggleNextPurchase('{{ $item->id }}')" class="md-btn-icon md-btn-icon--small" title="Agregar a compras" style="margin: -4px -4px -4px 2px;">
+                                <button wire:click="toggleNextPurchase('{{ $item->id }}')" title="Agregar a compras" aria-label="Agregar {{ $item->name }} a compras">
                                     <i class="bi bi-plus-circle"></i>
                                 </button>
                             @endif
@@ -69,7 +81,7 @@
                     @endif
                 @endforeach
             </div>
-        </div>
+        </details>
     @endif
 
     {{-- Shopping list --}}
@@ -84,65 +96,36 @@
             </p>
         </div>
     @else
-        <p class="md-label-medium mb-2" style="color: var(--md-sys-color-on-surface-variant);">
+        <p class="shopping-list-count">
             {{ $totalItems }} {{ $totalItems === 1 ? 'artículo' : 'artículos' }} por comprar
         </p>
 
-        @foreach ($grouped as $groupName => $groupItems)
-            <details class="md-card-elevated mb-2" open>
-                <summary class="p-3 d-flex justify-content-between align-items-center" style="cursor: pointer; list-style: none;">
-                    <span class="md-title-small" style="color: var(--md-sys-color-on-surface);">
-                        <i class="bi bi-{{ $groupBy === 'category' ? 'tag' : 'geo-alt' }}"></i>
-                        @if ($groupBy === 'category')
-                            {{ $this->categoryOptions[$groupName] ?? $groupName ?: 'Sin categoría' }}
-                        @else
-                            {{ $groupName ?: 'Sin tienda' }}
-                        @endif
-                    </span>
-                    <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);">{{ $groupItems->count() }}</span>
-                </summary>
-                <div class="px-3 pb-3">
-                    @foreach ($groupItems as $item)
-                        <div class="py-2" style="border-top: 1px solid var(--md-sys-color-outline-variant);">
-                            <div class="d-flex align-items-center gap-2">
-                                <button wire:click="toggleNextPurchase('{{ $item->id }}')" class="md-btn-icon md-btn-icon--small" title="Quitar de la lista">
-                                    <i class="bi bi-check-circle-fill" style="color: var(--md-sys-color-primary);"></i>
-                                </button>
-
-                                <div class="flex-grow-1">
-                                    <span class="md-body-medium" style="color: var(--md-sys-color-on-surface);">{{ $item->name }}</span>
-                                    @if ($item->unit)
-                                        <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);">({{ $item->unit }})</span>
-                                    @endif
-                                    @if ($item->to_buy > 0)
-                                        <span class="md-label-small" style="color: var(--md-sys-color-primary);"> × {{ $item->to_buy }}</span>
-                                    @endif
-                                </div>
-
-                                @if ($neededItemIds->contains($item->id))
-                                    <span class="md-chip md-chip--small" style="background: var(--md-sys-color-tertiary-container); color: var(--md-sys-color-on-tertiary-container);" title="Necesario por receta">
-                                        <i class="bi bi-calendar-week"></i>
-                                    </span>
+        <div class="shopping-list shopping-list--{{ $viewMode }}">
+            @if ($viewMode === 'compact')
+                @foreach ($items as $item)
+                    @include('livewire.meal._shopping-item', ['rowKey' => $item->id])
+                @endforeach
+            @else
+                @foreach ($grouped as $groupName => $groupItems)
+                    <section class="shopping-group" wire:key="shopping-group-{{ md5((string) $groupName) }}">
+                        <header class="shopping-group__header">
+                            <span>
+                                <i class="bi bi-{{ $groupBy === 'category' ? 'tag' : 'geo-alt' }}"></i>
+                                @if ($groupBy === 'category')
+                                    {{ $this->categoryOptions[$groupName] ?? $groupName ?: 'Sin categoría' }}
+                                @else
+                                    {{ $groupName ?: 'Sin tienda' }}
                                 @endif
-                            </div>
-
-                            {{-- Variant prices for reference --}}
-                            @if ($item->variants->isNotEmpty())
-                                <div class="d-flex flex-wrap gap-1 mt-1 ms-4 ps-2">
-                                    @foreach ($item->variants as $variant)
-                                        <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant); background: var(--md-sys-color-surface-container); padding: 2px 6px; border-radius: 4px;">
-                                            @if ($variant->place){{ $variant->place }}@endif
-                                            @if ($variant->presentation) · {{ $variant->presentation }}@endif
-                                            @if ($variant->price) · ${{ number_format($variant->price, 2) }}@endif
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-            </details>
-        @endforeach
+                            </span>
+                            <small>{{ $groupItems->count() }}</small>
+                        </header>
+                        @foreach ($groupItems as $item)
+                            @include('livewire.meal._shopping-item', ['rowKey' => md5($groupBy.'|'.$groupName.'|'.$item->id)])
+                        @endforeach
+                    </section>
+                @endforeach
+            @endif
+        </div>
     @endif
 
     <x-slot:rail>

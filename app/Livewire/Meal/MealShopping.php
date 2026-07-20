@@ -25,6 +25,9 @@ class MealShopping extends Component
     #[Url(as: 'group', history: true, keep: true)]
     public string $groupBy = 'category'; // 'category' or 'place'
 
+    #[Url(as: 'view', history: true, keep: true)]
+    public string $viewMode = 'compact'; // 'compact' or 'grouped'
+
     public array $categoryOptions = [
         'frutas_verduras' => 'Frutas y verduras',
         'carnes' => 'Carnes y pescados',
@@ -42,6 +45,17 @@ class MealShopping extends Component
         'otros' => 'Otros',
     ];
 
+    public function mount(): void
+    {
+        $this->normalizeViewOptions();
+    }
+
+    public function setViewMode(string $mode): void
+    {
+        $this->viewMode = $mode;
+        $this->normalizeViewOptions();
+    }
+
     public function toggleGroupBy()
     {
         $this->groupBy = $this->groupBy === 'category' ? 'place' : 'category';
@@ -51,7 +65,7 @@ class MealShopping extends Component
     {
         $item = ShoppingItem::find($id);
         if ($item) {
-            $item->update(['next_purchase' => !$item->next_purchase]);
+            $item->update(['next_purchase' => ! $item->next_purchase]);
         }
     }
 
@@ -61,13 +75,24 @@ class MealShopping extends Component
         // The event is enough to trigger a fresh render of the shopping list.
     }
 
+    private function normalizeViewOptions(): void
+    {
+        if (! in_array($this->viewMode, ['compact', 'grouped'], true)) {
+            $this->viewMode = 'compact';
+        }
+
+        if (! in_array($this->groupBy, ['category', 'place'], true)) {
+            $this->groupBy = 'category';
+        }
+    }
+
     public function render()
     {
         $query = ShoppingItem::query()
             ->with('variants')
             ->where('next_purchase', true)
-            ->when($this->search, fn($q, $s) => $q->where('name', 'like', "%{$s}%"))
-            ->when($this->placeFilter, fn($q, $p) => $q->whereHas('variants', fn($vq) => $vq->where('place', $p)))
+            ->when($this->search, fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
+            ->when($this->placeFilter, fn ($q, $p) => $q->whereHas('variants', fn ($vq) => $vq->where('place', $p)))
             ->orderBy('name');
 
         $items = $query->get();
@@ -84,7 +109,7 @@ class MealShopping extends Component
                     }
                 }
             }
-            $grouped = $grouped->groupBy('group')->map(fn($g) => $g->pluck('item')->unique('id'))->sortKeys();
+            $grouped = $grouped->groupBy('group')->map(fn ($g) => $g->pluck('item')->unique('id'))->sortKeys();
         } else {
             $grouped = $items->groupBy('category')->sortKeys();
         }
@@ -128,6 +153,7 @@ class MealShopping extends Component
         $neededCount = $neededItemIds->count();
 
         return view('livewire.meal.meal-shopping', [
+            'items' => $items,
             'grouped' => $grouped,
             'neededItems' => $neededItems,
             'neededItemIds' => $neededItemIds,

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\Meal\BulkIngredientAssistant;
 use App\Livewire\Meal\MealIngredients;
+use App\Livewire\Meal\MealShopping;
 use App\Models\ShoppingItem;
 use App\Models\ShoppingItemAlias;
 use App\Models\User;
@@ -29,6 +30,55 @@ class IngredientImportTest extends TestCase
         $this->actingAs($user)->get('/meals/shopping')
             ->assertOk()
             ->assertSee('Agregar varios');
+    }
+
+    public function test_shopping_list_defaults_to_a_compact_view_and_can_switch_to_slim_groups(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        ShoppingItem::create([
+            'name' => 'Leche',
+            'status' => 'available',
+            'category' => 'lacteos',
+            'next_purchase' => true,
+        ]);
+
+        Livewire::test(MealShopping::class)
+            ->assertSet('viewMode', 'compact')
+            ->assertSeeHtml('shopping-list--compact')
+            ->assertDontSeeHtml('shopping-group__header')
+            ->call('setViewMode', 'grouped')
+            ->assertSet('viewMode', 'grouped')
+            ->assertSeeHtml('shopping-list--grouped')
+            ->assertSeeHtml('shopping-group__header');
+    }
+
+    public function test_shopping_view_mode_is_url_backed_and_invalid_values_fall_back_to_compact(): void
+    {
+        Livewire::withQueryParams(['view' => 'grouped'])
+            ->test(MealShopping::class)
+            ->assertSet('viewMode', 'grouped');
+
+        Livewire::withQueryParams(['view' => 'cards'])
+            ->test(MealShopping::class)
+            ->assertSet('viewMode', 'compact');
+    }
+
+    public function test_store_variants_are_collapsed_by_default_in_the_dense_row(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $item = ShoppingItem::create([
+            'name' => 'Arroz',
+            'status' => 'available',
+            'next_purchase' => true,
+        ]);
+        $item->variants()->create(['place' => 'D1', 'price' => 4200]);
+
+        Livewire::test(MealShopping::class)
+            ->assertSeeHtml('shopping-row__details-toggle')
+            ->assertSeeHtml('x-show="detailsOpen"')
+            ->assertSee('D1');
     }
 
     public function test_meal_dialogs_are_teleported_outside_the_module_header(): void
