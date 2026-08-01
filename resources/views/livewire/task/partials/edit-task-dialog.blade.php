@@ -25,7 +25,11 @@
                         <div class="d-flex flex-wrap align-items-center gap-3">
                             <label class="md-checkbox"><input type="checkbox" wire:model.live="isRecurrent"><i class="bi bi-arrow-repeat"></i> Tarea recurrente</label>
                             @if ($isRecurrent)
-                                <div class="md-text-field" style="width: 170px;"><input type="number" min="1" wire:model="recurrenceIntervalDays" placeholder=" " id="{{ $dialogId }}-recurrence-days"><label for="{{ $dialogId }}-recurrence-days">Repetir cada (días)</label></div>
+                                @if (($nativeRecurrenceRule ?? '') !== '')
+                                    <span class="md-chip-tonal" title="Esta regla CalDAV se conserva sin cambios"><i class="bi bi-calendar2-week"></i> {{ $nativeRecurrenceRule }}</span>
+                                @else
+                                    <div class="md-text-field" style="width: 170px;"><input type="number" min="1" wire:model="recurrenceIntervalDays" placeholder=" " id="{{ $dialogId }}-recurrence-days"><label for="{{ $dialogId }}-recurrence-days">Repetir cada (días)</label></div>
+                                @endif
                             @endif
                         </div>
                     @endif

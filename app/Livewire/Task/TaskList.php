@@ -74,6 +74,8 @@ class TaskList extends Component
 
     public int $recurrenceIntervalDays = 7;
 
+    public string $nativeRecurrenceRule = '';
+
     // Bulk form: every non-empty line becomes one task with these shared fields.
     public string $bulkTitles = '';
 
@@ -171,7 +173,6 @@ class TaskList extends Component
         $this->resetPage();
     }
 
-
     public function openForm(?string $id = null)
     {
         $this->resetForm();
@@ -190,6 +191,7 @@ class TaskList extends Component
                 $this->isPrivate = $task->is_private;
                 $this->isRecurrent = $task->is_recurrent;
                 $this->recurrenceIntervalDays = max(1, (int) (($task->recurrence ?? [])['customDays'] ?? 7));
+                $this->nativeRecurrenceRule = (string) (($task->recurrence ?? [])['rrule'] ?? '');
             }
         }
 
@@ -322,11 +324,15 @@ class TaskList extends Component
             ...$schedule,
             'is_private' => $this->isPrivate,
             'is_recurrent' => $this->isRecurrent,
-            'recurrence' => $this->isRecurrent ? [
-                'pattern' => 'custom',
-                'frequency' => 1,
-                'customDays' => max(1, $this->recurrenceIntervalDays),
-            ] : null,
+            'recurrence' => $this->isRecurrent
+                ? ($this->nativeRecurrenceRule !== '' && $this->editingId
+                    ? Task::find($this->editingId)?->recurrence
+                    : [
+                        'pattern' => 'custom',
+                        'frequency' => 1,
+                        'customDays' => max(1, $this->recurrenceIntervalDays),
+                    ])
+                : null,
         ];
 
         if ($this->editingId) {
@@ -378,6 +384,7 @@ class TaskList extends Component
         $this->isPrivate = false;
         $this->isRecurrent = false;
         $this->recurrenceIntervalDays = 7;
+        $this->nativeRecurrenceRule = '';
         $this->descriptionMode = 'write';
     }
 

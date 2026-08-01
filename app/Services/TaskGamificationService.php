@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Task;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 class TaskGamificationService
 {
@@ -18,12 +17,28 @@ class TaskGamificationService
     public function toggle(Task $task): array
     {
         if ($task->completed) {
-            $task->update([
-                'completed' => false,
-                'completed_at' => null,
-                'completion_xp' => null,
-            ]);
+            return $this->reopen($task);
+        }
 
+        return $this->complete($task);
+    }
+
+    public function reopen(Task $task): array
+    {
+        $task->update([
+            'completed' => false,
+            'completed_at' => null,
+            'completion_xp' => null,
+            'progress' => min((int) $task->progress, 99),
+            'is_recurrence_history' => false,
+        ]);
+
+        return ['completed' => false];
+    }
+
+    public function complete(Task $task, ?Carbon $completedAt = null): array
+    {
+        if ($task->completed) {
             return ['completed' => false];
         }
 
@@ -32,8 +47,9 @@ class TaskGamificationService
 
         $task->update([
             'completed' => true,
-            'completed_at' => now(),
+            'completed_at' => $completedAt ?? now(),
             'completion_xp' => $xp,
+            'progress' => 100,
         ]);
 
         $totalXp = $previousXp + $xp;

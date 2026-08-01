@@ -5,27 +5,41 @@ namespace App\Livewire\Settings;
 use App\Models\IntegrationToken;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Layout('layouts.app')]
 #[Title('Ajustes')]
 class SettingsPage extends Component
 {
     public string $fullName = '';
+
     public string $email = '';
+
     public ?float $currentWeightKg = null;
+
     public ?int $heightCm = null;
+
     public ?string $birthDate = null;
+
     public ?int $lifeExpectancyYears = null;
+
     public ?string $activityLevel = null;
+
     public ?int $dailyWaterGoal = null;
+
     public string $currentPassword = '';
+
     public string $newPassword = '';
+
     public string $newPasswordConfirmation = '';
+
     public string $successMessage = '';
+
     public ?string $obsidianIntegrationToken = null;
+
+    public ?string $calDavPassword = null;
 
     public function mount()
     {
@@ -68,18 +82,21 @@ class SettingsPage extends Component
 
     public function updatePassword()
     {
-        if (!Hash::check($this->currentPassword, Auth::user()->password)) {
+        if (! Hash::check($this->currentPassword, Auth::user()->password)) {
             $this->addError('currentPassword', 'La contraseña actual no es correcta.');
+
             return;
         }
 
         if (strlen($this->newPassword) < 8) {
             $this->addError('newPassword', 'La nueva contraseña debe tener al menos 8 caracteres.');
+
             return;
         }
 
         if ($this->newPassword !== $this->newPasswordConfirmation) {
             $this->addError('newPasswordConfirmation', 'Las contraseñas no coinciden.');
+
             return;
         }
 
@@ -95,7 +112,7 @@ class SettingsPage extends Component
 
     public function createOrRotateObsidianToken(): void
     {
-        [$integrationToken, $plainTextToken] = IntegrationToken::issueFor(Auth::user(), 'Obsidian / n8n');
+        [$integrationToken, $plainTextToken] = IntegrationToken::issueFor(Auth::user(), 'Obsidian / n8n', 'obsidian');
 
         $this->obsidianIntegrationToken = $plainTextToken;
         $this->successMessage = 'Token de integración generado. Cópialo ahora: no volverá a mostrarse.';
@@ -105,7 +122,7 @@ class SettingsPage extends Component
     {
         IntegrationToken::query()
             ->where('user_id', Auth::id())
-            ->where('name', 'Obsidian / n8n')
+            ->where('purpose', 'obsidian')
             ->whereNull('revoked_at')
             ->update(['revoked_at' => now()]);
 
@@ -118,15 +135,52 @@ class SettingsPage extends Component
         $this->obsidianIntegrationToken = null;
     }
 
+    public function createOrRotateCalDavPassword(): void
+    {
+        [, $plainTextToken] = IntegrationToken::issueFor(
+            Auth::user(),
+            'CalDAV',
+            'caldav',
+            IntegrationToken::CALDAV_PREFIX,
+        );
+
+        $this->calDavPassword = $plainTextToken;
+        $this->successMessage = 'Contraseña CalDAV generada. Cópiala ahora: no volverá a mostrarse.';
+    }
+
+    public function revokeCalDavPassword(): void
+    {
+        IntegrationToken::query()
+            ->where('user_id', Auth::id())
+            ->where('purpose', 'caldav')
+            ->whereNull('revoked_at')
+            ->update(['revoked_at' => now()]);
+
+        $this->calDavPassword = null;
+        $this->successMessage = 'Acceso CalDAV revocado.';
+    }
+
+    public function hideCalDavPassword(): void
+    {
+        $this->calDavPassword = null;
+    }
+
     public function render()
     {
         return view('livewire.settings.settings-page', [
             'activeObsidianToken' => IntegrationToken::query()
                 ->where('user_id', Auth::id())
-                ->where('name', 'Obsidian / n8n')
+                ->where('purpose', 'obsidian')
                 ->whereNull('revoked_at')
                 ->latest('created_at')
                 ->first(),
+            'activeCalDavToken' => IntegrationToken::query()
+                ->where('user_id', Auth::id())
+                ->where('purpose', 'caldav')
+                ->whereNull('revoked_at')
+                ->latest('created_at')
+                ->first(),
+            'calDavUrl' => rtrim(config('app.url'), '/').'/dav/',
         ]);
     }
 }

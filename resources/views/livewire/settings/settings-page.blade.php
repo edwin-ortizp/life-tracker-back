@@ -148,6 +148,48 @@
         </div>
     </div>
 
+    {{-- CalDAV integration --}}
+    <div class="md-card-outlined mb-3" style="border-color: var(--md-sys-color-secondary);">
+        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-calendar-check" style="color: var(--md-sys-color-secondary); font-size: 1.25rem;"></i>
+                <div>
+                    <div class="md-title-medium">Tareas por CalDAV</div>
+                    <div class="md-body-small" style="color: var(--md-sys-color-on-surface-variant);">Sincroniza tus tareas con DAVx5, Tasks.org y otros clientes CalDAV.</div>
+                </div>
+            </div>
+            @if ($activeCalDavToken)
+                <span class="md-label-medium px-2 py-1 rounded-pill" style="background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);">Activo</span>
+            @endif
+        </div>
+
+        <dl class="md-context-list mb-3">
+            <div><dt>Servidor</dt><dd class="user-select-all">{{ $calDavUrl }}</dd></div>
+            <div><dt>Usuario</dt><dd class="user-select-all">{{ auth()->user()->email }}</dd></div>
+            <div><dt>Lista</dt><dd>Life Tracker</dd></div>
+        </dl>
+
+        <p class="md-body-small" style="color: var(--md-sys-color-on-surface-variant);">En Tasks.org activa “dejar que el servidor programe tareas recurrentes”. Usa HTTPS fuera de tu red local.</p>
+
+        @if ($calDavPassword)
+            <div class="p-3 rounded mb-3" style="background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                    <span class="md-label-large">Contraseña nueva — cópiala ahora</span>
+                    <button wire:click="hideCalDavPassword" class="md-btn-icon" title="Ocultar contraseña" style="color: inherit;"><i class="bi bi-x-lg"></i></button>
+                </div>
+                <code class="d-block text-break user-select-all">{{ $calDavPassword }}</code>
+            </div>
+        @endif
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <button wire:click="createOrRotateCalDavPassword" class="md-btn-filled"><i class="bi bi-key"></i> {{ $activeCalDavToken ? 'Rotar contraseña' : 'Generar contraseña' }}</button>
+            @if ($activeCalDavToken)
+                <button wire:click="revokeCalDavPassword" wire:confirm="¿Revocar el acceso CalDAV? Los dispositivos dejarán de sincronizar." class="md-btn-outlined" style="color: var(--md-sys-color-error); border-color: var(--md-sys-color-error);"><i class="bi bi-slash-circle"></i> Revocar</button>
+                <span class="md-body-small" style="color: var(--md-sys-color-on-surface-variant);">Último uso: {{ $activeCalDavToken->last_used_at?->diffForHumans() ?? 'nunca' }}.</span>
+            @endif
+        </div>
+    </div>
+
     {{-- Change Password --}}
     <div class="md-card-outlined mb-3">
         <div class="d-flex align-items-center gap-2 mb-3">

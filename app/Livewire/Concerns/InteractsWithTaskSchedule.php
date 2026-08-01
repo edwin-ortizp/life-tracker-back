@@ -18,9 +18,9 @@ trait InteractsWithTaskSchedule
     public function loadTaskSchedule(Task $task): void
     {
         $this->startDate = $task->start_date?->format('Y-m-d');
-        $this->startTime = $task->start_date?->format('H:i');
+        $this->startTime = $task->start_date && ! $task->start_is_date ? $task->start_date->format('H:i') : null;
         $this->endDate = $task->end_date?->format('Y-m-d');
-        $this->endTime = $task->end_date?->format('H:i');
+        $this->endTime = $task->end_date && ! $task->end_is_date ? $task->end_date->format('H:i') : null;
         $this->estimatedTime = $task->estimated_time;
     }
 
@@ -155,7 +155,9 @@ trait InteractsWithTaskSchedule
 
         return [
             'start_date' => $start,
+            'start_is_date' => $start ? ! filled($this->{$startTimeProperty}) : true,
             'end_date' => $end,
+            'end_is_date' => $end ? ! filled($this->{$endTimeProperty}) : true,
             'estimated_time' => $this->{$estimatedProperty} ?: null,
         ];
     }

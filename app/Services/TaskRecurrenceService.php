@@ -3,14 +3,26 @@
 namespace App\Services;
 
 use App\Models\Task;
+use App\Services\CalDav\RecurrenceRule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class TaskRecurrenceService
 {
+    public function __construct(private readonly RecurrenceRule $recurrenceRule) {}
+
     public function suggestedNextDate(Task $task, ?Carbon $completedAt = null): Carbon
     {
         $recurrence = $task->recurrence ?? [];
+        if ($rule = $this->recurrenceRule->fromTaskRecurrence($recurrence)) {
+            $anchor = Carbon::parse($recurrence['anchor'] ?? ($task->start_date ?? $task->end_date ?? now()));
+            $completed = (int) ($recurrence['occurrences_completed'] ?? 0) + 1;
+            if ($next = $this->recurrenceRule->next($rule, $anchor, $completed)) {
+                return $next;
+            }
+        }
+
         $frequency = max(1, (int) ($recurrence['frequency'] ?? 1));
         $date = ($completedAt ?? now())->copy()->startOfDay();
 
@@ -29,7 +41,28 @@ class TaskRecurrenceService
      */
     public function completeAndSchedule(Task $task, Carbon $nextDate, TaskGamificationService $gamification): array
     {
-        return DB::transaction(function () use ($task, $nextDate, $gamification): array {
+        return $this->completeAt($task, $nextDate, $gamification);
+    }
+
+    public function completeAndScheduleAutomatically(Task $task, TaskGamificationService $gamification, ?Carbon $completedAt = null): array
+    {
+        $recurrence = $task->recurrence ?? [];
+        $rule = $this->recurrenceRule->fromTaskRecurrence($recurrence);
+        $anchor = Carbon::parse($recurrence['anchor'] ?? ($task->start_date ?? $task->end_date ?? now()));
+        $next = $rule
+            ? $this->recurrenceRule->next($rule, $anchor, (int) ($recurrence['occurrences_completed'] ?? 0) + 1)
+            : $this->suggestedNextDate($task);
+
+        if (! $next) {
+            return $gamification->complete($task, $completedAt);
+        }
+
+        return $this->completeAt($task, $next, $gamification, $completedAt);
+    }
+
+    private function completeAt(Task $task, Carbon $nextDate, TaskGamificationService $gamification, ?Carbon $completedAt = null): array
+    {
+        return DB::transaction(function () use ($task, $nextDate, $gamification, $completedAt): array {
             $current = Task::query()->lockForUpdate()->findOrFail($task->id);
 
             if ($current->completed || ! $current->is_recurrent) {
@@ -38,24 +71,42 @@ class TaskRecurrenceService
 
             $xp = $gamification->completionXp($current);
             $previousXp = (int) Task::where('completed', true)->sum('completion_xp');
-
-            $current->update([
-                'completed' => true,
-                'completed_at' => now(),
-                'completion_xp' => $xp,
-            ]);
+            $seriesId = $current->recurrence_series_id ?: (string) Str::uuid();
 
             Task::create([
-                'task_code' => rand(10000, 99999),
+                'task_code' => $current->task_code,
                 'title' => $current->title,
                 'description' => $current->description,
                 'category' => $current->category,
                 'priority' => $current->priority,
                 'size' => $current->size,
-                'is_recurrent' => true,
+                'completed' => true,
+                'completed_at' => $completedAt ?? now(),
+                'completion_xp' => $xp,
+                'progress' => 100,
+                'is_recurrent' => false,
                 'is_private' => $current->is_private,
-                'recurrence' => $current->recurrence,
+                'start_date' => $current->start_date,
+                'start_is_date' => $current->start_is_date,
+                'end_date' => $current->end_date,
+                'end_is_date' => $current->end_is_date,
+                'estimated_time' => $current->estimated_time,
+                'recurrence_series_id' => $seriesId,
+                'is_recurrence_history' => true,
+            ]);
+
+            $recurrence = $current->recurrence ?? [];
+            $recurrence['rrule'] = $this->recurrenceRule->fromTaskRecurrence($recurrence);
+            $recurrence['anchor'] ??= ($current->start_date ?? $current->end_date ?? now())->toIso8601String();
+            $recurrence['occurrences_completed'] = (int) ($recurrence['occurrences_completed'] ?? 0) + 1;
+            $current->update([
                 ...$this->datesForNextOccurrence($current, $nextDate),
+                'recurrence' => $recurrence,
+                'recurrence_series_id' => $seriesId,
+                'completed' => false,
+                'completed_at' => null,
+                'completion_xp' => null,
+                'progress' => 0,
             ]);
 
             $totalXp = $previousXp + $xp;
@@ -75,12 +126,10 @@ class TaskRecurrenceService
     /** @return array{start_date: Carbon|null, end_date: Carbon|null} */
     private function datesForNextOccurrence(Task $task, Carbon $nextDate): array
     {
-        $nextDate = $nextDate->copy()->startOfDay();
-
         if ($task->start_date && $task->end_date) {
-            $duration = $task->start_date->copy()->startOfDay()->diffInDays($task->end_date->copy()->startOfDay(), false);
+            $duration = $task->start_date->diffInSeconds($task->end_date, false);
 
-            return ['start_date' => $nextDate, 'end_date' => $nextDate->copy()->addDays($duration)];
+            return ['start_date' => $nextDate, 'end_date' => $nextDate->copy()->addSeconds($duration)];
         }
 
         if ($task->end_date) {
