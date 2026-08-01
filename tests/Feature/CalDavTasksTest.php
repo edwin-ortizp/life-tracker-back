@@ -39,8 +39,9 @@ class CalDavTasksTest extends TestCase
         $user = User::factory()->create();
         $password = $this->calDavPassword($user);
 
-        $this->withBasicAuth($user->email, $password)
-            ->call('PROPFIND', '/dav/', server: ['HTTP_DEPTH' => '1'])
+        $this->call('PROPFIND', '/dav/', server: $this->davHeaders($user, $password, [
+            'HTTP_DEPTH' => '1',
+        ]))
             ->assertStatus(207)
             ->assertSee('calendars', false);
 
@@ -50,13 +51,14 @@ class CalDavTasksTest extends TestCase
             'CATEGORIES:personal', 'CLASS:PRIVATE', 'END:VTODO', 'END:VCALENDAR', '',
         ]);
 
-        $this->withBasicAuth($user->email, $password)
-            ->call(
-                'PUT',
-                '/dav/calendars/'.$user->email.'/tasks/external-task-1.ics',
-                server: ['CONTENT_TYPE' => 'text/calendar; charset=utf-8'],
-                content: $ics,
-            )
+        $this->call(
+            'PUT',
+            '/dav/calendars/'.$user->email.'/tasks/external-task-1.ics',
+            server: $this->davHeaders($user, $password, [
+                'CONTENT_TYPE' => 'text/calendar; charset=utf-8',
+            ]),
+            content: $ics,
+        )
             ->assertCreated();
 
         $this->assertDatabaseHas('tasks', [
@@ -92,8 +94,11 @@ class CalDavTasksTest extends TestCase
         Task::create(['title' => 'Secreto']);
         auth()->logout();
 
-        $this->withBasicAuth($other->email, $password)
-            ->call('PROPFIND', '/dav/calendars/'.$owner->email.'/tasks/', server: ['HTTP_DEPTH' => '1'])
+        $this->call(
+            'PROPFIND',
+            '/dav/calendars/'.$owner->email.'/tasks/',
+            server: $this->davHeaders($other, $password, ['HTTP_DEPTH' => '1']),
+        )
             ->assertNotFound();
     }
 
@@ -102,5 +107,12 @@ class CalDavTasksTest extends TestCase
         [, $password] = IntegrationToken::issueFor($user, 'CalDAV', 'caldav', IntegrationToken::CALDAV_PREFIX);
 
         return $password;
+    }
+
+    private function davHeaders(User $user, string $password, array $headers = []): array
+    {
+        return $headers + [
+            'HTTP_AUTHORIZATION' => 'Basic '.base64_encode($user->email.':'.$password),
+        ];
     }
 }
