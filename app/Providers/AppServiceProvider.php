@@ -16,6 +16,7 @@ use LaravelSabre\LaravelSabre;
 use Sabre\CalDAV\CalendarRoot;
 use Sabre\CalDAV\Plugin;
 use Sabre\DAV\Auth\Plugin as AuthPlugin;
+use Sabre\DAV\Browser\Plugin as BrowserPlugin;
 use Sabre\DAV\Sync\Plugin as SyncPlugin;
 use Sabre\DAVACL\Plugin as AclPlugin;
 use Sabre\DAVACL\PrincipalCollection;
@@ -50,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
             new AclPlugin,
             new Plugin,
             new SyncPlugin,
+            new BrowserPlugin(enablePost: false),
         ]);
 
         Relation::enforceMorphMap([

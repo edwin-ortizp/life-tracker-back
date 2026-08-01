@@ -68,6 +68,21 @@ class CalDavTasksTest extends TestCase
         ]);
     }
 
+    public function test_caldav_root_can_be_opened_in_a_browser(): void
+    {
+        $user = User::factory()->create();
+        $password = $this->calDavPassword($user);
+
+        $this->get('/dav/')->assertUnauthorized();
+
+        $this->withBasicAuth($user->email, $password)
+            ->get('/dav/')
+            ->assertOk()
+            ->assertHeader('Content-Type', 'text/html; charset=utf-8')
+            ->assertSee('sabre/dav', false)
+            ->assertDontSee('Create new folder', false);
+    }
+
     public function test_caldav_credentials_cannot_read_another_users_tasks(): void
     {
         $owner = User::factory()->create();
