@@ -22,6 +22,7 @@ class CalDavTaskMapperTest extends TestCase
             'PRIORITY:1',
             'CATEGORIES:trabajo,importante',
             'CLASS:PRIVATE',
+            'X-LIFETRACKER-ESTIMATED-MINUTES:60',
             'RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE;COUNT=5',
         ]));
 
@@ -32,6 +33,7 @@ class CalDavTaskMapperTest extends TestCase
         $this->assertTrue($result['data']['start_is_date']);
         $this->assertFalse($result['data']['end_is_date']);
         $this->assertTrue($result['data']['is_private']);
+        $this->assertSame(60, $result['data']['estimated_time']);
         $this->assertSame('FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE;COUNT=5', $result['data']['recurrence']['rrule']);
     }
 

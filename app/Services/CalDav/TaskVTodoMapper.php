@@ -77,7 +77,7 @@ class TaskVTodoMapper
             'is_private' => strtoupper((string) ($todo->CLASS ?? 'PUBLIC')) === 'PRIVATE',
             'size' => filled((string) ($todo->{'X-LIFETRACKER-SIZE'} ?? '')) ? (string) $todo->{'X-LIFETRACKER-SIZE'} : null,
             'estimated_time' => is_numeric((string) ($todo->{'X-LIFETRACKER-ESTIMATED-MINUTES'} ?? ''))
-                ? max(0, (int) $todo->{'X-LIFETRACKER-ESTIMATED-MINUTES'}) : null,
+                ? max(0, (int) (string) $todo->{'X-LIFETRACKER-ESTIMATED-MINUTES'}) : null,
             'is_recurrent' => $rrule !== null,
             'recurrence' => $rrule ? [
                 'rrule' => $rrule,

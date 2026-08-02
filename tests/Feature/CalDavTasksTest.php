@@ -49,7 +49,8 @@ class CalDavTasksTest extends TestCase
             'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Tests//EN', 'BEGIN:VTODO',
             'UID:external-task-1', 'DTSTAMP:20260801T120000Z',
             'SUMMARY:Creada desde Tasks.org', 'DUE;VALUE=DATE:20260810',
-            'CATEGORIES:personal', 'CLASS:PRIVATE', 'END:VTODO', 'END:VCALENDAR', '',
+            'CATEGORIES:personal', 'CLASS:PRIVATE', 'X-LIFETRACKER-ESTIMATED-MINUTES:60',
+            'END:VTODO', 'END:VCALENDAR', '',
         ]);
 
         $created = $this->call(
@@ -67,6 +68,7 @@ class CalDavTasksTest extends TestCase
             'title' => 'Creada desde Tasks.org',
             'category' => 'personal',
             'is_private' => true,
+            'estimated_time' => 60,
             'caldav_uid' => 'external-task-1',
         ]);
 
