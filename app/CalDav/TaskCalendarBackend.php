@@ -63,7 +63,7 @@ class TaskCalendarBackend extends AbstractBackend implements SyncSupport
         return $task ? $this->objectData($task) : null;
     }
 
-    public function createCalendarObject($calendarId, $objectUri, $calendarData): ?string
+    public function createCalendarObject($calendarId, $objectUri, $calendarData): string
     {
         $this->assertCalendar($calendarId);
         $this->assertUri($objectUri);
@@ -87,10 +87,10 @@ class TaskCalendarBackend extends AbstractBackend implements SyncSupport
         ]);
         $this->applyCompletion($task, $parsed['completed'], $parsed['completed_at']);
 
-        return null;
+        return $this->objectData($task->fresh())['etag'];
     }
 
-    public function updateCalendarObject($calendarId, $objectUri, $calendarData): ?string
+    public function updateCalendarObject($calendarId, $objectUri, $calendarData): string
     {
         $this->assertCalendar($calendarId);
         $task = $this->findByUri($objectUri);
@@ -112,7 +112,7 @@ class TaskCalendarBackend extends AbstractBackend implements SyncSupport
             $this->applyCompletion($task->fresh(), $parsed['completed'], $parsed['completed_at']);
         }
 
-        return null;
+        return $this->objectData($task->fresh())['etag'];
     }
 
     public function deleteCalendarObject($calendarId, $objectUri): void

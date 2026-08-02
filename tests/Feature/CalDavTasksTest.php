@@ -47,25 +47,51 @@ class CalDavTasksTest extends TestCase
 
         $ics = implode("\r\n", [
             'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Tests//EN', 'BEGIN:VTODO',
-            'UID:external-task-1', 'SUMMARY:Creada desde Tasks.org', 'DUE;VALUE=DATE:20260810',
+            'UID:external-task-1', 'DTSTAMP:20260801T120000Z',
+            'SUMMARY:Creada desde Tasks.org', 'DUE;VALUE=DATE:20260810',
             'CATEGORIES:personal', 'CLASS:PRIVATE', 'END:VTODO', 'END:VCALENDAR', '',
         ]);
 
-        $this->call(
+        $created = $this->call(
             'PUT',
             '/dav/calendars/'.$user->email.'/tasks/external-task-1.ics',
             server: $this->davHeaders($user, $password, [
                 'CONTENT_TYPE' => 'text/calendar; charset=utf-8',
             ]),
             content: $ics,
-        )
-            ->assertCreated();
+        );
+        $created->assertCreated()->assertHeader('ETag');
 
         $this->assertDatabaseHas('tasks', [
             'user_id' => $user->id,
             'title' => 'Creada desde Tasks.org',
             'category' => 'personal',
             'is_private' => true,
+            'caldav_uid' => 'external-task-1',
+        ]);
+
+        $updatedIcs = str_replace(
+            ['SUMMARY:Creada desde Tasks.org', 'DUE;VALUE=DATE:20260810'],
+            ['SUMMARY:Actualizada desde Tasks.org', 'DUE;VALUE=DATE:20260811'],
+            $ics,
+        );
+
+        $this->call(
+            'PUT',
+            '/dav/calendars/'.$user->email.'/tasks/external-task-1.ics',
+            server: $this->davHeaders($user, $password, [
+                'CONTENT_TYPE' => 'text/calendar; charset=utf-8',
+                'HTTP_IF_MATCH' => $created->headers->get('ETag'),
+            ]),
+            content: $updatedIcs,
+        )
+            ->assertNoContent()
+            ->assertHeader('ETag');
+
+        $this->assertDatabaseHas('tasks', [
+            'user_id' => $user->id,
+            'title' => 'Actualizada desde Tasks.org',
+            'end_date' => '2026-08-11 00:00:00',
             'caldav_uid' => 'external-task-1',
         ]);
     }
