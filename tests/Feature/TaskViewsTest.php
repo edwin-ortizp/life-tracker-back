@@ -75,6 +75,26 @@ class TaskViewsTest extends TestCase
         $this->assertDatabaseHas('tasks', ['user_id' => $user->id, 'title' => 'Tarea individual', 'category' => 'personal']);
     }
 
+    public function test_task_list_orders_tasks_from_the_oldest_schedule_to_the_latest(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Task::create(['title' => 'Sin fecha']);
+        Task::create(['title' => 'Fecha futura urgente', 'priority' => 'urgent-important', 'start_date' => '2026-08-20']);
+        Task::create(['title' => 'Fecha antigua', 'priority' => 'not-urgent-not-important', 'start_date' => '2026-08-02']);
+        Task::create(['title' => 'Solo fecha límite', 'end_date' => '2026-08-10']);
+
+        $titles = Task::query()->chronological()->pluck('title')->all();
+
+        $this->assertSame([
+            'Fecha antigua',
+            'Solo fecha límite',
+            'Fecha futura urgente',
+            'Sin fecha',
+        ], $titles);
+    }
+
     public function test_individual_task_creation_persists_a_start_without_an_end(): void
     {
         $user = User::factory()->create();

@@ -476,8 +476,7 @@ class TaskList extends Component
             );
         }
 
-        $tasks = $query->orderByRaw('CASE WHEN priority = "urgent-important" THEN 1 WHEN priority = "not-urgent-important" THEN 2 WHEN priority = "urgent-not-important" THEN 3 ELSE 4 END')
-            ->orderByDesc('created_at')
+        $tasks = $query->chronological()
             ->paginate(25);
 
         $stats = Task::selectRaw('

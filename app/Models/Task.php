@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Traits\BelongsToUser;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -95,6 +96,15 @@ class Task extends Model
         $minutes = $this->estimated_time % 60;
 
         return $hours ? $hours.' h'.($minutes ? ' '.$minutes.' min' : '') : $minutes.' min';
+    }
+
+    public function scopeChronological(Builder $query): Builder
+    {
+        return $query
+            ->orderByRaw('CASE WHEN COALESCE(start_date, end_date) IS NULL THEN 1 ELSE 0 END')
+            ->orderByRaw('COALESCE(start_date, end_date) ASC')
+            ->orderByRaw("CASE WHEN priority = 'urgent-important' THEN 1 WHEN priority = 'not-urgent-important' THEN 2 WHEN priority = 'urgent-not-important' THEN 3 ELSE 4 END")
+            ->orderByDesc('created_at');
     }
 
     protected static function booted(): void
