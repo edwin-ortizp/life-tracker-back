@@ -1,0 +1,100 @@
+/* ===== Métricas y secciones ===== */
+
+.md-metric-grid {
+  display: grid;
+  gap: var(--md-sys-space-md);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: var(--md-sys-space-md);
+}
+
+.md-metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-space-2xs);
+  padding: var(--md-sys-space-md);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-low);
+  min-width: 0;
+}
+
+.md-metric__label {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-space-2xs);
+  color: var(--md-sys-color-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.md-metric__value {
+  color: var(--md-sys-color-on-surface);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.md-metric__unit {
+  margin-left: var(--md-sys-space-3xs);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.md-metric__support {
+  color: var(--md-sys-color-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.md-metric--primary .md-metric__value { color: var(--md-sys-color-primary); }
+.md-metric--success .md-metric__value { color: var(--md-custom-color-success); }
+.md-metric--warning .md-metric__value { color: var(--md-custom-color-warning); }
+.md-metric--danger .md-metric__value { color: var(--md-sys-color-error); }
+.md-metric--info .md-metric__value { color: var(--md-custom-color-info); }
+
+/* ===== Sección ===== */
+
+.md-section {
+  margin-bottom: var(--md-sys-space-lg);
+}
+
+.md-section__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--md-sys-space-sm);
+  margin-bottom: var(--md-sys-space-xs);
+  flex-wrap: wrap;
+}
+
+.md-section__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-space-3xs);
+  min-width: 0;
+}
+
+.md-section__title {
+  color: var(--md-sys-color-on-surface);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.md-section__description {
+  color: var(--md-sys-color-on-surface-variant);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.md-section__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-space-xs);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 599.98px) {
+  .md-metric-grid {
+    grid-template-columns: 1fr;
+  }
+}

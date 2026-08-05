@@ -15,7 +15,11 @@
       "Bash(taskkill:*)",
       "Bash(npm install:*)",
       "Bash(node scripts/update-imports.js:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "PowerShell(openspec list --json 2>&1)",
+      "PowerShell(openspec status --change \"expand-relationship-management\" --json 2>&1)",
+      "PowerShell(openspec instructions apply --change \"expand-relationship-management\" --json 2>&1)",
+      "PowerShell(cd C:\\\\laragon\\\\www\\\\life-tracker-back; Remove-Item \"$env:TEMP\\\\lt-head\\\\vendor\" -Force -Recurse -ErrorAction SilentlyContinue; git worktree remove \"$env:TEMP\\\\lt-head\" --force 2>&1; git worktree prune; git worktree list)"
     ],
     "deny": []
   }

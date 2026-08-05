@@ -7,19 +7,10 @@
     </x-slot:actions>
 
     {{-- Search + Filters --}}
-    <div x-data="{ openMenu: null }" @click.outside="openMenu = null" class="mb-3">
-        <div class="md-search-bar mb-2">
-            <i class="bi bi-search md-search-bar__icon"></i>
-            <input type="text" wire:model.live.debounce.300ms="search"
-                   class="md-search-bar__input" placeholder="Buscar ingredientes...">
-            @if($search)
-                <button wire:click="$set('search', '')" class="md-search-bar__clear">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            @endif
-        </div>
+    <x-ui.filter-bar search="search" placeholder="Buscar ingredientes..." label="Filtros de ingredientes">
+        <x-slot:chips>
 
-        <div class="md-chip-rail">
+        
             {{-- Category chip-menu --}}
             <div class="md-chip-menu" :class="{ 'open': openMenu === 'category' }">
                 <button @click="openMenu = openMenu === 'category' ? null : 'category'"
@@ -36,8 +27,8 @@
                     @endforeach
                 </div>
             </div>
-        </div>
-    </div>
+        </x-slot:chips>
+    </x-ui.filter-bar>
 
     {{-- Items grouped by category --}}
     @if ($grouped->isEmpty())

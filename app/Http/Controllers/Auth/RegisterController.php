@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\DefaultHabitDefinitions;
+use App\Support\DefaultMoodStates;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -78,29 +79,6 @@ class RegisterController extends Controller
             $user->drinkTypes()->create($type);
         }
 
-        $moodStates = [
-            ['emoji' => '😍', 'text' => 'Enamorado', 'value' => 10, 'category' => 'Emocional'],
-            ['emoji' => '😊', 'text' => 'Feliz', 'value' => 10, 'category' => 'Emocional'],
-            ['emoji' => '🌟', 'text' => 'Energético', 'value' => 10, 'category' => 'Físico'],
-            ['emoji' => '🧠', 'text' => 'Productivo', 'value' => 10, 'category' => 'Mental'],
-            ['emoji' => '😎', 'text' => 'Confiado', 'value' => 9, 'category' => 'Mental'],
-            ['emoji' => '😌', 'text' => 'Tranquilo', 'value' => 8, 'category' => 'Emocional'],
-            ['emoji' => '🤔', 'text' => 'Pensativo', 'value' => 6, 'category' => 'Mental'],
-            ['emoji' => '🥱', 'text' => 'Aburrido', 'value' => 5, 'category' => 'Emocional'],
-            ['emoji' => '😴', 'text' => 'Pereza', 'value' => 4, 'category' => 'Físico'],
-            ['emoji' => '😕', 'text' => 'Confundido', 'value' => 5, 'category' => 'Mental'],
-            ['emoji' => '😬', 'text' => 'Nervioso', 'value' => 3, 'category' => 'Emocional'],
-            ['emoji' => '🤯', 'text' => 'Abrumado', 'value' => 3, 'category' => 'Mental'],
-            ['emoji' => '😤', 'text' => 'Frustración', 'value' => 3, 'category' => 'Emocional'],
-            ['emoji' => '😰', 'text' => 'Ansioso', 'value' => 2, 'category' => 'Emocional'],
-            ['emoji' => '😪', 'text' => 'Cansado', 'value' => 2, 'category' => 'Físico'],
-            ['emoji' => '😢', 'text' => 'Triste', 'value' => 1, 'category' => 'Emocional'],
-            ['emoji' => '😡', 'text' => 'Enojado', 'value' => 1, 'category' => 'Emocional'],
-            ['emoji' => '🤒', 'text' => 'Enfermo', 'value' => 1, 'category' => 'Físico'],
-        ];
-
-        foreach ($moodStates as $state) {
-            $user->moodStates()->create($state);
-        }
+        DefaultMoodStates::createFor($user);
     }
 }

@@ -10,9 +10,11 @@ class IntegrationMoodStateController
     public function index(Request $request): JsonResponse
     {
         return response()->json([
+            // Only what can still be logged; entries already imported stay readable
+            // through their own snapshot, so deactivating never breaks history.
             'data' => $request->user()->moodStates()
-                ->orderByDesc('value')
-                ->orderBy('text')
+                ->active()
+                ->prioritized()
                 ->get(['id', 'emoji', 'text', 'value', 'category']),
         ]);
     }

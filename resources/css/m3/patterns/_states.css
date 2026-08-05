@@ -1,0 +1,90 @@
+/*
+ * Estados de datos compartidos.
+ *
+ * Toda superficie que dependa de datos usa estas superficies para los estados
+ * inicial, cargando, vacío, sin resultados filtrados y error recuperable.
+ */
+
+.md-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 46px 24px;
+  color: var(--md-sys-color-on-surface-variant);
+  text-align: center;
+}
+
+.md-empty-state__icon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-primary);
+  font-size: 1.45rem;
+}
+
+.md-empty-state h2 {
+  margin: 4px 0 0;
+  color: var(--md-sys-color-on-surface);
+  font-size: 1rem;
+}
+
+.md-empty-state p {
+  max-width: 430px;
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.md-empty-state__action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Sin resultados filtrados: la colección existe, el filtro la oculta. */
+.md-empty-state--filtered .md-empty-state__icon {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+/* Error recuperable: la estructura se conserva y se ofrece reintentar. */
+.md-empty-state--error .md-empty-state__icon {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+
+.md-empty-state--error h2 {
+  color: var(--md-sys-color-error);
+}
+
+/* Inicial: todavía no se ha pedido nada. */
+.md-empty-state--initial .md-empty-state__icon {
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Cargando: mantiene la altura del bloque para no desplazar el contenido. */
+.md-empty-state--loading .md-empty-state__icon {
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-state-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--md-sys-shape-corner-full);
+  animation: md-spin var(--md-sys-motion-duration-long1) linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-state-spinner {
+    animation-duration: 2s;
+  }
+}

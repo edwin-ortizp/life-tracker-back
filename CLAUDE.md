@@ -89,59 +89,45 @@ All models use `HasUuids` trait with UUID primary keys and `BelongsToUser` trait
 
 ## UI Patterns
 
-### Search & Filter Standard (Material Design 3)
-All modules must use this pattern for search and filtering. Reference: `resources/views/livewire/task/task-list.blade.php`.
+### Design System (canonical components)
+
+The design system lives in `resources/css/m3` (layers: `tokens` -> `primitives` -> `patterns` -> `archetypes` -> `modules`) and exposes Blade components under the `x-ui.*` namespace. **Full contract and definition of done: `docs/design-system.md`.**
+
+Never hand-roll a control that already exists. Use:
+
+| Need | Component |
+| --- | --- |
+| Button / action link | `x-ui.action`, `x-ui.icon-action` |
+| Delete or other destructive action | `x-ui.destructive-action` (confirms when `risk="material"`) |
+| Form control | `x-ui.field`, `x-ui.select`, `x-ui.textarea` |
+| Search + filters | `x-ui.filter-bar` with `x-slot:chips`, plus `x-ui.chip` and `x-ui.filter-menu` |
+| Metric / summary | `x-ui.metric`, `x-ui.metric-grid` |
+| Section, list | `x-ui.section`, `x-ui.list`, `x-ui.list-item` |
+| Modal surfaces | `x-ui.dialog`, `x-ui.sheet`, `x-ui.snackbar` |
+| Data states | `x-ui.state` + `App\Support\Ui\DataState::resolve()` |
+| Status marker | `x-ui.chip`, `x-ui.badge`, `x-ui.progress`, `x-ui.icon`, `x-ui.card` |
 
 ```html
-<div x-data="{ openMenu: null }" @click.outside="openMenu = null" class="mb-3">
-    <!-- Search bar -->
-    <div class="md-search-bar mb-2">
-        <i class="bi bi-search md-search-bar__icon"></i>
-        <input type="text" wire:model.live.debounce.300ms="search"
-               class="md-search-bar__input" placeholder="Buscar...">
-        @if($search)
-            <button wire:click="$set('search', '')" class="md-search-bar__clear">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        @endif
-    </div>
-
-    <!-- Chip rail -->
-    <div class="md-chip-rail">
-        <!-- Toggle chips -->
-        <button wire:click="..." class="md-chip md-chip-filter {{ $active ? 'selected' : '' }}">
-            Label
-        </button>
-
+<x-ui.filter-bar search="search" placeholder="Buscar tareas..." label="Filtros de tareas">
+    <x-slot:chips>
+        <x-ui.chip variant="filter" :selected="$filter === 'pending'" wire:click="$set('filter', 'pending')">Pendientes</x-ui.chip>
         <div class="md-chip-rail__divider"></div>
-
-        <!-- Chip-menu dropdown (for option lists) -->
-        <div class="md-chip-menu" :class="{ 'open': openMenu === 'name' }">
-            <button @click="openMenu = openMenu === 'name' ? null : 'name'"
-                    class="md-chip md-chip-filter {{ $filter ? 'selected' : '' }}">
-                {{ $filter ? $options[$filter] : 'Label' }}
-                <i class="bi bi-chevron-down md-chip-menu__arrow"></i>
-            </button>
-            <div x-show="openMenu === 'name'" x-transition x-cloak
-                 class="md-chip-menu__dropdown">
-                <button wire:click="$set('filter', '')" @click="openMenu = null"
-                        class="md-chip-menu__item {{ !$filter ? 'active' : '' }}">Todos</button>
-                @foreach ($options as $key => $label)
-                    <button wire:click="$set('filter', '{{ $key }}')" @click="openMenu = null"
-                            class="md-chip-menu__item {{ $filter === $key ? 'active' : '' }}">
-                        {{ $label }}
-                    </button>
-                @endforeach
-            </div>
-        </div>
-    </div>
-</div>
+        <x-ui.filter-menu name="categoryFilter" label="Categoria" :options="$categories" :selected="$categoryFilter" />
+    </x-slot:chips>
+</x-ui.filter-bar>
 ```
 
-**Never use**: `md-chip-select` (native select), `md-text-field` for search, `md-chip-group`, or `md-chip--selected` (use `selected` class instead).
+Components accept **semantic props only** (`variant`, `tone`, `size`, `risk`, ...) and propagate `wire:*`, `x-*`, ARIA and `data-*`. They never accept colors, paddings or sizes.
+
+**Never use**: inline `style` (except the dynamic custom properties listed in `config/ui-conformance.php`), direct colors, `form-control`, `form-select`, `input-group`, `text-muted`, `text-danger`, `md-chip-select`, `md-chip-group`, `md-chip--selected`, or a native `<select>` outside `x-ui.select`.
+
+Browse every component with its variants and states at `/ui-catalog` (local and testing only). Run `php artisan ui:conformance` before finishing: it fails on any new visual debt.
+
+### Screen archetypes
+Every full-page screen composes `x-module-shell` and declares one approved archetype - `list`, `detail`, `dashboard`, `daily-log`, `settings` or `guided-flow` - via the `archetype` prop or `config/modules.php`. The shell exposes the regions `identity`, `navigation`, `actions`, `controls`, `content` and `context`; filters belong in `<x-slot:controls>`, contextual panels in `<x-slot:rail>`. At most one visually dominant action (`md-btn-filled`) per context.
 
 ### Context Rail (Right Sidebar)
-Use `<x-slot:rail>` inside `<x-module-shell>` for contextual info panels. The shell renders a 9/3 grid layout. Reference: `resources/views/livewire/task/task-list.blade.php` lines 243-272.
+Use `<x-slot:rail>` inside `<x-module-shell>` for contextual info panels. The shell renders `.md-module-workspace`: content plus a 320px rail from 1200px, single column below. Reference: `resources/views/livewire/task/task-list.blade.php` lines 243-272.
 
 ```html
 <x-slot:rail>

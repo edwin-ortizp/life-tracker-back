@@ -42,18 +42,26 @@
                 <span class="ms-auto md-label-small">{{ $lastMood->emoji }} {{ $lastMood->text }} · {{ $lastMood->time }}</span>
             @endif
         </div>
-        <div class="home-quick-row">
-            @foreach ($moodStates as $state)
-                <button type="button"
-                        class="home-mood-btn {{ $lastMood?->mood_state_id === $state->id ? 'is-selected' : '' }}"
-                        wire:click="saveMood('{{ $state->id }}')"
-                        wire:loading.attr="disabled"
-                        title="{{ $state->text }}"
-                        aria-label="{{ $state->text }}">
-                    {{ $state->emoji }}
+        @if ($moodStates->isEmpty())
+            <x-mood-empty-catalog />
+        @else
+            <div class="home-quick-row">
+                @foreach ($moodStates as $state)
+                    <button type="button"
+                            class="home-mood-btn {{ $lastMood?->mood_state_id === $state->id ? 'is-selected' : '' }}"
+                            wire:click="saveMood('{{ $state->id }}')"
+                            wire:loading.attr="disabled"
+                            title="{{ $state->text }}"
+                            aria-label="{{ $state->text }}">
+                        {{ $state->emoji }}
+                    </button>
+                @endforeach
+                <button type="button" class="home-mood-btn" wire:click="openMoodCatalog"
+                        title="Más emociones" aria-label="Más emociones">
+                    <i class="bi bi-three-dots"></i>
                 </button>
-            @endforeach
-        </div>
+            </div>
+        @endif
     </div>
 
     {{-- Energy --}}

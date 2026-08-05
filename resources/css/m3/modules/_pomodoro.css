@@ -1,0 +1,94 @@
+/* Temporizador de enfoque. */
+
+.pomodoro-dial {
+  position: relative;
+  display: inline-block;
+  width: 200px;
+  height: 200px;
+  margin-bottom: var(--md-sys-space-lg);
+}
+
+.pomodoro-dial__svg {
+  transform: rotate(-90deg);
+}
+
+.pomodoro-dial__readout {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  gap: var(--md-sys-space-3xs);
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.pomodoro-dial__time {
+  color: var(--md-sys-color-on-surface);
+}
+
+.pomodoro-dial__mode {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.pomodoro-stage {
+  display: grid;
+  justify-items: center;
+  gap: var(--md-sys-space-md);
+  padding: var(--md-sys-space-xl) var(--md-sys-space-md);
+}
+
+.pomodoro-controls {
+  display: flex;
+  justify-content: center;
+  gap: var(--md-sys-space-sm);
+  flex-wrap: wrap;
+}
+
+.pomodoro-description {
+  width: min(320px, 100%);
+}
+
+.pomodoro-error {
+  color: var(--md-sys-color-error);
+}
+
+/* Chip de modo de trabajo: mismo patrón, tono de esfuerzo. */
+.pomodoro-mode--work.selected {
+  border-color: transparent;
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+
+.pomodoro-week {
+  display: grid;
+  gap: var(--md-sys-space-2xs);
+}
+
+.pomodoro-week__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: var(--md-sys-space-xs);
+  padding: var(--md-sys-space-2xs) 0;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.pomodoro-week__row:last-child {
+  border-bottom: none;
+}
+
+.pomodoro-week__row.is-selected {
+  background: var(--md-sys-color-secondary-container);
+  border-radius: var(--md-sys-shape-corner-small);
+}
+
+.pomodoro-week__value {
+  color: var(--md-sys-color-on-surface-variant);
+  text-align: right;
+}
+
+@media (max-width: 599.98px) {
+  .pomodoro-week__row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}

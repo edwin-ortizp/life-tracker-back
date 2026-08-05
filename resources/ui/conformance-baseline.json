@@ -1,0 +1,207 @@
+{
+    "description": "Inventario de deuda visual. Una contribución puede conservarla, no aumentarla.",
+    "totals": {
+        "inline-style": 287,
+        "local-component-substitution": 54,
+        "retired-pattern": 67
+    },
+    "files": {
+        "resources/views/auth/login.blade.php": {
+            "inline-style": 9
+        },
+        "resources/views/auth/register.blade.php": {
+            "inline-style": 10
+        },
+        "resources/views/components/module-actions.blade.php": {
+            "local-component-substitution": 1
+        },
+        "resources/views/layouts/app.blade.php": {
+            "inline-style": 4
+        },
+        "resources/views/livewire/goal/goal-detail.blade.php": {
+            "inline-style": 2,
+            "local-component-substitution": 2
+        },
+        "resources/views/livewire/habit/habit-tracker.blade.php": {
+            "inline-style": 11,
+            "local-component-substitution": 2
+        },
+        "resources/views/livewire/habit/habit-weekly.blade.php": {
+            "inline-style": 7,
+            "local-component-substitution": 1
+        },
+        "resources/views/livewire/habit/partials/completion-feedback.blade.php": {
+            "inline-style": 1
+        },
+        "resources/views/livewire/habit/partials/month-calendar.blade.php": {
+            "inline-style": 1
+        },
+        "resources/views/livewire/health/health-body-map.blade.php": {
+            "inline-style": 13
+        },
+        "resources/views/livewire/health/health-index.blade.php": {
+            "local-component-substitution": 3,
+            "retired-pattern": 13
+        },
+        "resources/views/livewire/home/dashboard.blade.php": {
+            "inline-style": 8
+        },
+        "resources/views/livewire/home/partials/habits-today.blade.php": {
+            "inline-style": 8
+        },
+        "resources/views/livewire/home/partials/meals-today.blade.php": {
+            "inline-style": 7
+        },
+        "resources/views/livewire/home/partials/quick-log.blade.php": {
+            "inline-style": 7,
+            "local-component-substitution": 5
+        },
+        "resources/views/livewire/home/partials/tasks-today.blade.php": {
+            "inline-style": 9
+        },
+        "resources/views/livewire/home/partials/weekly-chart.blade.php": {
+            "inline-style": 3
+        },
+        "resources/views/livewire/journal/journal-entries.blade.php": {
+            "inline-style": 18
+        },
+        "resources/views/livewire/journal/journal-mood-rail.blade.php": {
+            "local-component-substitution": 1,
+            "retired-pattern": 1
+        },
+        "resources/views/livewire/meal/_shopping-item.blade.php": {
+            "local-component-substitution": 1
+        },
+        "resources/views/livewire/meal/bulk-ingredient-assistant.blade.php": {
+            "local-component-substitution": 2,
+            "retired-pattern": 4
+        },
+        "resources/views/livewire/meal/meal-ingredients.blade.php": {
+            "inline-style": 18,
+            "local-component-substitution": 1,
+            "retired-pattern": 2
+        },
+        "resources/views/livewire/meal/meal-recipes.blade.php": {
+            "inline-style": 8,
+            "local-component-substitution": 2
+        },
+        "resources/views/livewire/meal/meal-shopping.blade.php": {
+            "inline-style": 5
+        },
+        "resources/views/livewire/meal/meal-weekly.blade.php": {
+            "local-component-substitution": 2,
+            "retired-pattern": 2
+        },
+        "resources/views/livewire/mood/mood-reflection-wizard.blade.php": {
+            "inline-style": 3
+        },
+        "resources/views/livewire/mood/mood-settings.blade.php": {
+            "inline-style": 11
+        },
+        "resources/views/livewire/mood/partials/progressive.blade.php": {
+            "inline-style": 7,
+            "local-component-substitution": 2
+        },
+        "resources/views/livewire/negative-habit/negative-habit-weekly.blade.php": {
+            "inline-style": 10
+        },
+        "resources/views/livewire/pomodoro/partials/month-calendar.blade.php": {
+            "inline-style": 1
+        },
+        "resources/views/livewire/pomodoro/pomodoro-settings.blade.php": {
+            "inline-style": 7
+        },
+        "resources/views/livewire/pomodoro/pomodoro-timer.blade.php": {
+            "local-component-substitution": 3
+        },
+        "resources/views/livewire/relationship/partials/event-row.blade.php": {
+            "inline-style": 5
+        },
+        "resources/views/livewire/relationship/relationship-birthdays.blade.php": {
+            "inline-style": 5
+        },
+        "resources/views/livewire/relationship/relationship-events.blade.php": {
+            "inline-style": 3
+        },
+        "resources/views/livewire/relationship/relationship-index.blade.php": {
+            "inline-style": 21,
+            "local-component-substitution": 4
+        },
+        "resources/views/livewire/relationship/relationship-show.blade.php": {
+            "inline-style": 22,
+            "local-component-substitution": 4
+        },
+        "resources/views/livewire/task/partials/completion-celebration.blade.php": {
+            "inline-style": 1
+        },
+        "resources/views/livewire/task/partials/edit-task-dialog.blade.php": {
+            "inline-style": 2,
+            "local-component-substitution": 3
+        },
+        "resources/views/livewire/task/partials/recurring-completion-dialog.blade.php": {
+            "inline-style": 1
+        },
+        "resources/views/livewire/task/partials/schedule-fields.blade.php": {
+            "inline-style": 2
+        },
+        "resources/views/livewire/task/task-gantt.blade.php": {
+            "inline-style": 2
+        },
+        "resources/views/livewire/task/task-kanban.blade.php": {
+            "inline-style": 11
+        },
+        "resources/views/livewire/task/task-list.blade.php": {
+            "inline-style": 14,
+            "local-component-substitution": 3
+        },
+        "resources/views/livewire/task/task-planning.blade.php": {
+            "local-component-substitution": 3
+        },
+        "resources/views/livewire/task/task-progress.blade.php": {
+            "inline-style": 4
+        },
+        "resources/views/livewire/vehicle/partials/energy-form.blade.php": {
+            "local-component-substitution": 1,
+            "retired-pattern": 14
+        },
+        "resources/views/livewire/vehicle/partials/maintenance-forms.blade.php": {
+            "local-component-substitution": 1,
+            "retired-pattern": 5
+        },
+        "resources/views/livewire/vehicle/partials/template-form.blade.php": {
+            "retired-pattern": 2
+        },
+        "resources/views/livewire/vehicle/partials/vehicle-form.blade.php": {
+            "local-component-substitution": 5,
+            "retired-pattern": 14
+        },
+        "resources/views/livewire/vehicle/vehicle-fuel.blade.php": {
+            "local-component-substitution": 1,
+            "retired-pattern": 2
+        },
+        "resources/views/livewire/vehicle/vehicle-maintenance.blade.php": {
+            "local-component-substitution": 1,
+            "retired-pattern": 3
+        },
+        "resources/views/livewire/vehicle/vehicle-show.blade.php": {
+            "retired-pattern": 1
+        },
+        "resources/views/livewire/water/partials/month-calendar.blade.php": {
+            "inline-style": 1
+        },
+        "resources/views/livewire/water/water-range.blade.php": {
+            "inline-style": 1,
+            "retired-pattern": 1
+        },
+        "resources/views/livewire/water/water-settings.blade.php": {
+            "inline-style": 3,
+            "retired-pattern": 2
+        },
+        "resources/views/livewire/water/water-weekly.blade.php": {
+            "inline-style": 1
+        },
+        "resources/views/partials/markdown-editor.blade.php": {
+            "retired-pattern": 1
+        }
+    }
+}

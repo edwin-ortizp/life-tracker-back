@@ -16,6 +16,13 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
 
+// Catálogo del sistema de diseño: solo existe en desarrollo y pruebas.
+if (app()->environment(['local', 'testing'])) {
+    Route::get('/ui-catalog', [\App\Http\Controllers\Ui\CatalogController::class, 'index'])->name('ui.catalog');
+    Route::get('/ui-catalog/arquetipo/{archetype}', [\App\Http\Controllers\Ui\CatalogController::class, 'archetype'])->name('ui.catalog.archetype');
+    Route::get('/ui-catalog/{component}', [\App\Http\Controllers\Ui\CatalogController::class, 'show'])->name('ui.catalog.show');
+}
+
 // Protected routes
 Route::middleware('auth')->group(function () {
     Route::get('/', \App\Livewire\Home\Dashboard::class)->name('home');
@@ -36,6 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/habits', \App\Livewire\Habit\HabitTracker::class)->name('habits');
     Route::get('/habits/weekly', \App\Livewire\Habit\HabitWeekly::class)->name('habits.weekly');
     Route::get('/mood', \App\Livewire\Mood\MoodTracker::class)->name('mood');
+    Route::get('/mood/settings', \App\Livewire\Mood\MoodSettings::class)->name('mood.settings');
     Route::get('/journal', \App\Livewire\Journal\JournalEntries::class)->name('journal');
     Route::get('/journal/life', \App\Livewire\Journal\JournalLifeCalendar::class)->name('journal.life');
     Route::get('/journal/life/week', \App\Livewire\Journal\JournalLifeWeek::class)->name('journal.life.week');
@@ -54,6 +62,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/tasks/planning', \App\Livewire\Task\TaskPlanning::class)->name('tasks.planning');
     Route::get('/tasks/progress', \App\Livewire\Task\TaskProgress::class)->name('tasks.progress');
     Route::get('/relationships', \App\Livewire\Relationship\RelationshipIndex::class)->name('relationships');
+    Route::get('/relationships/events', \App\Livewire\Relationship\RelationshipEvents::class)->name('relationships.events');
+    Route::get('/relationships/birthdays', \App\Livewire\Relationship\RelationshipBirthdays::class)->name('relationships.birthdays');
+    Route::get('/relationships/{relationship}', \App\Livewire\Relationship\RelationshipShow::class)->name('relationships.show');
     Route::get('/goals', \App\Livewire\Goal\GoalIndex::class)->name('goals');
     Route::get('/goals/{goal}', \App\Livewire\Goal\GoalDetail::class)->name('goals.show');
     Route::get('/statistics', \App\Livewire\Statistics\StatisticsDashboard::class)->name('statistics');

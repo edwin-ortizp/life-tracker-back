@@ -1,0 +1,146 @@
+/* ===== Hoja modal ===== */
+
+.md-sheet-scrim {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--md-sys-color-scrim) 32%, transparent);
+  z-index: var(--md-sys-z-scrim);
+}
+
+.md-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: var(--md-sys-z-dialog);
+  display: flex;
+  flex-direction: column;
+  width: min(640px, 100vw);
+  max-height: min(90vh, 720px);
+  padding: var(--md-sys-space-md) var(--md-sys-space-lg) var(--md-sys-space-lg);
+  transform: translateX(-50%);
+  border-radius: var(--md-sys-shape-corner-extra-large) var(--md-sys-shape-corner-extra-large) 0 0;
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-3);
+  overflow: hidden;
+}
+
+.md-sheet__handle {
+  align-self: center;
+  width: 32px;
+  height: 4px;
+  margin-bottom: var(--md-sys-space-sm);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-outline-variant);
+}
+
+.md-sheet__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--md-sys-space-sm);
+  margin-bottom: var(--md-sys-space-sm);
+}
+
+.md-sheet__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.md-sheet__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--md-sys-space-xs);
+  margin-top: var(--md-sys-space-md);
+}
+
+/* Desde tableta la hoja se comporta como una superficie lateral. */
+@media (min-width: 768px) {
+  .md-sheet--side {
+    left: auto;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: min(420px, 100vw);
+    max-height: none;
+    transform: none;
+    border-radius: var(--md-sys-shape-corner-extra-large) 0 0 var(--md-sys-shape-corner-extra-large);
+  }
+}
+
+/* ===== Snackbar ===== */
+
+/* Confirmación no modal: nunca atrapa el foco y puede ignorarse. */
+.md-snackbar {
+  position: fixed;
+  left: 50%;
+  bottom: var(--md-sys-space-lg);
+  z-index: var(--md-sys-z-snackbar);
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-space-sm);
+  max-width: min(38rem, calc(100vw - 2rem));
+  padding: var(--md-sys-space-xs) var(--md-sys-space-sm) var(--md-sys-space-xs) var(--md-sys-space-md);
+  transform: translateX(-50%);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  box-shadow: var(--md-sys-elevation-3);
+}
+
+.md-snackbar__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.md-snackbar__actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: var(--md-sys-space-2xs);
+}
+
+.md-snackbar__actions .md-btn-text,
+.md-snackbar__actions .md-btn-icon {
+  color: var(--md-sys-color-inverse-primary);
+}
+
+.md-snackbar--danger {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+
+.md-snackbar--danger .md-snackbar__actions .md-btn-text,
+.md-snackbar--danger .md-snackbar__actions .md-btn-icon {
+  color: var(--md-sys-color-on-error-container);
+}
+
+@media (max-width: 767.98px) {
+  .md-snackbar {
+    bottom: calc(var(--md-sys-layout-nav-bar-height) + var(--md-sys-space-md));
+  }
+}
+
+/* Secreto de un solo uso: token o contraseña que solo se muestra una vez. */
+.md-secret {
+  padding: var(--md-sys-space-sm);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.md-secret__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--md-sys-space-xs);
+  margin-bottom: var(--md-sys-space-2xs);
+}
+
+.md-secret__value {
+  display: block;
+  overflow-wrap: anywhere;
+  user-select: all;
+}

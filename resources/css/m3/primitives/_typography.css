@@ -1,0 +1,127 @@
+/* M3 Type Scale — cada clase consume los tokens de `--md-sys-typescale-*`. */
+
+.md-display-large,
+.md-display-medium,
+.md-display-small,
+.md-headline-large,
+.md-headline-medium,
+.md-headline-small,
+.md-title-large,
+.md-title-medium,
+.md-title-small,
+.md-body-large,
+.md-body-medium,
+.md-body-small,
+.md-label-large,
+.md-label-medium,
+.md-label-small {
+  font-size: var(--md-typescale-size);
+  line-height: var(--md-typescale-line-height);
+  font-weight: var(--md-typescale-weight);
+  letter-spacing: var(--md-typescale-tracking);
+}
+
+.md-display-large {
+  --md-typescale-size: var(--md-sys-typescale-display-large-size);
+  --md-typescale-line-height: var(--md-sys-typescale-display-large-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-display-large-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-display-large-tracking);
+}
+
+.md-display-medium {
+  --md-typescale-size: var(--md-sys-typescale-display-medium-size);
+  --md-typescale-line-height: var(--md-sys-typescale-display-medium-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-display-medium-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-display-medium-tracking);
+}
+
+.md-display-small {
+  --md-typescale-size: var(--md-sys-typescale-display-small-size);
+  --md-typescale-line-height: var(--md-sys-typescale-display-small-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-display-small-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-display-small-tracking);
+}
+
+.md-headline-large {
+  --md-typescale-size: var(--md-sys-typescale-headline-large-size);
+  --md-typescale-line-height: var(--md-sys-typescale-headline-large-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-headline-large-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-headline-large-tracking);
+}
+
+.md-headline-medium {
+  --md-typescale-size: var(--md-sys-typescale-headline-medium-size);
+  --md-typescale-line-height: var(--md-sys-typescale-headline-medium-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-headline-medium-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-headline-medium-tracking);
+}
+
+.md-headline-small {
+  --md-typescale-size: var(--md-sys-typescale-headline-small-size);
+  --md-typescale-line-height: var(--md-sys-typescale-headline-small-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-headline-small-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-headline-small-tracking);
+}
+
+.md-title-large {
+  --md-typescale-size: var(--md-sys-typescale-title-large-size);
+  --md-typescale-line-height: var(--md-sys-typescale-title-large-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-title-large-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-title-large-tracking);
+}
+
+.md-title-medium {
+  --md-typescale-size: var(--md-sys-typescale-title-medium-size);
+  --md-typescale-line-height: var(--md-sys-typescale-title-medium-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-title-medium-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-title-medium-tracking);
+}
+
+.md-title-small {
+  --md-typescale-size: var(--md-sys-typescale-title-small-size);
+  --md-typescale-line-height: var(--md-sys-typescale-title-small-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-title-small-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-title-small-tracking);
+}
+
+.md-body-large {
+  --md-typescale-size: var(--md-sys-typescale-body-large-size);
+  --md-typescale-line-height: var(--md-sys-typescale-body-large-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-body-large-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-body-large-tracking);
+}
+
+.md-body-medium {
+  --md-typescale-size: var(--md-sys-typescale-body-medium-size);
+  --md-typescale-line-height: var(--md-sys-typescale-body-medium-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-body-medium-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-body-medium-tracking);
+}
+
+.md-body-small {
+  --md-typescale-size: var(--md-sys-typescale-body-small-size);
+  --md-typescale-line-height: var(--md-sys-typescale-body-small-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-body-small-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-body-small-tracking);
+}
+
+.md-label-large {
+  --md-typescale-size: var(--md-sys-typescale-label-large-size);
+  --md-typescale-line-height: var(--md-sys-typescale-label-large-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-label-large-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-label-large-tracking);
+}
+
+.md-label-medium {
+  --md-typescale-size: var(--md-sys-typescale-label-medium-size);
+  --md-typescale-line-height: var(--md-sys-typescale-label-medium-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-label-medium-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-label-medium-tracking);
+}
+
+.md-label-small {
+  --md-typescale-size: var(--md-sys-typescale-label-small-size);
+  --md-typescale-line-height: var(--md-sys-typescale-label-small-line-height);
+  --md-typescale-weight: var(--md-sys-typescale-label-small-weight);
+  --md-typescale-tracking: var(--md-sys-typescale-label-small-tracking);
+}

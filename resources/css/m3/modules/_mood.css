@@ -1,0 +1,326 @@
+/* Progressive emotion logging: picker, confirmation, context sheet and reflection wizard. */
+
+.md-mood-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.md-mood-picker__item,
+.md-mood-catalog__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 4.5rem;
+    padding: 0.5rem 0.375rem;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-medium, 12px);
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    cursor: pointer;
+    transition: background 120ms ease, border-color 120ms ease;
+}
+
+.md-mood-picker__item:hover,
+.md-mood-catalog__item:hover {
+    background: var(--md-sys-color-surface-container-high);
+}
+
+.md-mood-picker__item:focus-visible,
+.md-mood-catalog__item:focus-visible,
+.md-mood-intensity__step:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: 2px;
+}
+
+.md-mood-catalog__item.is-selected {
+    border-color: var(--md-sys-color-primary);
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+}
+
+.md-mood-picker__emoji,
+.md-mood-catalog__emoji {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.md-mood-picker__item--more {
+    border-style: dashed;
+}
+
+.md-mood-catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+    gap: 0.5rem;
+    max-height: 22rem;
+    overflow-y: auto;
+}
+
+/* Non-modal confirmation: it never traps focus and can simply be ignored. */
+.md-mood-snackbar {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    z-index: 1200;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: min(38rem, calc(100vw - 2rem));
+    padding: 0.625rem 0.75rem 0.625rem 1rem;
+    border-radius: var(--md-sys-shape-corner-medium, 12px);
+    background: var(--md-sys-color-inverse-surface, #313033);
+    color: var(--md-sys-color-inverse-on-surface, #f4eff4);
+    box-shadow: 0 6px 20px rgb(0 0 0 / 24%);
+}
+
+.md-mood-snackbar__text {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.875rem;
+}
+
+.md-mood-snackbar__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.md-mood-snackbar__actions .md-btn-text,
+.md-mood-snackbar__actions .md-btn-icon {
+    color: var(--md-sys-color-inverse-primary, #d0bcff);
+}
+
+.md-mood-sheet {
+    max-width: 560px;
+}
+
+.md-mood-intensity,
+.md-mood-people {
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-medium, 12px);
+    padding: 0.75rem;
+}
+
+.md-mood-intensity legend,
+.md-mood-people legend {
+    float: none;
+    width: auto;
+    padding: 0 0.375rem;
+    font-size: 0.75rem;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-mood-intensity__scale {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.375rem;
+}
+
+.md-mood-intensity__step {
+    min-height: 2.75rem;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.md-mood-intensity__step.is-selected {
+    border-color: transparent;
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+}
+
+.md-mood-entry__people {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Reflection wizard: one question at a time. */
+.md-reflection {
+    max-width: 620px;
+}
+
+.md-reflection__scope {
+    margin-bottom: 0.75rem;
+}
+
+.md-reflection__scope-body {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    border-radius: var(--md-sys-shape-corner-medium, 12px);
+    background: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-reflection__progress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-bottom: 1rem;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-reflection__step h3 {
+    margin-bottom: 0.25rem;
+}
+
+.md-reflection__input {
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-corner-medium, 12px);
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    resize: vertical;
+}
+
+.md-reflection__input:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: 1px;
+}
+
+.md-reflection__summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.md-reflection__answer dt {
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-reflection__answer dd {
+    margin-bottom: 0;
+    white-space: pre-line;
+}
+
+.md-reflection__intensity {
+    margin-bottom: 0;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-reflection__actions {
+    flex-wrap: wrap;
+}
+
+/* Emotional context inside a relationship. */
+.md-relationship-emotion {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.md-relationship-emotion:last-child {
+    border-bottom: none;
+}
+
+.md-relationship-emotion__emoji {
+    font-size: 1.5rem;
+    line-height: 1.2;
+}
+
+.md-relationship-emotion__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.md-relationship-emotion__reflection {
+    margin-top: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--md-sys-shape-corner-medium, 12px);
+    background: var(--md-sys-color-surface-container-high);
+}
+
+.md-relationship-emotion__reflection dt {
+    font-size: 0.75rem;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-relationship-emotion__reflection dd {
+    margin-bottom: 0.5rem;
+    white-space: pre-line;
+}
+
+.md-pattern-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.25rem 0;
+}
+
+.md-pattern-bar {
+    flex: 1 1 auto;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--md-sys-color-surface-container-highest);
+    overflow: hidden;
+}
+
+.md-pattern-bar__fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--md-sys-color-primary);
+}
+
+@media (max-width: 640px) {
+    .md-mood-snackbar {
+        left: 0.75rem;
+        right: 0.75rem;
+        bottom: 5rem;
+        max-width: none;
+        transform: none;
+        flex-wrap: wrap;
+    }
+
+    .md-mood-catalog {
+        grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+    }
+}
+
+/* Emoji del registro y escala de energía. */
+.md-mood-entry__emoji {
+    font-size: 1.5rem;
+}
+
+.md-energy-scale {
+    display: flex;
+    gap: 2px;
+}
+
+.md-energy-scale__step {
+    color: var(--md-sys-color-outline-variant);
+    font-size: 0.75rem;
+}
+
+.md-energy-scale__step.is-filled {
+    color: var(--md-custom-color-warning);
+}
+
+.md-energy-picker {
+    display: flex;
+    justify-content: center;
+    gap: var(--md-sys-space-xs);
+    margin-bottom: var(--md-sys-space-sm);
+}
+
+.md-energy-picker__step.is-filled {
+    background: var(--md-custom-color-warning-container);
+    color: var(--md-custom-color-on-warning-container);
+}
+
+.md-energy-picker__value {
+    margin-bottom: var(--md-sys-space-sm);
+    color: var(--md-custom-color-warning);
+    text-align: center;
+}

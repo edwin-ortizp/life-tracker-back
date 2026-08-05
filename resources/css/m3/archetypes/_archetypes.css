@@ -1,0 +1,160 @@
+/*
+ * Composición de arquetipos de pantalla.
+ *
+ * El arquetipo no es una plantilla rígida: es un contrato de regiones
+ * (identidad, navegación, acciones, controles, contenido y contexto) y de
+ * cómo se reorganizan en móvil, tableta y escritorio.
+ */
+
+.md-module-controls {
+  margin-bottom: var(--md-sys-space-sm);
+}
+
+/* Solo una acción primaria domina por contexto. */
+[data-region='actions'] {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-space-xs);
+  flex-wrap: wrap;
+}
+
+/* ===== Listado ===== */
+
+.md-archetype--list [data-region='content'] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-space-sm);
+}
+
+/* ===== Detalle ===== */
+
+.md-archetype--detail [data-region='content'] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-space-md);
+}
+
+.md-archetype--detail .md-section:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== Dashboard ===== */
+
+.md-archetype--dashboard [data-region='content'] {
+  display: grid;
+  gap: var(--md-sys-space-md);
+}
+
+/* ===== Registro diario ===== */
+
+.md-archetype--daily-log [data-region='controls'] {
+  position: sticky;
+  top: 0;
+  z-index: var(--md-sys-z-sticky);
+  padding-block: var(--md-sys-space-2xs);
+  background: var(--md-sys-color-surface);
+}
+
+.md-archetype--daily-log [data-region='content'] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-space-sm);
+}
+
+/* ===== Configuración ===== */
+
+.md-archetype--settings [data-region='content'] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-space-lg);
+  max-width: 760px;
+}
+
+.md-archetype--settings .md-section__header {
+  align-items: center;
+}
+
+/* ===== Flujo guiado ===== */
+
+.md-archetype--guided-flow [data-region='content'] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-space-md);
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.md-flow-steps {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.md-flow-step {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-space-2xs);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-flow-step[aria-current='step'] {
+  color: var(--md-sys-color-primary);
+  font-weight: 600;
+}
+
+.md-flow-step__marker {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-high);
+  font-size: 0.75rem;
+}
+
+.md-flow-step[aria-current='step'] .md-flow-step__marker {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.md-flow-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--md-sys-space-xs);
+  flex-wrap: wrap;
+}
+
+/*
+ * Responsive.
+ *
+ * En móvil todo fluye en una columna, el rail queda después del contenido
+ * principal y ninguna acción esencial desaparece: solo cambia su disposición.
+ */
+@media (max-width: 767.98px) {
+  .md-module-shell [data-region='actions'] {
+    width: 100%;
+  }
+
+  .md-archetype--daily-log [data-region='controls'] {
+    position: static;
+  }
+
+  .md-archetype--guided-flow [data-region='content'],
+  .md-archetype--settings [data-region='content'] {
+    max-width: none;
+  }
+}
+
+/* Ningún arquetipo produce desplazamiento horizontal de la página. */
+.md-module-shell,
+.md-module-shell [data-region='content'],
+.md-module-shell [data-region='context'],
+.md-module-shell [data-region='controls'] {
+  max-width: 100%;
+  min-width: 0;
+}

@@ -28,3 +28,8 @@ database/database.sqlite
 *.sln
 *.sw?
 firebase-admin-key.json
+
+# Resultados de las pruebas de navegador (los baselines sí se versionan)
+/storage/framework/testing/playwright
+/test-results
+/playwright-report

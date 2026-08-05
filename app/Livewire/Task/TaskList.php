@@ -479,13 +479,17 @@ class TaskList extends Component
         $tasks = $query->chronological()
             ->paginate(25);
 
+        // `CURDATE()` y `NOW()` no existen en SQLite: se pasan como parámetros.
+        $today = today()->toDateString();
+        $now = now()->toDateTimeString();
+
         $stats = Task::selectRaw('
             SUM(CASE WHEN completed = 0 THEN 1 ELSE 0 END) as pending_count,
             SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed_count,
-            SUM(CASE WHEN completed = 1 AND DATE(completed_at) = CURDATE() THEN 1 ELSE 0 END) as completed_today,
-            SUM(CASE WHEN completed = 0 AND (DATE(start_date) = CURDATE() OR DATE(end_date) = CURDATE()) THEN 1 ELSE 0 END) as planned_today,
-            SUM(CASE WHEN completed = 0 AND (end_date < NOW() OR (end_date IS NULL AND start_date < NOW())) THEN 1 ELSE 0 END) as overdue_count
-        ')->first();
+            SUM(CASE WHEN completed = 1 AND DATE(completed_at) = ? THEN 1 ELSE 0 END) as completed_today,
+            SUM(CASE WHEN completed = 0 AND (DATE(start_date) = ? OR DATE(end_date) = ?) THEN 1 ELSE 0 END) as planned_today,
+            SUM(CASE WHEN completed = 0 AND (end_date < ? OR (end_date IS NULL AND start_date < ?)) THEN 1 ELSE 0 END) as overdue_count
+        ', [$today, $today, $today, $now, $now])->first();
 
         $categoryBreakdown = Task::where('completed', true)
             ->whereDate('completed_at', today())

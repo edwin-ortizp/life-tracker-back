@@ -1,0 +1,170 @@
+/*
+ * Catálogo interno del sistema de diseño.
+ *
+ * Solo se sirve en desarrollo y pruebas; consume los mismos componentes
+ * públicos que las pantallas reales.
+ */
+
+.md-catalog {
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+}
+
+.md-catalog__skip {
+  position: absolute;
+  left: -999px;
+}
+
+.md-catalog__skip:focus-visible {
+  left: var(--md-sys-space-md);
+  top: var(--md-sys-space-md);
+  z-index: var(--md-sys-z-navigation);
+  padding: var(--md-sys-space-xs) var(--md-sys-space-sm);
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.md-catalog__shell {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: var(--md-sys-space-lg);
+  align-items: start;
+  width: min(100%, 1440px);
+  margin-inline: auto;
+  padding: var(--md-sys-space-lg);
+}
+
+.md-catalog__nav {
+  position: sticky;
+  top: var(--md-sys-space-lg);
+  padding: var(--md-sys-space-md);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-lowest);
+}
+
+.md-catalog__brand a {
+  color: var(--md-sys-color-on-surface);
+  text-decoration: none;
+}
+
+.md-catalog__nav-title {
+  margin: var(--md-sys-space-sm) 0 var(--md-sys-space-2xs);
+  color: var(--md-sys-color-on-surface-variant);
+  text-transform: uppercase;
+}
+
+.md-catalog__nav-list {
+  display: grid;
+  gap: var(--md-sys-space-3xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.md-catalog__nav-link {
+  display: block;
+  padding: var(--md-sys-space-2xs) var(--md-sys-space-xs);
+  border-radius: var(--md-sys-shape-corner-small);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.md-catalog__nav-link:hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+}
+
+.md-catalog__nav-link.active {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.md-catalog__main {
+  min-width: 0;
+}
+
+.md-catalog__header {
+  display: grid;
+  gap: var(--md-sys-space-2xs);
+  margin-bottom: var(--md-sys-space-lg);
+  max-width: 70ch;
+}
+
+.md-catalog__grid {
+  display: grid;
+  gap: var(--md-sys-space-md);
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.md-catalog__examples {
+  display: grid;
+  gap: var(--md-sys-space-md);
+}
+
+.md-catalog__example {
+  padding: var(--md-sys-space-md);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-lowest);
+  min-width: 0;
+}
+
+.md-catalog__example-header {
+  display: grid;
+  gap: var(--md-sys-space-3xs);
+  margin-bottom: var(--md-sys-space-sm);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-catalog__demo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--md-sys-space-sm);
+  padding: var(--md-sys-space-md);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-low);
+  min-width: 0;
+}
+
+.md-catalog__demo--stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.md-catalog__demo > * {
+  min-width: 0;
+}
+
+.md-catalog__code {
+  margin: var(--md-sys-space-sm) 0 0;
+  padding: var(--md-sys-space-sm);
+  overflow-x: auto;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.75rem;
+}
+
+.md-catalog__note {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+@media (max-width: 1023.98px) {
+  .md-catalog__shell {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--md-sys-space-md);
+  }
+
+  .md-catalog__nav {
+    position: static;
+  }
+}
+
+/* Vista previa de un arquetipo: sin rail de navegación de la aplicación. */
+.md-main-content--catalog {
+  margin-left: 0;
+  padding-bottom: var(--md-sys-space-lg);
+}

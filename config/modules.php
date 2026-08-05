@@ -21,7 +21,7 @@ return [
             ['label' => 'Objetivos', 'route' => 'goals', 'icon' => 'bi-flag', 'active' => ['goals*']],
         ]],
         'food' => ['label' => 'Alimentación', 'icon' => 'bi-egg-fried', 'items' => [
-            ['label' => 'Comidas', 'route' => 'meals.weekly', 'icon' => 'bi-egg-fried', 'active' => ['meals*']],
+            ['label' => 'Comidas', 'route' => 'meals.weekly', 'archetype' => 'dashboard', 'icon' => 'bi-egg-fried', 'active' => ['meals*']],
         ]],
         'life' => ['label' => 'Vida personal', 'icon' => 'bi-person-heart', 'items' => [
             ['label' => 'Diario', 'route' => 'journal', 'icon' => 'bi-journal-text', 'active' => ['journal*']],
@@ -32,6 +32,7 @@ return [
         ]],
     ],
     'home' => [
+        'archetype' => 'dashboard',
         'title' => 'Mi día',
         'subtitle' => 'Una vista coordinada de lo que importa hoy.',
         'icon' => 'bi-sunrise',
@@ -39,6 +40,7 @@ return [
         'preserve' => ['date'],
     ],
     'water' => [
+        'archetype' => 'daily-log',
         'title' => 'Hidratación',
         'subtitle' => 'Registra tu consumo y observa el ritmo de cumplimiento.',
         'icon' => 'bi-droplet',
@@ -46,58 +48,70 @@ return [
         'preserve' => ['date', 'period'],
         'tabs' => [
             ['label' => 'Registro diario', 'route' => 'water.daily', 'icon' => 'bi-droplet-half', 'active' => ['water.daily']],
-            ['label' => 'Calendario', 'route' => 'water.calendar', 'icon' => 'bi-calendar3', 'active' => ['water.calendar']],
-            ['label' => 'Semanal', 'route' => 'water.weekly', 'icon' => 'bi-bar-chart-line', 'active' => ['water.weekly']],
-            ['label' => 'Rango', 'route' => 'water.range', 'icon' => 'bi-graph-up', 'active' => ['water.range']],
-            ['label' => 'Ajustes', 'route' => 'water.settings', 'icon' => 'bi-sliders', 'active' => ['water.settings']],
+            ['label' => 'Calendario', 'route' => 'water.calendar', 'archetype' => 'dashboard', 'icon' => 'bi-calendar3', 'active' => ['water.calendar']],
+            ['label' => 'Semanal', 'route' => 'water.weekly', 'archetype' => 'dashboard', 'icon' => 'bi-bar-chart-line', 'active' => ['water.weekly']],
+            ['label' => 'Rango', 'route' => 'water.range', 'archetype' => 'dashboard', 'icon' => 'bi-graph-up', 'active' => ['water.range']],
+            ['label' => 'Ajustes', 'route' => 'water.settings', 'archetype' => 'settings', 'icon' => 'bi-sliders', 'active' => ['water.settings']],
         ],
     ],
     'exercise' => [
+        'archetype' => 'daily-log',
         'title' => 'Ejercicio', 'subtitle' => 'Actividad, esfuerzo y progreso físico.', 'icon' => 'bi-activity',
         'patterns' => ['exercise*'], 'preserve' => ['date'],
     ],
     'health' => [
+        'archetype' => 'list',
         'title' => 'Salud', 'subtitle' => 'Historial, síntomas y seguimiento corporal.', 'icon' => 'bi-heart-pulse',
         'patterns' => ['health*'], 'preserve' => ['period', 'type'],
         'tabs' => [
             ['label' => 'Registro', 'route' => 'health', 'icon' => 'bi-clock-history', 'active' => ['health']],
-            ['label' => 'Vista del cuerpo', 'route' => 'health.body', 'icon' => 'bi-person-standing', 'active' => ['health.body']],
+            ['label' => 'Vista del cuerpo', 'route' => 'health.body', 'archetype' => 'detail', 'icon' => 'bi-person-standing', 'active' => ['health.body']],
         ],
     ],
     'vehicles' => [
+        'archetype' => 'list',
         'title' => 'Vehículos', 'subtitle' => 'Mantenimiento, consumo y próximos cuidados.', 'icon' => 'bi-car-front',
         'patterns' => ['vehicles*'], 'preserve' => [],
     ],
     'habits' => [
+        'archetype' => 'daily-log',
         'title' => 'Hábitos', 'subtitle' => 'Constancia diaria y perspectiva semanal.', 'icon' => 'bi-check2-square',
         'patterns' => ['habits*'], 'preserve' => ['date'],
         'tabs' => [
             ['label' => 'Registro diario', 'route' => 'habits', 'icon' => 'bi-check2-square', 'active' => ['habits']],
-            ['label' => 'Resumen semanal', 'route' => 'habits.weekly', 'icon' => 'bi-bar-chart-line', 'active' => ['habits.weekly']],
+            ['label' => 'Resumen semanal', 'route' => 'habits.weekly', 'archetype' => 'dashboard', 'icon' => 'bi-bar-chart-line', 'active' => ['habits.weekly']],
         ],
     ],
     'mood' => [
+        'archetype' => 'daily-log',
         'title' => 'Ánimo y energía', 'subtitle' => 'Registra cómo te sientes y con cuánta energía cuentas.', 'icon' => 'bi-emoji-smile',
         'patterns' => ['mood*'], 'preserve' => ['date'],
+        'tabs' => [
+            ['label' => 'Registro diario', 'route' => 'mood', 'icon' => 'bi-emoji-smile', 'active' => ['mood']],
+            ['label' => 'Ajustes', 'route' => 'mood.settings', 'archetype' => 'settings', 'icon' => 'bi-sliders', 'active' => ['mood.settings']],
+        ],
     ],
     'journal' => [
+        'archetype' => 'list',
         'title' => 'Diario', 'subtitle' => 'Pensamientos, emociones y perspectiva en un mismo lugar.', 'icon' => 'bi-journal-text',
         'patterns' => ['journal*'], 'preserve' => ['date', 'week'],
         'tabs' => [
             ['label' => 'Entradas', 'route' => 'journal', 'icon' => 'bi-journal-text', 'active' => ['journal']],
-            ['label' => 'Vida', 'route' => 'journal.life', 'icon' => 'bi-grid-3x3-gap', 'active' => ['journal.life']],
-            ['label' => 'Semana', 'route' => 'journal.life.week', 'icon' => 'bi-calendar-week', 'active' => ['journal.life.week']],
+            ['label' => 'Vida', 'route' => 'journal.life', 'archetype' => 'dashboard', 'icon' => 'bi-grid-3x3-gap', 'active' => ['journal.life']],
+            ['label' => 'Semana', 'route' => 'journal.life.week', 'archetype' => 'detail', 'icon' => 'bi-calendar-week', 'active' => ['journal.life.week']],
         ],
     ],
     'pomodoro' => [
+        'archetype' => 'daily-log',
         'title' => 'Pomodoro', 'subtitle' => 'Tiempo de enfoque, pausas y constancia.', 'icon' => 'bi-stopwatch',
         'patterns' => ['pomodoro*'], 'preserve' => ['date'],
         'tabs' => [
             ['label' => 'Temporizador', 'route' => 'pomodoro', 'icon' => 'bi-stopwatch', 'active' => ['pomodoro']],
-            ['label' => 'Ajustes', 'route' => 'pomodoro.settings', 'icon' => 'bi-sliders', 'active' => ['pomodoro.settings']],
+            ['label' => 'Ajustes', 'route' => 'pomodoro.settings', 'archetype' => 'settings', 'icon' => 'bi-sliders', 'active' => ['pomodoro.settings']],
         ],
     ],
     'meals' => [
+        'archetype' => 'list',
         'title' => 'Comidas', 'subtitle' => 'Planifica la semana sin perder de vista el día.', 'icon' => 'bi-egg-fried',
         'patterns' => ['meals*'], 'preserve' => ['date'],
         'tabs' => [
@@ -108,34 +122,46 @@ return [
         ],
     ],
     'tasks' => [
+        'archetype' => 'list',
         'title' => 'Tareas', 'subtitle' => 'Decide, ordena y completa el trabajo con claridad.', 'icon' => 'bi-list-check',
         'patterns' => ['tasks*'], 'preserve' => ['date', 'status', 'category'],
         'tabs' => [
             ['label' => 'Lista', 'route' => 'tasks.list', 'icon' => 'bi-list-task', 'active' => ['tasks.list']],
-            ['label' => 'Gantt', 'route' => 'tasks.gantt', 'icon' => 'bi-bar-chart-steps', 'active' => ['tasks.gantt']],
-            ['label' => 'Flujo', 'route' => 'tasks.flow', 'icon' => 'bi-signpost-split', 'active' => ['tasks.flow']],
-            ['label' => 'Kanban', 'route' => 'tasks.kanban', 'icon' => 'bi-kanban', 'active' => ['tasks.kanban']],
-            ['label' => 'Planificación', 'route' => 'tasks.planning', 'icon' => 'bi-calendar-week', 'active' => ['tasks.planning']],
-            ['label' => 'Progreso', 'route' => 'tasks.progress', 'icon' => 'bi-trophy', 'active' => ['tasks.progress']],
+            ['label' => 'Gantt', 'route' => 'tasks.gantt', 'archetype' => 'dashboard', 'icon' => 'bi-bar-chart-steps', 'active' => ['tasks.gantt']],
+            ['label' => 'Flujo', 'route' => 'tasks.flow', 'archetype' => 'dashboard', 'icon' => 'bi-signpost-split', 'active' => ['tasks.flow']],
+            ['label' => 'Kanban', 'route' => 'tasks.kanban', 'archetype' => 'dashboard', 'icon' => 'bi-kanban', 'active' => ['tasks.kanban']],
+            ['label' => 'Planificación', 'route' => 'tasks.planning', 'archetype' => 'dashboard', 'icon' => 'bi-calendar-week', 'active' => ['tasks.planning']],
+            ['label' => 'Progreso', 'route' => 'tasks.progress', 'archetype' => 'dashboard', 'icon' => 'bi-trophy', 'active' => ['tasks.progress']],
         ],
     ],
     'relationships' => [
+        'archetype' => 'list',
         'title' => 'Relaciones', 'subtitle' => 'Personas, círculos y momentos que quieres cuidar.', 'icon' => 'bi-people',
-        'patterns' => ['relationships*'], 'preserve' => ['circle', 'status', 'archived'],
+        'patterns' => ['relationships*'],
+        'preserve' => ['circle', 'status', 'archived', 'q', 'tag', 'category', 'period', 'month'],
+        'tabs' => [
+            ['label' => 'Relaciones', 'route' => 'relationships', 'icon' => 'bi-people', 'active' => ['relationships']],
+            ['label' => 'Acontecimientos', 'route' => 'relationships.events', 'icon' => 'bi-calendar-event', 'active' => ['relationships.events']],
+            ['label' => 'Cumpleaños', 'route' => 'relationships.birthdays', 'icon' => 'bi-cake2', 'active' => ['relationships.birthdays']],
+        ],
     ],
     'goals' => [
+        'archetype' => 'list',
         'title' => 'Objetivos', 'subtitle' => 'Resultados, avances y próximos pasos.', 'icon' => 'bi-flag',
         'patterns' => ['goals*'], 'preserve' => ['status'],
     ],
     'statistics' => [
+        'archetype' => 'dashboard',
         'title' => 'Estadísticas', 'subtitle' => 'Patrones y tendencias de tu actividad.', 'icon' => 'bi-bar-chart',
         'patterns' => ['statistics*'], 'preserve' => ['days'],
     ],
     'negative-habits' => [
+        'archetype' => 'daily-log',
         'title' => 'Hábitos a evitar', 'subtitle' => 'Observa patrones sin perder de vista tu progreso.', 'icon' => 'bi-shield-check',
         'patterns' => ['negative-habits*'], 'preserve' => ['date'],
     ],
     'settings' => [
+        'archetype' => 'settings',
         'title' => 'Ajustes generales', 'subtitle' => 'Perfil, seguridad y preferencias que afectan toda la aplicación.', 'icon' => 'bi-gear',
         'patterns' => ['settings*'], 'preserve' => [],
     ],

@@ -1,0 +1,32 @@
+{
+    "description": "Inventario de deuda visual. Una contribución puede conservarla, no aumentarla.",
+    "totals": {
+        "base-selector-override": 30
+    },
+    "files": {
+        "resources/css/m3/modules/_goals.css": {
+            "base-selector-override": 1
+        },
+        "resources/css/m3/modules/_habits.css": {
+            "base-selector-override": 2
+        },
+        "resources/css/m3/modules/_health.css": {
+            "base-selector-override": 2
+        },
+        "resources/css/m3/modules/_meals.css": {
+            "base-selector-override": 1
+        },
+        "resources/css/m3/modules/_mood.css": {
+            "base-selector-override": 2
+        },
+        "resources/css/m3/modules/_relationships.css": {
+            "base-selector-override": 3
+        },
+        "resources/css/m3/modules/_tasks.css": {
+            "base-selector-override": 13
+        },
+        "resources/css/m3/modules/_vehicles.css": {
+            "base-selector-override": 6
+        }
+    }
+}

@@ -6,19 +6,10 @@
     </x-slot:actions>
 
     {{-- Search + Filters --}}
-    <div x-data="{ openMenu: null }" @click.outside="openMenu = null" class="mb-3">
-        <div class="md-search-bar mb-2">
-            <i class="bi bi-search md-search-bar__icon"></i>
-            <input type="text" wire:model.live.debounce.300ms="search"
-                   class="md-search-bar__input" placeholder="Buscar recetas...">
-            @if($search)
-                <button wire:click="$set('search', '')" class="md-search-bar__clear">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            @endif
-        </div>
+    <x-ui.filter-bar search="search" placeholder="Buscar recetas..." label="Filtros de recetas">
+        <x-slot:chips>
 
-        <div class="md-chip-rail">
+        
             <button wire:click="$toggle('favoriteFilter')"
                     class="md-chip md-chip-filter {{ $favoriteFilter ? 'selected' : '' }}">
                 <i class="bi bi-heart{{ $favoriteFilter ? '-fill' : '' }}"></i> Favoritos
@@ -59,8 +50,8 @@
                     @endforeach
                 </div>
             </div>
-        </div>
-    </div>
+        </x-slot:chips>
+    </x-ui.filter-bar>
 
     {{-- Recipe Grid --}}
     @if ($recipes->isEmpty())

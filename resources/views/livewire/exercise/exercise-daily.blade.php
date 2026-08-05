@@ -1,163 +1,96 @@
+@php
+    use App\Support\Ui\DataState;
+
+    $logsState = DataState::resolve(visible: $logs->count(), total: $logs->count());
+@endphp
+
 <x-module-shell module="exercise" x-data="{ showDialog: $wire.entangle('showForm') }">
     <x-slot:actions>
         <x-date-navigator :date="$selectedDate" format="D d M" />
         <x-module-actions :primary="['label' => 'Registrar ejercicio', 'icon' => 'bi-plus-lg', 'action' => 'openForm']" />
     </x-slot:actions>
 
-    {{-- Daily Stats --}}
-    <div class="row g-3 mb-3">
-        <div class="col-4">
-            <div class="md-card-filled text-center" style="height: 100%;">
-                <div class="md-card-icon mx-auto mb-1" style="background: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container); width: 40px; height: 40px;">
-                    <i class="bi bi-fire" style="font-size: 1.125rem;"></i>
-                </div>
-                <div class="md-title-large" style="color: var(--md-sys-color-error);">{{ number_format($totalCalories) }}</div>
-                <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);">kcal</span>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="md-card-filled text-center" style="height: 100%;">
-                <div class="md-card-icon mx-auto mb-1" style="background: var(--md-custom-color-info-container); color: var(--md-custom-color-on-info-container); width: 40px; height: 40px;">
-                    <i class="bi bi-clock" style="font-size: 1.125rem;"></i>
-                </div>
-                <div class="md-title-large" style="color: var(--md-custom-color-info);">{{ $totalDuration }}</div>
-                <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);">min</span>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="md-card-filled text-center" style="height: 100%;">
-                <div class="md-card-icon mx-auto mb-1" style="background: var(--md-custom-color-success-container); color: var(--md-custom-color-on-success-container); width: 40px; height: 40px;">
-                    <i class="bi bi-signpost-2" style="font-size: 1.125rem;"></i>
-                </div>
-                <div class="md-title-large" style="color: var(--md-custom-color-success);">{{ number_format($totalSteps) }}</div>
-                <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);">pasos</span>
-            </div>
-        </div>
-    </div>
+    <x-ui.section title="Resumen del día" :level="2">
+        <x-ui.metric-grid label="Resumen del día">
+            <x-ui.metric label="Calorías" icon="bi-fire" tone="danger" :value="number_format($totalCalories)" unit="kcal" />
+            <x-ui.metric label="Duración" icon="bi-clock" tone="info" :value="$totalDuration" unit="min" />
+            <x-ui.metric label="Pasos" icon="bi-signpost-2" tone="success" :value="number_format($totalSteps)" unit="pasos" />
+        </x-ui.metric-grid>
+    </x-ui.section>
 
-    {{-- Exercise Log --}}
-    <div class="md-card-elevated" style="padding: 0; overflow: hidden;">
-        <div style="padding: 16px 16px 8px 16px;">
-            <h3 class="md-title-small mb-0" style="color: var(--md-sys-color-on-surface);">
-                <i class="bi bi-list-ul" style="color: var(--md-sys-color-on-surface-variant);"></i> Actividades del día
-            </h3>
-        </div>
-        @forelse ($logs as $log)
-            <div class="md-list-item">
-                <div class="md-list-item-leading">
-                    <div class="md-list-icon-circle" style="background: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container);">
-                        <span style="font-size: 1rem;">{{ $log->exerciseType?->icon ?? '🏃' }}</span>
-                    </div>
-                </div>
-                <div class="md-list-item-content">
-                    <div class="md-list-item-headline">{{ $log->exerciseType?->name ?? 'Ejercicio' }}</div>
-                    <div class="md-list-item-supporting">
-                        @if ($log->duration) {{ $log->duration }} min @endif
-                        @if ($log->calories) · {{ $log->calories }} kcal @endif
-                        @if ($log->sets && $log->reps) · {{ $log->sets }}x{{ $log->reps }} @endif
-                        @if ($log->weight) · {{ $log->weight }}kg @endif
-                        @if ($log->distance) · {{ $log->distance }}km @endif
-                        @if ($log->steps) · {{ number_format($log->steps) }} pasos @endif
-                    </div>
-                    @if ($log->notes)
-                        <div class="md-list-item-supporting" style="font-style: italic;">{{ $log->notes }}</div>
-                    @endif
-                </div>
-                <div class="md-list-item-trailing">
-                    <button wire:click="openForm('{{ $log->id }}')" class="md-btn-icon" title="Editar">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button wire:click="delete('{{ $log->id }}')" wire:confirm="¿Eliminar este registro?" class="md-btn-icon" title="Eliminar" style="color: var(--md-sys-color-error);">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </div>
-        @empty
-            <div class="text-center py-5" style="color: var(--md-sys-color-on-surface-variant);">
-                <i class="bi bi-activity" style="font-size: 3rem; opacity: 0.4;"></i>
-                <p class="md-body-large mt-3 mb-0">Sin ejercicios registrados</p>
-            </div>
-        @endforelse
-    </div>
+    <x-ui.section title="Actividades del día" :level="3">
+        @if ($logsState === DataState::CONTENT)
+            <x-ui.list label="Actividades del día">
+                @foreach ($logs as $log)
+                    @php
+                        $detail = collect([
+                            $log->duration ? $log->duration.' min' : null,
+                            $log->calories ? $log->calories.' kcal' : null,
+                            $log->sets && $log->reps ? $log->sets.'x'.$log->reps : null,
+                            $log->weight ? $log->weight.' kg' : null,
+                            $log->distance ? $log->distance.' km' : null,
+                            $log->steps ? number_format($log->steps).' pasos' : null,
+                        ])->filter()->implode(' · ');
+                    @endphp
 
-    {{-- Dialog --}}
-    <template x-if="showDialog">
-        <div>
-            <div class="md-dialog-scrim" @click="showDialog = false"></div>
-            <div class="md-dialog" @click.stop>
-                <h2 class="md-dialog-headline md-headline-small">{{ $editingId ? 'Editar' : 'Nuevo' }} Ejercicio</h2>
-                <div class="md-dialog-content">
-                    <div class="d-flex flex-column gap-3">
-                        <div class="md-text-field">
-                            <select wire:model.live="exerciseTypeId" id="ex-type">
-                                <option value="">Seleccionar...</option>
-                                @foreach ($exerciseTypes as $type)
-                                    <option value="{{ $type->id }}">{{ $type->icon ?? '🏃' }} {{ $type->name }}</option>
-                                @endforeach
-                            </select>
-                            <label for="ex-type">Tipo de ejercicio</label>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="md-text-field">
-                                    <input type="number" wire:model.live="duration" placeholder=" " id="ex-dur" min="0">
-                                    <label for="ex-dur">Duración (min)</label>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="md-text-field">
-                                    <input type="number" wire:model="calories" placeholder=" " id="ex-cal" min="0">
-                                    <label for="ex-cal">Calorías</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-4">
-                                <div class="md-text-field">
-                                    <input type="number" wire:model="sets" placeholder=" " id="ex-sets" min="0">
-                                    <label for="ex-sets">Series</label>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="md-text-field">
-                                    <input type="number" wire:model="reps" placeholder=" " id="ex-reps" min="0">
-                                    <label for="ex-reps">Reps</label>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="md-text-field">
-                                    <input type="number" wire:model="weight" placeholder=" " id="ex-weight" min="0" step="0.5">
-                                    <label for="ex-weight">Peso (kg)</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="md-text-field">
-                                    <input type="number" wire:model="distance" placeholder=" " id="ex-dist" min="0" step="0.1">
-                                    <label for="ex-dist">Distancia (km)</label>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="md-text-field">
-                                    <input type="number" wire:model="steps" placeholder=" " id="ex-steps" min="0">
-                                    <label for="ex-steps">Pasos</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="md-text-field">
-                            <input type="text" wire:model="notes" placeholder=" " id="ex-notes">
-                            <label for="ex-notes">Notas (opcional)</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="md-dialog-actions">
-                    <button @click="showDialog = false" class="md-btn-text">Cancelar</button>
-                    <button wire:click="save" class="md-btn-filled">
-                        <i class="bi bi-check-lg"></i> {{ $editingId ? 'Actualizar' : 'Guardar' }}
-                    </button>
-                </div>
-            </div>
+                    <x-ui.list-item :headline="$log->exerciseType?->name ?? 'Ejercicio'"
+                                    :supporting="$detail"
+                                    wire:key="exercise-{{ $log->id }}">
+                        <x-slot:leading>
+                            <span class="md-list-icon-circle" aria-hidden="true">{{ $log->exerciseType?->icon ?? '🏃' }}</span>
+                        </x-slot:leading>
+
+                        @if ($log->notes)
+                            <p class="md-list-item-supporting md-list-item-note">{{ $log->notes }}</p>
+                        @endif
+
+                        <x-slot:trailing>
+                            <x-ui.icon-action icon="bi-pencil" label="Editar el registro de {{ $log->exerciseType?->name ?? 'ejercicio' }}"
+                                              wire:click="openForm('{{ $log->id }}')" />
+                            <x-ui.destructive-action label="Eliminar el registro de {{ $log->exerciseType?->name ?? 'ejercicio' }}" :iconOnly="true"
+                                                     action="delete('{{ $log->id }}')"
+                                                     title="Eliminar registro"
+                                                     message="El registro de actividad se elimina de forma permanente." />
+                        </x-slot:trailing>
+                    </x-ui.list-item>
+                @endforeach
+            </x-ui.list>
+        @else
+            <x-ui.state variant="empty" icon="bi-activity" title="Sin ejercicios registrados"
+                        message="Registra tu primera actividad para ver aquí el detalle del día.">
+                <x-slot:actions>
+                    <x-ui.action variant="filled" icon="bi-plus-lg" wire:click="openForm">Registrar ejercicio</x-ui.action>
+                </x-slot:actions>
+            </x-ui.state>
+        @endif
+    </x-ui.section>
+
+    <x-ui.dialog state="showDialog" title="{{ $editingId ? 'Editar ejercicio' : 'Nuevo ejercicio' }}">
+        <x-ui.select name="exerciseTypeId" label="Tipo de ejercicio" placeholder="Seleccionar..."
+                     :options="$exerciseTypes->mapWithKeys(fn ($type) => [$type->id => ($type->icon ?? '🏃').' '.$type->name])->all()"
+                     wire:model.live="exerciseTypeId" />
+
+        <div class="md-field-pair">
+            <x-ui.field name="duration" label="Duración (min)" type="number" min="0" wire:model.live="duration" />
+            <x-ui.field name="calories" label="Calorías" type="number" min="0" wire:model="calories" />
         </div>
-    </template>
+
+        <div class="md-field-trio">
+            <x-ui.field name="sets" label="Series" type="number" min="0" wire:model="sets" />
+            <x-ui.field name="reps" label="Reps" type="number" min="0" wire:model="reps" />
+            <x-ui.field name="weight" label="Peso (kg)" type="number" min="0" step="0.5" wire:model="weight" />
+        </div>
+
+        <div class="md-field-pair">
+            <x-ui.field name="distance" label="Distancia (km)" type="number" min="0" step="0.1" wire:model="distance" />
+            <x-ui.field name="steps" label="Pasos" type="number" min="0" wire:model="steps" />
+        </div>
+
+        <x-ui.field name="notes" label="Notas (opcional)" wire:model="notes" />
+
+        <x-slot:actions>
+            <x-ui.action variant="text" x-on:click="showDialog = false">Cancelar</x-ui.action>
+            <x-ui.action variant="filled" icon="bi-check-lg" wire:click="save">{{ $editingId ? 'Actualizar' : 'Guardar' }}</x-ui.action>
+        </x-slot:actions>
+    </x-ui.dialog>
 </x-module-shell>

@@ -145,6 +145,21 @@ class User extends Authenticatable
         return $this->hasMany(Relationship::class);
     }
 
+    public function moodReflections()
+    {
+        return $this->hasMany(MoodReflection::class);
+    }
+
+    public function relationshipTags()
+    {
+        return $this->hasMany(RelationshipTag::class);
+    }
+
+    public function relationshipEvents()
+    {
+        return $this->hasMany(RelationshipEvent::class);
+    }
+
     public function taskAssociations()
     {
         return $this->hasMany(TaskAssociation::class);

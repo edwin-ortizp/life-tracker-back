@@ -1,0 +1,60 @@
+/* Series compactas del panel de estadísticas. */
+
+.stat-series {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--md-sys-space-3xs);
+  height: 100px;
+}
+
+.stat-series--compact {
+  height: 80px;
+}
+
+.stat-series__column {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--md-sys-space-3xs);
+  min-width: 0;
+}
+
+.stat-series__bar {
+  width: 100%;
+  max-width: 30px;
+  min-height: 2px;
+  /* La altura es el único valor calculado: viaja por custom property. */
+  height: var(--md-bar-size, 0px);
+  border-radius: var(--md-sys-shape-corner-extra-small) var(--md-sys-shape-corner-extra-small) 0 0;
+  background: var(--md-sys-color-primary);
+  opacity: 0.75;
+}
+
+.stat-series__label {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.stat-series--water .stat-series__bar { background: var(--md-sys-color-primary); }
+.stat-series--exercise .stat-series__bar { background: var(--md-sys-color-error); }
+.stat-series--habits .stat-series__bar { background: var(--md-custom-color-success); }
+.stat-series--mood .stat-series__bar { background: var(--md-custom-color-success); opacity: 0.5; max-width: 24px; }
+.stat-series--energy .stat-series__bar { background: var(--md-custom-color-warning); opacity: 0.5; max-width: 24px; }
+
+.stat-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--md-sys-space-md);
+}
+
+.stat-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--md-sys-space-md);
+}
+
+@media (max-width: 767.98px) {
+  .stat-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,244 +1,173 @@
 <x-module-shell module="settings">
     @if ($successMessage)
-        <div class="md-card-filled mb-3 d-flex align-items-center justify-content-between" style="background: var(--md-custom-color-success-container); color: var(--md-custom-color-on-success-container);">
-            <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-check-circle-fill"></i>
-                <span class="md-body-medium">{{ $successMessage }}</span>
-            </div>
-            <button class="md-btn-icon" wire:click="$set('successMessage', '')" style="color: var(--md-custom-color-on-success-container);">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
+        <x-ui.snackbar>
+            {{ $successMessage }}
+
+            <x-slot:actions>
+                <x-ui.icon-action icon="bi-x-lg" size="sm" label="Cerrar aviso" wire:click="$set('successMessage', '')" />
+            </x-slot:actions>
+        </x-ui.snackbar>
     @endif
 
-    {{-- Profile --}}
-    <div class="md-card-outlined mb-3">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <i class="bi bi-person" style="color: var(--md-sys-color-on-surface-variant); font-size: 1.25rem;"></i>
-            <span class="md-title-medium" style="color: var(--md-sys-color-on-surface);">Perfil</span>
-        </div>
-        <div class="d-flex flex-column gap-3">
-            <div class="md-text-field">
-                <input type="text" wire:model="fullName" placeholder=" " id="set-name">
-                <label for="set-name">Nombre completo</label>
-            </div>
-            <div class="md-text-field">
-                <input type="email" value="{{ $email }}" disabled placeholder=" " id="set-email" style="color: var(--md-sys-color-on-surface-variant);">
-                <label for="set-email">Email</label>
-                <div class="md-supporting-text">El email no puede modificarse.</div>
-            </div>
-            <div>
-                <button wire:click="updateProfile" class="md-btn-filled">
-                    <i class="bi bi-check-lg"></i> Guardar Perfil
-                </button>
-            </div>
-        </div>
-    </div>
+    <x-ui.section title="Perfil" :level="2">
+        <x-ui.card variant="outlined" icon="bi-person" iconTone="secondary">
+            <x-ui.field name="fullName" label="Nombre completo" wire:model="fullName" />
+            <x-ui.field name="settingsEmail" label="Email" type="email" :value="$email" :disabled="true"
+                        help="El email no puede modificarse." />
 
-    {{-- Physical profile --}}
-    <div class="md-card-outlined mb-3">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <i class="bi bi-heart-pulse" style="color: var(--md-sys-color-on-surface-variant); font-size: 1.25rem;"></i>
-            <span class="md-title-medium" style="color: var(--md-sys-color-on-surface);">Datos físicos</span>
-        </div>
-        <div class="d-flex flex-column gap-3">
-            <div class="row g-3">
-                <div class="col-sm-6">
-                    <div class="md-text-field {{ $errors->has('currentWeightKg') ? 'md-error' : '' }}">
-                        <input type="number" wire:model="currentWeightKg" placeholder=" " id="set-current-weight" min="20" max="500" step="0.1">
-                        <label for="set-current-weight">Peso actual (kg)</label>
-                        @error('currentWeightKg') <div class="md-supporting-text">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-                <div class="col-sm-6">
-                    <div class="md-text-field {{ $errors->has('heightCm') ? 'md-error' : '' }}">
-                        <input type="number" wire:model="heightCm" placeholder=" " id="set-height" min="50" max="300" step="1">
-                        <label for="set-height">Estatura (cm)</label>
-                        @error('heightCm') <div class="md-supporting-text">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-            </div>
-            <div class="row g-3">
-                <div class="col-sm-6">
-                    <div class="md-text-field {{ $errors->has('birthDate') ? 'md-error' : '' }}">
-                        <input type="date" wire:model="birthDate" placeholder=" " id="set-birth-date">
-                        <label for="set-birth-date">Fecha de nacimiento</label>
-                        @error('birthDate') <div class="md-supporting-text">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-                <div class="col-sm-6">
-                    <div class="md-text-field {{ $errors->has('lifeExpectancyYears') ? 'md-error' : '' }}">
-                        <input type="number" wire:model="lifeExpectancyYears" placeholder=" " id="set-life-expectancy" min="1" max="130" step="1">
-                        <label for="set-life-expectancy">Expectativa de vida (años)</label>
-                        <div class="md-supporting-text">Referencia personal opcional para tu calendario de vida.</div>
-                        @error('lifeExpectancyYears') <div class="md-supporting-text">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-            </div>
-            <div class="row g-3">
-                <div class="col-sm-6">
-                    <div class="md-text-field {{ $errors->has('activityLevel') ? 'md-error' : '' }}">
-                        <select wire:model="activityLevel" id="set-activity-level">
-                            <option value="">No especificado</option>
-                            <option value="sedentary">Sedentario</option>
-                            <option value="light">Ligero</option>
-                            <option value="moderate">Moderado</option>
-                            <option value="high">Alto</option>
-                            <option value="very_high">Muy alto</option>
-                        </select>
-                        <label for="set-activity-level">Nivel de actividad</label>
-                        @error('activityLevel') <div class="md-supporting-text">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-            </div>
-            <div>
-                <button wire:click="updateProfile" class="md-btn-filled">
-                    <i class="bi bi-check-lg"></i> Guardar datos físicos
-                </button>
-            </div>
-        </div>
-    </div>
+            <x-slot:actions>
+                <x-ui.action variant="filled" icon="bi-check-lg" wire:click="updateProfile">Guardar perfil</x-ui.action>
+            </x-slot:actions>
+        </x-ui.card>
+    </x-ui.section>
 
-    <div class="md-card-outlined mb-3 d-flex align-items-center justify-content-between gap-3 flex-wrap">
-        <div><div class="md-title-medium">Preferencias de cada módulo</div><p class="md-body-small mb-0" style="color: var(--md-sys-color-on-surface-variant);">Las metas y catálogos específicos se administran dentro del módulo correspondiente.</p></div>
-        <a href="{{ route('water.settings') }}" class="md-btn-outlined"><i class="bi bi-droplet"></i> Ajustes de hidratación</a>
-    </div>
-
-    {{-- Obsidian integration --}}
-    <div class="md-card-outlined mb-3" style="border-color: var(--md-sys-color-primary);">
-        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
-            <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-left-right" style="color: var(--md-sys-color-primary); font-size: 1.25rem;"></i>
-                <div>
-                    <div class="md-title-medium">Integración con Obsidian</div>
-                    <div class="md-body-small" style="color: var(--md-sys-color-on-surface-variant);">Permite a n8n registrar resúmenes, ánimo y energía desde tus notas.</div>
-                </div>
+    <x-ui.section title="Datos físicos" :level="2">
+        <x-ui.card variant="outlined" icon="bi-heart-pulse" iconTone="secondary">
+            <div class="md-field-pair">
+                <x-ui.field name="currentWeightKg" label="Peso actual (kg)" type="number" min="20" max="500" step="0.1" wire:model="currentWeightKg" />
+                <x-ui.field name="heightCm" label="Estatura (cm)" type="number" min="50" max="300" step="1" wire:model="heightCm" />
             </div>
-            @if ($activeObsidianToken)
-                <span class="md-label-medium px-2 py-1 rounded-pill" style="background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);">Activo</span>
-            @endif
-        </div>
 
-        <div class="d-flex flex-column gap-3">
-            <p class="md-body-small mb-0" style="color: var(--md-sys-color-on-surface-variant);">
-                El token sólo permite acceder al catálogo de ánimo y crear registros importados. Guárdalo en las credenciales de n8n; LifeTracker nunca lo volverá a mostrar.
+            <div class="md-field-pair">
+                <x-ui.field name="birthDate" label="Fecha de nacimiento" type="date" wire:model="birthDate" />
+                <x-ui.field name="lifeExpectancyYears" label="Expectativa de vida (años)" type="number" min="1" max="130" step="1"
+                            help="Referencia personal opcional para tu calendario de vida." wire:model="lifeExpectancyYears" />
+            </div>
+
+            <x-ui.select name="activityLevel" label="Nivel de actividad" placeholder="No especificado"
+                         :options="[
+                             'sedentary' => 'Sedentario',
+                             'light' => 'Ligero',
+                             'moderate' => 'Moderado',
+                             'high' => 'Alto',
+                             'very_high' => 'Muy alto',
+                         ]"
+                         wire:model="activityLevel" />
+
+            <x-slot:actions>
+                <x-ui.action variant="filled" icon="bi-check-lg" wire:click="updateProfile">Guardar datos físicos</x-ui.action>
+            </x-slot:actions>
+        </x-ui.card>
+    </x-ui.section>
+
+    <x-ui.section title="Preferencias de cada módulo"
+                  description="Las metas y catálogos específicos se administran dentro del módulo correspondiente."
+                  :level="2">
+        <x-slot:actions>
+            <x-ui.action variant="outlined" icon="bi-droplet" :href="route('water.settings')">Ajustes de hidratación</x-ui.action>
+        </x-slot:actions>
+    </x-ui.section>
+
+    <x-ui.section title="Integración con Obsidian"
+                  description="Permite a n8n registrar resúmenes, ánimo y energía desde tus notas."
+                  :level="2">
+        <x-ui.card variant="outlined" icon="bi-arrow-left-right">
+            <x-slot:header>
+                @if ($activeObsidianToken)
+                    <x-ui.chip variant="tonal" tone="primary">Activo</x-ui.chip>
+                @endif
+            </x-slot:header>
+
+            <p class="md-body-small">
+                El token sólo permite acceder al catálogo de ánimo y crear registros importados. Guárdalo en las
+                credenciales de n8n; LifeTracker nunca lo volverá a mostrar.
             </p>
 
             @if ($obsidianIntegrationToken)
-                <div class="p-3 rounded" style="background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);">
-                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                <div class="md-secret">
+                    <div class="md-secret__header">
                         <span class="md-label-large">Token nuevo — cópialo ahora</span>
-                        <button wire:click="hideObsidianToken" class="md-btn-icon" title="Ocultar token" style="color: inherit;"><i class="bi bi-x-lg"></i></button>
+                        <x-ui.icon-action icon="bi-x-lg" size="sm" label="Ocultar token" wire:click="hideObsidianToken" />
                     </div>
-                    <code class="d-block text-break user-select-all">{{ $obsidianIntegrationToken }}</code>
+                    <code class="md-secret__value">{{ $obsidianIntegrationToken }}</code>
                 </div>
             @endif
 
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <button wire:click="createOrRotateObsidianToken" class="md-btn-filled">
-                    <i class="bi bi-key"></i> {{ $activeObsidianToken ? 'Rotar token' : 'Generar token' }}
-                </button>
+            @if ($activeObsidianToken)
+                <p class="md-body-small">Generado {{ $activeObsidianToken->created_at->diffForHumans() }}.</p>
+            @endif
+
+            <x-slot:actions>
+                <x-ui.action variant="filled" icon="bi-key" wire:click="createOrRotateObsidianToken">
+                    {{ $activeObsidianToken ? 'Rotar token' : 'Generar token' }}
+                </x-ui.action>
                 @if ($activeObsidianToken)
-                    <button wire:click="revokeObsidianToken" wire:confirm="¿Revocar este token? n8n dejará de poder enviar registros." class="md-btn-outlined" style="color: var(--md-sys-color-error); border-color: var(--md-sys-color-error);">
-                        <i class="bi bi-slash-circle"></i> Revocar
-                    </button>
-                    <span class="md-body-small" style="color: var(--md-sys-color-on-surface-variant);">Generado {{ $activeObsidianToken->created_at->diffForHumans() }}.</span>
+                    <x-ui.destructive-action label="Revocar" icon="bi-slash-circle" variant="outlined"
+                                             action="revokeObsidianToken"
+                                             title="Revocar el token de Obsidian"
+                                             message="n8n dejará de poder enviar registros con este token." />
                 @endif
-            </div>
-        </div>
-    </div>
+            </x-slot:actions>
+        </x-ui.card>
+    </x-ui.section>
 
-    {{-- CalDAV integration --}}
-    <div class="md-card-outlined mb-3" style="border-color: var(--md-sys-color-secondary);">
-        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
-            <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-calendar-check" style="color: var(--md-sys-color-secondary); font-size: 1.25rem;"></i>
-                <div>
-                    <div class="md-title-medium">Tareas por CalDAV</div>
-                    <div class="md-body-small" style="color: var(--md-sys-color-on-surface-variant);">Sincroniza tus tareas con DAVx5, Tasks.org y otros clientes CalDAV.</div>
+    <x-ui.section title="Tareas por CalDAV"
+                  description="Sincroniza tus tareas con DAVx5, Tasks.org y otros clientes CalDAV."
+                  :level="2">
+        <x-ui.card variant="outlined" icon="bi-calendar-check" iconTone="secondary">
+            <x-slot:header>
+                @if ($activeCalDavToken)
+                    <x-ui.chip variant="tonal">Activo</x-ui.chip>
+                @endif
+            </x-slot:header>
+
+            <dl class="md-context-list">
+                <div><dt>Servidor</dt><dd class="md-secret__value">{{ $calDavUrl }}</dd></div>
+                <div><dt>Usuario</dt><dd class="md-secret__value">{{ auth()->user()->email }}</dd></div>
+                <div><dt>Lista</dt><dd>Life Tracker</dd></div>
+            </dl>
+
+            <p class="md-body-small">
+                En Tasks.org activa «dejar que el servidor programe tareas recurrentes». Usa HTTPS fuera de tu red local.
+            </p>
+
+            @if ($calDavPassword)
+                <div class="md-secret">
+                    <div class="md-secret__header">
+                        <span class="md-label-large">Contraseña nueva — cópiala ahora</span>
+                        <x-ui.icon-action icon="bi-x-lg" size="sm" label="Ocultar contraseña" wire:click="hideCalDavPassword" />
+                    </div>
+                    <code class="md-secret__value">{{ $calDavPassword }}</code>
                 </div>
-            </div>
-            @if ($activeCalDavToken)
-                <span class="md-label-medium px-2 py-1 rounded-pill" style="background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);">Activo</span>
             @endif
-        </div>
 
-        <dl class="md-context-list mb-3">
-            <div><dt>Servidor</dt><dd class="user-select-all">{{ $calDavUrl }}</dd></div>
-            <div><dt>Usuario</dt><dd class="user-select-all">{{ auth()->user()->email }}</dd></div>
-            <div><dt>Lista</dt><dd>Life Tracker</dd></div>
-        </dl>
-
-        <p class="md-body-small" style="color: var(--md-sys-color-on-surface-variant);">En Tasks.org activa “dejar que el servidor programe tareas recurrentes”. Usa HTTPS fuera de tu red local.</p>
-
-        @if ($calDavPassword)
-            <div class="p-3 rounded mb-3" style="background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);">
-                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                    <span class="md-label-large">Contraseña nueva — cópiala ahora</span>
-                    <button wire:click="hideCalDavPassword" class="md-btn-icon" title="Ocultar contraseña" style="color: inherit;"><i class="bi bi-x-lg"></i></button>
-                </div>
-                <code class="d-block text-break user-select-all">{{ $calDavPassword }}</code>
-            </div>
-        @endif
-
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <button wire:click="createOrRotateCalDavPassword" class="md-btn-filled"><i class="bi bi-key"></i> {{ $activeCalDavToken ? 'Rotar contraseña' : 'Generar contraseña' }}</button>
             @if ($activeCalDavToken)
-                <button wire:click="revokeCalDavPassword" wire:confirm="¿Revocar el acceso CalDAV? Los dispositivos dejarán de sincronizar." class="md-btn-outlined" style="color: var(--md-sys-color-error); border-color: var(--md-sys-color-error);"><i class="bi bi-slash-circle"></i> Revocar</button>
-                <span class="md-body-small" style="color: var(--md-sys-color-on-surface-variant);">Último uso: {{ $activeCalDavToken->last_used_at?->diffForHumans() ?? 'nunca' }}.</span>
+                <p class="md-body-small">Último uso: {{ $activeCalDavToken->last_used_at?->diffForHumans() ?? 'nunca' }}.</p>
             @endif
-        </div>
-    </div>
 
-    {{-- Change Password --}}
-    <div class="md-card-outlined mb-3">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <i class="bi bi-lock" style="color: var(--md-sys-color-on-surface-variant); font-size: 1.25rem;"></i>
-            <span class="md-title-medium" style="color: var(--md-sys-color-on-surface);">Cambiar Contraseña</span>
-        </div>
-        <div class="d-flex flex-column gap-3">
-            <div class="md-text-field {{ $errors->has('currentPassword') ? 'md-error' : '' }}">
-                <input type="password" wire:model="currentPassword" placeholder=" " id="set-curpw">
-                <label for="set-curpw">Contraseña actual</label>
-                @error('currentPassword') <div class="md-supporting-text">{{ $message }}</div> @enderror
-            </div>
-            <div class="md-text-field {{ $errors->has('newPassword') ? 'md-error' : '' }}">
-                <input type="password" wire:model="newPassword" placeholder=" " id="set-newpw">
-                <label for="set-newpw">Nueva contraseña</label>
-                @error('newPassword') <div class="md-supporting-text">{{ $message }}</div> @enderror
-            </div>
-            <div class="md-text-field {{ $errors->has('newPasswordConfirmation') ? 'md-error' : '' }}">
-                <input type="password" wire:model="newPasswordConfirmation" placeholder=" " id="set-confpw">
-                <label for="set-confpw">Confirmar nueva contraseña</label>
-                @error('newPasswordConfirmation') <div class="md-supporting-text">{{ $message }}</div> @enderror
-            </div>
-            <div>
-                <button wire:click="updatePassword" class="md-btn-tonal" style="background: var(--md-custom-color-warning-container); color: var(--md-custom-color-on-warning-container);">
-                    <i class="bi bi-lock"></i> Cambiar Contraseña
-                </button>
-            </div>
-        </div>
-    </div>
+            <x-slot:actions>
+                <x-ui.action variant="filled" icon="bi-key" wire:click="createOrRotateCalDavPassword">
+                    {{ $activeCalDavToken ? 'Rotar contraseña' : 'Generar contraseña' }}
+                </x-ui.action>
+                @if ($activeCalDavToken)
+                    <x-ui.destructive-action label="Revocar" icon="bi-slash-circle" variant="outlined"
+                                             action="revokeCalDavPassword"
+                                             title="Revocar el acceso CalDAV"
+                                             message="Los dispositivos dejarán de sincronizar tus tareas." />
+                @endif
+            </x-slot:actions>
+        </x-ui.card>
+    </x-ui.section>
 
-    {{-- App Info --}}
-    <div class="md-card-outlined">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <i class="bi bi-info-circle" style="color: var(--md-sys-color-on-surface-variant); font-size: 1.25rem;"></i>
-            <span class="md-title-medium" style="color: var(--md-sys-color-on-surface);">Aplicación</span>
-        </div>
-        <div class="d-flex flex-column gap-2">
-            <div class="d-flex justify-content-between">
-                <span class="md-body-medium" style="color: var(--md-sys-color-on-surface-variant);">Versión</span>
-                <span class="md-body-medium" style="color: var(--md-sys-color-on-surface);">1.0.0</span>
-            </div>
-            <div class="d-flex justify-content-between">
-                <span class="md-body-medium" style="color: var(--md-sys-color-on-surface-variant);">Stack</span>
-                <span class="md-body-medium" style="color: var(--md-sys-color-on-surface);">Laravel {{ app()->version() }} + Livewire</span>
-            </div>
-            <div class="d-flex justify-content-between">
-                <span class="md-body-medium" style="color: var(--md-sys-color-on-surface-variant);">PHP</span>
-                <span class="md-body-medium" style="color: var(--md-sys-color-on-surface);">{{ phpversion() }}</span>
-            </div>
-        </div>
-    </div>
+    <x-ui.section title="Cambiar contraseña" :level="2">
+        <x-ui.card variant="outlined" icon="bi-lock" iconTone="secondary">
+            <x-ui.field name="currentPassword" label="Contraseña actual" type="password" wire:model="currentPassword" />
+            <x-ui.field name="newPassword" label="Nueva contraseña" type="password" wire:model="newPassword" />
+            <x-ui.field name="newPasswordConfirmation" label="Confirmar nueva contraseña" type="password" wire:model="newPasswordConfirmation" />
+
+            <x-slot:actions>
+                <x-ui.action variant="tonal" tone="warning" icon="bi-lock" wire:click="updatePassword">Cambiar contraseña</x-ui.action>
+            </x-slot:actions>
+        </x-ui.card>
+    </x-ui.section>
+
+    <x-ui.section title="Aplicación" :level="2">
+        <x-ui.card variant="outlined" icon="bi-info-circle" iconTone="secondary">
+            <dl class="md-context-list">
+                <div><dt>Versión</dt><dd>1.0.0</dd></div>
+                <div><dt>Stack</dt><dd>Laravel {{ app()->version() }} + Livewire</dd></div>
+                <div><dt>PHP</dt><dd>{{ phpversion() }}</dd></div>
+            </dl>
+        </x-ui.card>
+    </x-ui.section>
 </x-module-shell>

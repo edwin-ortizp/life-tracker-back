@@ -4,6 +4,7 @@ namespace App\Livewire\Home;
 
 use App\Livewire\Concerns\HandlesRecurringTaskCompletion;
 use App\Livewire\Concerns\HasUrlDate;
+use App\Livewire\Concerns\LogsMoodProgressively;
 use App\Models\DrinkLog;
 use App\Models\DrinkType;
 use App\Models\EnergyEntry;
@@ -28,7 +29,7 @@ use Livewire\Attributes\Title;
 #[Title('Inicio')]
 class Dashboard extends Component
 {
-    use HandlesRecurringTaskCompletion, HasUrlDate;
+    use HandlesRecurringTaskCompletion, HasUrlDate, LogsMoodProgressively;
 
     public const MEAL_TYPES = [
         'desayuno' => 'Desayuno',
@@ -76,22 +77,10 @@ class Dashboard extends Component
         ]);
     }
 
+    /** One tap through the shared logger, so Inicio matches Ánimo and Diario exactly. */
     public function saveMood(string $moodStateId): void
     {
-        $moodState = MoodState::find($moodStateId);
-        if (!$moodState) return;
-
-        $now = now();
-
-        MoodEntry::create([
-            'date' => $this->selectedDate,
-            'emoji' => $moodState->emoji,
-            'text' => $moodState->text,
-            'value' => $moodState->value,
-            'time' => $now->format('H:i'),
-            'timestamp' => $now->timestamp,
-            'mood_state_id' => $moodStateId,
-        ]);
+        $this->logMood($moodStateId);
     }
 
     public function saveEnergy(int $level): void
@@ -140,9 +129,9 @@ class Dashboard extends Component
         $drinkTypes = DrinkType::orderBy('name')->get();
 
         // Mood & energy
-        $lastMood = MoodEntry::where('date', $date)->latest('timestamp')->first();
-        $lastEnergy = EnergyEntry::where('date', $date)->latest('timestamp')->first();
-        $moodStates = MoodState::orderBy('value', 'desc')->get();
+        $lastMood = MoodEntry::whereDate('date', $date)->latest('timestamp')->first();
+        $lastEnergy = EnergyEntry::whereDate('date', $date)->latest('timestamp')->first();
+        $moodStates = $this->moodLogger()->prioritizedStates();
 
         // Habits: pending ones for the current time block + anytime
         $habits = HabitDefinition::orderBy('base_time')->get();
@@ -212,6 +201,7 @@ class Dashboard extends Component
             'journalEntry' => $journalEntry,
             'vehicleAlerts' => $vehicleAlerts,
             'weeklyTrend' => $this->weeklyTrend($waterGoal, $totalHabits),
+            ...$this->moodProgressiveData(),
         ]);
     }
 

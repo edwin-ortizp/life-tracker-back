@@ -22,7 +22,7 @@ class ModuleExperienceTest extends TestCase
         foreach ([
             '/', '/water/daily', '/water/calendar', '/water/weekly', '/water/range', '/water/settings',
             '/exercise', '/health', '/health/body', '/vehicles', '/habits', '/habits/weekly', '/mood',
-            '/journal', '/journal/life', '/journal/life/week?week=2026-W28', '/pomodoro', '/meals',
+            '/journal', '/journal/life', '/journal/life/week?week=2026-W28', '/pomodoro', '/meals/weekly',
             '/tasks/list', '/tasks/gantt', '/tasks/flow', '/tasks/kanban', '/tasks/planning', '/tasks/progress',
             '/relationships', '/goals', '/statistics', '/negative-habits', '/settings',
         ] as $url) {
@@ -46,10 +46,11 @@ class ModuleExperienceTest extends TestCase
         $tasks = $this->actingAs($user)->get('/tasks/list')->assertOk();
         $tasks->assertSee('Nueva tarea')
             ->assertSee('Varias tareas')
-            ->assertSee('Estado de las tareas')
-            ->assertSee('<div class="md-module-primary">', false)
+            ->assertSee('Vistas relacionadas')
+            ->assertSee('<div class="md-module-primary" data-region="content">', false)
             ->assertDontSee('<main class="md-module-primary">', false)
-            ->assertSee('<div class="col-12 col-md-3">', false)
+            ->assertSee('<div class="md-module-workspace">', false)
+            ->assertSee('data-region="context"', false)
             ->assertSee("\$wire.entangle('showForm')", false);
         $this->assertSame(1, substr_count($tasks->getContent(), 'md-module-primary-fab'));
 

@@ -1,0 +1,79 @@
+/*
+ * Tratamiento de foco compartido.
+ *
+ * Todo primitivo interactivo del sistema recibe el mismo anillo de foco
+ * visible, independientemente de su variante o de la capa que lo componga.
+ */
+
+.md-focus-ring:focus-visible,
+.md-btn-filled:focus-visible,
+.md-btn-tonal:focus-visible,
+.md-btn-outlined:focus-visible,
+.md-btn-text:focus-visible,
+.md-btn-icon:focus-visible,
+.md-fab:focus-visible,
+.md-chip:focus-visible,
+.md-field__control:focus-visible,
+.md-list-item:focus-visible,
+.md-search-bar__input:focus-visible,
+.md-search-bar__clear:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+/* El foco dentro de superficies densas no debe recortarse. */
+.md-list-item:focus-visible,
+.md-chip:focus-visible {
+  position: relative;
+  z-index: var(--md-sys-z-base);
+}
+
+/* Estados compartidos de indisponibilidad. */
+[aria-disabled='true'],
+.md-is-disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.md-is-loading {
+  cursor: progress;
+}
+
+.md-is-loading > .md-spinner {
+  display: inline-flex;
+}
+
+.md-spinner {
+  display: none;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--md-sys-shape-corner-full);
+  animation: md-spin var(--md-sys-motion-duration-long1) linear infinite;
+}
+
+@keyframes md-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-spinner {
+    animation-duration: 2s;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

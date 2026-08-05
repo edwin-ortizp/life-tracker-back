@@ -3,11 +3,16 @@
         @if ($lastMood)
             <div class="journal-mood-current"><span>{{ $lastMood->emoji }}</span><div><strong>{{ $lastMood->text }}</strong><small>{{ $lastMood->time }}</small></div></div>
         @endif
-        <div class="journal-mood-picker" aria-label="Registrar estado de ánimo">
-            @foreach ($moodStates as $state)
-                <button wire:click="saveMood('{{ $state->id }}')" title="{{ $state->text }}" aria-label="Registrar {{ $state->text }}"><span>{{ $state->emoji }}</span><small>{{ $state->text }}</small></button>
-            @endforeach
-        </div>
+        @if ($moodStates->isEmpty())
+            <x-mood-empty-catalog />
+        @else
+            <div class="journal-mood-picker" aria-label="Registrar estado de ánimo">
+                @foreach ($moodStates as $state)
+                    <button wire:click="saveMood('{{ $state->id }}')" title="{{ $state->text }}" aria-label="Registrar {{ $state->text }}"><span>{{ $state->emoji }}</span><small>{{ $state->text }}</small></button>
+                @endforeach
+                <button wire:click="openMoodCatalog" title="Más emociones" aria-label="Más emociones"><span><i class="bi bi-three-dots"></i></span><small>Más</small></button>
+            </div>
+        @endif
     </x-context-widget>
 
     <x-context-widget title="Energía" icon="bi-lightning-charge" tone="warning">
@@ -28,4 +33,6 @@
         <p class="mb-2">Escribir junto a tu estado de ánimo ayuda a reconocer qué situaciones cambian tu energía.</p>
         <a href="{{ route('mood', ['date' => $selectedDate]) }}" class="md-btn-text w-100">Abrir historial emocional</a>
     </x-context-widget>
+
+    @include('livewire.mood.partials.progressive')
 </div>

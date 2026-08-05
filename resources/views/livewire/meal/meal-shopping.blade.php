@@ -4,19 +4,8 @@
     </x-slot:actions>
 
     {{-- Search + Filters --}}
-    <div x-data="{ openMenu: null }" @click.outside="openMenu = null" class="mb-3">
-        <div class="md-search-bar mb-2">
-            <i class="bi bi-search md-search-bar__icon"></i>
-            <input type="text" wire:model.live.debounce.300ms="search"
-                   class="md-search-bar__input" placeholder="Buscar en lista de compras...">
-            @if($search)
-                <button wire:click="$set('search', '')" class="md-search-bar__clear">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            @endif
-        </div>
-
-        <div class="md-chip-rail">
+    <x-ui.filter-bar search="search" placeholder="Buscar en lista de compras..." label="Filtros de la compra">
+        <x-slot:chips>
             <button wire:click="setViewMode('compact')"
                     class="md-chip md-chip-filter {{ $viewMode === 'compact' ? 'selected' : '' }}">
                 <i class="bi bi-list"></i> Compacta
@@ -54,8 +43,8 @@
                     </div>
                 </div>
             @endif
-        </div>
-    </div>
+        </x-slot:chips>
+    </x-ui.filter-bar>
 
     {{-- Needed from meal plan --}}
     @if ($neededItems->isNotEmpty())

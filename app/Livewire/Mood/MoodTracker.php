@@ -3,27 +3,37 @@
 namespace App\Livewire\Mood;
 
 use App\Livewire\Concerns\HasUrlDate;
+use App\Livewire\Concerns\LogsMoodProgressively;
 use App\Models\EnergyEntry;
 use App\Models\MoodEntry;
 use App\Models\MoodState;
 use Carbon\Carbon;
-use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Layout('layouts.app')]
 #[Title('Estado de Ánimo')]
 class MoodTracker extends Component
 {
-    use HasUrlDate;
+    use HasUrlDate, LogsMoodProgressively;
 
-    // Mood form
-    public string $selectedMoodStateId = '';
-    public bool $showMoodForm = false;
+    // Editing an entry's primary emotion from the history
+    public bool $showEditForm = false;
+
+    public ?string $editingEntryId = null;
+
+    public string $editMoodStateId = '';
+
+    // Reflection wizard
+    public ?string $reflectionEntryId = null;
 
     // Energy form
     public int $energyLevel = 3;
+
     public string $energyComment = '';
+
     public bool $showEnergyForm = false;
 
     public function mount()
@@ -46,40 +56,59 @@ class MoodTracker extends Component
         $this->selectedDate = now()->toDateString();
     }
 
-    public function openMoodForm()
-    {
-        $this->selectedMoodStateId = '';
-        $this->showMoodForm = true;
-    }
-
-    public function closeMoodForm()
-    {
-        $this->showMoodForm = false;
-    }
-
+    /** One tap saves; context and reflection stay optional afterwards. */
     public function saveMood(string $moodStateId)
     {
-        $moodState = MoodState::find($moodStateId);
-        if (!$moodState) return;
+        $this->logMood($moodStateId);
+    }
 
-        $now = now();
+    public function openEditForm(string $entryId): void
+    {
+        $entry = MoodEntry::findOrFail($entryId);
 
-        MoodEntry::create([
-            'date' => $this->selectedDate,
-            'emoji' => $moodState->emoji,
-            'text' => $moodState->text,
-            'value' => $moodState->value,
-            'time' => $now->format('H:i'),
-            'timestamp' => $now->timestamp,
-            'mood_state_id' => $moodStateId,
-        ]);
+        $this->editingEntryId = $entry->id;
+        $this->editMoodStateId = $entry->mood_state_id ?? '';
+        $this->showEditForm = true;
+    }
 
-        $this->showMoodForm = false;
+    public function closeEditForm(): void
+    {
+        $this->showEditForm = false;
+        $this->editingEntryId = null;
+    }
+
+    /** Replaces the single primary emotion, leaving intensity, situation and links intact. */
+    public function updateMoodState(string $moodStateId): void
+    {
+        $entry = MoodEntry::findOrFail($this->editingEntryId);
+        $state = MoodState::findOrFail($moodStateId);
+
+        $entry->applyMoodState($state);
+        $this->closeEditForm();
     }
 
     public function deleteMood(string $id)
     {
-        MoodEntry::where('id', $id)->delete();
+        MoodEntry::whereKey($id)->first()?->delete();
+
+        if ($this->lastMoodEntryId === $id) {
+            $this->lastMoodEntryId = null;
+        }
+
+        if ($this->reflectionEntryId === $id) {
+            $this->reflectionEntryId = null;
+        }
+    }
+
+    public function openReflection(string $entryId): void
+    {
+        $this->reflectionEntryId = MoodEntry::findOrFail($entryId)->id;
+    }
+
+    #[On('reflection-closed')]
+    public function closeReflection(): void
+    {
+        $this->reflectionEntryId = null;
     }
 
     public function openEnergyForm()
@@ -118,23 +147,24 @@ class MoodTracker extends Component
 
     public function render()
     {
-        $moodEntries = MoodEntry::where('date', $this->selectedDate)
+        $moodEntries = MoodEntry::whereDate('date', $this->selectedDate)
+            ->with(['reflection', 'relationships'])
             ->orderByDesc('timestamp')
             ->get();
 
-        $energyEntries = EnergyEntry::where('date', $this->selectedDate)
+        $energyEntries = EnergyEntry::whereDate('date', $this->selectedDate)
             ->orderByDesc('timestamp')
             ->get();
-
-        $moodStates = MoodState::orderBy('value', 'desc')->get();
 
         $avgEnergy = $energyEntries->avg('level');
 
         return view('livewire.mood.mood-tracker', [
             'moodEntries' => $moodEntries,
             'energyEntries' => $energyEntries,
-            'moodStates' => $moodStates,
+            'moodStates' => $this->moodLogger()->catalog(),
+            'prioritizedStates' => $this->moodLogger()->prioritizedStates(),
             'avgEnergy' => $avgEnergy,
+            ...$this->moodProgressiveData(),
         ]);
     }
 }

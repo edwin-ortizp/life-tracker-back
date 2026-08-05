@@ -1,0 +1,77 @@
+name: Calidad de interfaz
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+# Orden de fallo rápido: lo más barato primero.
+# 1. conformidad estática  2. pruebas PHP/JavaScript  3. accesibilidad  4. regresión visual
+jobs:
+  ui-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, sqlite3, pdo_sqlite
+          coverage: none
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias PHP
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Instalar dependencias JavaScript
+        run: npm ci
+
+      - name: Preparar entorno
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          npm run build
+
+      # 1. Conformidad estática: no se admite deuda visual nueva.
+      - name: Conformidad del sistema de diseño
+        run: php artisan ui:conformance
+
+      # 2. Contrato renderizado y lógica de la aplicación.
+      - name: Pruebas PHP
+        run: php artisan test
+
+      - name: Pruebas JavaScript
+        run: npm run test:js
+
+      # 3. Comportamiento de navegador: teclado, foco y accesibilidad.
+      - name: Instalar navegador
+        run: npx playwright install --with-deps chromium
+
+      - name: Teclado y foco
+        run: npm run test:browser
+
+      - name: Accesibilidad
+        run: npm run test:a11y
+
+      - name: Responsive
+        run: npm run test:responsive
+
+      # 4. Regresión visual: una diferencia no aprobada impide considerar conforme el cambio.
+      - name: Regresión visual
+        run: npm run test:visual
+
+      - name: Publicar diferencias visuales
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diferencias-visuales
+          path: storage/framework/testing/playwright
+          retention-days: 7

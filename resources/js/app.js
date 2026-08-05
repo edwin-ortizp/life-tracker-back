@@ -1,7 +1,9 @@
 import { Alpine, Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
 import { registerPomodoroTimer } from './pomodoro-timer';
+import { registerUiSurfaces } from './ui-surfaces';
 
 registerPomodoroTimer(Alpine);
+registerUiSurfaces(Alpine);
 
 const charts = new WeakMap();
 const pendingCharts = new WeakSet();

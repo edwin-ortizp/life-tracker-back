@@ -4,182 +4,498 @@ namespace App\Livewire\Relationship;
 
 use App\Models\Circle;
 use App\Models\Relationship;
-use Livewire\Component;
+use App\Models\RelationshipContactMethod;
+use App\Models\RelationshipTag;
+use App\Support\Birthday;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
 #[Title('Relaciones')]
 class RelationshipIndex extends Component
 {
+    use WithPagination;
+
+    #[Url(as: 'q', history: true, keep: true)]
+    public string $search = '';
+
     #[Url(as: 'circle', history: true, keep: true)]
     public string $circleFilter = '';
+
+    #[Url(as: 'tag', history: true, keep: true)]
+    public string $tagFilter = '';
 
     #[Url(as: 'archived', history: true, keep: true)]
     public bool $showArchived = false;
 
     // Person form
     public bool $showForm = false;
+
     public ?string $editingId = null;
+
     public string $fullName = '';
+
     public string $nickname = '';
+
+    public string $pronouns = '';
+
+    public string $occupation = '';
+
+    public string $organization = '';
+
+    public string $address = '';
+
+    public string $generalNotes = '';
+
     public string $circleId = '';
-    public string $category = '';
+
+    public string $category = 'otro';
+
     public ?int $birthdayMonth = null;
+
     public ?int $birthdayDay = null;
+
+    public ?int $birthdayYear = null;
+
+    public ?int $contactFrequencyDays = null;
+
+    public array $selectedTags = [];
+
+    public array $contactMethods = [];
 
     // Circle form
     public bool $showCircleForm = false;
+
+    public ?string $editingCircleId = null;
+
     public string $circleName = '';
-    public int $contactFrequencyDays = 30;
+
+    public ?int $circleFrequencyDays = 30;
+
+    // Tag form
+    public bool $showTagForm = false;
+
+    public ?string $editingTagId = null;
+
+    public string $tagName = '';
+
+    public array $categories = [
+        'familia' => 'Familia',
+        'amigo' => 'Amigo',
+        'trabajo' => 'Trabajo',
+        'pareja' => 'Pareja',
+        'otro' => 'Otro',
+    ];
 
     public function mount(): void
     {
-        $this->normalizeCircleFilter();
+        $this->normalizeFilters();
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
     }
 
     public function updatedCircleFilter(): void
     {
-        $this->normalizeCircleFilter();
+        $this->normalizeFilters();
+        $this->resetPage();
     }
 
-    public function openForm(?string $id = null)
+    public function updatedTagFilter(): void
+    {
+        $this->normalizeFilters();
+        $this->resetPage();
+    }
+
+    public function updatedShowArchived(): void
+    {
+        $this->resetPage();
+    }
+
+    public function openForm(?string $id = null): void
     {
         $this->resetForm();
 
         if ($id) {
-            $rel = Relationship::find($id);
-            if ($rel) {
-                $this->editingId = $id;
-                $this->fullName = $rel->full_name;
-                $this->nickname = $rel->nickname ?? '';
-                $this->circleId = $rel->circle_id ?? '';
-                $this->category = $rel->category ?? '';
-                $this->birthdayMonth = $rel->birthday_month;
-                $this->birthdayDay = $rel->birthday_day;
-            }
+            $relationship = Relationship::with(['contactMethods', 'tags'])->findOrFail($id);
+
+            $this->editingId = $relationship->id;
+            $this->fullName = $relationship->full_name;
+            $this->nickname = $relationship->nickname ?? '';
+            $this->pronouns = $relationship->pronouns ?? '';
+            $this->occupation = $relationship->occupation ?? '';
+            $this->organization = $relationship->organization ?? '';
+            $this->address = $relationship->address ?? '';
+            $this->generalNotes = $relationship->general_notes ?? '';
+            $this->circleId = $relationship->circle_id ?? '';
+            $this->category = $relationship->category ?: 'otro';
+            $this->birthdayMonth = $relationship->birthday_month;
+            $this->birthdayDay = $relationship->birthday_day;
+            $this->birthdayYear = $relationship->birthday_year;
+            $this->contactFrequencyDays = $relationship->contact_frequency_days;
+            $this->selectedTags = $relationship->tags->pluck('id')->all();
+            $this->contactMethods = $relationship->contactMethods
+                ->map(fn (RelationshipContactMethod $method) => [
+                    'id' => $method->id,
+                    'type' => $method->type,
+                    'label' => $method->label ?? '',
+                    'value' => $method->value,
+                    'is_primary' => $method->is_primary,
+                ])->all();
         }
 
         $this->showForm = true;
     }
 
-    public function closeForm()
+    public function closeForm(): void
     {
         $this->showForm = false;
-        $this->editingId = null;
         $this->resetForm();
     }
 
-    public function save()
+    public function addContactMethod(): void
     {
-        if (empty(trim($this->fullName))) return;
+        $this->contactMethods[] = ['id' => null, 'type' => 'phone', 'label' => '', 'value' => '', 'is_primary' => false];
+    }
 
-        $data = [
-            'full_name' => trim($this->fullName),
-            'nickname' => $this->nickname ?: null,
-            'circle_id' => $this->circleId ?: null,
-            'category' => $this->category ?: null,
-            'birthday_month' => $this->birthdayMonth,
-            'birthday_day' => $this->birthdayDay,
+    public function removeContactMethod(int $index): void
+    {
+        unset($this->contactMethods[$index]);
+        $this->contactMethods = array_values($this->contactMethods);
+    }
+
+    public function save(): void
+    {
+        $validated = $this->validate($this->formRules(), $this->formMessages());
+
+        if ($validated['birthdayMonth'] && $validated['birthdayDay']
+            && ! Birthday::isValidCombination((int) $validated['birthdayMonth'], (int) $validated['birthdayDay'])) {
+            $this->addError('birthdayDay', 'La combinación de día y mes no existe.');
+
+            return;
+        }
+
+        $attributes = [
+            'full_name' => trim($validated['fullName']),
+            'nickname' => trim($validated['nickname']) ?: null,
+            'pronouns' => trim($validated['pronouns']) ?: null,
+            'occupation' => trim($validated['occupation']) ?: null,
+            'organization' => trim($validated['organization']) ?: null,
+            'address' => trim($validated['address']) ?: null,
+            'general_notes' => trim($validated['generalNotes']) ?: null,
+            'circle_id' => $validated['circleId'] ?: null,
+            'category' => $validated['category'] ?: 'otro',
+            'birthday_month' => $validated['birthdayMonth'] ?: null,
+            'birthday_day' => $validated['birthdayDay'] ?: null,
+            'birthday_year' => $validated['birthdayYear'] ?: null,
+            'contact_frequency_days' => $validated['contactFrequencyDays'] ?: null,
         ];
 
-        if ($this->editingId) {
-            Relationship::where('id', $this->editingId)->update($data);
-        } else {
-            Relationship::create($data);
-        }
+        DB::transaction(function () use ($attributes): void {
+            $relationship = $this->editingId
+                ? tap(Relationship::findOrFail($this->editingId))->update($attributes)
+                : Relationship::create($attributes);
+
+            $relationship->syncTags($this->selectedTags);
+            $this->persistContactMethods($relationship);
+        });
 
         $this->closeForm();
     }
 
-    public function toggleArchive(string $id)
+    public function toggleArchive(string $id): void
     {
-        $rel = Relationship::find($id);
-        if ($rel) {
-            $rel->update([
-                'is_archived' => !$rel->is_archived,
-                'archived_at' => !$rel->is_archived ? now() : null,
-            ]);
-        }
+        $relationship = Relationship::findOrFail($id);
+
+        $relationship->update([
+            'is_archived' => ! $relationship->is_archived,
+            'archived_at' => $relationship->is_archived ? null : now(),
+        ]);
     }
 
-    public function markContact(string $id)
+    public function markContact(string $id): void
     {
-        Relationship::where('id', $id)->update(['last_contact_at' => now()]);
+        Relationship::findOrFail($id)->update(['last_contact_at' => now()]);
     }
 
-    public function delete(string $id)
+    public function delete(string $id): void
     {
-        Relationship::where('id', $id)->delete();
+        Relationship::findOrFail($id)->delete();
     }
 
-    public function openCircleForm()
+    public function openCircleForm(?string $id = null): void
     {
+        $this->editingCircleId = null;
         $this->circleName = '';
-        $this->contactFrequencyDays = 30;
+        $this->circleFrequencyDays = 30;
+
+        if ($id) {
+            $circle = Circle::findOrFail($id);
+            $this->editingCircleId = $circle->id;
+            $this->circleName = $circle->name;
+            $this->circleFrequencyDays = $circle->contact_frequency_days;
+        }
+
+        $this->resetValidation(['circleName', 'circleFrequencyDays']);
         $this->showCircleForm = true;
     }
 
-    public function closeCircleForm()
+    public function saveCircle(): void
     {
+        $validated = $this->validate([
+            'circleName' => ['required', 'string', 'max:120'],
+            'circleFrequencyDays' => ['nullable', 'integer', 'min:1', 'max:3650'],
+        ]);
+
+        $attributes = [
+            'name' => trim($validated['circleName']),
+            'contact_frequency_days' => $validated['circleFrequencyDays'] ?: null,
+        ];
+
+        if ($this->editingCircleId) {
+            Circle::findOrFail($this->editingCircleId)->update($attributes);
+        } else {
+            Circle::create($attributes);
+        }
+
         $this->showCircleForm = false;
     }
 
-    public function saveCircle()
+    public function deleteCircle(string $id): void
     {
-        if (empty(trim($this->circleName))) return;
+        $circle = Circle::findOrFail($id);
 
-        Circle::create([
-            'name' => trim($this->circleName),
-            'contact_frequency_days' => $this->contactFrequencyDays,
+        Relationship::where('circle_id', $circle->id)->update(['circle_id' => null]);
+        $circle->delete();
+
+        if ($this->circleFilter === $id) {
+            $this->circleFilter = '';
+        }
+    }
+
+    public function openTagForm(?string $id = null): void
+    {
+        $this->editingTagId = null;
+        $this->tagName = '';
+
+        if ($id) {
+            $tag = RelationshipTag::findOrFail($id);
+            $this->editingTagId = $tag->id;
+            $this->tagName = $tag->name;
+        }
+
+        $this->resetValidation(['tagName']);
+        $this->showTagForm = true;
+    }
+
+    public function saveTag(): void
+    {
+        $validated = $this->validate([
+            'tagName' => ['required', 'string', 'max:60'],
         ]);
 
-        $this->closeCircleForm();
+        if ($this->editingTagId) {
+            RelationshipTag::findOrFail($this->editingTagId)->update(['name' => trim($validated['tagName'])]);
+        } else {
+            RelationshipTag::create(['name' => trim($validated['tagName'])]);
+        }
+
+        $this->showTagForm = false;
     }
 
-    private function resetForm()
+    public function deleteTag(string $id): void
     {
-        $this->fullName = '';
-        $this->nickname = '';
-        $this->circleId = '';
-        $this->category = '';
-        $this->birthdayMonth = null;
-        $this->birthdayDay = null;
-    }
+        RelationshipTag::findOrFail($id)->delete();
 
-    private function normalizeCircleFilter(): void
-    {
-        if ($this->circleFilter !== '' && !Circle::whereKey($this->circleFilter)->exists()) {
-            $this->circleFilter = '';
+        if ($this->tagFilter === $id) {
+            $this->tagFilter = '';
         }
     }
 
     public function render()
     {
         $circles = Circle::orderBy('sort_order')->orderBy('name')->get();
+        $tags = RelationshipTag::orderBy('sort_order')->orderBy('name')->get();
 
-        $query = Relationship::with('circle');
-
-        if (!$this->showArchived) {
-            $query->where(function ($q) {
-                $q->where('is_archived', false)->orWhereNull('is_archived');
-            });
-        }
-
-        if ($this->circleFilter) {
-            $query->where('circle_id', $this->circleFilter);
-        }
-
-        $relationships = $query->orderBy('full_name')->get();
-        $totalCount = Relationship::where(function ($q) {
-            $q->where('is_archived', false)->orWhereNull('is_archived');
-        })->count();
+        $relationships = $this->filteredQuery()
+            ->with(['circle', 'tags', 'contactMethods'])
+            ->orderBy('full_name')
+            ->paginate(20);
 
         return view('livewire.relationship.relationship-index', [
             'circles' => $circles,
+            'tags' => $tags,
             'relationships' => $relationships,
-            'totalCount' => $totalCount,
+            'activeCount' => Relationship::active()->count(),
+            'archivedCount' => Relationship::archived()->count(),
+            'dueFollowUps' => $this->dueFollowUps(),
+            'nextBirthdays' => $this->nextBirthdays(),
         ]);
+    }
+
+    private function filteredQuery(): Builder
+    {
+        $query = $this->showArchived ? Relationship::archived() : Relationship::active();
+
+        if ($this->circleFilter !== '') {
+            $query->where('circle_id', $this->circleFilter);
+        }
+
+        if ($this->tagFilter !== '') {
+            $query->whereHas('tags', fn (Builder $tag) => $tag->whereKey($this->tagFilter));
+        }
+
+        if (trim($this->search) !== '') {
+            $term = trim($this->search);
+            $normalized = RelationshipContactMethod::normalize($term);
+
+            $query->where(function (Builder $inner) use ($term, $normalized): void {
+                $inner->where('full_name', 'like', "%{$term}%")
+                    ->orWhere('nickname', 'like', "%{$term}%")
+                    ->orWhereHas(
+                        'contactMethods',
+                        fn (Builder $method) => $method
+                            ->where('value', 'like', "%{$term}%")
+                            ->orWhere('value_normalized', 'like', "%{$normalized}%")
+                    );
+            });
+        }
+
+        return $query;
+    }
+
+    /** @return \Illuminate\Support\Collection<int, Relationship> */
+    private function dueFollowUps()
+    {
+        return Relationship::active()
+            ->with('circle')
+            ->whereNotNull('last_contact_at')
+            ->get()
+            ->filter(fn (Relationship $relationship) => $relationship->isFollowUpDue())
+            ->sortBy(fn (Relationship $relationship) => $relationship->followUpDueAt())
+            ->take(5)
+            ->values();
+    }
+
+    /** @return \Illuminate\Support\Collection<int, array{relationship: Relationship, birthday: Birthday}> */
+    private function nextBirthdays()
+    {
+        return Relationship::active()
+            ->withBirthday()
+            ->get()
+            ->map(fn (Relationship $relationship) => [
+                'relationship' => $relationship,
+                'birthday' => $relationship->birthday(),
+            ])
+            ->filter(fn (array $row) => $row['birthday'] !== null)
+            ->sortBy(fn (array $row) => $row['birthday']->daysUntil())
+            ->take(3)
+            ->values();
+    }
+
+    private function persistContactMethods(Relationship $relationship): void
+    {
+        $keptIds = [];
+
+        foreach (array_values($this->contactMethods) as $position => $method) {
+            if (trim((string) ($method['value'] ?? '')) === '') {
+                continue;
+            }
+
+            $attributes = [
+                'type' => $method['type'] ?? 'other',
+                'label' => trim((string) ($method['label'] ?? '')) ?: null,
+                'value' => trim((string) $method['value']),
+                'is_primary' => (bool) ($method['is_primary'] ?? false),
+                'sort_order' => $position,
+            ];
+
+            $existing = $method['id']
+                ? $relationship->contactMethods()->whereKey($method['id'])->first()
+                : null;
+
+            if ($existing) {
+                $existing->update($attributes);
+                $keptIds[] = $existing->id;
+
+                continue;
+            }
+
+            $keptIds[] = $relationship->contactMethods()->create($attributes)->id;
+        }
+
+        $relationship->contactMethods()->whereKeyNot($keptIds)->delete();
+    }
+
+    private function formRules(): array
+    {
+        return [
+            'fullName' => ['required', 'string', 'max:255'],
+            'nickname' => ['nullable', 'string', 'max:120'],
+            'pronouns' => ['nullable', 'string', 'max:60'],
+            'occupation' => ['nullable', 'string', 'max:150'],
+            'organization' => ['nullable', 'string', 'max:150'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'generalNotes' => ['nullable', 'string', 'max:5000'],
+            'circleId' => ['nullable', 'string'],
+            // The legacy free-form category predates circles and tags, so unknown values still load.
+            'category' => ['required', 'string', 'max:60'],
+            'birthdayMonth' => ['nullable', 'integer', 'between:1,12', 'required_with:birthdayDay'],
+            'birthdayDay' => ['nullable', 'integer', 'between:1,31', 'required_with:birthdayMonth'],
+            'birthdayYear' => ['nullable', 'integer', 'between:1900,'.now()->year],
+            'contactFrequencyDays' => ['nullable', 'integer', 'min:1', 'max:3650'],
+            'selectedTags' => ['array'],
+            'contactMethods' => ['array'],
+            'contactMethods.*.type' => ['required', 'in:'.implode(',', array_keys(RelationshipContactMethod::TYPES))],
+            'contactMethods.*.label' => ['nullable', 'string', 'max:60'],
+            'contactMethods.*.value' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    private function formMessages(): array
+    {
+        return [
+            'birthdayMonth.required_with' => 'Indica también el mes de cumpleaños.',
+            'birthdayDay.required_with' => 'Indica también el día de cumpleaños.',
+        ];
+    }
+
+    private function resetForm(): void
+    {
+        $this->editingId = null;
+        $this->fullName = '';
+        $this->nickname = '';
+        $this->pronouns = '';
+        $this->occupation = '';
+        $this->organization = '';
+        $this->address = '';
+        $this->generalNotes = '';
+        $this->circleId = '';
+        $this->category = 'otro';
+        $this->birthdayMonth = null;
+        $this->birthdayDay = null;
+        $this->birthdayYear = null;
+        $this->contactFrequencyDays = null;
+        $this->selectedTags = [];
+        $this->contactMethods = [];
+        $this->resetValidation();
+    }
+
+    private function normalizeFilters(): void
+    {
+        if ($this->circleFilter !== '' && ! Circle::whereKey($this->circleFilter)->exists()) {
+            $this->circleFilter = '';
+        }
+
+        if ($this->tagFilter !== '' && ! RelationshipTag::whereKey($this->tagFilter)->exists()) {
+            $this->tagFilter = '';
+        }
     }
 }

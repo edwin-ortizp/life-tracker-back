@@ -8,27 +8,53 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-/* M3 Design System */
-@import './m3/_tokens.css';
-@import './m3/_typography.css';
-@import './m3/_layout.css';
-@import './m3/components/_navigation.css';
-@import './m3/components/_buttons.css';
-@import './m3/components/_cards.css';
-@import './m3/components/_dialogs.css';
-@import './m3/components/_chips.css';
-@import './m3/components/_search-bar.css';
-@import './m3/components/_text-fields.css';
-@import './m3/components/_lists.css';
-@import './m3/components/_progress.css';
-@import './m3/components/_badges.css';
-@import './m3/components/_module-shell.css';
-@import './m3/components/_goals.css';
-@import './m3/components/_tasks.css';
-@import './m3/components/_health.css';
-@import './m3/components/_habits.css';
-@import './m3/components/_life-calendar.css';
-@import './m3/components/_markdown.css';
-@import './m3/components/_home.css';
-@import './m3/components/_meals.css';
-@import './m3/components/_vehicles.css';
+/*
+ * Sistema de diseño de Life Tracker.
+ *
+ * Las capas se importan en orden y cada una solo puede depender de las
+ * anteriores: tokens -> primitives -> patterns -> archetypes -> modules.
+ * Los archivos de módulo no redefinen selectores de las capas base.
+ */
+
+/* 1. Tokens */
+@import './m3/tokens/_tokens.css';
+
+/* 2. Primitives */
+@import './m3/primitives/_typography.css';
+@import './m3/primitives/_focus.css';
+@import './m3/primitives/_buttons.css';
+@import './m3/primitives/_cards.css';
+@import './m3/primitives/_chips.css';
+@import './m3/primitives/_text-fields.css';
+@import './m3/primitives/_progress.css';
+@import './m3/primitives/_badges.css';
+
+/* 3. Patterns */
+@import './m3/patterns/_dialogs.css';
+@import './m3/patterns/_surfaces.css';
+@import './m3/patterns/_search-bar.css';
+@import './m3/patterns/_lists.css';
+@import './m3/patterns/_metrics.css';
+@import './m3/patterns/_states.css';
+@import './m3/patterns/_markdown.css';
+
+/* 4. Archetypes */
+@import './m3/archetypes/_layout.css';
+@import './m3/archetypes/_navigation.css';
+@import './m3/archetypes/_module-shell.css';
+@import './m3/archetypes/_archetypes.css';
+@import './m3/archetypes/_catalog.css';
+
+/* 5. Modules */
+@import './m3/modules/_goals.css';
+@import './m3/modules/_tasks.css';
+@import './m3/modules/_health.css';
+@import './m3/modules/_habits.css';
+@import './m3/modules/_life-calendar.css';
+@import './m3/modules/_home.css';
+@import './m3/modules/_meals.css';
+@import './m3/modules/_vehicles.css';
+@import './m3/modules/_relationships.css';
+@import './m3/modules/_mood.css';
+@import './m3/modules/_statistics.css';
+@import './m3/modules/_pomodoro.css';
