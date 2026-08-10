@@ -96,7 +96,7 @@ class TaskList extends Component
     public bool $bulkIsPrivate = false;
 
     public array $categories = [
-        'jikko' => 'Jikko',
+        'siigo' => 'Siigo',
         'entreagiles' => 'EntreAgiles',
         'gesthor' => 'Gesthor',
         'certmind' => 'CertMind',

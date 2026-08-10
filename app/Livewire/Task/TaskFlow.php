@@ -48,7 +48,7 @@ class TaskFlow extends Component
     public bool $completed = false;
 
     public array $categories = [
-        'jikko' => 'Jikko',
+        'siigo' => 'Siigo',
         'entreagiles' => 'EntreAgiles',
         'gesthor' => 'Gesthor',
         'certmind' => 'CertMind',

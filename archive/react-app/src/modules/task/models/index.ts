@@ -3,7 +3,7 @@
 export const TASK_CATEGORIES = {
   PERSONAL: 'personal',
   WORK: 'work',
-  JIKKO: 'jikko',
+  JIKKO: 'siigo',
   UNICAUCA: 'unicauca',
   ENTREAGILES: 'entreagiles',
   CERTMIND: 'certmind',
@@ -20,7 +20,7 @@ export type TaskCategory = typeof TASK_CATEGORIES[keyof typeof TASK_CATEGORIES];
 export const CATEGORY_LABELS: Record<TaskCategory, string> = {
   personal: 'Personal',
   work: 'Trabajo',
-  jikko: 'Jikko',
+  siigo: 'Siigo',
   unicauca: 'Unicauca',
   entreagiles: 'EntreAgiles',
   certmind: 'CertMind',
@@ -35,7 +35,7 @@ export const CATEGORY_LABELS: Record<TaskCategory, string> = {
 export const CATEGORY_COLORS: Record<TaskCategory, { bg: string, text: string }> = {
   personal: { bg: 'bg-green-100', text: 'text-green-700' },
   work: { bg: 'bg-blue-100', text: 'text-blue-700' },
-  jikko: { bg: 'bg-blue-100', text: 'text-orange-700' },
+  siigo: { bg: 'bg-blue-100', text: 'text-orange-700' },
   unicauca: { bg: 'bg-red-100', text: 'text-teal-700' },
   entreagiles: { bg: 'bg-black-100', text: 'text-lime-700' },
   certmind: { bg: 'bg-purple-100', text: 'text-purple-700' },
