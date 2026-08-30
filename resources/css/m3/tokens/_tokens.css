@@ -1,70 +1,85 @@
 :root {
-  /* Primary — source: #0D47A1 (azul marino) */
-  --md-sys-color-primary: #2B5BB5;
+  /* Primary — source: #0D6BC4 (azul brillante). v2: sin componente violácea. */
+  --md-sys-color-primary: #0D6BC4;
   --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #D9E2FF;
-  --md-sys-color-on-primary-container: #001945;
-  --md-sys-color-primary-fixed: #D9E2FF;
-  --md-sys-color-on-primary-fixed: #001945;
+  --md-sys-color-primary-container: #D3E4FF;
+  --md-sys-color-on-primary-container: #001C39;
+  --md-sys-color-primary-fixed: #D3E4FF;
+  --md-sys-color-on-primary-fixed: #001C39;
 
-  /* Secondary */
-  --md-sys-color-secondary: #575E71;
+  /* Secondary — gris azulado, no gris neutro. Selección e indicadores. */
+  --md-sys-color-secondary: #4A5C75;
   --md-sys-color-on-secondary: #FFFFFF;
-  --md-sys-color-secondary-container: #DCE2F9;
-  --md-sys-color-on-secondary-container: #141B2C;
+  --md-sys-color-secondary-container: #D6E3F7;
+  --md-sys-color-on-secondary-container: #0C1D2E;
 
-  /* Tertiary */
-  --md-sys-color-tertiary: #725572;
+  /* Tertiary — cian profundo. Sustituye al malva #725572 de la v1. */
+  --md-sys-color-tertiary: #00687A;
   --md-sys-color-on-tertiary: #FFFFFF;
-  --md-sys-color-tertiary-container: #FDD7FA;
-  --md-sys-color-on-tertiary-container: #2A132C;
+  --md-sys-color-tertiary-container: #B4EBFB;
+  --md-sys-color-on-tertiary-container: #001F26;
 
   /* Error */
-  --md-sys-color-error: #BA1A1A;
+  --md-sys-color-error: #B3261E;
   --md-sys-color-on-error: #FFFFFF;
   --md-sys-color-error-container: #FFDAD6;
-  --md-sys-color-on-error-container: #410002;
+  --md-sys-color-on-error-container: #410E0B;
 
-  /* Surface */
-  --md-sys-color-surface: #FBF8FD;
-  --md-sys-color-on-surface: #1B1B1F;
-  --md-sys-color-surface-dim: #DBD9DD;
-  --md-sys-color-surface-bright: #FBF8FD;
-  --md-sys-color-surface-variant: #E1E2EC;
-  --md-sys-color-on-surface-variant: #44464F;
+  /* Surface — neutral frío. La v1 tenía un tinte rosado (#FBF8FD). */
+  --md-sys-color-surface: #F7F9FC;
+  --md-sys-color-on-surface: #191C21;
+  --md-sys-color-surface-dim: #D6DCE6;
+  --md-sys-color-surface-bright: #FFFFFF;
+  --md-sys-color-surface-variant: #DEE3EC;
+  --md-sys-color-on-surface-variant: #414954;
   --md-sys-color-surface-container-lowest: #FFFFFF;
-  --md-sys-color-surface-container-low: #F5F3F7;
-  --md-sys-color-surface-container: #EFEDF1;
-  --md-sys-color-surface-container-high: #E9E7EC;
-  --md-sys-color-surface-container-highest: #E3E2E6;
+  --md-sys-color-surface-container-low: #F1F4F9;
+  --md-sys-color-surface-container: #EBEFF6;
+  --md-sys-color-surface-container-high: #E5EAF2;
+  --md-sys-color-surface-container-highest: #DFE5EE;
 
   /* Outline */
-  --md-sys-color-outline: #757780;
-  --md-sys-color-outline-variant: #C5C6D0;
+  --md-sys-color-outline: #6F7885;
+  --md-sys-color-outline-variant: #C2C9D6;
 
   /* Inverse */
-  --md-sys-color-inverse-surface: #303034;
-  --md-sys-color-inverse-on-surface: #F2F0F4;
-  --md-sys-color-inverse-primary: #B0C6FF;
+  --md-sys-color-inverse-surface: #2E3239;
+  --md-sys-color-inverse-on-surface: #EFF1F6;
+  --md-sys-color-inverse-primary: #A5C8FF;
 
   /* Scrim */
   --md-sys-color-scrim: #000000;
 
   /* Custom semantic colors for the app */
-  --md-custom-color-success: #386A20;
+  --md-custom-color-success: #1F6E43;
   --md-custom-color-on-success: #FFFFFF;
-  --md-custom-color-success-container: #B8F397;
-  --md-custom-color-on-success-container: #042100;
+  --md-custom-color-success-container: #B7F0CB;
+  --md-custom-color-on-success-container: #002110;
 
-  --md-custom-color-warning: #7D5700;
+  --md-custom-color-warning: #7A5300;
   --md-custom-color-on-warning: #FFFFFF;
-  --md-custom-color-warning-container: #FFDEAB;
-  --md-custom-color-on-warning-container: #271900;
+  --md-custom-color-warning-container: #FFDEA6;
+  --md-custom-color-on-warning-container: #261900;
 
   --md-custom-color-info: #00658E;
   --md-custom-color-on-info: #FFFFFF;
-  --md-custom-color-info-container: #C5E7FF;
-  --md-custom-color-on-info-container: #001C38;
+  --md-custom-color-info-container: #C6E7FF;
+  --md-custom-color-on-info-container: #001E2E;
+
+  /* Acentos de módulo. Cada módulo tiñe su icono, su cabecera y sus chips de estado;
+   * el resto de la interfaz sigue siendo azul primario. */
+  --md-accent-blue: #0D6BC4;
+  --md-accent-indigo: #2F53C8;
+  --md-accent-cyan: #0288A8;
+  --md-accent-teal: #00786E;
+  --md-accent-green: #2E7D4F;
+  --md-accent-amber: #8A5A00;
+  --md-accent-orange: #B4530A;
+  --md-accent-red: #B3261E;
+  --md-accent-slate: #4A5C75;
+
+  /* Módulo activo: valor por defecto, sobrescrito por [data-module]. */
+  --md-module-accent: var(--md-accent-blue);
 
   /* Space */
   --md-sys-space-none: 0px;
@@ -219,3 +234,22 @@ body {
   color: var(--md-sys-color-on-surface);
   min-height: 100vh;
 }
+
+/* Acento por módulo — se aplica al contenedor de la pantalla con data-module.
+ * Claves alineadas con config/modules.php. */
+[data-module='home'] { --md-module-accent: var(--md-accent-blue); }
+[data-module='habits'] { --md-module-accent: var(--md-accent-green); }
+[data-module='negative-habits'] { --md-module-accent: var(--md-accent-red); }
+[data-module='tasks'] { --md-module-accent: var(--md-accent-indigo); }
+[data-module='water'] { --md-module-accent: var(--md-accent-cyan); }
+[data-module='exercise'] { --md-module-accent: var(--md-accent-orange); }
+[data-module='meals'] { --md-module-accent: var(--md-accent-amber); }
+[data-module='health'] { --md-module-accent: var(--md-accent-red); }
+[data-module='mood'] { --md-module-accent: var(--md-accent-orange); }
+[data-module='journal'] { --md-module-accent: var(--md-accent-teal); }
+[data-module='goals'] { --md-module-accent: var(--md-accent-indigo); }
+[data-module='relationships'] { --md-module-accent: var(--md-accent-orange); }
+[data-module='vehicles'] { --md-module-accent: var(--md-accent-slate); }
+[data-module='pomodoro'] { --md-module-accent: var(--md-accent-red); }
+[data-module='statistics'] { --md-module-accent: var(--md-accent-blue); }
+[data-module='settings'] { --md-module-accent: var(--md-accent-slate); }

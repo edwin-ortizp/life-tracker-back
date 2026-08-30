@@ -7,7 +7,6 @@
 
 <x-module-shell module="mood" x-data="{ showEnergyDialog: $wire.entangle('showEnergyForm') }">
     <x-slot:actions>
-        <x-date-navigator :date="$selectedDate" format="D d M" />
         <x-module-actions
             :primary="['label' => 'Registrar estado', 'icon' => 'bi-emoji-smile', 'action' => 'openMoodCatalog']"
             :secondary="[
@@ -15,6 +14,10 @@
                 ['label' => 'Escribir en el diario', 'icon' => 'bi-journal-text', 'href' => route('journal', ['date' => $selectedDate])],
             ]" />
     </x-slot:actions>
+
+    <x-slot:controls>
+        <p class="md-body-medium mb-0">{{ ucfirst(\Carbon\Carbon::parse($selectedDate)->translatedFormat('l d \d\e F')) }}</p>
+    </x-slot:controls>
 
     {{-- Registro directo: las emociones prioritarias primero, el catálogo a una acción. --}}
     <x-ui.section title="¿Cómo te sientes?" :level="2">

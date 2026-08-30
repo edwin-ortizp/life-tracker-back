@@ -61,6 +61,15 @@
 .md-mobile-action-menu__item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: var(--md-sys-color-on-surface); font-size: .82rem; font-weight: 650; text-align: left; text-decoration: none; }
 .md-mobile-action-menu__item:hover, .md-mobile-action-menu__item:focus-visible { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
 
+/* v3: la acción principal de la pantalla es un FAB flotante en toda resolución,
+ * no un botón inline en el header. */
+.md-responsive-actions--fab-always .md-responsive-actions__desktop { display: none; }
+.md-responsive-actions--fab-always .md-responsive-actions__mobile { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.md-responsive-actions--fab-always .md-module-primary-fab,
+.md-responsive-actions--fab-always .md-module-primary-inline {
+  position: fixed; right: 28px; bottom: 28px; z-index: var(--md-sys-z-fab);
+}
+
 .md-module-tabs { position: sticky; top: 0; z-index: 40; margin: 0 0 18px; padding: 5px; border: 1px solid var(--md-sys-color-outline-variant); border-radius: 18px; background: color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 90%, transparent); box-shadow: 0 8px 24px rgba(27, 27, 33, .05); backdrop-filter: blur(14px); }
 .md-module-tabs__track { display: flex; gap: 3px; overflow-x: auto; scrollbar-width: thin; overscroll-behavior-inline: contain; }
 .md-module-tab { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 0 15px; flex: 0 0 auto; border-radius: 14px; color: var(--md-sys-color-on-surface-variant); font-size: .79rem; font-weight: 650; text-decoration: none; transition: color .2s ease, background .2s ease, transform .2s ease; }

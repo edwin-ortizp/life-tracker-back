@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Life Tracker' }}</title>
     <link rel="manifest" href="{{ asset('manifest.json') }}">
-    <meta name="theme-color" content="#2B5BB5">
+    <meta name="theme-color" content="#0D6BC4">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -16,173 +16,143 @@
     @livewireStyles
 </head>
 @php
-    $activeDrawerSection = match (true) {
-        request()->routeIs('habits*', 'water*', 'exercise*', 'health*', 'mood*', 'negative-habits*') => 'wellbeing',
-        request()->routeIs('tasks.*', 'pomodoro*', 'goals*') => 'productivity',
-        request()->routeIs('meals*') => 'food',
-        request()->routeIs('journal*', 'relationships*') => 'life',
-        request()->routeIs('vehicles*') => 'vehicles',
-        default => 'overview',
-    };
+    $routeName = request()->route()?->getName() ?? '';
+    $activeModuleKey = null;
+    foreach (config('modules', []) as $key => $candidate) {
+        if ($key === 'navigation') {
+            continue;
+        }
+        foreach ($candidate['patterns'] ?? [] as $pattern) {
+            if (\Illuminate\Support\Str::is($pattern, $routeName)) {
+                $activeModuleKey = $key;
+                break 2;
+            }
+        }
+    }
+    $activeModuleTitle = $activeModuleKey ? (config("modules.{$activeModuleKey}.title") ?? 'Life Tracker') : 'Life Tracker';
+
+    $searchIndex = collect(config('modules.navigation', []))
+        ->flatMap(fn ($section) => $section['items'] ?? [])
+        ->map(fn ($item) => ['label' => $item['label'], 'icon' => $item['icon'], 'href' => route($item['route'])])
+        ->values();
 @endphp
-<body x-data="{ drawerOpen: false, drawerSection: '{{ $activeDrawerSection }}' }" :class="{ 'md-scroll-locked': drawerOpen }">
+<body class="lt-frame"
+      x-data="{
+          sidebarOpen: false,
+          sidebarRail: localStorage.getItem('lt-sidebar-rail') === '1',
+          compact: window.matchMedia('(max-width: 767.98px)').matches,
+          search: '',
+          init() {
+              const mq = window.matchMedia('(max-width: 767.98px)');
+              mq.addEventListener('change', (e) => { this.compact = e.matches; if (!this.compact) this.sidebarOpen = false; });
+              this.$watch('sidebarRail', (v) => localStorage.setItem('lt-sidebar-rail', v ? '1' : '0'));
+          },
+          toggleNav() {
+              if (this.compact) { this.sidebarOpen = !this.sidebarOpen; return; }
+              this.sidebarRail = !this.sidebarRail;
+          },
+      }"
+      :class="{ 'is-rail': sidebarRail && !compact, 'lt-frame--compact': compact }">
 
-    {{-- Scrim (drawer overlay) --}}
-    <div class="md-scrim"
-         x-show="drawerOpen"
-         x-transition.opacity.duration.200ms
-         @click="drawerOpen = false"
-         style="display: none;">
-    </div>
-
-    {{-- Navigation Drawer (overlay, desktop + mobile) --}}
-    <aside class="md-navigation-drawer"
-           x-show="drawerOpen"
-           x-transition:enter="md-drawer-enter"
-           x-transition:enter-start="md-drawer-enter-start"
-           x-transition:enter-end="md-drawer-enter-end"
-           x-transition:leave="md-drawer-leave"
-           x-transition:leave-start="md-drawer-leave-start"
-           x-transition:leave-end="md-drawer-leave-end"
-           @click.outside="drawerOpen = false"
-           style="display: none;">
-        <div class="md-drawer-header">
-            <div class="d-flex align-items-center justify-content-between">
-                <span class="md-title-large" style="color: var(--md-sys-color-on-surface);">Life Tracker</span>
-                <button class="md-btn-icon" @click="drawerOpen = false">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
+    {{-- Sidebar: expandida, raíl o superpuesta en móvil, según config('modules.navigation') --}}
+    <aside class="lt-sidebar" :class="{ 'is-open': sidebarOpen }" aria-label="Módulos de Life Tracker">
+        <div class="lt-sidebar__brand">
+            <span class="lt-sidebar__mark" aria-hidden="true"><i class="bi bi-activity"></i></span>
+            <span class="lt-sidebar__name">Life Tracker</span>
         </div>
-
-        <nav class="md-drawer-content" aria-label="Todos los módulos">
-            <p class="md-drawer-hint">Elige un área para ver sus módulos.</p>
-            @foreach (config('modules.navigation', []) as $sectionKey => $section)
-                <section class="md-drawer-group" :class="{ 'is-open': drawerSection === '{{ $sectionKey }}' }">
-                    <button type="button" class="md-drawer-group-toggle" @click="drawerSection = drawerSection === '{{ $sectionKey }}' ? null : '{{ $sectionKey }}'" :aria-expanded="drawerSection === '{{ $sectionKey }}'">
-                        <span><i class="bi {{ $section['icon'] }}"></i> {{ $section['label'] }}</span><i class="bi bi-chevron-down"></i>
-                    </button>
-                    <div x-cloak x-show="drawerSection === '{{ $sectionKey }}'">
-                        @foreach ($section['items'] as $item)
-                            <a href="{{ route($item['route']) }}" class="md-drawer-item {{ request()->routeIs(...$item['active']) ? 'active' : '' }}" @click="drawerOpen = false">
-                                <i class="bi {{ $item['icon'] }}"></i><span>{{ $item['label'] }}</span>
-                            </a>
-                        @endforeach
-                    </div>
-                </section>
+        <nav class="lt-sidebar__scroll">
+            @foreach (config('modules.navigation', []) as $section)
+                <div class="lt-nav-group">
+                    <span class="lt-nav-group__label">{{ $section['label'] }}</span>
+                    @foreach ($section['items'] as $item)
+                        @php($active = request()->routeIs(...$item['active']))
+                        <a href="{{ route($item['route']) }}" class="lt-nav-item {{ $active ? 'is-active' : '' }}"
+                           @if($active) aria-current="page" @endif
+                           @click="sidebarOpen = false">
+                            <span class="lt-nav-item__icon"><i class="bi {{ $item['icon'] }}" aria-hidden="true"></i></span>
+                            <span class="lt-nav-item__label">{{ $item['label'] }}</span>
+                        </a>
+                    @endforeach
+                </div>
             @endforeach
         </nav>
     </aside>
+    <button type="button" class="lt-scrim" x-show="compact && sidebarOpen" x-cloak aria-label="Cerrar los módulos" @click="sidebarOpen = false"></button>
 
-    {{-- Desktop: Navigation Rail --}}
-    <nav class="md-navigation-rail d-none d-md-flex">
-        <button class="md-rail-menu-btn" @click="drawerOpen = !drawerOpen" title="Menú">
-            <i class="bi bi-list"></i>
-        </button>
-
-        <div class="md-rail-destinations">
-            <a href="{{ route('home') }}" class="md-rail-item {{ request()->routeIs('home') ? 'active' : '' }}" title="Inicio">
-                <div class="md-rail-indicator">
-                    <i class="bi bi-house"></i>
-                </div>
-                <span class="md-label-medium">Inicio</span>
-            </a>
-            <a href="{{ route('habits') }}" class="md-rail-item {{ request()->routeIs('habits*') ? 'active' : '' }}" title="Hábitos">
-                <div class="md-rail-indicator">
-                    <i class="bi bi-check2-square"></i>
-                </div>
-                <span class="md-label-medium">Hábitos</span>
-            </a>
-            <a href="{{ route('tasks.list') }}" class="md-rail-item {{ request()->routeIs('tasks.*') ? 'active' : '' }}" title="Tareas">
-                <div class="md-rail-indicator">
-                    <i class="bi bi-list-task"></i>
-                </div>
-                <span class="md-label-medium">Tareas</span>
-            </a>
-            <a href="{{ route('meals') }}" class="md-rail-item md-rail-item--daily {{ request()->routeIs('meals*') ? 'active' : '' }}" title="Comidas">
-                <div class="md-rail-indicator">
-                    <i class="bi bi-egg-fried"></i>
-                </div>
-                <span class="md-label-medium">Comidas</span>
-            </a>
-            <a href="{{ route('water') }}" class="md-rail-item md-rail-item--daily {{ request()->routeIs('water*') ? 'active' : '' }}" title="Hidratación">
-                <div class="md-rail-indicator">
-                    <i class="bi bi-droplet"></i>
-                </div>
-                <span class="md-label-medium">Agua</span>
-            </a>
-            <a href="{{ route('health') }}" class="md-rail-item md-rail-item--daily md-rail-item--optional {{ request()->routeIs('health*') ? 'active' : '' }}" title="Salud">
-                <div class="md-rail-indicator">
-                    <i class="bi bi-heart-pulse"></i>
-                </div>
-                <span class="md-label-medium">Salud</span>
-            </a>
-            <a href="{{ route('statistics') }}" class="md-rail-item {{ request()->routeIs('statistics*') ? 'active' : '' }}" title="Estadísticas">
-                <div class="md-rail-indicator">
-                    <i class="bi bi-bar-chart"></i>
-                </div>
-                <span class="md-label-medium">Stats</span>
-            </a>
-            <button class="md-rail-item md-rail-more" @click="drawerOpen = true" title="Todos los módulos">
-                <div class="md-rail-indicator">
-                    <i class="bi bi-grid"></i>
-                </div>
-                <span class="md-label-medium">Más</span>
+    <div class="lt-frame__body">
+        <header class="lt-topbar">
+            <button type="button" class="md-btn-icon lt-topbar__menu" @click="toggleNav()"
+                    :aria-label="compact ? 'Mostrar los módulos' : (sidebarRail ? 'Expandir la barra de módulos' : 'Colapsar la barra de módulos')"
+                    :aria-expanded="compact ? sidebarOpen : !sidebarRail">
+                <i class="bi bi-list" aria-hidden="true"></i>
             </button>
-            <a href="{{ route('settings') }}" class="md-rail-item {{ request()->routeIs('settings*') ? 'active' : '' }}" title="Ajustes">
-                <div class="md-rail-indicator">
-                    <i class="bi bi-gear"></i>
-                </div>
-                <span class="md-label-medium">Ajustes</span>
+
+            <h2 class="lt-topbar__title">{{ $activeModuleTitle }}</h2>
+
+            <div class="lt-search" role="search" x-data="{ open: false }" @click.outside="open = false">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <label class="visually-hidden" for="lt-global-search">Buscar en todos los módulos</label>
+                <input id="lt-global-search" type="search" placeholder="Buscar en todos los módulos…"
+                       x-model="search" @focus="open = true" @input="open = true">
+                <template x-if="open && search.length">
+                    <div class="lt-pop__surface" style="position:absolute; top:calc(100% + 8px); left:0; right:0;">
+                        <template x-for="result in ({{ \Illuminate\Support\Js::from($searchIndex) }}).filter(m => m.label.toLowerCase().includes(search.toLowerCase()))" :key="result.href">
+                            <a class="lt-pop__item" :href="result.href">
+                                <i :class="'bi ' + result.icon" aria-hidden="true"></i>
+                                <span x-text="result.label"></span>
+                            </a>
+                        </template>
+                    </div>
+                </template>
+            </div>
+
+            <div class="lt-topbar__tools">
+                <a href="{{ route('settings') }}" class="md-btn-icon" aria-label="Ajustes">
+                    <i class="bi bi-gear" aria-hidden="true"></i>
+                </a>
+                <button type="button" class="md-btn-icon lt-topbar__bell" aria-label="Notificaciones">
+                    <i class="bi bi-bell" aria-hidden="true"></i>
+                </button>
+                @auth
+                    <a href="{{ route('settings') }}" class="lt-avatar" aria-label="Tu perfil">{{ \Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('') }}</a>
+                @endauth
+            </div>
+        </header>
+
+        @if(app()->environment('local'))
+            <div style="position:sticky;top:0;left:0;right:0;height:20px;background:rgba(245,158,11,0.8);color:#000;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;z-index:99999;pointer-events:none;letter-spacing:.5px;">
+                LOCAL ENVIRONMENT
+            </div>
+        @endif
+
+        <main class="lt-main">
+            {{ $slot }}
+        </main>
+
+        {{-- Móvil: barra inferior con destinos principales --}}
+        <nav class="lt-bottom" aria-label="Destinos principales" x-show="compact" x-cloak>
+            <a href="{{ route('home') }}" class="lt-bottom__item {{ request()->routeIs('home') ? 'is-active' : '' }}" @if(request()->routeIs('home')) aria-current="page" @endif>
+                <span class="lt-bottom__icon"><i class="bi bi-house" aria-hidden="true"></i></span>
+                <span>Inicio</span>
             </a>
-        </div>
-    </nav>
-
-    {{-- Local Environment Watermark --}}
-    @if(app()->environment('local'))
-    <div style="position:fixed;top:0;left:0;right:0;height:20px;background:rgba(245,158,11,0.8);color:#000;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;z-index:99999;pointer-events:none;letter-spacing:.5px;">
-        LOCAL ENVIRONMENT
+            <a href="{{ route('habits') }}" class="lt-bottom__item {{ request()->routeIs('habits*') ? 'is-active' : '' }}" @if(request()->routeIs('habits*')) aria-current="page" @endif>
+                <span class="lt-bottom__icon"><i class="bi bi-check2-square" aria-hidden="true"></i></span>
+                <span>Hábitos</span>
+            </a>
+            <a href="{{ route('tasks.list') }}" class="lt-bottom__item {{ request()->routeIs('tasks.*') ? 'is-active' : '' }}" @if(request()->routeIs('tasks.*')) aria-current="page" @endif>
+                <span class="lt-bottom__icon"><i class="bi bi-list-task" aria-hidden="true"></i></span>
+                <span>Tareas</span>
+            </a>
+            <a href="{{ route('statistics') }}" class="lt-bottom__item {{ request()->routeIs('statistics*') ? 'is-active' : '' }}" @if(request()->routeIs('statistics*')) aria-current="page" @endif>
+                <span class="lt-bottom__icon"><i class="bi bi-bar-chart" aria-hidden="true"></i></span>
+                <span>Stats</span>
+            </a>
+            <button type="button" class="lt-bottom__item" @click="sidebarOpen = true">
+                <span class="lt-bottom__icon"><i class="bi bi-grid" aria-hidden="true"></i></span>
+                <span>Módulos</span>
+            </button>
+        </nav>
     </div>
-    @endif
-
-    {{-- Main Content --}}
-    <main class="md-main-content">
-        {{ $slot }}
-    </main>
-
-    {{-- Mobile: Navigation Bar --}}
-    <nav class="md-navigation-bar d-md-none">
-        <a href="{{ route('home') }}" class="md-nav-bar-item {{ request()->routeIs('home') ? 'active' : '' }}">
-            <div class="md-nav-bar-indicator">
-                <i class="bi bi-house"></i>
-            </div>
-            <span class="md-label-medium">Inicio</span>
-        </a>
-        <a href="{{ route('habits') }}" class="md-nav-bar-item {{ request()->routeIs('habits*') ? 'active' : '' }}">
-            <div class="md-nav-bar-indicator">
-                <i class="bi bi-check2-square"></i>
-            </div>
-            <span class="md-label-medium">Hábitos</span>
-        </a>
-        <a href="{{ route('tasks.list') }}" class="md-nav-bar-item {{ request()->routeIs('tasks.*') ? 'active' : '' }}">
-            <div class="md-nav-bar-indicator">
-                <i class="bi bi-list-task"></i>
-            </div>
-            <span class="md-label-medium">Tareas</span>
-        </a>
-        <a href="{{ route('statistics') }}" class="md-nav-bar-item {{ request()->routeIs('statistics*') ? 'active' : '' }}">
-            <div class="md-nav-bar-indicator">
-                <i class="bi bi-bar-chart"></i>
-            </div>
-            <span class="md-label-medium">Stats</span>
-        </a>
-        <button class="md-nav-bar-item" @click="drawerOpen = true">
-            <div class="md-nav-bar-indicator">
-                <i class="bi bi-grid"></i>
-            </div>
-            <span class="md-label-medium">Más</span>
-        </button>
-    </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @livewireScriptConfig

@@ -1,9 +1,5 @@
-<x-module-shell module="vehicles">
-    <x-slot:actions>
-        <x-module-actions mobile-style="inline"
-            :primary="['label' => 'Añadir vehículo', 'icon' => 'bi-plus-lg', 'action' => 'openVehicleForm']"
-            :secondary="[['label' => 'Catálogo de mantenimientos', 'icon' => 'bi-tools', 'href' => route('vehicles.catalog')]]" />
-    </x-slot:actions>
+<div data-module="vehicles" class="lt-page">
+    <x-page-header subtitle="Mantenimiento, consumo y próximos cuidados." />
 
     @if($vehicles->isEmpty())
         <div class="md-empty-state md-card-outlined">
@@ -15,7 +11,7 @@
     @else
         <div class="vehicle-garage-grid">
             @foreach($vehicles as $vehicle)
-                <a href="{{ route('vehicles.show', $vehicle) }}" class="vehicle-garage-card md-card-outlined" wire:key="vehicle-{{ $vehicle->id }}">
+                <a href="{{ route('vehicles.fuel', $vehicle) }}" class="vehicle-garage-card md-card-outlined" wire:key="vehicle-{{ $vehicle->id }}">
                     @if($vehicle->photo_path)
                         <img src="{{ asset('storage/'.$vehicle->photo_path) }}" alt="{{ $vehicle->name }}">
                     @else
@@ -33,4 +29,10 @@
     @endif
 
     @include('livewire.vehicle.partials.vehicle-form')
-</x-module-shell>
+
+    <div class="lt-fab-zone">
+        <x-module-actions fab-always
+            :primary="['label' => 'Añadir vehículo', 'icon' => 'bi-plus-lg', 'action' => 'openVehicleForm']"
+            :secondary="[['label' => 'Catálogo de mantenimientos', 'icon' => 'bi-tools', 'href' => route('vehicles.catalog')]]" />
+    </div>
+</div>

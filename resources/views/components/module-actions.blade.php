@@ -2,6 +2,7 @@
     'primary',
     'secondary' => [],
     'mobileStyle' => 'fab',
+    'fabAlways' => false,
 ])
 
 @php
@@ -21,7 +22,7 @@
     };
 @endphp
 
-<div class="md-responsive-actions" x-data="{ secondaryOpen: false }">
+<div class="md-responsive-actions {{ $fabAlways ? 'md-responsive-actions--fab-always' : '' }}" x-data="{ secondaryOpen: false }">
     <div class="md-responsive-actions__desktop">
         @foreach ($secondary as $action)
             {!! $renderAction($action, 'md-btn-outlined') !!}

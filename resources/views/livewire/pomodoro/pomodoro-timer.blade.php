@@ -11,9 +11,9 @@
     storageKey: 'life-tracker:pomodoro:{{ auth()->id() }}',
     saveSession: (startedAt, endedAt, description, clientToken) => $wire.saveSession(startedAt, endedAt, description, clientToken)
 })">
-    <x-slot:actions>
-        <x-date-navigator :date="$selectedDate" format="D d M Y" />
-    </x-slot:actions>
+    <x-slot:controls>
+        <p class="md-body-medium mb-0">{{ ucfirst(\Carbon\Carbon::parse($selectedDate)->translatedFormat('l d \d\e F \d\e Y')) }}</p>
+    </x-slot:controls>
 
     <x-slot:rail>
         <x-context-widget title="{{ $monthData['label'] }}" icon="bi-calendar3">

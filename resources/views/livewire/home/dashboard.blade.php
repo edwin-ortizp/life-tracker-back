@@ -1,7 +1,5 @@
-<x-module-shell module="home" x-data="{ showRecurringDialog: $wire.entangle('showRecurringCompletion') }">
-    <x-slot:actions>
-        <x-date-navigator :date="$selectedDate" format="l d M Y" />
-    </x-slot:actions>
+<div data-module="home" class="lt-page" x-data="{ showRecurringDialog: $wire.entangle('showRecurringCompletion') }">
+    <x-page-header :subtitle="ucfirst(\Carbon\Carbon::parse($selectedDate)->translatedFormat('l d \d\e F'))" />
 
     @if ($vehicleAlerts->isNotEmpty())
         <a href="{{ route('vehicles') }}" class="md-card-outlined d-block text-decoration-none mb-3" style="color: inherit; border-color: var(--md-custom-color-warning);">
@@ -54,4 +52,4 @@
     @include('livewire.task.partials.completion-celebration')
     @include('livewire.task.partials.recurring-completion-dialog')
     @include('livewire.mood.partials.progressive')
-</x-module-shell>
+</div>

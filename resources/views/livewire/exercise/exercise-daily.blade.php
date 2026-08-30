@@ -6,9 +6,12 @@
 
 <x-module-shell module="exercise" x-data="{ showDialog: $wire.entangle('showForm') }">
     <x-slot:actions>
-        <x-date-navigator :date="$selectedDate" format="D d M" />
         <x-module-actions :primary="['label' => 'Registrar ejercicio', 'icon' => 'bi-plus-lg', 'action' => 'openForm']" />
     </x-slot:actions>
+
+    <x-slot:controls>
+        <p class="md-body-medium mb-0">{{ ucfirst(\Carbon\Carbon::parse($selectedDate)->translatedFormat('l d \d\e F')) }}</p>
+    </x-slot:controls>
 
     <x-ui.section title="Resumen del día" :level="2">
         <x-ui.metric-grid label="Resumen del día">

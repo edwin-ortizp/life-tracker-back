@@ -1,7 +1,7 @@
 <x-module-shell module="journal">
-    <x-slot:actions>
-        <x-date-navigator :date="$selectedDate" format="l d M Y" />
-    </x-slot:actions>
+    <x-slot:controls>
+        <p class="md-body-medium mb-0">{{ ucfirst(\Carbon\Carbon::parse($selectedDate)->translatedFormat('l d \d\e F')) }}</p>
+    </x-slot:controls>
 
     <div class="md-module-workspace journal-workspace">
         <div class="md-module-primary">

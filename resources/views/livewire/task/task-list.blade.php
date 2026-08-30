@@ -1,41 +1,39 @@
-<x-module-shell module="tasks" x-data="{ showDialog: $wire.entangle('showForm'), showBulkDialog: $wire.entangle('showBulkForm'), showRecurringDialog: $wire.entangle('showRecurringCompletion') }">
-    <x-slot:actions>
-        <x-module-actions
-            :primary="['label' => 'Nueva tarea', 'icon' => 'bi-plus-lg', 'action' => 'openForm']"
-            :secondary="[['label' => 'Varias tareas', 'icon' => 'bi-list-stars', 'action' => 'openBulkForm']]" />
-    </x-slot:actions>
+<div data-module="tasks" class="lt-page" x-data="{ showDialog: $wire.entangle('showForm'), showBulkDialog: $wire.entangle('showBulkForm'), showRecurringDialog: $wire.entangle('showRecurringCompletion') }">
+    <x-page-header subtitle="Decide, ordena y completa el trabajo con claridad." :tabs="config('modules.tasks.tabs')" :preserve="config('modules.tasks.preserve')">
+        <x-slot:controls>
+            <x-ui.filter-bar search="search" placeholder="Buscar tareas..." label="Filtros de tareas">
+                <x-slot:chips>
+                    @foreach (['pending' => 'Pendientes', 'completed' => 'Completadas', 'all' => 'Todas'] as $value => $label)
+                        <x-ui.chip variant="filter" :selected="$filter === '{{ $value }}'" wire:click="$set('filter', '{{ $value }}')">{{ $label }}</x-ui.chip>
+                    @endforeach
 
-    <x-slot:controls>
-        <x-ui.filter-bar search="search" placeholder="Buscar tareas..." label="Filtros de tareas">
-            <x-slot:chips>
-                @foreach (['pending' => 'Pendientes', 'completed' => 'Completadas', 'all' => 'Todas'] as $value => $label)
-                    <x-ui.chip variant="filter" :selected="$filter === '{{ $value }}'" wire:click="$set('filter', '{{ $value }}')">{{ $label }}</x-ui.chip>
-                @endforeach
+                    <div class="md-chip-rail__divider"></div>
 
-                <div class="md-chip-rail__divider"></div>
+                    @foreach (['hoy' => 'Hoy', 'vencidas' => 'Vencidas', 'proximas' => 'Próximas', 'sin-fecha' => 'Sin fecha'] as $value => $label)
+                        <x-ui.chip variant="filter" :selected="$dateFilter === '{{ $value }}'"
+                                   wire:click="$set('dateFilter', '{{ $dateFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
+                    @endforeach
 
-                @foreach (['hoy' => 'Hoy', 'vencidas' => 'Vencidas', 'proximas' => 'Próximas', 'sin-fecha' => 'Sin fecha'] as $value => $label)
-                    <x-ui.chip variant="filter" :selected="$dateFilter === '{{ $value }}'"
-                               wire:click="$set('dateFilter', '{{ $dateFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
-                @endforeach
+                    <div class="md-chip-rail__divider"></div>
 
-                <div class="md-chip-rail__divider"></div>
+                    <x-ui.filter-menu name="categoryFilter" label="Categoría" allLabel="Todas"
+                                      :options="['__none__' => 'Sin categoría'] + $categories"
+                                      :selected="$categoryFilter" />
 
-                <x-ui.filter-menu name="categoryFilter" label="Categoría" allLabel="Todas"
-                                  :options="['__none__' => 'Sin categoría'] + $categories"
-                                  :selected="$categoryFilter" />
+                    <x-ui.filter-menu name="priorityFilter" label="Prioridad" allLabel="Todas"
+                                      :options="$priorities" :selected="$priorityFilter" />
 
-                <x-ui.filter-menu name="priorityFilter" label="Prioridad" allLabel="Todas"
-                                  :options="$priorities" :selected="$priorityFilter" />
+                    <x-ui.filter-menu name="sizeFilter" label="Tamaño" allLabel="Todos" align="end"
+                                      :options="$sizes" :selected="$sizeFilter" />
+                </x-slot:chips>
+            </x-ui.filter-bar>
+        </x-slot:controls>
+    </x-page-header>
 
-                <x-ui.filter-menu name="sizeFilter" label="Tamaño" allLabel="Todos" align="end"
-                                  :options="$sizes" :selected="$sizeFilter" />
-            </x-slot:chips>
-        </x-ui.filter-bar>
-    </x-slot:controls>
-
+    <div class="lt-cols">
+    <div class="lt-stack">
     {{-- Task List --}}
-    <div class="md-card-elevated" style="padding: 0; overflow: hidden;">
+    <x-panel flush>
         @forelse ($tasks as $task)
             <div class="md-list-item {{ $task->completed ? 'md-list-item--completed' : '' }}">
                 <div class="md-list-item-leading">
@@ -121,42 +119,50 @@
                 <p class="md-body-large mt-3 mb-0">No hay tareas {{ $filter === 'pending' ? 'pendientes' : ($filter === 'completed' ? 'completadas' : '') }}</p>
             </div>
         @endforelse
-    </div>
+    </x-panel>
 
-    <div class="mt-3">
+    <div>
         {{ $tasks->links() }}
     </div>
+    </div>
 
-    <x-slot:rail>
-        <x-context-widget title="Hoy" icon="bi-lightning-charge" tone="success">
+    <div class="lt-stack">
+        <x-panel title="Hoy" icon="bi-lightning-charge">
             <div class="text-center mb-2">
                 <span style="font-size: 2rem; font-weight: 700; color: var(--md-sys-color-primary);">{{ $completedToday }}</span>
                 <span class="md-body-small d-block" style="color: var(--md-sys-color-on-surface-variant);">completadas hoy</span>
             </div>
-            <dl class="md-context-list">
+            <dl class="lt-facts">
                 <div><dt>Planificadas hoy</dt><dd>{{ $plannedToday }}</dd></div>
                 <div><dt>Pendientes</dt><dd>{{ $pendingCount }}</dd></div>
                 @if ($overdueCount > 0)
                     <div style="color: var(--md-sys-color-error);"><dt>Vencidas</dt><dd>{{ $overdueCount }}</dd></div>
                 @endif
             </dl>
-        </x-context-widget>
+        </x-panel>
         @if (!empty($categoryBreakdown))
-            <x-context-widget title="Completadas hoy" icon="bi-bar-chart">
-                <dl class="md-context-list">
+            <x-panel title="Completadas hoy" icon="bi-bar-chart">
+                <dl class="lt-facts">
                     @foreach ($categoryBreakdown as $cat => $count)
                         <div><dt>{{ $categories[$cat] ?? $cat }}</dt><dd>{{ $count }}</dd></div>
                     @endforeach
                 </dl>
-            </x-context-widget>
+            </x-panel>
         @endif
-        <x-context-widget title="Vistas relacionadas" icon="bi-signpost-split">
+        <x-panel title="Vistas relacionadas" icon="bi-signpost-split">
             <div class="md-context-links">
                 <a href="{{ route('tasks.planning') }}"><i class="bi bi-calendar-week"></i> Planificación</a>
                 <a href="{{ route('tasks.progress') }}"><i class="bi bi-trophy"></i> Progreso</a>
             </div>
-        </x-context-widget>
-    </x-slot:rail>
+        </x-panel>
+    </div>
+    </div>
+
+    <div class="lt-fab-zone">
+        <x-module-actions fab-always
+            :primary="['label' => 'Nueva tarea', 'icon' => 'bi-plus-lg', 'action' => 'openForm']"
+            :secondary="[['label' => 'Varias tareas', 'icon' => 'bi-list-stars', 'action' => 'openBulkForm']]" />
+    </div>
 
     @include('livewire.task.partials.edit-task-dialog', [
         'dialogId' => 'task',
@@ -232,4 +238,4 @@
     </template>
 
     @include('livewire.task.partials.recurring-completion-dialog')
-</x-module-shell>
+</div>

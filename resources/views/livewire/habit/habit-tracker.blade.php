@@ -1,7 +1,7 @@
 <x-module-shell module="habits">
-    <x-slot:actions>
-        <x-date-navigator :date="$selectedDate" format="D d M" />
-    </x-slot:actions>
+    <x-slot:controls>
+        <p class="md-body-medium mb-0">{{ ucfirst(\Carbon\Carbon::parse($selectedDate)->translatedFormat('l d \d\e F')) }}</p>
+    </x-slot:controls>
 
     <section class="habit-coach-card habit-coach-card--{{ $coachCard['tone'] }} mb-3" aria-labelledby="habit-coach-title">
         <div class="habit-coach-card__glow" aria-hidden="true"></div>

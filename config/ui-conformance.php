@@ -144,6 +144,15 @@ return [
             'reason' => 'El layout declara el color de tema del navegador y los iconos de la PWA.',
             'scope' => 'Metaetiquetas del documento, nunca superficies de la interfaz.',
         ],
+        [
+            'path' => 'resources/views/layouts/app.blade.php',
+            'rules' => ['local-component-substitution'],
+            'reason' => 'El marco de aplicación (AppFrame v2: sidebar, topbar, scrim, bottom-nav) usa sus propios '.
+                'primitivos `lt-*` definidos en archetypes/_app-frame.css, no acciones de contenido: no encajan '.
+                'en el contrato semántico de `x-ui.icon-action` (tone/size/emphasis) ni en el patrón de búsqueda '.
+                'de `md-search-bar`, que asume una barra de búsqueda de contenido, no el buscador global del shell.',
+            'scope' => 'Solo los controles de chrome del layout: alternar sidebar, scrim, buscador global, atajo de módulos en la barra inferior.',
+        ],
     ],
 
 ];
