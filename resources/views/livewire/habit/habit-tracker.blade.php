@@ -77,6 +77,7 @@
                              wire:loading.attr="disabled"
                              wire:target="toggleHabit({{ $habit->id }})"
                              aria-pressed="{{ $isCompleted ? 'true' : 'false' }}"
+                             x-optimistic-toggle
                              class="md-list-item habit-list-action w-100 text-start {{ $isCompleted ? 'md-list-item--completed' : '' }}"
                              style="{{ $isCompleted ? 'background: color-mix(in srgb, var(--md-custom-color-success) 8%, transparent);' : '' }}"
                              wire:key="habit-{{ $selectedDate }}-{{ $habit->id }}">

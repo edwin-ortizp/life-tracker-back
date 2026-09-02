@@ -7,7 +7,14 @@ use Carbon\Carbon;
 
 class VehicleMaintenanceStatus
 {
-    public static function forPlan(VehicleMaintenancePlan $plan, ?Carbon $today = null, array|false|null $usageRate = null): array
+    /**
+     * @param  array|false|\Closure|null  $usageRate  Tasa de uso ya calculada,
+     *   `false` para omitir la proyeccion, o un resolutor que se invoca solo si
+     *   la proyeccion llega a hacer falta. Lo ultimo permite compartir el
+     *   calculo entre planes del mismo vehiculo sin pagarlo cuando ningun plan
+     *   define un intervalo por uso.
+     */
+    public static function forPlan(VehicleMaintenancePlan $plan, ?Carbon $today = null, array|false|\Closure|null $usageRate = null): array
     {
         $today ??= today();
         $lastLog = $plan->relationLoaded('latestMaintenanceLog')
@@ -28,11 +35,13 @@ class VehicleMaintenanceStatus
         $dateSoon = $dueDate && ! $dateDue && $today->greaterThanOrEqualTo($dueDate->copy()->subDays(30));
         $usageSoon = $dueUsage !== null && $currentUsage !== null && ! $usageDue
             && ($dueUsage - (float) $currentUsage) <= ((float) $plan->interval_usage * 0.10);
-        $usageProjection = $usageRate === false
+        $usageProjection = ($usageRate === false || $dueUsage === null)
             ? null
-            : ($usageRate
-                ? VehicleUsageProjection::forDueUsageUsingRate($usageRate, $dueUsage)
-                : VehicleUsageProjection::forDueUsage($plan->vehicle, $dueUsage, $today));
+            : ($usageRate instanceof \Closure
+                ? VehicleUsageProjection::forDueUsageUsingRate($usageRate($plan->vehicle) ?: null, $dueUsage)
+                : ($usageRate
+                    ? VehicleUsageProjection::forDueUsageUsingRate($usageRate, $dueUsage)
+                    : VehicleUsageProjection::forDueUsage($plan->vehicle, $dueUsage, $today)));
         $projectedUsageDate = $usageProjection['projected_date'] ?? null;
         $projectionSoon = $projectedUsageDate && ! $usageDue && $projectedUsageDate->lte($today->copy()->addDays(30));
         $nextDueDate = collect([$dueDate, $projectedUsageDate])->filter()->sort()->first();

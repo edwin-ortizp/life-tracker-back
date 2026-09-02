@@ -15,10 +15,12 @@ use App\Models\MealPlanEntry;
 use App\Models\MoodEntry;
 use App\Models\MoodState;
 use App\Models\Task;
+use App\Models\Vehicle;
 use App\Models\VehicleMaintenancePlan;
 use App\Services\HabitGamificationService;
 use App\Services\TaskGamificationService;
 use App\Support\VehicleMaintenanceStatus;
+use App\Support\VehicleUsageProjection;
 use App\Support\WaterGoal;
 use Carbon\Carbon;
 use Livewire\Component;
@@ -171,11 +173,27 @@ class Dashboard extends Component
 
         $journalEntry = JournalEntry::where('date', $date)->first();
 
-        $vehicleAlerts = VehicleMaintenancePlan::where('active', true)
+        $plans = VehicleMaintenancePlan::where('active', true)
             ->with(['vehicle', 'template', 'maintenanceLogs'])
-            ->get()
-            ->map(function (VehicleMaintenancePlan $plan) {
-                $plan->setAttribute('status_data', VehicleMaintenanceStatus::forPlan($plan));
+            ->get();
+
+        // La proyeccion de uso depende del vehiculo, no del plan, y cada calculo
+        // cuesta varias consultas sobre su historial. Se resuelve como mucho una
+        // vez por vehiculo y solo si algun plan llega a necesitarla: antes se
+        // repetia por cada plan aunque compartieran vehiculo.
+        $usageRates = [];
+        $resolveUsageRate = function (?Vehicle $vehicle) use (&$usageRates) {
+            if (! $vehicle) {
+                return false;
+            }
+
+            return $usageRates[$vehicle->id] ??= VehicleUsageProjection::rateForVehicle($vehicle) ?? false;
+        };
+
+        $vehicleAlerts = $plans
+            ->map(function (VehicleMaintenancePlan $plan) use ($resolveUsageRate) {
+                $plan->setAttribute('status_data', VehicleMaintenanceStatus::forPlan($plan, null, $resolveUsageRate));
+
                 return $plan;
             })
             ->filter(fn (VehicleMaintenancePlan $plan) => $plan->status_data['status'] !== 'al_dia')

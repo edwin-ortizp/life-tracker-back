@@ -99,3 +99,44 @@
     background-image: none;
   }
 }
+
+/*
+ * Estado adelantado de un toggle.
+ *
+ * Se pinta en el mismo gesto del toque, antes de que el servidor conteste. Si
+ * la respuesta difiere, Livewire repinta el elemento y estas clases desaparecen.
+ */
+
+.is-optimistic-on .md-list-checkbox,
+.md-list-checkbox.is-optimistic-on {
+  background: var(--md-custom-color-success, var(--md-sys-color-primary));
+  border-color: var(--md-custom-color-success, var(--md-sys-color-primary));
+}
+
+.is-optimistic-on .md-list-checkbox::after,
+.md-list-checkbox.is-optimistic-on::after {
+  content: '\F26E';
+  font-family: bootstrap-icons;
+  color: var(--md-custom-color-on-success, var(--md-sys-color-on-primary));
+  line-height: 1;
+}
+
+.is-optimistic-off .md-list-checkbox,
+.md-list-checkbox.is-optimistic-off {
+  background: transparent;
+  border-color: var(--md-sys-color-outline);
+}
+
+.is-optimistic-off .md-list-checkbox > i,
+.md-list-checkbox.is-optimistic-off > i {
+  display: none;
+}
+
+/* El propio control tambien acusa el toque de inmediato. */
+.is-optimistic-on.md-list-item {
+  background: color-mix(in srgb, var(--md-custom-color-success, var(--md-sys-color-primary)) 8%, transparent);
+}
+
+.is-optimistic-off.md-list-item {
+  background: transparent;
+}

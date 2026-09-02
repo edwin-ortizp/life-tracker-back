@@ -31,19 +31,68 @@ class StaticAssetsTest extends TestCase
         $this->assertStringNotContainsString('/build/assets/', $html);
     }
 
-    public function test_service_worker_refreshes_application_assets_from_the_network(): void
+    /**
+     * `public/build` esta en .gitignore y no se despliega. Si el CSS publicado
+     * sigue apuntando ahi, las fuentes dan 404 en produccion y la aplicacion se
+     * queda sin iconos, que es justo lo que paso al dejar de usar el CDN.
+     */
+    public function test_the_published_stylesheet_only_references_deployed_assets(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+
+        $this->assertStringNotContainsString('/build/', $css);
+
+        preg_match_all('#url\(([^)]+)\)#', $css, $matches);
+
+        $referenced = collect($matches[1])
+            ->map(fn (string $url) => trim($url, "\"' "))
+            ->filter(fn (string $url) => str_starts_with($url, '/'))
+            ->map(fn (string $url) => strtok($url, '?'))
+            ->unique();
+
+        $this->assertNotEmpty($referenced, 'El CSS publicado no referencia ningun asset.');
+
+        foreach ($referenced as $url) {
+            $this->assertFileExists(
+                public_path(ltrim($url, '/')),
+                "El CSS publicado referencia `{$url}`, que no existe en public/.",
+            );
+        }
+    }
+
+    public function test_the_service_worker_never_serves_a_stale_application_bundle(): void
     {
         $serviceWorker = file_get_contents(public_path('sw.js'));
 
-        // El nombre de cache va versionado para invalidar despliegues anteriores,
-        // pero el numero concreto cambia con cada revision del worker.
-        $this->assertMatchesRegularExpression("/const CACHE_NAME = 'life-tracker-v\d+'/", $serviceWorker);
-        $this->assertStringContainsString('fetch(request).then((response) => {', $serviceWorker);
-        $this->assertStringContainsString('.catch(() => caches.match(request))', $serviceWorker);
+        // El nombre de cache va versionado para invalidar despliegues anteriores.
+        $this->assertMatchesRegularExpression("/const VERSION = 'life-tracker-v\d+'/", $serviceWorker);
+
+        // `app.js` y `app.css` contienen Livewire: servir una copia caducada
+        // dejaria la aplicacion sin interactividad tras un despliegue.
+        $this->assertStringContainsString('handleVersionedBundle', $serviceWorker);
+        $this->assertStringContainsString("url.pathname === '/js/app.js'", $serviceWorker);
+
+        // Las peticiones de Livewire nunca se cachean.
+        $this->assertStringContainsString("url.pathname.startsWith('/livewire')", $serviceWorker);
 
         // Las dependencias externas se auto-hospedan: precachear un CDN volveria
         // a atar el arranque sin conexion a un tercero.
         $this->assertStringNotContainsString('cdn.jsdelivr.net', $serviceWorker);
         $this->assertStringNotContainsString('fonts.bunny.net', $serviceWorker);
+    }
+
+    public function test_the_service_worker_is_actually_registered(): void
+    {
+        // Existia desde hacia tiempo pero no lo registraba nadie, asi que la
+        // aplicacion nunca llego a comportarse como una PWA.
+        $this->assertStringContainsString(
+            "navigator.serviceWorker.register('/sw.js')",
+            file_get_contents(resource_path('js/pwa.js')),
+        );
+    }
+
+    public function test_the_offline_fallback_is_reachable_without_a_session(): void
+    {
+        $this->get('/offline')->assertOk()->assertSee('Sin conexión');
     }
 }

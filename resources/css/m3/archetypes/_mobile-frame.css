@@ -1,0 +1,321 @@
+/*
+ * Marco movil.
+ *
+ * Estructura fija de tres regiones: una app bar contextual arriba, el contenido
+ * scrollable en medio y una tab bar abajo. A diferencia del marco de escritorio
+ * no hay sidebar: los modulos viven en una hoja que se abre desde la tab bar.
+ *
+ * Todo lo que toca un borde de la pantalla respeta las areas seguras, que en
+ * un telefono con notch o barra de gestos no son cero.
+ */
+
+.lt-m {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+}
+
+/* ---------- App bar ---------- */
+
+.lt-m-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-space-xs, 4px);
+  height: calc(var(--lt-m-app-bar-height) + var(--lt-safe-top));
+  padding: var(--lt-safe-top) calc(var(--md-sys-space-xs, 4px) + var(--lt-safe-right)) 0 calc(var(--md-sys-space-xs, 4px) + var(--lt-safe-left));
+  background: var(--md-sys-color-surface);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--md-sys-motion-duration-short1, 100ms) var(--md-sys-motion-easing-standard, ease);
+}
+
+/* El borde solo aparece cuando hay contenido por encima: da profundidad sin
+   dibujar una linea permanente. */
+.lt-m-bar[data-scrolled='true'] {
+  border-bottom-color: var(--md-sys-color-outline-variant);
+}
+
+.lt-m-bar__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lt-m-bar__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: var(--lt-m-tap-target);
+  height: var(--lt-m-tap-target);
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font-size: 1.25rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lt-m-bar__action:active {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
+}
+
+.lt-m-bar__action:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: -3px;
+}
+
+/* ---------- Contenido ---------- */
+
+.lt-m-content {
+  /* Solo el contenido se anima entre pantallas: la app bar y la tab bar
+     permanecen, que es lo que hace que la navegacion se lea como nativa. */
+  view-transition-name: lt-page;
+  /* El desbordamiento horizontal se recorta aqui y no en el body: `overflow-x`
+     sobre el body lo convierte en contenedor de scroll y entonces la pagina
+     deja de emitir eventos de scroll en `window`, que es de donde dependen la
+     app bar y la tab bar. */
+  overflow-x: clip;
+  flex: 1 1 auto;
+  padding:
+    var(--md-sys-space-md, 16px)
+    calc(var(--md-sys-space-md, 16px) + var(--lt-safe-right))
+    calc(var(--lt-m-tab-bar-height) + var(--lt-safe-bottom) + var(--md-sys-space-lg, 24px))
+    calc(var(--md-sys-space-md, 16px) + var(--lt-safe-left));
+}
+
+/* ---------- Tab bar ---------- */
+
+.lt-m-tabs {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  display: flex;
+  height: calc(var(--lt-m-tab-bar-height) + var(--lt-safe-bottom));
+  padding-bottom: var(--lt-safe-bottom);
+  background: var(--md-sys-color-surface-container);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  transition: transform var(--md-sys-motion-duration-short2, 200ms) var(--md-sys-motion-easing-standard, ease);
+}
+
+/* Al bajar por una lista larga la barra se aparta; vuelve al subir. */
+.lt-m-tabs[data-hidden='true'] {
+  transform: translateY(100%);
+}
+
+.lt-m-tabs__item {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--lt-m-tap-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lt-m-tabs__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 30px;
+  border-radius: 999px;
+  font-size: 1.125rem;
+  transition:
+    background-color var(--md-sys-motion-duration-short1, 100ms) var(--md-sys-motion-easing-standard, ease),
+    color var(--md-sys-motion-duration-short1, 100ms) var(--md-sys-motion-easing-standard, ease);
+}
+
+.lt-m-tabs__item.is-active {
+  color: var(--md-sys-color-on-surface);
+}
+
+.lt-m-tabs__item.is-active .lt-m-tabs__icon {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.lt-m-tabs__item:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: -3px;
+}
+
+/* ---------- Hoja de modulos ---------- */
+
+.lt-m-sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  border: 0;
+  padding: 0;
+  background: var(--md-sys-color-scrim, #000);
+  opacity: 0.32;
+}
+
+.lt-m-sheet {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 61;
+  max-height: 82dvh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--lt-safe-bottom);
+  background: var(--md-sys-color-surface-container-low, var(--md-sys-color-surface));
+  border-radius: var(--md-sys-shape-corner-large, 16px) var(--md-sys-shape-corner-large, 16px) 0 0;
+}
+
+.lt-m-sheet__handle {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 4px;
+  margin: var(--md-sys-space-sm, 8px) auto;
+  border-radius: 999px;
+  background: var(--md-sys-color-outline-variant);
+}
+
+.lt-m-sheet__scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 var(--md-sys-space-md, 16px) var(--md-sys-space-md, 16px);
+}
+
+.lt-m-sheet__group-label {
+  display: block;
+  margin: var(--md-sys-space-md, 16px) 0 var(--md-sys-space-xs, 4px);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lt-m-sheet__item {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-space-md, 16px);
+  min-height: var(--lt-m-tap-target);
+  padding: 0 var(--md-sys-space-sm, 8px);
+  border-radius: var(--md-sys-shape-corner-medium, 12px);
+  color: var(--md-sys-color-on-surface);
+  text-decoration: none;
+}
+
+.lt-m-sheet__item.is-active {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.lt-m-sheet__item:active {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
+}
+
+/* ---------- Aviso de conexion ---------- */
+
+.lt-m-offline {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 90;
+  padding: calc(var(--lt-safe-top) + var(--md-sys-space-sm, 8px)) var(--md-sys-space-md, 16px) var(--md-sys-space-sm, 8px);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+  transform: translateY(-100%);
+  transition: transform var(--md-sys-motion-duration-medium1, 250ms) var(--md-sys-motion-easing-standard, ease);
+}
+
+.lt-m-offline.is-visible {
+  transform: translateY(0);
+}
+
+/* ---------- Transiciones entre pantallas ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(lt-page) {
+    animation: lt-m-page-out var(--md-sys-motion-duration-medium1, 250ms) var(--md-sys-motion-easing-standard, ease) both;
+  }
+
+  ::view-transition-new(lt-page) {
+    animation: lt-m-page-in var(--md-sys-motion-duration-medium1, 250ms) var(--md-sys-motion-easing-standard, ease) both;
+  }
+}
+
+@keyframes lt-m-page-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes lt-m-page-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateX(-12px); }
+}
+
+/* ---------- Invitacion a instalar ---------- */
+
+.lt-m-install .lt-m-sheet__scroll {
+  padding-bottom: var(--md-sys-space-lg, 24px);
+  text-align: center;
+}
+
+.lt-m-install__icon {
+  border-radius: var(--md-sys-shape-corner-large, 16px);
+  margin-bottom: var(--md-sys-space-sm, 8px);
+}
+
+.lt-m-install__cta {
+  width: 100%;
+  margin-top: var(--md-sys-space-md, 16px);
+}
+
+.lt-m-install__later {
+  margin-top: var(--md-sys-space-sm, 8px);
+}
+
+/* ---------- Pantalla de sin conexion ---------- */
+
+.lt-m-offline-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  text-align: center;
+}
+
+.lt-m-offline-page__mark {
+  font-size: 3rem;
+  line-height: 1;
+  margin: 0 0 var(--md-sys-space-md, 16px);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.lt-m-offline-page__action {
+  margin-top: var(--md-sys-space-md, 16px);
+}

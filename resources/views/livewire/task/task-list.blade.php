@@ -45,6 +45,9 @@
             <div class="md-list-item {{ $task->completed ? 'md-list-item--completed' : '' }}">
                 <div class="md-list-item-leading">
                     <button wire:click.stop="toggleComplete('{{ $task->id }}')"
+                            x-optimistic-toggle
+                            aria-pressed="{{ $task->completed ? 'true' : 'false' }}"
+                            aria-label="{{ $task->completed ? 'Marcar como pendiente' : 'Completar' }}: {{ $task->title }}"
                             class="md-list-checkbox {{ $task->completed ? 'checked' : '' }}">
                         @if ($task->completed)
                             <i class="bi bi-check-lg"></i>

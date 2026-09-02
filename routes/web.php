@@ -24,6 +24,11 @@ if (app()->environment(['local', 'testing'])) {
 }
 
 // Protected routes
+// Pagina que sirve el service worker cuando se navega a una pantalla que nunca
+// se visito y no hay conexion. Es publica a proposito: sin red no hay sesion
+// que comprobar.
+Route::view('/offline', 'offline')->name('offline');
+
 Route::middleware('auth')->group(function () {
     Route::get('/', \App\Livewire\Home\Dashboard::class)->name('home');
     Route::redirect('/water', '/water/daily')->name('water');

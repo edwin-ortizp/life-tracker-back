@@ -2,6 +2,7 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../../resources/views-mobile/**/*.blade.php';
 
 /*
  * Dependencias externas auto-hospedadas.
@@ -62,6 +63,7 @@
 @import './m3/archetypes/_archetypes.css';
 @import './m3/archetypes/_catalog.css';
 @import './m3/archetypes/_app-frame.css';
+@import './m3/archetypes/_mobile-frame.css';
 
 /* 5. Modules */
 @import './m3/modules/_goals.css';

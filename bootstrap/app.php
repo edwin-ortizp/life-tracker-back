@@ -13,6 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Se resuelve antes que nada para que cualquier vista, incluidas las que
+        // renderiza Livewire en sus peticiones de actualizacion, encuentre ya la
+        // raiz de vistas moviles antepuesta.
+        $middleware->prependToGroup('web', \App\Http\Middleware\DetectMobileClient::class);
+
         $middleware->alias([
             'integration.token' => \App\Http\Middleware\AuthenticateIntegrationToken::class,
         ]);
