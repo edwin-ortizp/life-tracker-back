@@ -35,8 +35,15 @@ class StaticAssetsTest extends TestCase
     {
         $serviceWorker = file_get_contents(public_path('sw.js'));
 
-        $this->assertStringContainsString("const CACHE_NAME = 'life-tracker-v2'", $serviceWorker);
+        // El nombre de cache va versionado para invalidar despliegues anteriores,
+        // pero el numero concreto cambia con cada revision del worker.
+        $this->assertMatchesRegularExpression("/const CACHE_NAME = 'life-tracker-v\d+'/", $serviceWorker);
         $this->assertStringContainsString('fetch(request).then((response) => {', $serviceWorker);
         $this->assertStringContainsString('.catch(() => caches.match(request))', $serviceWorker);
+
+        // Las dependencias externas se auto-hospedan: precachear un CDN volveria
+        // a atar el arranque sin conexion a un tercero.
+        $this->assertStringNotContainsString('cdn.jsdelivr.net', $serviceWorker);
+        $this->assertStringNotContainsString('fonts.bunny.net', $serviceWorker);
     }
 }

@@ -157,8 +157,18 @@ function discoverCharts(root = document) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    discoverCharts();
+// `wire:navigate` reemplaza el contenido del body sin volver a disparar
+// `DOMContentLoaded`, asi que el arranque se registra una sola vez y el
+// descubrimiento de graficos se repite en cada navegacion.
+let uiBootstrapped = false;
+
+function bootstrapUi() {
+    if (uiBootstrapped) {
+        return;
+    }
+
+    uiBootstrapped = true;
+
     new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             mutation.addedNodes.forEach(discoverCharts);
@@ -206,6 +216,16 @@ document.addEventListener('DOMContentLoaded', () => {
             ta.dispatchEvent(new Event('input', { bubbles: true }));
         }
     });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    bootstrapUi();
+    discoverCharts();
+});
+
+document.addEventListener('livewire:navigated', () => {
+    bootstrapUi();
+    discoverCharts();
 });
 
 Livewire.start();

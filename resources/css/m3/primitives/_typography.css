@@ -1,5 +1,13 @@
 /* M3 Type Scale — cada clase consume los tokens de `--md-sys-typescale-*`. */
 
+/* La tipografia del sistema se declaraba en `--md-sys-typescale-font-family`
+   pero ningun selector la consumia, asi que toda la aplicacion se renderizaba
+   con la fuente por defecto del navegador. Se aplica en la raiz y se hereda. */
+body {
+  font-family: var(--md-sys-typescale-font-family);
+}
+
+
 .md-display-large,
 .md-display-medium,
 .md-display-small,

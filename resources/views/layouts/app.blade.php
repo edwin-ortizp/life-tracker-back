@@ -7,10 +7,6 @@
     <title>{{ $title ?? 'Life Tracker' }}</title>
     <link rel="manifest" href="{{ asset('manifest.json') }}">
     <meta name="theme-color" content="#0D6BC4">
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     @include('partials.app-styles')
     @include('partials.app-scripts')
     @livewireStyles
@@ -66,7 +62,7 @@
                     <span class="lt-nav-group__label">{{ $section['label'] }}</span>
                     @foreach ($section['items'] as $item)
                         @php($active = request()->routeIs(...$item['active']))
-                        <a href="{{ route($item['route']) }}" class="lt-nav-item {{ $active ? 'is-active' : '' }}"
+                        <a href="{{ route($item['route']) }}" wire:navigate class="lt-nav-item {{ $active ? 'is-active' : '' }}"
                            @if($active) aria-current="page" @endif
                            @click="sidebarOpen = false">
                             <span class="lt-nav-item__icon"><i class="bi {{ $item['icon'] }}" aria-hidden="true"></i></span>
@@ -97,7 +93,7 @@
                 <template x-if="open && search.length">
                     <div class="lt-pop__surface" style="position:absolute; top:calc(100% + 8px); left:0; right:0;">
                         <template x-for="result in ({{ \Illuminate\Support\Js::from($searchIndex) }}).filter(m => m.label.toLowerCase().includes(search.toLowerCase()))" :key="result.href">
-                            <a class="lt-pop__item" :href="result.href">
+                            <a class="lt-pop__item" wire:navigate :href="result.href">
                                 <i :class="'bi ' + result.icon" aria-hidden="true"></i>
                                 <span x-text="result.label"></span>
                             </a>
@@ -107,14 +103,14 @@
             </div>
 
             <div class="lt-topbar__tools">
-                <a href="{{ route('settings') }}" class="md-btn-icon" aria-label="Ajustes">
+                <a href="{{ route('settings') }}" wire:navigate class="md-btn-icon" aria-label="Ajustes">
                     <i class="bi bi-gear" aria-hidden="true"></i>
                 </a>
                 <button type="button" class="md-btn-icon lt-topbar__bell" aria-label="Notificaciones">
                     <i class="bi bi-bell" aria-hidden="true"></i>
                 </button>
                 @auth
-                    <a href="{{ route('settings') }}" class="lt-avatar" aria-label="Tu perfil">{{ \Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('') }}</a>
+                    <a href="{{ route('settings') }}" wire:navigate class="lt-avatar" aria-label="Tu perfil">{{ \Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('') }}</a>
                 @endauth
             </div>
         </header>
@@ -131,19 +127,19 @@
 
         {{-- Móvil: barra inferior con destinos principales --}}
         <nav class="lt-bottom" aria-label="Destinos principales" x-show="compact" x-cloak>
-            <a href="{{ route('home') }}" class="lt-bottom__item {{ request()->routeIs('home') ? 'is-active' : '' }}" @if(request()->routeIs('home')) aria-current="page" @endif>
+            <a href="{{ route('home') }}" wire:navigate class="lt-bottom__item {{ request()->routeIs('home') ? 'is-active' : '' }}" @if(request()->routeIs('home')) aria-current="page" @endif>
                 <span class="lt-bottom__icon"><i class="bi bi-house" aria-hidden="true"></i></span>
                 <span>Inicio</span>
             </a>
-            <a href="{{ route('habits') }}" class="lt-bottom__item {{ request()->routeIs('habits*') ? 'is-active' : '' }}" @if(request()->routeIs('habits*')) aria-current="page" @endif>
+            <a href="{{ route('habits') }}" wire:navigate class="lt-bottom__item {{ request()->routeIs('habits*') ? 'is-active' : '' }}" @if(request()->routeIs('habits*')) aria-current="page" @endif>
                 <span class="lt-bottom__icon"><i class="bi bi-check2-square" aria-hidden="true"></i></span>
                 <span>Hábitos</span>
             </a>
-            <a href="{{ route('tasks.list') }}" class="lt-bottom__item {{ request()->routeIs('tasks.*') ? 'is-active' : '' }}" @if(request()->routeIs('tasks.*')) aria-current="page" @endif>
+            <a href="{{ route('tasks.list') }}" wire:navigate class="lt-bottom__item {{ request()->routeIs('tasks.*') ? 'is-active' : '' }}" @if(request()->routeIs('tasks.*')) aria-current="page" @endif>
                 <span class="lt-bottom__icon"><i class="bi bi-list-task" aria-hidden="true"></i></span>
                 <span>Tareas</span>
             </a>
-            <a href="{{ route('statistics') }}" class="lt-bottom__item {{ request()->routeIs('statistics*') ? 'is-active' : '' }}" @if(request()->routeIs('statistics*')) aria-current="page" @endif>
+            <a href="{{ route('statistics') }}" wire:navigate class="lt-bottom__item {{ request()->routeIs('statistics*') ? 'is-active' : '' }}" @if(request()->routeIs('statistics*')) aria-current="page" @endif>
                 <span class="lt-bottom__icon"><i class="bi bi-bar-chart" aria-hidden="true"></i></span>
                 <span>Stats</span>
             </a>
@@ -154,7 +150,6 @@
         </nav>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @livewireScriptConfig
 </body>
 </html>

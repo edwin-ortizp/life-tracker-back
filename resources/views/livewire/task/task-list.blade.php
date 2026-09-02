@@ -34,6 +34,13 @@
     <div class="lt-stack">
     {{-- Task List --}}
     <x-panel flush>
+        {{-- Mientras se resuelve un filtro, una busqueda o un cambio de pagina
+             se muestra la silueta de la lista en lugar de dejar la pantalla quieta. --}}
+        <x-ui.skeleton variant="list" :lines="6" label="Cargando tareas"
+                       wire:loading.delay
+                       wire:target="filter,categoryFilter,priorityFilter,dateFilter,sizeFilter,search,gotoPage,previousPage,nextPage" />
+
+        <div wire:loading.delay.remove wire:target="filter,categoryFilter,priorityFilter,dateFilter,sizeFilter,search,gotoPage,previousPage,nextPage">
         @forelse ($tasks as $task)
             <div class="md-list-item {{ $task->completed ? 'md-list-item--completed' : '' }}">
                 <div class="md-list-item-leading">
@@ -119,6 +126,7 @@
                 <p class="md-body-large mt-3 mb-0">No hay tareas {{ $filter === 'pending' ? 'pendientes' : ($filter === 'completed' ? 'completadas' : '') }}</p>
             </div>
         @endforelse
+        </div>
     </x-panel>
 
     <div>

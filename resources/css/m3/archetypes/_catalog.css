@@ -129,7 +129,12 @@
   min-width: 0;
 }
 
+/* El modificador apila las demos en columna. Sin `display: flex` quedaba como
+   un item que encoge hasta el contenido, asi que las demos sin texto (progreso,
+   skeletons) se veian recortadas contra el ancho real de la superficie. */
 .md-catalog__demo--stack {
+  display: flex;
+  flex: 1 1 100%;
   flex-direction: column;
   align-items: stretch;
 }

@@ -1,0 +1,101 @@
+/*
+ * Skeletons de carga.
+ *
+ * Sustituyen al vacio en blanco mientras Livewire resuelve una peticion:
+ * el usuario ve la forma de lo que viene en lugar de una pantalla parada.
+ * Se apoyan solo en tokens de color y de movimiento de la capa 1.
+ */
+
+.md-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-space-sm, 8px);
+  width: 100%;
+}
+
+.md-skeleton__line,
+.md-skeleton__block,
+.md-skeleton__avatar {
+  display: block;
+  border-radius: var(--md-sys-shape-corner-small, 8px);
+  background-color: var(--md-sys-color-surface-variant);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--md-sys-color-on-surface) 6%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: md-skeleton-sheen 1400ms var(--md-sys-motion-easing-standard, ease-in-out) infinite;
+}
+
+.md-skeleton__line {
+  height: 12px;
+  width: 100%;
+}
+
+.md-skeleton__line--title {
+  height: 16px;
+  width: 62%;
+}
+
+.md-skeleton__line--short {
+  width: 38%;
+}
+
+.md-skeleton__block {
+  height: 180px;
+  border-radius: var(--md-sys-shape-corner-large, 16px);
+}
+
+.md-skeleton__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-space-sm, 8px);
+  padding: var(--md-sys-space-md, 16px);
+  border-radius: var(--md-sys-shape-corner-large, 16px);
+  background-color: var(--md-sys-color-surface-container-low, var(--md-sys-color-surface));
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.md-skeleton__row {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-space-md, 16px);
+  padding: var(--md-sys-space-md, 16px) 0;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.md-skeleton__row:last-child {
+  border-bottom: 0;
+}
+
+.md-skeleton__avatar {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
+.md-skeleton__row-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-space-sm, 8px);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@keyframes md-skeleton-sheen {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-skeleton__line,
+  .md-skeleton__block,
+  .md-skeleton__avatar {
+    animation: none;
+    background-image: none;
+  }
+}

@@ -70,6 +70,12 @@ class ComponentCatalog
             'description' => 'Indicador determinado o indeterminado que transmite su valor por custom property.',
             'usage' => '<x-ui.progress :value="$done" :max="$total" tone="success" label="Avance" valueText="60%" />',
         ],
+        'skeleton' => [
+            'layer' => 'primitives',
+            'title' => 'Skeleton',
+            'description' => 'Silueta de carga que ocupa el sitio del contenido mientras se resuelve la petición, en lugar de dejar la pantalla en blanco.',
+            'usage' => '<x-ui.skeleton variant="list" :lines="6" label="Cargando tareas" wire:loading.delay wire:target="search" />',
+        ],
         'icon' => [
             'layer' => 'primitives',
             'title' => 'Icono',

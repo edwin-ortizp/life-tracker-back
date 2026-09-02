@@ -21,7 +21,7 @@
                 @endif
                 <div class="lt-page-head__id-body">
                     @if ($back)
-                        <a href="{{ $backRoute ? route($backRoute) : 'javascript:history.back()' }}" class="lt-page-head__back">
+                        <a href="{{ $backRoute ? route($backRoute) : 'javascript:history.back()' }}" @if($backRoute) wire:navigate @endif class="lt-page-head__back">
                             <i class="bi bi-arrow-left" aria-hidden="true"></i> {{ $back }}
                         </a>
                     @endif
@@ -46,7 +46,7 @@
         <nav class="lt-tabs" role="tablist" aria-label="{{ 'Vistas de '.($title ?? 'la pantalla') }}">
             @foreach ($tabs as $tab)
                 @php($active = request()->routeIs(...($tab['active'] ?? [$tab['route']])))
-                <a href="{{ route($tab['route'], $query) }}" role="tab" aria-selected="{{ $active ? 'true' : 'false' }}"
+                <a href="{{ route($tab['route'], $query) }}" wire:navigate role="tab" aria-selected="{{ $active ? 'true' : 'false' }}"
                    class="lt-tab {{ $active ? 'is-active' : '' }}" @if($active) aria-current="page" @endif>
                     @if (! empty($tab['icon']))
                         <i class="bi {{ $tab['icon'] }}" aria-hidden="true"></i>
