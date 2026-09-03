@@ -1,4 +1,4 @@
-<div data-module="tasks" class="lt-page" x-data="{ showDialog: $wire.entangle('showForm'), showBulkDialog: $wire.entangle('showBulkForm'), showRecurringDialog: $wire.entangle('showRecurringCompletion') }">
+<div data-module="tasks" class="lt-page" x-data="{ showDialog: $wire.entangle('showForm'), showRecurringDialog: $wire.entangle('showRecurringCompletion') }">
     <x-page-header subtitle="Decide, ordena y completa el trabajo con claridad." :tabs="config('modules.tasks.tabs')" :preserve="config('modules.tasks.preserve')">
         <x-slot:controls>
             @php
@@ -228,8 +228,7 @@
 
     <div class="lt-fab-zone">
         <x-module-actions fab-always
-            :primary="['label' => 'Nueva tarea', 'icon' => 'bi-plus-lg', 'action' => 'openForm']"
-            :secondary="[['label' => 'Varias tareas', 'icon' => 'bi-list-stars', 'action' => 'openBulkForm']]" />
+            :primary="['label' => 'Nueva tarea', 'icon' => 'bi-plus-lg', 'action' => 'openForm']" />
     </div>
 
     @include('livewire.task.partials.edit-task-dialog', [
@@ -238,72 +237,6 @@
         'saveLabel' => $editingId ? 'Actualizar' : 'Crear',
         'showRecurrenceFields' => true,
     ])
-
-    {{-- Dialog: Create several tasks --}}
-    <template x-if="showBulkDialog">
-        <div>
-            <div class="md-dialog-scrim" wire:click="closeBulkForm"></div>
-            <div class="md-dialog md-dialog--wide" @click.stop>
-                <h2 class="md-dialog-headline md-headline-small">Crear varias tareas</h2>
-                <div class="md-dialog-content">
-                    <div class="d-flex flex-column gap-3">
-                        <p class="md-body-medium mb-0">Escribe una tarea por línea. Los demás campos se aplicarán a todas.</p>
-                        <div class="md-text-field">
-                            <textarea wire:model="bulkTitles" placeholder=" " id="bulk-task-titles" rows="6"></textarea>
-                            <label for="bulk-task-titles">Tareas</label>
-                            @error('bulkTitles')
-                                <div class="md-supporting-text" style="color: var(--md-sys-color-error);">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        @include('partials.markdown-editor', [
-                            'model' => 'bulkDescription',
-                            'mode' => 'bulkDescriptionMode',
-                            'modeValue' => $bulkDescriptionMode,
-                            'content' => $bulkDescription,
-                            'id' => 'bulk-task-desc',
-                            'placeholder' => 'Descripción común. Admite Markdown.',
-                            'rows' => 3,
-                        ])
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <div class="md-text-field">
-                                    <select wire:model="bulkCategory" id="bulk-task-cat">
-                                        <option value="">Sin categoría</option>
-                                        @foreach ($categories as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach
-                                    </select>
-                                    <label for="bulk-task-cat">Categoría</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="md-text-field">
-                                    <select wire:model="bulkPriority" id="bulk-task-pri">
-                                        <option value="">Sin prioridad</option>
-                                        @foreach ($priorities as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach
-                                    </select>
-                                    <label for="bulk-task-pri">Prioridad</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="md-text-field">
-                                    <select wire:model="bulkSize" id="bulk-task-size">
-                                        <option value="">Sin tamaño</option>
-                                        @foreach ($sizes as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach
-                                    </select>
-                                    <label for="bulk-task-size">Tamaño</label>
-                                </div>
-                            </div>
-                        </div>
-                        @include('livewire.task.partials.schedule-fields', ['idPrefix' => 'bulk-task', 'startModel' => 'bulkStartDate', 'startTimeModel' => 'bulkStartTime', 'endModel' => 'bulkEndDate', 'endTimeModel' => 'bulkEndTime', 'durationAction' => 'applyBulkDuration', 'estimatedTime' => $bulkEstimatedTime])
-                        <label class="md-checkbox"><input type="checkbox" wire:model="bulkIsPrivate"><i class="bi bi-lock"></i> Tareas privadas</label>
-                    </div>
-                </div>
-                <div class="md-dialog-actions">
-                    <button wire:click="closeBulkForm" class="md-btn-text">Cancelar</button>
-                    <button wire:click="saveBulk" class="md-btn-filled"><i class="bi bi-check-lg"></i> Crear tareas</button>
-                </div>
-            </div>
-        </div>
-    </template>
 
     @include('livewire.task.partials.recurring-completion-dialog')
 </div>

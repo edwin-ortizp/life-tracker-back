@@ -145,6 +145,13 @@ return [
             'scope' => 'Metaetiquetas del documento, nunca superficies de la interfaz.',
         ],
         [
+            'path' => 'resources/views/components/create-modal.blade.php',
+            'rules' => ['local-component-substitution'],
+            'reason' => 'El botón de paso del raíl (`.lt-cm-step`) es un control de navegación interna del propio '.
+                'modal estándar, no una acción de contenido: no encaja en el contrato semántico de `x-ui.icon-action`.',
+            'scope' => 'Solo los botones del raíl de pasos.',
+        ],
+        [
             'path' => 'resources/views/offline.blade.php',
             'rules' => ['direct-color'],
             'reason' => 'La pagina que sirve el service worker sin conexion declara su propio `theme-color`, y una '.
