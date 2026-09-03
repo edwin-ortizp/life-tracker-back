@@ -65,9 +65,14 @@
  * no un botón inline en el header. */
 .md-responsive-actions--fab-always .md-responsive-actions__desktop { display: none; }
 .md-responsive-actions--fab-always .md-responsive-actions__mobile { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-.md-responsive-actions--fab-always .md-module-primary-fab,
-.md-responsive-actions--fab-always .md-module-primary-inline {
-  position: fixed; right: 28px; bottom: 28px; z-index: var(--md-sys-z-fab);
+/* Solo en escritorio: por debajo de 768px el FAB ya tenía una posición fija segura
+ * (media query más abajo en este archivo, y la barra fija propia del marco móvil
+ * real en resources/views-mobile/). No la pisamos aquí para no tapar esa barra. */
+@media (min-width: 768px) {
+  .md-responsive-actions--fab-always .md-module-primary-fab,
+  .md-responsive-actions--fab-always .md-module-primary-inline {
+    position: fixed; right: 28px; bottom: 28px; z-index: var(--md-sys-z-fab);
+  }
 }
 
 .md-module-tabs { position: sticky; top: 0; z-index: 40; margin: 0 0 18px; padding: 5px; border: 1px solid var(--md-sys-color-outline-variant); border-radius: 18px; background: color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 90%, transparent); box-shadow: 0 8px 24px rgba(27, 27, 33, .05); backdrop-filter: blur(14px); }

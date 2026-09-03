@@ -44,11 +44,7 @@ class TaskList extends Component
     // Form
     public bool $showForm = false;
 
-    public bool $showBulkForm = false;
-
     public string $descriptionMode = 'write';
-
-    public string $bulkDescriptionMode = 'write';
 
     public ?string $editingId = null;
 
@@ -76,24 +72,9 @@ class TaskList extends Component
 
     public string $nativeRecurrenceRule = '';
 
-    // Bulk form: every non-empty line becomes one task with these shared fields.
+    // Alta masiva: cada línea no vacía se convierte en una tarea con los demás
+    // campos del formulario (categoría, prioridad, tamaño, fechas, privacidad).
     public string $bulkTitles = '';
-
-    public string $bulkDescription = '';
-
-    public string $bulkCategory = '';
-
-    public string $bulkPriority = '';
-
-    public string $bulkSize = '';
-
-    public ?string $bulkStartDate = null;
-
-    public ?string $bulkEndDate = null;
-
-    public ?int $bulkEstimatedTime = null;
-
-    public bool $bulkIsPrivate = false;
 
     public array $categories = [
         'siigo' => 'Siigo',
@@ -217,20 +198,6 @@ class TaskList extends Component
         $this->resetForm();
     }
 
-    public function openBulkForm(): void
-    {
-        $this->resetBulkForm();
-        $this->bulkDescriptionMode = 'write';
-        $this->showBulkForm = true;
-    }
-
-    public function closeBulkForm(): void
-    {
-        $this->showBulkForm = false;
-        $this->resetBulkForm();
-        $this->resetValidation('bulkTitles');
-    }
-
     public function saveBulk(): void
     {
         $lines = collect(preg_split('/\R/', $this->bulkTitles) ?: [])
@@ -244,18 +211,18 @@ class TaskList extends Component
             return;
         }
 
-        $schedule = $this->bulkTaskScheduleData();
+        $schedule = $this->taskScheduleData();
         if (! $schedule) {
             return;
         }
 
         $baseData = [
-            'description' => $this->bulkDescription ?: null,
-            'category' => $this->bulkCategory ?: null,
-            'priority' => $this->bulkPriority ?: null,
-            'size' => $this->bulkSize ?: null,
+            'description' => $this->description ?: null,
+            'category' => $this->category ?: null,
+            'priority' => $this->priority ?: null,
+            'size' => $this->size ?: null,
             ...$schedule,
-            'is_private' => $this->bulkIsPrivate,
+            'is_private' => $this->isPrivate,
         ];
 
         DB::transaction(function () use ($lines, $baseData) {
@@ -268,7 +235,7 @@ class TaskList extends Component
             }
         });
 
-        $this->closeBulkForm();
+        $this->closeForm();
     }
 
     private function parseObsidianLine(string $line): array
@@ -397,22 +364,8 @@ class TaskList extends Component
         $this->recurrenceIntervalDays = 7;
         $this->nativeRecurrenceRule = '';
         $this->descriptionMode = 'write';
-    }
-
-    private function resetBulkForm(): void
-    {
         $this->bulkTitles = '';
-        $this->bulkDescription = '';
-        $this->bulkCategory = '';
-        $this->bulkPriority = '';
-        $this->bulkSize = '';
-        $this->bulkStartDate = null;
-        $this->bulkStartTime = null;
-        $this->bulkEndDate = null;
-        $this->bulkEndTime = null;
-        $this->bulkEstimatedTime = null;
-        $this->bulkIsPrivate = false;
-        $this->bulkDescriptionMode = 'write';
+        $this->resetValidation('bulkTitles');
     }
 
     private function normalizeFilters(): void

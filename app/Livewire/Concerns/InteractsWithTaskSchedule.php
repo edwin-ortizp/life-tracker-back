@@ -11,10 +11,6 @@ trait InteractsWithTaskSchedule
 
     public ?string $endTime = null;
 
-    public ?string $bulkStartTime = null;
-
-    public ?string $bulkEndTime = null;
-
     public function loadTaskSchedule(Task $task): void
     {
         $this->startDate = $task->start_date?->format('Y-m-d');
@@ -28,12 +24,6 @@ trait InteractsWithTaskSchedule
     {
         $this->applyDurationTo('startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime', $minutes);
         $this->size = $this->sizeFromMinutes($minutes);
-    }
-
-    public function applyBulkDuration(int $minutes): void
-    {
-        $this->applyDurationTo('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime', $minutes);
-        $this->bulkSize = $this->sizeFromMinutes($minutes);
     }
 
     public function updatedStartDate(): void
@@ -66,39 +56,9 @@ trait InteractsWithTaskSchedule
         $this->synchronizeSchedule('startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime');
     }
 
-    public function updatedBulkStartDate(): void
-    {
-        $this->synchronizeSchedule('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime');
-    }
-
-    public function updatingBulkStartDate(?string $newStartDate): void
-    {
-        $this->shiftEndWithStart('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', $newStartDate, $this->bulkStartTime);
-    }
-
-    public function updatedBulkEndDate(): void
-    {
-        $this->synchronizeSchedule('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime');
-    }
-
-    public function updatedBulkStartTime(): void
-    {
-        $this->synchronizeSchedule('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime');
-    }
-
-    public function updatedBulkEndTime(): void
-    {
-        $this->synchronizeSchedule('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime');
-    }
-
     protected function taskScheduleData(): ?array
     {
         return $this->scheduleDataFor('startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime');
-    }
-
-    protected function bulkTaskScheduleData(): ?array
-    {
-        return $this->scheduleDataFor('bulkStartDate', 'bulkStartTime', 'bulkEndDate', 'bulkEndTime', 'bulkEstimatedTime', 'bulkEndDate');
     }
 
     private function applyDurationTo(string $startDateProperty, string $startTimeProperty, string $endDateProperty, string $endTimeProperty, string $estimatedProperty, int $minutes): void
@@ -112,14 +72,13 @@ trait InteractsWithTaskSchedule
 
     private function synchronizeSchedule(string $startDateProperty, string $startTimeProperty, string $endDateProperty, string $endTimeProperty, string $estimatedProperty): void
     {
-        $sizeProperty = str_starts_with($estimatedProperty, 'bulk') ? 'bulkSize' : 'size';
         $start = $this->scheduleDate($this->{$startDateProperty}, $this->{$startTimeProperty});
         $end = $this->scheduleDate($this->{$endDateProperty}, $this->{$endTimeProperty});
 
         if ($start && $end && $end->greaterThanOrEqualTo($start)) {
             $minutes = (int) $start->diffInMinutes($end);
             $this->{$estimatedProperty} = $minutes;
-            $this->{$sizeProperty} = $this->sizeFromMinutes($minutes);
+            $this->size = $this->sizeFromMinutes($minutes);
         }
     }
 
