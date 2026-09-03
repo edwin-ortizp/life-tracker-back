@@ -6,7 +6,7 @@
  * caducada del bundle (que dejaria Livewire inservible tras un despliegue).
  */
 
-const VERSION = 'life-tracker-v4';
+const VERSION = 'life-tracker-v5';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const PAGE_CACHE = `${VERSION}-pages`;

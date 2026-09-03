@@ -291,4 +291,16 @@
 @media (max-width: 767.98px) {
   .lt-cm-body > .md-dialog-content { padding: 16px; }
   .md-dialog-header .lt-cm-icon { width: 36px; height: 36px; font-size: 1.05rem; }
+  /* El texto "Paso X de N · Etiqueta" bajo el título ya dice en qué paso se
+   * está; el raíl se reduce a un indicador compacto: número + etiqueta corta,
+   * sin la palabra obligatorio/opcional que aquí solo estorba. */
+  .lt-cm-rail { gap: 4px; padding: 8px 12px; }
+  .lt-cm-rail .lt-cm-step {
+    grid-template-columns: none; flex-direction: column; align-items: center; gap: 4px;
+    min-width: 60px; padding: 6px 8px; text-align: center;
+  }
+  .lt-cm-rail .lt-cm-step small { display: none; }
+  .lt-cm-rail .lt-cm-step > span { font-size: .66rem; font-weight: 600; line-height: 1.15; white-space: nowrap; }
+  .lt-cm-rail .lt-cm-step__marker { width: 22px; height: 22px; font-size: .66rem; }
+  .lt-cm-rail__note { display: none; }
 }
