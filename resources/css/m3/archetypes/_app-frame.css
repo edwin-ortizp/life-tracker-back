@@ -17,7 +17,7 @@
 
 .lt-frame { min-height: 100vh; background: var(--md-sys-color-surface); }
 .lt-frame__body { margin-left: var(--lt-sidebar-width); transition: margin-left var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized); }
-.lt-frame.is-rail .lt-frame__body { margin-left: var(--lt-sidebar-rail); }
+@media (min-width: 768px) { .lt-frame.is-rail .lt-frame__body { margin-left: var(--lt-sidebar-rail); } }
 .lt-main { width: min(100%, var(--lt-content-max)); margin-inline: auto; padding: 20px 24px 48px; }
 
 /* ===== Barra lateral ===== */
@@ -29,7 +29,7 @@
   border-right: 1px solid var(--md-sys-color-outline-variant);
   transition: width var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized);
 }
-.lt-frame.is-rail .lt-sidebar { width: var(--lt-sidebar-rail); }
+@media (min-width: 768px) { .lt-frame.is-rail .lt-sidebar { width: var(--lt-sidebar-rail); } }
 .lt-sidebar__brand {
   display: flex; align-items: center; gap: 10px; flex: 0 0 auto;
   height: var(--lt-topbar-height); padding: 0 18px;
@@ -40,9 +40,11 @@
 }
 .lt-sidebar__name { color: var(--md-sys-color-on-surface); font-size: 1rem; font-weight: 700; letter-spacing: -.015em; white-space: nowrap; }
 .lt-sidebar__scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px 12px 20px; }
-.lt-frame.is-rail .lt-sidebar__brand { justify-content: center; padding: 0; }
-.lt-frame.is-rail .lt-sidebar__name { display: none; }
-.lt-frame.is-rail .lt-sidebar__scroll { padding: 6px 8px 20px; }
+@media (min-width: 768px) {
+  .lt-frame.is-rail .lt-sidebar__brand { justify-content: center; padding: 0; }
+  .lt-frame.is-rail .lt-sidebar__name { display: none; }
+  .lt-frame.is-rail .lt-sidebar__scroll { padding: 6px 8px 20px; }
+}
 .lt-sidebar__footer { flex: 0 0 auto; padding: 8px 10px 12px; border-top: 1px solid var(--md-sys-color-outline-variant); }
 
 .lt-nav-group + .lt-nav-group { margin-top: 14px; }
@@ -77,29 +79,35 @@
 .lt-nav-sub .lt-nav-item { min-height: 36px; font-size: .8rem; font-weight: 500; }
 .lt-nav-sub .lt-nav-item .lt-nav-item__icon { font-size: .9rem; }
 
-/* ===== Barra lateral colapsada (raíl): icono grande y etiqueta debajo ===== */
+/* ===== Barra lateral colapsada (raíl): icono grande y etiqueta debajo =====
+ * Solo desde 768px: por debajo la barra lateral se superpone a pantalla
+ * completa y colapsarla a raíl no significa nada. */
 
-.lt-frame.is-rail .lt-nav-group + .lt-nav-group { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--md-sys-color-outline-variant); }
-.lt-frame.is-rail .lt-nav-group__label { display: none; }
-.lt-frame.is-rail .lt-nav-item {
-  position: relative; flex-direction: column; gap: 4px; min-height: 0; padding: 6px 2px 8px; border-radius: 16px; background: transparent;
+@media (min-width: 768px) {
+  .lt-frame.is-rail .lt-nav-group + .lt-nav-group { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--md-sys-color-outline-variant); }
+  .lt-frame.is-rail .lt-nav-group__label { display: none; }
+  .lt-frame.is-rail .lt-nav-item {
+    position: relative; flex-direction: column; gap: 4px; min-height: 0; padding: 6px 2px 8px; border-radius: 16px; background: transparent;
+  }
+  .lt-frame.is-rail .lt-nav-item__icon {
+    width: 56px; height: 32px; border-radius: var(--md-sys-shape-corner-full); font-size: 1.25rem;
+    transition: background var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+  }
+  .lt-frame.is-rail .lt-nav-item__label { flex: 0 0 auto; width: 100%; font-size: .625rem; font-weight: 650; line-height: 1.2; text-align: center; }
+  .lt-frame.is-rail .lt-nav-item:hover { background: transparent; }
+  .lt-frame.is-rail .lt-nav-item:hover .lt-nav-item__icon { background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent); }
+  .lt-frame.is-rail .lt-nav-item.is-active { background: transparent; color: var(--md-sys-color-on-surface); }
+  .lt-frame.is-rail .lt-nav-item.is-active .lt-nav-item__icon { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+  .lt-frame.is-rail .lt-nav-item__count, .lt-frame.is-rail .lt-nav-item__dot { position: absolute; top: 4px; right: 12px; }
 }
-.lt-frame.is-rail .lt-nav-item__icon {
-  width: 56px; height: 32px; border-radius: var(--md-sys-shape-corner-full); font-size: 1.25rem;
-  transition: background var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
-}
-.lt-frame.is-rail .lt-nav-item__label { flex: 0 0 auto; width: 100%; font-size: .625rem; font-weight: 650; line-height: 1.2; text-align: center; }
-.lt-frame.is-rail .lt-nav-item:hover { background: transparent; }
-.lt-frame.is-rail .lt-nav-item:hover .lt-nav-item__icon { background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent); }
-.lt-frame.is-rail .lt-nav-item.is-active { background: transparent; color: var(--md-sys-color-on-surface); }
-.lt-frame.is-rail .lt-nav-item.is-active .lt-nav-item__icon { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
-.lt-frame.is-rail .lt-nav-item__count, .lt-frame.is-rail .lt-nav-item__dot { position: absolute; top: 4px; right: 12px; }
 
 /* ===== Barra superior ===== */
 
 .lt-topbar {
   position: sticky; top: 0; z-index: var(--md-sys-z-sticky);
-  display: flex; align-items: center; gap: 14px; height: var(--lt-topbar-height); padding: 0 20px 0 12px;
+  display: flex; align-items: center; gap: 14px;
+  height: calc(var(--lt-topbar-height) + var(--lt-safe-top));
+  padding: var(--lt-safe-top) calc(20px + var(--lt-safe-right)) 0 calc(12px + var(--lt-safe-left));
   background: color-mix(in srgb, var(--md-sys-color-surface) 88%, transparent);
   border-bottom: 1px solid var(--md-sys-color-outline-variant);
   backdrop-filter: blur(14px);
@@ -158,6 +166,8 @@
   min-width: 264px; padding: 6px; border: 1px solid var(--md-sys-color-outline-variant); border-radius: 14px;
   background: var(--md-sys-color-surface-container-lowest); box-shadow: var(--md-sys-elevation-2);
 }
+/* El desplegable del buscador global ocupa el ancho del campo, no el suyo. */
+.lt-pop__surface--under { top: calc(100% + 8px); right: 0; left: 0; }
 .lt-pop__label { padding: 8px 10px 4px; color: var(--md-sys-color-on-surface-variant); font-size: .625rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 .lt-pop__item {
   display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 10px;
@@ -216,14 +226,16 @@
 .lt-tab .md-count-badge { background: color-mix(in srgb, var(--md-sys-color-on-surface) 10%, transparent); color: var(--md-sys-color-on-surface-variant); }
 .lt-tab.is-active .md-count-badge { background: color-mix(in srgb, var(--md-module-accent) 16%, transparent); color: var(--md-module-accent); }
 /* Móvil: icono arriba, texto debajo, repartidas a todo el ancho */
-.lt-frame--compact .lt-tabs { overflow-x: visible; }
-.lt-frame--compact .lt-tab {
-  flex: 1 1 0; min-width: 0; flex-direction: column; justify-content: center; gap: 3px;
-  min-height: 64px; padding: 8px 6px; font-size: .72rem; letter-spacing: .01em;
+@media (max-width: 767.98px) {
+  .lt-tabs { overflow-x: visible; }
+  .lt-tab {
+    flex: 1 1 0; min-width: 0; flex-direction: column; justify-content: center; gap: 3px;
+    min-height: 64px; padding: 8px 6px; font-size: .72rem; letter-spacing: .01em;
+  }
+  .lt-tab i { font-size: 1.35rem; }
+  .lt-tab > span:not(.md-count-badge) { overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .lt-tab::after { left: 8px; right: 8px; }
 }
-.lt-frame--compact .lt-tab i { font-size: 1.35rem; }
-.lt-frame--compact .lt-tab > span:not(.md-count-badge) { overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.lt-frame--compact .lt-tab::after { left: 8px; right: 8px; }
 @media (prefers-reduced-motion: reduce) { .lt-tab, .lt-tab::after { transition: none; } }
 
 /* ===== Rejillas y secciones uniformes ===== */
@@ -328,17 +340,28 @@
 .lt-fab-menu__item i { color: var(--md-module-accent); font-size: 1.05rem; }
 .lt-fab-menu__item:hover { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
 
-/* ===== Móvil ===== */
+/* ===== Compacto (< 768px) =====
+ * El chrome compacto lo decide el ancho del viewport y nada más: no hay una
+ * variante de plantilla por dispositivo ni una clase que JavaScript alterne.
+ * Por eso el scrim y la barra inferior viajan siempre en el HTML y es el CSS
+ * quien los muestra; así no parpadean al cargar. */
 
-.lt-scrim { position: fixed; inset: 0; z-index: calc(var(--md-sys-z-navigation) - 1); border: 0; background: rgba(0, 0, 0, .32); }
+.lt-scrim {
+  position: fixed; inset: 0; z-index: calc(var(--md-sys-z-navigation) - 1);
+  display: none; border: 0; background: rgba(0, 0, 0, .32);
+}
 .lt-bottom {
   position: fixed; inset: auto 0 0 0; z-index: var(--md-sys-z-sticky);
-  display: flex; height: var(--md-sys-layout-nav-bar-height);
+  display: none;
+  /* La barra de gestos no puede comerse los destinos. */
+  height: calc(var(--md-sys-layout-nav-bar-height) + var(--lt-safe-bottom));
+  padding: 0 var(--lt-safe-right) var(--lt-safe-bottom) var(--lt-safe-left);
   background: var(--md-sys-color-surface-container-low);
   border-top: 1px solid var(--md-sys-color-outline-variant);
 }
 .lt-bottom__item {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; flex: 1;
+  min-height: var(--lt-tap-target);
   border: 0; background: transparent; color: var(--md-sys-color-on-surface-variant);
   font-size: .66rem; font-weight: 650; text-decoration: none; cursor: pointer;
 }
@@ -349,42 +372,62 @@
 .lt-bottom__item.is-active .lt-bottom__icon { background: var(--md-sys-color-primary-container); }
 .lt-bottom__item:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: -3px; }
 
-.lt-frame--compact .lt-frame__body { margin-left: 0; }
-.lt-frame--compact .lt-sidebar { transform: translateX(-100%); transition: transform var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard); }
-.lt-frame--compact .lt-sidebar.is-open { transform: none !important; box-shadow: var(--md-sys-elevation-3); }
-.lt-frame--compact .lt-main { padding: 12px 12px calc(var(--md-sys-layout-nav-bar-height) + 16px); }
-.lt-frame--compact .lt-fab-zone { right: 16px; bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px); }
-.lt-frame--compact .lt-topbar__title { font-size: 1.1rem; }
-.lt-frame--compact .lt-topbar { padding: 0 12px; gap: 8px; }
-.lt-frame--compact .lt-search { max-width: none; }
-.lt-frame--compact .lt-page-head__title { font-size: 1.25rem; }
-.lt-frame--compact .lt-metrics, .lt-frame--compact .lt-grid-2, .lt-frame--compact .lt-grid-3, .lt-frame--compact .lt-cols { grid-template-columns: minmax(0, 1fr); }
-.lt-frame--compact .lt-stat, .lt-frame--compact .lt-search kbd { display: none; }
-.lt-frame--compact .lt-search { margin-left: 0; }
-.lt-frame--compact .lt-topbar__tools .md-btn-filled > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.lt-frame--compact .lt-topbar__tools .md-btn-filled { min-width: 40px; padding: 0 12px; }
-.lt-frame--compact .lt-pop__surface { right: 0; min-width: 240px; }
-.lt-frame--compact .lt-span-2 { grid-column: auto; }
-
-@media (max-width: 1023.98px) {
-  /* Por debajo de 1024 la barra lateral se queda siempre en modo raíl:
-   * el escritorio nunca se queda sin navegación visible. */
-  .lt-frame:not(.lt-frame--compact) .lt-frame__body { margin-left: var(--lt-sidebar-rail); }
-  .lt-frame:not(.lt-frame--compact) .lt-sidebar { width: var(--lt-sidebar-rail); }
-  .lt-frame:not(.lt-frame--compact) .lt-sidebar__brand { justify-content: center; padding: 0; }
-  .lt-frame:not(.lt-frame--compact) .lt-sidebar__name, .lt-frame:not(.lt-frame--compact) .lt-nav-group__label, .lt-frame:not(.lt-frame--compact) .lt-nav-sub { display: none; }
-  .lt-frame:not(.lt-frame--compact) .lt-nav-item { flex-direction: column; gap: 4px; min-height: 0; padding: 6px 2px 8px; border-radius: 16px; background: transparent; }
-  .lt-frame:not(.lt-frame--compact) .lt-nav-item__icon { width: 56px; height: 32px; border-radius: var(--md-sys-shape-corner-full); font-size: 1.25rem; }
-  .lt-frame:not(.lt-frame--compact) .lt-nav-item__label { flex: 0 0 auto; width: 100%; font-size: .625rem; font-weight: 650; text-align: center; }
-  .lt-frame:not(.lt-frame--compact) .lt-nav-item.is-active { background: transparent; }
-  .lt-frame:not(.lt-frame--compact) .lt-nav-item.is-active .lt-nav-item__icon { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  /* Entre 768 y 1024 la barra lateral se queda siempre en modo raíl:
+   * la navegación nunca desaparece, pero tampoco se come el contenido. */
+  .lt-frame__body { margin-left: var(--lt-sidebar-rail); }
+  .lt-sidebar { width: var(--lt-sidebar-rail); }
+  .lt-sidebar__brand { justify-content: center; padding: 0; }
+  .lt-sidebar__name, .lt-nav-group__label, .lt-nav-sub { display: none; }
+  .lt-nav-item { flex-direction: column; gap: 4px; min-height: 0; padding: 6px 2px 8px; border-radius: 16px; background: transparent; }
+  .lt-nav-item__icon { width: 56px; height: 32px; border-radius: var(--md-sys-shape-corner-full); font-size: 1.25rem; }
+  .lt-nav-item__label { flex: 0 0 auto; width: 100%; font-size: .625rem; font-weight: 650; text-align: center; }
+  .lt-nav-item.is-active { background: transparent; }
+  .lt-nav-item.is-active .lt-nav-item__icon { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
   .lt-main { padding: 16px 16px 40px; }
   .lt-cols { grid-template-columns: minmax(0, 1fr); }
 }
+
 @media (max-width: 767.98px) {
-  .lt-stat, .lt-search kbd { display: none; }
+  /* La barra lateral pasa a superponerse y la navegación baja al borde
+   * inferior, donde llega el pulgar. */
+  .lt-scrim { display: block; }
+  .lt-bottom { display: flex; }
+
+  .lt-frame__body { margin-left: 0; }
+  .lt-sidebar {
+    width: var(--lt-sidebar-width);
+    padding-left: var(--lt-safe-left);
+    transform: translateX(-100%);
+    transition: transform var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard);
+  }
+  .lt-sidebar.is-open { transform: none; box-shadow: var(--md-sys-elevation-3); }
+
+  /* El colchón inferior deja pasar la barra de destinos y la barra de gestos. */
+  .lt-main {
+    padding:
+      12px
+      calc(12px + var(--lt-safe-right))
+      calc(var(--md-sys-layout-nav-bar-height) + var(--lt-safe-bottom) + 16px)
+      calc(12px + var(--lt-safe-left));
+  }
+  .lt-fab-zone {
+    right: calc(16px + var(--lt-safe-right));
+    bottom: calc(var(--md-sys-layout-nav-bar-height) + var(--lt-safe-bottom) + 16px);
+  }
+
+  .lt-topbar { gap: 8px; padding: var(--lt-safe-top) calc(12px + var(--lt-safe-right)) 0 calc(12px + var(--lt-safe-left)); }
+  .lt-topbar__title { font-size: 1.1rem; }
   .lt-topbar__tools .md-btn-filled > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .lt-topbar__tools .md-btn-filled { min-width: 40px; padding: 0 12px; }
+  .lt-search { max-width: none; margin-left: 0; }
+  .lt-stat, .lt-search kbd { display: none; }
+
+  .lt-page-head__title { font-size: 1.25rem; }
   .lt-page-head__actions { width: 100%; }
+  .lt-metrics, .lt-grid-2, .lt-grid-3, .lt-cols { grid-template-columns: minmax(0, 1fr); }
+  .lt-pop__surface { right: 0; min-width: 240px; }
+  .lt-span-2 { grid-column: auto; }
 }
 @media (max-width: 1279.98px) { .lt-cols { grid-template-columns: minmax(0, 1fr); } }
 
@@ -410,5 +453,68 @@
   .lt-care-row { grid-template-columns: minmax(0, 1fr) auto; }
   .lt-care-row__actions { grid-column: 1 / -1; justify-content: flex-start; }
 }
-.lt-frame--compact .lt-care-row { grid-template-columns: minmax(0, 1fr) auto; }
-.lt-frame--compact .lt-care-row__actions { grid-column: 1 / -1; justify-content: flex-start; }
+
+/* ===== Aviso de entorno local =====
+ * Marca las sesiones de desarrollo para no confundirlas con las reales. */
+
+.lt-env-banner {
+  position: sticky; top: 0; z-index: calc(var(--md-sys-z-navigation) + 1);
+  display: flex; align-items: center; justify-content: center; height: 20px;
+  background: var(--md-custom-color-warning-container); color: var(--md-custom-color-on-warning-container);
+  font-size: 11px; font-weight: 600; letter-spacing: .5px; pointer-events: none;
+}
+
+/* ===== Aviso de conexión =====
+ * El service worker sirve datos cacheados, así que hay que avisar de que lo
+ * que se está viendo puede estar viejo. */
+
+.lt-offline {
+  position: fixed; top: 0; right: 0; left: 0; z-index: calc(var(--md-sys-z-navigation) + 2);
+  padding: calc(var(--lt-safe-top) + var(--md-sys-space-sm, 8px)) var(--md-sys-space-md, 16px) var(--md-sys-space-sm, 8px);
+  background: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container);
+  font-size: .8125rem; font-weight: 600; text-align: center;
+  transform: translateY(-100%);
+  transition: transform var(--md-sys-motion-duration-medium1, 250ms) var(--md-sys-motion-easing-standard, ease);
+}
+.lt-offline.is-visible { transform: translateY(0); }
+
+/* ===== Pantalla que sirve el service worker sin conexión ===== */
+
+.lt-offline-page {
+  display: flex; align-items: center; justify-content: center; min-height: 100dvh; text-align: center;
+}
+.lt-offline-page__mark {
+  margin: 0 0 var(--md-sys-space-md, 16px);
+  color: var(--md-sys-color-on-surface-variant); font-size: 3rem; line-height: 1;
+}
+.lt-offline-page__action { margin-top: var(--md-sys-space-md, 16px); }
+
+/* ===== Invitación a instalar ===== */
+
+.lt-install .md-sheet__body { text-align: center; }
+.lt-install__icon { border-radius: var(--md-sys-shape-corner-large, 16px); margin-bottom: var(--md-sys-space-sm, 8px); }
+
+/* ===== Transiciones entre pantallas =====
+ * Solo se anima el contenido: la barra superior y la de destinos permanecen,
+ * que es lo que hace que la navegación se lea como una aplicación. */
+
+.lt-main { view-transition-name: lt-page; }
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(lt-page) {
+    animation: lt-page-out var(--md-sys-motion-duration-medium1, 250ms) var(--md-sys-motion-easing-standard, ease) both;
+  }
+  ::view-transition-new(lt-page) {
+    animation: lt-page-in var(--md-sys-motion-duration-medium1, 250ms) var(--md-sys-motion-easing-standard, ease) both;
+  }
+}
+
+@keyframes lt-page-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes lt-page-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateX(-12px); }
+}

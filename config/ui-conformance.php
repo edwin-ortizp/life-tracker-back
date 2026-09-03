@@ -159,16 +159,6 @@ return [
             'scope' => 'Solo la metaetiqueta `theme-color`; la interfaz de la pagina usa tokens del sistema.',
         ],
         [
-            'path' => 'resources/views-mobile/layouts/*',
-            'rules' => ['local-component-substitution'],
-            'reason' => 'El marco movil (app bar, tab bar, hoja de modulos, aviso de conexion) usa sus propios '.
-                'primitivos `lt-m-*` definidos en archetypes/_mobile-frame.css. Son controles de chrome, no acciones '.
-                'de contenido: no encajan en el contrato semantico de `x-ui.icon-action` ni en el patron de hoja de '.
-                '`x-ui.sheet`, que asume una superficie de contenido y no la navegacion raiz de la aplicacion.',
-            'scope' => 'Solo los controles de chrome del marco movil: volver, ajustes, destinos de la barra inferior '.
-                'y apertura de la hoja de modulos.',
-        ],
-        [
             'path' => 'resources/views/layouts/app.blade.php',
             'rules' => ['local-component-substitution'],
             'reason' => 'El marco de aplicación (AppFrame v2: sidebar, topbar, scrim, bottom-nav) usa sus propios '.

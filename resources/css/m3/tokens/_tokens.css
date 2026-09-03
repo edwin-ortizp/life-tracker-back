@@ -213,10 +213,8 @@
   --lt-safe-bottom: env(safe-area-inset-bottom, 0px);
   --lt-safe-left: env(safe-area-inset-left, 0px);
 
-  /* Marco movil */
-  --lt-m-app-bar-height: 56px;
-  --lt-m-tab-bar-height: 64px;
-  --lt-m-tap-target: 48px;
+  /* Objetivo tactil minimo de los controles de chrome. */
+  --lt-tap-target: 48px;
 
   /* Layout */
   --md-sys-layout-rail-width: 80px;

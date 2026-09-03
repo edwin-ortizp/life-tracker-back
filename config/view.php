@@ -15,11 +15,6 @@ return [
 
     'paths' => [
         resource_path('views'),
-
-        // Capa movil. Va en segundo lugar a proposito: en escritorio nunca gana,
-        // y `DetectMobileClient` la antepone cuando el cliente es un telefono.
-        // Declararla aqui permite que `view:cache` compile tambien estas vistas.
-        resource_path('views-mobile'),
     ],
 
     /*

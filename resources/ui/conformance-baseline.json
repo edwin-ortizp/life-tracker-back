@@ -1,7 +1,7 @@
 {
     "description": "Inventario de deuda visual. Una contribución puede conservarla, no aumentarla.",
     "totals": {
-        "inline-style": 287,
+        "inline-style": 283,
         "local-component-substitution": 54,
         "retired-pattern": 67
     },
@@ -14,9 +14,6 @@
         },
         "resources/views/components/module-actions.blade.php": {
             "local-component-substitution": 1
-        },
-        "resources/views/layouts/app.blade.php": {
-            "inline-style": 4
         },
         "resources/views/livewire/goal/goal-detail.blade.php": {
             "inline-style": 2,

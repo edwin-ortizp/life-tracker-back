@@ -71,6 +71,14 @@ export function registerInstallPrompt(Alpine) {
                 return;
             }
 
+            // La hoja se puede cerrar desde el scrim, el aspa o el gesto, no
+            // solo desde "Ahora no": cualquier cierre cuenta como descarte.
+            this.$watch('open', (open) => {
+                if (!open) {
+                    remember();
+                }
+            });
+
             const isIos = /iphone|ipod|ipad/i.test(navigator.userAgent);
 
             if (isIos) {
@@ -102,12 +110,10 @@ export function registerInstallPrompt(Alpine) {
             deferred.prompt();
             await deferred.userChoice;
             deferred = null;
-            remember();
         },
 
         dismiss() {
             this.open = false;
-            remember();
         },
     }));
 }

@@ -2,11 +2,26 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{-- `viewport-fit=cover` deja que el contenido llegue a los bordes; las
+         areas seguras se respetan despues con los tokens `--lt-safe-*`. --}}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Life Tracker' }}</title>
+
     <link rel="manifest" href="{{ asset('manifest.json') }}">
-    <meta name="theme-color" content="#0D6BC4">
+    {{-- Mismo color que declara el manifest: si difieren, la barra de estado
+         cambia de tono al instalar la aplicacion. --}}
+    <meta name="theme-color" content="#2B5BB5">
+    <meta name="color-scheme" content="light dark">
+
+    {{-- iOS no lee el manifest: necesita sus propias etiquetas para abrirse
+         sin barra de navegador y con el icono correcto. --}}
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Life Tracker">
+    <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('icons/icon-192x192.png') }}">
+
     @include('partials.app-styles')
     @include('partials.app-scripts')
     @livewireStyles
@@ -32,6 +47,9 @@
         ->map(fn ($item) => ['label' => $item['label'], 'icon' => $item['icon'], 'href' => route($item['route'])])
         ->values();
 @endphp
+{{-- Un unico marco para todos los anchos: el CSS decide que se ve y el estado
+     de Alpine solo decide comportamiento (que hace el boton de menu, que
+     etiqueta accesible le corresponde). No hay variante por dispositivo. --}}
 <body class="lt-frame"
       x-data="{
           sidebarOpen: false,
@@ -49,9 +67,15 @@
               this.sidebarRail = !this.sidebarRail;
           },
       }"
-      :class="{ 'is-rail': sidebarRail && !compact, 'lt-frame--compact': compact }">
+      :class="{ 'is-rail': sidebarRail }">
 
-    {{-- Sidebar: expandida, raíl o superpuesta en móvil, según config('modules.navigation') --}}
+    {{-- Aviso de conexion: la aplicacion sirve datos cacheados por el service
+         worker, asi que hay que decir que lo que se ve puede estar viejo. --}}
+    <div class="lt-offline" x-data="ltConnection()" :class="{ 'is-visible': offline }" role="status" aria-live="polite">
+        Sin conexión — se muestran los datos guardados
+    </div>
+
+    {{-- Sidebar: expandida, raíl o superpuesta en compacto, según config('modules.navigation') --}}
     <aside class="lt-sidebar" :class="{ 'is-open': sidebarOpen }" aria-label="Módulos de Life Tracker">
         <div class="lt-sidebar__brand">
             <span class="lt-sidebar__mark" aria-hidden="true"><i class="bi bi-activity"></i></span>
@@ -74,7 +98,9 @@
             @endforeach
         </nav>
     </aside>
-    <button type="button" class="lt-scrim" x-show="compact && sidebarOpen" x-cloak aria-label="Cerrar los módulos" @click="sidebarOpen = false"></button>
+    {{-- Solo existe mientras la sidebar esta superpuesta; por encima de 768px el
+         CSS lo oculta, porque ahi la sidebar no tapa nada. --}}
+    <button type="button" class="lt-scrim" x-show="sidebarOpen" x-cloak aria-label="Cerrar los módulos" @click="sidebarOpen = false"></button>
 
     <div class="lt-frame__body">
         <header class="lt-topbar">
@@ -104,7 +130,7 @@
                 <input id="lt-global-search" type="search" placeholder="Buscar en todos los módulos…" x-ref="globalSearch"
                        x-model="search" @focus="open = true" @input="open = true">
                 <template x-if="open && search.length">
-                    <div class="lt-pop__surface" style="position:absolute; top:calc(100% + 8px); left:0; right:0;">
+                    <div class="lt-pop__surface lt-pop__surface--under">
                         <template x-for="result in ({{ \Illuminate\Support\Js::from($searchIndex) }}).filter(m => m.label.toLowerCase().includes(search.toLowerCase()))" :key="result.href">
                             <a class="lt-pop__item" wire:navigate :href="result.href">
                                 <i :class="'bi ' + result.icon" aria-hidden="true"></i>
@@ -129,17 +155,17 @@
         </header>
 
         @if(app()->environment('local'))
-            <div style="position:sticky;top:0;left:0;right:0;height:20px;background:rgba(245,158,11,0.8);color:#000;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;z-index:99999;pointer-events:none;letter-spacing:.5px;">
-                LOCAL ENVIRONMENT
-            </div>
+            <div class="lt-env-banner">LOCAL ENVIRONMENT</div>
         @endif
 
         <main class="lt-main">
             {{ $slot }}
         </main>
 
-        {{-- Móvil: barra inferior con destinos principales --}}
-        <nav class="lt-bottom" aria-label="Destinos principales" x-show="compact" x-cloak>
+        {{-- Destinos principales. Van siempre en el HTML: por encima de 768px los
+             oculta el CSS, no una condición de JavaScript, así que no parpadean
+             al cargar ni hace falta `x-cloak`. --}}
+        <nav class="lt-bottom" aria-label="Destinos principales">
             <a href="{{ route('home') }}" wire:navigate class="lt-bottom__item {{ request()->routeIs('home') ? 'is-active' : '' }}" @if(request()->routeIs('home')) aria-current="page" @endif>
                 <span class="lt-bottom__icon"><i class="bi bi-house" aria-hidden="true"></i></span>
                 <span>Inicio</span>
@@ -161,6 +187,33 @@
                 <span>Módulos</span>
             </button>
         </nav>
+    </div>
+
+    {{-- Invitacion a instalar. Android expone `beforeinstallprompt` y se puede
+         lanzar el dialogo del sistema; iOS no lo expone, asi que solo cabe
+         explicar los pasos de Safari. El descarte se recuerda 30 dias. --}}
+    <div x-data="ltInstallPrompt()">
+        <x-ui.sheet state="open" title="Ten Life Tracker a mano" class="lt-install">
+            <img src="{{ asset('icons/icon-128x128.png') }}" alt="" width="72" height="72" class="lt-install__icon">
+
+            <template x-if="platform === 'android'">
+                <p class="md-body-medium">Añádela a tu pantalla de inicio y ábrela como cualquier otra app, sin barra de navegador.</p>
+            </template>
+
+            <template x-if="platform === 'ios'">
+                <p class="md-body-medium">
+                    Toca <i class="bi bi-box-arrow-up" aria-hidden="true"></i> <strong>Compartir</strong>
+                    y luego <strong>Añadir a pantalla de inicio</strong>.
+                </p>
+            </template>
+
+            <x-slot:actions>
+                <x-ui.action variant="text" x-on:click="dismiss()">Ahora no</x-ui.action>
+                <template x-if="platform === 'android'">
+                    <x-ui.action icon="bi-phone" x-on:click="install()">Añadir a la pantalla de inicio</x-ui.action>
+                </template>
+            </x-slot:actions>
+        </x-ui.sheet>
     </div>
 
     @livewireScriptConfig

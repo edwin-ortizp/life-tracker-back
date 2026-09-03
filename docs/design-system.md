@@ -23,9 +23,13 @@ La interfaz se comporta como una cabina serena: alta densidad de información, j
 
 ## Responsive y accesibilidad
 
+Existe **un solo marco de aplicación para todos los anchos**. No hay variante por dispositivo: ni capa de vistas paralela, ni detección de user-agent, ni una clase que JavaScript alterne para simular un breakpoint. El ancho del viewport es el único interruptor, y quien lo lee es el CSS. JavaScript decide comportamiento (qué hace el botón de menú, qué etiqueta accesible le corresponde), nunca visibilidad.
+
 - Desde 1200 px, el workspace usa contenido flexible más un rail de 320 px.
-- Entre 768 y 1199 px, el rail baja y presenta hasta dos widgets por fila.
-- Por debajo de 768 px, todo fluye en una columna y las pestañas tienen desplazamiento horizontal.
+- Desde 1024 px, la barra lateral se muestra expandida y puede colapsarse a raíl.
+- Entre 768 y 1023 px, la barra lateral se queda en raíl y el rail contextual baja, con hasta dos widgets por fila.
+- Por debajo de 768 px, la barra lateral se superpone, los destinos principales bajan a la barra inferior, todo fluye en una columna y las pestañas tienen desplazamiento horizontal.
+- El marco se sirve con `viewport-fit=cover`, así que todo lo que toca un borde devuelve el notch y la barra de gestos con los tokens `--lt-safe-*`.
 - Controles interactivos nuevos: mínimo 44 px, foco visible, etiqueta accesible y contraste AA.
 - El contenido debe seguir siendo operable con `prefers-reduced-motion`.
 

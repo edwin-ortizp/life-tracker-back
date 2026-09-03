@@ -7,14 +7,14 @@
     <meta name="theme-color" content="#2B5BB5">
     @include('partials.app-styles')
 </head>
-<body class="lt-m">
-    <main class="lt-m-content lt-m-offline-page">
-        <div class="lt-m-offline-page__body">
-            <p class="lt-m-offline-page__mark"><i class="bi bi-wifi-off" aria-hidden="true"></i></p>
+<body class="lt-frame">
+    <main class="lt-main lt-offline-page">
+        <div class="lt-offline-page__body">
+            <p class="lt-offline-page__mark"><i class="bi bi-wifi-off" aria-hidden="true"></i></p>
             <h1 class="md-headline-small">Sin conexión</h1>
             <p class="md-body-medium">Esta pantalla no se ha abierto antes, así que no hay una copia guardada.</p>
             <p class="md-body-medium">Las pantallas que ya visitaste siguen disponibles.</p>
-            <a href="/" class="md-btn-filled lt-m-offline-page__action">
+            <a href="/" class="md-btn-filled lt-offline-page__action">
                 <i class="bi bi-house" aria-hidden="true"></i> Ir al inicio
             </a>
         </div>

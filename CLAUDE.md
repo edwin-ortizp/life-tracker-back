@@ -175,6 +175,8 @@ Dialogs use Alpine.js with Livewire entanglement:
 - `.env` file for configuration (standard Laravel)
 
 ### Responsive Design
-- Mobile-first approach with Bootstrap-style breakpoints
-- Adaptive navigation: desktop sidebar, mobile bottom navigation
-- Touch-optimized interactions for mobile devices
+- **Una sola versión.** No existe una variante móvil: ni `resources/views-mobile`, ni detección de user-agent, ni una clase de JavaScript que emule un breakpoint. El ancho del viewport es el único interruptor y lo lee el CSS.
+- Un único layout (`resources/views/layouts/app.blade.php`) y un único marco (`resources/css/m3/archetypes/_app-frame.css`).
+- Navegación adaptativa por breakpoint: barra lateral desde 768px (raíl entre 768 y 1023px), barra inferior por debajo de 768px.
+- El chrome viaja siempre en el HTML; si su visibilidad dependiera de una condición de Alpine, parpadearía en cada carga.
+- `viewport-fit=cover` + tokens `--lt-safe-*` para el notch y la barra de gestos. Objetivo táctil mínimo `--lt-tap-target`.

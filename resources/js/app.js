@@ -1,14 +1,14 @@
 import { Alpine, Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
 import { registerPomodoroTimer } from './pomodoro-timer';
 import { registerUiSurfaces } from './ui-surfaces';
-import { markPlatform, registerMobileFrame, registerPageTransitions } from './mobile-frame';
+import { markPlatform, registerAppFrame, registerPageTransitions } from './app-frame';
 import { registerInstallPrompt, registerServiceWorker } from './pwa';
 import { registerFeedback } from './feedback';
 import { registerSwipeRow } from './swipe-row';
 
 registerPomodoroTimer(Alpine);
 registerUiSurfaces(Alpine);
-registerMobileFrame(Alpine);
+registerAppFrame(Alpine);
 registerFeedback(Alpine);
 registerSwipeRow(Alpine);
 
