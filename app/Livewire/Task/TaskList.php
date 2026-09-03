@@ -173,6 +173,17 @@ class TaskList extends Component
         $this->resetPage();
     }
 
+    public function clearFilters(): void
+    {
+        $this->filter = 'pending';
+        $this->dateFilter = '';
+        $this->categoryFilter = '';
+        $this->priorityFilter = '';
+        $this->sizeFilter = '';
+        $this->normalizeFilters();
+        $this->resetPage();
+    }
+
     public function openForm(?string $id = null)
     {
         $this->resetForm();

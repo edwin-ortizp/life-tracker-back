@@ -1,31 +1,78 @@
 <div data-module="tasks" class="lt-page" x-data="{ showDialog: $wire.entangle('showForm'), showBulkDialog: $wire.entangle('showBulkForm'), showRecurringDialog: $wire.entangle('showRecurringCompletion') }">
     <x-page-header subtitle="Decide, ordena y completa el trabajo con claridad." :tabs="config('modules.tasks.tabs')" :preserve="config('modules.tasks.preserve')">
         <x-slot:controls>
-            <x-ui.filter-bar search="search" placeholder="Buscar tareas..." label="Filtros de tareas">
-                <x-slot:chips>
-                    @foreach (['pending' => 'Pendientes', 'completed' => 'Completadas', 'all' => 'Todas'] as $value => $label)
-                        <x-ui.chip variant="filter" :selected="$filter === '{{ $value }}'" wire:click="$set('filter', '{{ $value }}')">{{ $label }}</x-ui.chip>
-                    @endforeach
-
-                    <div class="md-chip-rail__divider"></div>
-
-                    @foreach (['hoy' => 'Hoy', 'vencidas' => 'Vencidas', 'proximas' => 'Próximas', 'sin-fecha' => 'Sin fecha'] as $value => $label)
-                        <x-ui.chip variant="filter" :selected="$dateFilter === '{{ $value }}'"
-                                   wire:click="$set('dateFilter', '{{ $dateFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
-                    @endforeach
-
-                    <div class="md-chip-rail__divider"></div>
-
-                    <x-ui.filter-menu name="categoryFilter" label="Categoría" allLabel="Todas"
-                                      :options="['__none__' => 'Sin categoría'] + $categories"
-                                      :selected="$categoryFilter" />
-
-                    <x-ui.filter-menu name="priorityFilter" label="Prioridad" allLabel="Todas"
-                                      :options="$priorities" :selected="$priorityFilter" />
-
-                    <x-ui.filter-menu name="sizeFilter" label="Tamaño" allLabel="Todos" align="end"
-                                      :options="$sizes" :selected="$sizeFilter" />
-                </x-slot:chips>
+            @php
+                $activeFilterCount = collect([$dateFilter, $categoryFilter, $priorityFilter, $sizeFilter, $filter !== 'pending' ? $filter : ''])->filter()->count();
+            @endphp
+            <x-ui.filter-bar search="search" placeholder="Buscar tareas..." label="Filtros de tareas" class="tf-bar">
+                <div class="tf-filters" x-data="{ panel: false }" @click.outside="panel = false" @keydown.escape="panel = false">
+                    <button type="button" class="md-btn-outlined tf-btn {{ $activeFilterCount ? 'is-on' : '' }}"
+                            :aria-expanded="panel" @click="panel = !panel">
+                        <i class="bi bi-funnel" aria-hidden="true"></i> <span>Filtros</span>
+                        @if ($activeFilterCount)
+                            <span class="md-count-badge">{{ $activeFilterCount }}</span>
+                        @endif
+                    </button>
+                    <template x-if="panel">
+                        <div>
+                            <button type="button" class="md-tf-scrim" aria-label="Cerrar los filtros" @click="panel = false"></button>
+                            <div class="tf-pop">
+                                <div class="tf-pop__head">
+                                    <h3>Filtros</h3>
+                                    @if ($activeFilterCount)
+                                        <x-ui.action variant="text" size="sm" icon="bi-x-lg" wire:click="clearFilters">Limpiar</x-ui.action>
+                                    @endif
+                                    <span style="flex: 1;"></span>
+                                    <x-ui.icon-action icon="bi-x-lg" label="Cerrar los filtros" size="sm" @click="panel = false" />
+                                </div>
+                                <div class="ltm-section">
+                                    <span class="ltm-section__label">Cuándo</span>
+                                    <div class="ltm-chips">
+                                        @foreach (['hoy' => 'Hoy', 'vencidas' => 'Vencidas', 'proximas' => 'Próximas', 'sin-fecha' => 'Sin fecha'] as $value => $label)
+                                            <x-ui.chip variant="filter" :selected="$dateFilter === $value"
+                                                       wire:click="$set('dateFilter', '{{ $dateFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="ltm-section">
+                                    <span class="ltm-section__label">Categoría</span>
+                                    <div class="ltm-chips">
+                                        @foreach (['__none__' => 'Sin categoría'] + $categories as $value => $label)
+                                            <x-ui.chip variant="filter" :selected="$categoryFilter === $value"
+                                                       wire:click="$set('categoryFilter', '{{ $categoryFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="ltm-section">
+                                    <span class="ltm-section__label">Estado</span>
+                                    <div class="ltm-chips">
+                                        @foreach (['pending' => 'Pendientes', 'completed' => 'Completadas', 'all' => 'Todas'] as $value => $label)
+                                            <x-ui.chip variant="filter" :selected="$filter === $value" wire:click="$set('filter', '{{ $value }}')">{{ $label }}</x-ui.chip>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="ltm-section">
+                                    <span class="ltm-section__label">Prioridad</span>
+                                    <div class="ltm-chips">
+                                        @foreach ($priorities as $value => $label)
+                                            <x-ui.chip variant="filter" :selected="$priorityFilter === $value"
+                                                       wire:click="$set('priorityFilter', '{{ $priorityFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="ltm-section">
+                                    <span class="ltm-section__label">Tamaño</span>
+                                    <div class="ltm-chips">
+                                        @foreach ($sizes as $value => $label)
+                                            <x-ui.chip variant="filter" :selected="$sizeFilter === $value"
+                                                       wire:click="$set('sizeFilter', '{{ $sizeFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
             </x-ui.filter-bar>
         </x-slot:controls>
     </x-page-header>
@@ -43,17 +90,6 @@
         <div wire:loading.delay.remove wire:target="filter,categoryFilter,priorityFilter,dateFilter,sizeFilter,search,gotoPage,previousPage,nextPage">
         @forelse ($tasks as $task)
             <div class="md-list-item {{ $task->completed ? 'md-list-item--completed' : '' }}">
-                <div class="md-list-item-leading">
-                    <button wire:click.stop="toggleComplete('{{ $task->id }}')"
-                            x-optimistic-toggle
-                            aria-pressed="{{ $task->completed ? 'true' : 'false' }}"
-                            aria-label="{{ $task->completed ? 'Marcar como pendiente' : 'Completar' }}: {{ $task->title }}"
-                            class="md-list-checkbox {{ $task->completed ? 'checked' : '' }}">
-                        @if ($task->completed)
-                            <i class="bi bi-check-lg"></i>
-                        @endif
-                    </button>
-                </div>
                 <button wire:click="openForm('{{ $task->id }}')" class="md-list-item-content md-task-open-button" aria-label="Abrir tarea: {{ $task->title }}">
                     <div class="d-flex align-items-center gap-2">
                         <span class="md-list-item-headline {{ $task->completed ? '' : 'fw-medium' }}">
@@ -115,12 +151,32 @@
                     </div>
                 </button>
                 <div class="md-list-item-trailing">
-                    <button wire:click.stop="openForm('{{ $task->id }}')" class="md-btn-icon" title="Editar">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button wire:click.stop="delete('{{ $task->id }}')" wire:confirm="¿Eliminar esta tarea?" class="md-btn-icon" title="Eliminar" style="color: var(--md-sys-color-error);">
-                        <i class="bi bi-trash"></i>
-                    </button>
+                    <div class="ta-split" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
+                        <button type="button" wire:click.stop="toggleComplete('{{ $task->id }}')" x-optimistic-toggle
+                                class="md-btn-outlined ta-split__main">
+                            <i class="bi {{ $task->completed ? 'bi-arrow-counterclockwise' : 'bi-check-lg' }}" aria-hidden="true"></i>
+                            <span>{{ $task->completed ? 'Reabrir' : 'Completar' }}</span>
+                        </button>
+                        <button type="button" class="md-btn-outlined ta-split__more" aria-label="Más acciones de {{ $task->title }}"
+                                :aria-expanded="open" @click.stop="open = !open">
+                            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                        </button>
+                        <template x-if="open">
+                            <div>
+                                <button type="button" class="md-tf-scrim" aria-label="Cerrar el menú" @click="open = false"></button>
+                                <div class="ta-menu" role="menu">
+                                    <button type="button" role="menuitem" wire:click.stop="openForm('{{ $task->id }}')" @click="open = false">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i> Editar
+                                    </button>
+                                    <button type="button" role="menuitem" class="md-ta-menu__danger"
+                                            wire:click.stop="delete('{{ $task->id }}')" wire:confirm="La tarea «{{ $task->title }}» se elimina de forma permanente."
+                                            @click="open = false">
+                                        <i class="bi bi-trash" aria-hidden="true"></i> Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
                 </div>
             </div>
         @empty
@@ -139,17 +195,18 @@
 
     <div class="lt-stack">
         <x-panel title="Hoy" icon="bi-lightning-charge">
-            <div class="text-center mb-2">
-                <span style="font-size: 2rem; font-weight: 700; color: var(--md-sys-color-primary);">{{ $completedToday }}</span>
-                <span class="md-body-small d-block" style="color: var(--md-sys-color-on-surface-variant);">completadas hoy</span>
+            <div style="display: grid; gap: 14px;">
+                <div>
+                    <p class="lt-figure" style="margin: 0 0 8px;"><strong>{{ $completedToday }}</strong><span>de {{ $plannedToday }} planificadas hoy</span></p>
+                    <x-ui.progress :value="$plannedToday ? ($completedToday / $plannedToday) * 100 : 0" tone="success" label="Progreso de hoy" />
+                </div>
+                <dl class="lt-facts">
+                    <div><dt>Pendientes</dt><dd>{{ $pendingCount }}</dd></div>
+                    @if ($overdueCount > 0)
+                        <div style="color: var(--md-sys-color-error);"><dt>Vencidas</dt><dd>{{ $overdueCount }}</dd></div>
+                    @endif
+                </dl>
             </div>
-            <dl class="lt-facts">
-                <div><dt>Planificadas hoy</dt><dd>{{ $plannedToday }}</dd></div>
-                <div><dt>Pendientes</dt><dd>{{ $pendingCount }}</dd></div>
-                @if ($overdueCount > 0)
-                    <div style="color: var(--md-sys-color-error);"><dt>Vencidas</dt><dd>{{ $overdueCount }}</dd></div>
-                @endif
-            </dl>
         </x-panel>
         @if (!empty($categoryBreakdown))
             <x-panel title="Completadas hoy" icon="bi-bar-chart">
