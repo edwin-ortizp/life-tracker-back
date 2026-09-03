@@ -129,3 +129,44 @@
 .ta-menu button:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent); }
 .md-ta-menu__danger { color: var(--md-sys-color-error) !important; }
 .ta-chip-plain { background: var(--md-sys-color-surface-container-lowest) !important; border: 1px solid var(--md-sys-color-outline-variant); }
+
+/* ===== Mobile: fila con acciones por gesto, en vez de "Completar" + menú =====
+ * Desliza a la derecha para completar/reabrir (se confirma con el propio
+ * gesto: es reversible). Desliza a la izquierda para revelar Editar/Eliminar
+ * — nunca se disparan por el gesto, solo se revelan; hay que tocarlos. */
+.swipe-row { position: relative; overflow: hidden; }
+.swipe-row__bg { position: absolute; inset: 0; display: none; align-items: stretch; }
+.swipe-row__bg--complete {
+  justify-content: flex-start; padding-left: 22px; gap: 8px;
+  background: var(--md-custom-color-success); color: var(--md-custom-color-on-success);
+  font-size: .85rem; font-weight: 700; align-items: center;
+}
+.swipe-row__bg--complete i { font-size: 1.25rem; }
+.swipe-row__bg--actions { justify-content: flex-end; }
+.swipe-row__action {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  width: 66px; border: 0; font-size: .66rem; font-weight: 650; cursor: pointer;
+}
+.swipe-row__action i { font-size: 1.05rem; }
+.swipe-row__action--edit { background: var(--md-sys-color-tertiary); color: var(--md-sys-color-on-tertiary); }
+.swipe-row__action--delete { background: var(--md-sys-color-error); color: var(--md-sys-color-on-error); }
+.swipe-row__card { position: relative; z-index: 1; background: var(--md-sys-color-surface-container-lowest); touch-action: pan-y; }
+.swipe-row__card:not(.swipe-row__card--dragging) { transition: transform var(--md-sys-motion-duration-medium1) var(--md-sys-motion-easing-standard); }
+
+@media (max-width: 767.98px) {
+  .swipe-row__bg { display: flex; }
+  .swipe-row .ta-split { display: none; }
+  .swipe-row .md-list-item-trailing { display: none; }
+
+  /* Sin los controles a la derecha sobra aire para apretar la densidad:
+   * la tarjeta se sentía cargada. Solo afecta a filas de tareas. */
+  .swipe-row__card { padding: 10px 16px; gap: 10px; min-height: 0; }
+  .swipe-row__card .md-list-item-headline { font-size: .92rem; line-height: 1.3; }
+  .swipe-row__card .md-list-item-supporting { font-size: .78rem; }
+  .swipe-row__card .md-chip-tonal { height: 21px; padding: 0 8px; font-size: .68rem; }
+  .swipe-row__card .d-flex.flex-wrap.gap-1 { gap: 5px !important; margin-top: 4px !important; }
+}
+@media (min-width: 768px) {
+  .swipe-row__bg { display: none; }
+  .swipe-row__card { transform: none !important; }
+}

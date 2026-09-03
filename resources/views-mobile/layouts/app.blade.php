@@ -44,6 +44,17 @@
 
     $barTitle = $title ?? $activeModule['title'] ?? 'Life Tracker';
 
+    // En las secciones de raíz (las que también viven en la barra inferior) el
+    // icono de cabecera abre todos los módulos, como en cualquier app con
+    // navegación por pestañas. En una pantalla a la que se llega "hacia
+    // adentro" (detalle, ajustes) el mismo hueco vuelve a ser "atrás".
+    $isRootSection = request()->routeIs('home', 'habits*', 'tasks.*', 'water*', 'statistics*');
+
+    $searchIndex = collect(config('modules.navigation', []))
+        ->flatMap(fn ($section) => $section['items'] ?? [])
+        ->map(fn ($item) => ['label' => $item['label'], 'icon' => $item['icon'], 'href' => route($item['route'])])
+        ->values();
+
     // `match` es el prefijo de URL con el que la barra decide, en cliente, cual
     // es la pestana activa. Se compara con `location.pathname` porque la barra
     // esta persistida y el servidor ya no la vuelve a renderizar.
@@ -61,19 +72,51 @@
     </div>
 
     {{-- La app bar no se persiste: su titulo cambia en cada pantalla. --}}
-    <header class="lt-m-bar" :data-scrolled="scrolled">
-        @if (! request()->routeIs('home'))
-            <button type="button" class="lt-m-bar__action" @click="goBack()" aria-label="Volver">
+    <header class="lt-m-bar" :data-scrolled="scrolled" x-data="{ searching: false, q: '' }">
+        {{-- x-show, no x-if: la app bar cambia de título en cada navegación por
+             `wire:navigate`, que también pasa por el morph de Livewire. Un
+             `<template x-if>` clona el contenido una sola vez y ese contenido
+             inerte ya no vuelve a tocarse en morphs posteriores. --}}
+        <div class="lt-m-bar__row" x-show="!searching">
+            @if ($isRootSection)
+                <button type="button" class="lt-m-bar__action" @click="$dispatch('lt-modules-open')" aria-label="Mostrar todos los módulos">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+            @else
+                <button type="button" class="lt-m-bar__action" @click="goBack()" aria-label="Volver">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                </button>
+            @endif
+
+            <h1 class="lt-m-bar__title">{{ $barTitle }}</h1>
+
+            {{-- Como maximo dos acciones: mas de eso deja de leerse como app bar. --}}
+            <button type="button" class="lt-m-bar__action" @click="searching = true" aria-label="Buscar">
+                <i class="bi bi-search" aria-hidden="true"></i>
+            </button>
+            <a href="{{ route('settings') }}" wire:navigate class="lt-m-bar__action" aria-label="Ajustes">
+                <i class="bi bi-gear" aria-hidden="true"></i>
+            </a>
+        </div>
+        <div class="lt-m-bar__row lt-m-bar__row--search" x-show="searching" x-cloak>
+            <button type="button" class="lt-m-bar__action" @click="searching = false" aria-label="Cerrar búsqueda">
                 <i class="bi bi-arrow-left" aria-hidden="true"></i>
             </button>
-        @endif
-
-        <h1 class="lt-m-bar__title">{{ $barTitle }}</h1>
-
-        {{-- Como maximo dos acciones: mas de eso deja de leerse como app bar. --}}
-        <a href="{{ route('settings') }}" wire:navigate class="lt-m-bar__action" aria-label="Ajustes">
-            <i class="bi bi-gear" aria-hidden="true"></i>
-        </a>
+            <label class="visually-hidden" for="lt-m-search">Buscar en todos los módulos</label>
+            <input id="lt-m-search" type="search" class="lt-m-bar__search-input" placeholder="Buscar en todos los módulos…"
+                   x-ref="mSearch" x-model="q" x-init="$watch('searching', (v) => v && $nextTick(() => $refs.mSearch.focus()))"
+                   @keydown.escape="searching = false">
+        </div>
+        <template x-if="searching && q.length">
+            <div class="lt-m-search-results">
+                <template x-for="result in {{ \Illuminate\Support\Js::from($searchIndex) }}.filter(m => m.label.toLowerCase().includes(q.toLowerCase()))" :key="result.href">
+                    <a class="lt-m-search-results__item" :href="result.href" wire:navigate @click="searching = false; q = ''">
+                        <i :class="'bi ' + result.icon" aria-hidden="true"></i>
+                        <span x-text="result.label"></span>
+                    </a>
+                </template>
+            </div>
+        </template>
     </header>
 
     <main class="lt-m-content" id="lt-m-content">

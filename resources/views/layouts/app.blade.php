@@ -38,9 +38,10 @@
           sidebarRail: localStorage.getItem('lt-sidebar-rail') === '1',
           compact: window.matchMedia('(max-width: 767.98px)').matches,
           search: '',
+          searchOpen: false,
           init() {
               const mq = window.matchMedia('(max-width: 767.98px)');
-              mq.addEventListener('change', (e) => { this.compact = e.matches; if (!this.compact) this.sidebarOpen = false; });
+              mq.addEventListener('change', (e) => { this.compact = e.matches; if (!this.compact) { this.sidebarOpen = false; this.searchOpen = false; } });
               this.$watch('sidebarRail', (v) => localStorage.setItem('lt-sidebar-rail', v ? '1' : '0'));
           },
           toggleNav() {
@@ -77,18 +78,30 @@
 
     <div class="lt-frame__body">
         <header class="lt-topbar">
-            <button type="button" class="md-btn-icon lt-topbar__menu" @click="toggleNav()"
+            <button type="button" class="md-btn-icon lt-topbar__menu" x-show="!(compact && searchOpen)" @click="toggleNav()"
                     :aria-label="compact ? 'Mostrar los módulos' : (sidebarRail ? 'Expandir la barra de módulos' : 'Colapsar la barra de módulos')"
                     :aria-expanded="compact ? sidebarOpen : !sidebarRail">
                 <i class="bi bi-list" aria-hidden="true"></i>
             </button>
 
-            <h2 class="lt-topbar__title">{{ $activeModuleTitle }}</h2>
+            {{-- Solo en compacto: mientras se busca, este botón cierra la búsqueda
+                 en vez de abrir la sidebar; en el resto de casos no se muestra. --}}
+            <button type="button" class="md-btn-icon" x-show="compact && searchOpen" x-cloak
+                    @click="searchOpen = false; search = ''" aria-label="Cerrar búsqueda">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            </button>
 
-            <div class="lt-search" role="search" x-data="{ open: false }" @click.outside="open = false">
+            <h2 class="lt-topbar__title" x-show="!(compact && searchOpen)">{{ $activeModuleTitle }}</h2>
+
+            {{-- Escritorio: buscador siempre visible. Compacto: icono que expande
+                 a buscador de ancho completo, patrón M3 de "search view". --}}
+            <button type="button" class="md-btn-icon" x-show="compact && !searchOpen" @click="searchOpen = true; $nextTick(() => document.getElementById('lt-global-search').focus())" aria-label="Buscar">
+                <i class="bi bi-search" aria-hidden="true"></i>
+            </button>
+            <div class="lt-search" role="search" x-show="!compact || searchOpen" x-data="{ open: false }" @click.outside="open = false">
                 <i class="bi bi-search" aria-hidden="true"></i>
                 <label class="visually-hidden" for="lt-global-search">Buscar en todos los módulos</label>
-                <input id="lt-global-search" type="search" placeholder="Buscar en todos los módulos…"
+                <input id="lt-global-search" type="search" placeholder="Buscar en todos los módulos…" x-ref="globalSearch"
                        x-model="search" @focus="open = true" @input="open = true">
                 <template x-if="open && search.length">
                     <div class="lt-pop__surface" style="position:absolute; top:calc(100% + 8px); left:0; right:0;">
@@ -102,7 +115,7 @@
                 </template>
             </div>
 
-            <div class="lt-topbar__tools">
+            <div class="lt-topbar__tools" x-show="!(compact && searchOpen)">
                 <a href="{{ route('settings') }}" wire:navigate class="md-btn-icon" aria-label="Ajustes">
                     <i class="bi bi-gear" aria-hidden="true"></i>
                 </a>

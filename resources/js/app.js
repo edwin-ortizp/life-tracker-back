@@ -4,11 +4,13 @@ import { registerUiSurfaces } from './ui-surfaces';
 import { markPlatform, registerMobileFrame, registerPageTransitions } from './mobile-frame';
 import { registerInstallPrompt, registerServiceWorker } from './pwa';
 import { registerFeedback } from './feedback';
+import { registerSwipeRow } from './swipe-row';
 
 registerPomodoroTimer(Alpine);
 registerUiSurfaces(Alpine);
 registerMobileFrame(Alpine);
 registerFeedback(Alpine);
+registerSwipeRow(Alpine);
 
 registerInstallPrompt(Alpine);
 

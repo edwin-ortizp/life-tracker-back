@@ -89,7 +89,32 @@
 
         <div wire:loading.delay.remove wire:target="filter,categoryFilter,priorityFilter,dateFilter,sizeFilter,search,gotoPage,previousPage,nextPage">
         @forelse ($tasks as $task)
-            <div class="md-list-item {{ $task->completed ? 'md-list-item--completed' : '' }}">
+            <div class="swipe-row" wire:key="swipe-row-{{ $task->id }}"
+                 x-data="swipeRow({ onComplete: () => $wire.toggleComplete('{{ $task->id }}') })">
+                {{-- Fondos revelados por el gesto: solo existen visualmente en
+                     mobile (ver CSS). Completar es reversible y se confirma con
+                     el propio deslizamiento; editar/eliminar solo se revelan,
+                     nunca se disparan por el gesto — hay que tocarlos. --}}
+                <div class="swipe-row__bg swipe-row__bg--complete" aria-hidden="true">
+                    <i class="bi {{ $task->completed ? 'bi-arrow-counterclockwise' : 'bi-check-circle-fill' }}"></i>
+                    <span>{{ $task->completed ? 'Reabrir' : 'Completar' }}</span>
+                </div>
+                <div class="swipe-row__bg swipe-row__bg--actions" aria-hidden="true">
+                    <button type="button" class="swipe-row__action swipe-row__action--edit"
+                            wire:click.stop="openForm('{{ $task->id }}')" @click="close()">
+                        <i class="bi bi-pencil" aria-hidden="true"></i><span>Editar</span>
+                    </button>
+                    <button type="button" class="swipe-row__action swipe-row__action--delete"
+                            wire:click.stop="delete('{{ $task->id }}')" wire:confirm="La tarea «{{ $task->title }}» se elimina de forma permanente."
+                            @click="close()">
+                        <i class="bi bi-trash" aria-hidden="true"></i><span>Eliminar</span>
+                    </button>
+                </div>
+
+                <div class="md-list-item swipe-row__card {{ $task->completed ? 'md-list-item--completed' : '' }}"
+                     :style="`transform: translateX(${dx}px)`" :class="{ 'swipe-row__card--dragging': dragging }"
+                     @touchstart="onStart($event)" @touchmove="onMove($event)" @touchend="onEnd($event)" @touchcancel="onEnd($event)"
+                     @click.capture="if (revealed) { close(); $event.stopPropagation(); }">
                 <button wire:click="openForm('{{ $task->id }}')" class="md-list-item-content md-task-open-button" aria-label="Abrir tarea: {{ $task->title }}">
                     <div class="d-flex align-items-center gap-2">
                         <span class="md-list-item-headline {{ $task->completed ? '' : 'fw-medium' }}">
@@ -177,6 +202,7 @@
                             </div>
                         </template>
                     </div>
+                </div>
                 </div>
             </div>
         @empty
