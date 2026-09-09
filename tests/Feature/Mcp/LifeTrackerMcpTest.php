@@ -100,6 +100,76 @@ class LifeTrackerMcpTest extends TestCase
         $this->assertFalse($task->fresh()->completed);
     }
 
+    public function test_complete_task_tool_auto_schedules_the_next_occurrence_for_a_recurring_task(): void
+    {
+        $user = User::factory()->create();
+        $task = $user->tasks()->create([
+            'task_code' => 111,
+            'title' => 'Regar las plantas',
+            'size' => 'XS',
+            'is_recurrent' => true,
+            'start_date' => today(),
+            'recurrence' => ['pattern' => 'weekly', 'frequency' => 1, 'occurrences_completed' => 0],
+        ]);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(CompleteTaskTool::class, ['task_id' => $task->id, 'action' => 'complete'])
+            ->assertOk()
+            ->assertSee('Próxima ocurrencia');
+
+        $fresh = $task->fresh();
+        $this->assertFalse($fresh->completed);
+        $this->assertSame(today()->addWeek()->toDateString(), $fresh->start_date->toDateString());
+        $this->assertDatabaseHas('tasks', [
+            'title' => 'Regar las plantas',
+            'is_recurrence_history' => true,
+            'completed' => true,
+        ]);
+    }
+
+    public function test_complete_task_tool_respects_an_explicit_next_occurrence_date(): void
+    {
+        $user = User::factory()->create();
+        $task = $user->tasks()->create([
+            'task_code' => 112,
+            'title' => 'Pagar el gimnasio',
+            'size' => 'XS',
+            'is_recurrent' => true,
+            'start_date' => today(),
+            'recurrence' => ['pattern' => 'weekly', 'frequency' => 1, 'occurrences_completed' => 0],
+        ]);
+
+        $chosen = today()->addMonth()->toDateString();
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(CompleteTaskTool::class, ['task_id' => $task->id, 'action' => 'complete', 'next_occurrence_date' => $chosen])
+            ->assertOk()
+            ->assertSee($chosen);
+
+        $this->assertSame($chosen, $task->fresh()->start_date->toDateString());
+    }
+
+    public function test_complete_task_tool_reports_when_a_recurring_series_ends(): void
+    {
+        $user = User::factory()->create();
+        $task = $user->tasks()->create([
+            'task_code' => 113,
+            'title' => 'Renovar el pasaporte',
+            'size' => 'XS',
+            'is_recurrent' => true,
+            'start_date' => today(),
+            'recurrence' => ['rrule' => 'FREQ=DAILY;COUNT=1', 'occurrences_completed' => 0],
+        ]);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(CompleteTaskTool::class, ['task_id' => $task->id, 'action' => 'complete'])
+            ->assertOk()
+            ->assertSee('serie recurrente ha finalizado');
+
+        $this->assertTrue($task->fresh()->completed);
+        $this->assertSame(0, Task::where('is_recurrence_history', true)->count());
+    }
+
     public function test_list_tasks_tool_only_returns_the_authenticated_users_tasks(): void
     {
         $owner = User::factory()->create();
