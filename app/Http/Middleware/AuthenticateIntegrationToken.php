@@ -14,7 +14,13 @@ class AuthenticateIntegrationToken
     {
         $plainTextToken = $request->bearerToken();
 
-        if (!$plainTextToken || !str_starts_with($plainTextToken, IntegrationToken::PREFIX)) {
+        $knownPrefixes = [
+            IntegrationToken::PREFIX,
+            IntegrationToken::CALDAV_PREFIX,
+            IntegrationToken::AI_PREFIX,
+        ];
+
+        if (! $plainTextToken || ! collect($knownPrefixes)->contains(fn (string $prefix) => str_starts_with($plainTextToken, $prefix))) {
             return response()->json(['message' => 'Token de integración no válido.'], 401);
         }
 
@@ -24,7 +30,7 @@ class AuthenticateIntegrationToken
             ->whereNull('revoked_at')
             ->first();
 
-        if (!$token || !$token->user) {
+        if (! $token || ! $token->user) {
             return response()->json(['message' => 'Token de integración no válido.'], 401);
         }
 

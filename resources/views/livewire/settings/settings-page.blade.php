@@ -149,6 +149,54 @@
         </x-ui.card>
     </x-ui.section>
 
+    <x-ui.section title="Asistente de IA (MCP)"
+                  description="Conecta un cliente compatible con MCP (Claude Code, Claude Desktop, Claude.ai) para crear y cerrar tareas, completar hábitos y registrar eventos de salud por ti."
+                  :level="2">
+        <x-ui.card variant="outlined" icon="bi-stars" iconTone="secondary">
+            <x-slot:header>
+                @if ($activeAiToken)
+                    <x-ui.chip variant="tonal" tone="primary">Activo</x-ui.chip>
+                @endif
+            </x-slot:header>
+
+            <dl class="md-context-list">
+                <div><dt>URL del servidor MCP</dt><dd class="md-secret__value">{{ $mcpUrl }}</dd></div>
+            </dl>
+
+            <p class="md-body-small">
+                Usa la URL como servidor MCP remoto (transporte HTTP) y el token como cabecera
+                <code>Authorization: Bearer</code>. Solo puede leer y modificar tus propios datos; LifeTracker
+                nunca volverá a mostrar el token.
+            </p>
+
+            @if ($aiIntegrationToken)
+                <div class="md-secret">
+                    <div class="md-secret__header">
+                        <span class="md-label-large">Token nuevo — cópialo ahora</span>
+                        <x-ui.icon-action icon="bi-x-lg" size="sm" label="Ocultar token" wire:click="hideAiToken" />
+                    </div>
+                    <code class="md-secret__value">{{ $aiIntegrationToken }}</code>
+                </div>
+            @endif
+
+            @if ($activeAiToken)
+                <p class="md-body-small">Último uso: {{ $activeAiToken->last_used_at?->diffForHumans() ?? 'nunca' }}.</p>
+            @endif
+
+            <x-slot:actions>
+                <x-ui.action variant="filled" icon="bi-key" wire:click="createOrRotateAiToken">
+                    {{ $activeAiToken ? 'Rotar token' : 'Generar token' }}
+                </x-ui.action>
+                @if ($activeAiToken)
+                    <x-ui.destructive-action label="Revocar" icon="bi-slash-circle" variant="outlined"
+                                             action="revokeAiToken"
+                                             title="Revocar el token de IA"
+                                             message="El asistente de IA dejará de poder acceder a tus datos con este token." />
+                @endif
+            </x-slot:actions>
+        </x-ui.card>
+    </x-ui.section>
+
     <x-ui.section title="Cambiar contraseña" :level="2">
         <x-ui.card variant="outlined" icon="bi-lock" iconTone="secondary">
             <x-ui.field name="currentPassword" label="Contraseña actual" type="password" wire:model="currentPassword" />
