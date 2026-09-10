@@ -11,6 +11,8 @@ class IntegrationToken extends Model
 
     public const CALDAV_PREFIX = 'lt_cd_';
 
+    public const AI_PREFIX = 'lt_ai_';
+
     protected $fillable = [
         'user_id',
         'purpose',

@@ -41,6 +41,8 @@ class SettingsPage extends Component
 
     public ?string $calDavPassword = null;
 
+    public ?string $aiIntegrationToken = null;
+
     public function mount()
     {
         $user = Auth::user();
@@ -165,6 +167,36 @@ class SettingsPage extends Component
         $this->calDavPassword = null;
     }
 
+    public function createOrRotateAiToken(): void
+    {
+        [, $plainTextToken] = IntegrationToken::issueFor(
+            Auth::user(),
+            'IA / MCP',
+            'ai',
+            IntegrationToken::AI_PREFIX,
+        );
+
+        $this->aiIntegrationToken = $plainTextToken;
+        $this->successMessage = 'Token de IA generado. Cópialo ahora: no volverá a mostrarse.';
+    }
+
+    public function revokeAiToken(): void
+    {
+        IntegrationToken::query()
+            ->where('user_id', Auth::id())
+            ->where('purpose', 'ai')
+            ->whereNull('revoked_at')
+            ->update(['revoked_at' => now()]);
+
+        $this->aiIntegrationToken = null;
+        $this->successMessage = 'Token de IA revocado.';
+    }
+
+    public function hideAiToken(): void
+    {
+        $this->aiIntegrationToken = null;
+    }
+
     public function render()
     {
         return view('livewire.settings.settings-page', [
@@ -181,6 +213,13 @@ class SettingsPage extends Component
                 ->latest('created_at')
                 ->first(),
             'calDavUrl' => rtrim(config('app.url'), '/').'/dav/',
+            'activeAiToken' => IntegrationToken::query()
+                ->where('user_id', Auth::id())
+                ->where('purpose', 'ai')
+                ->whereNull('revoked_at')
+                ->latest('created_at')
+                ->first(),
+            'mcpUrl' => rtrim(config('app.url'), '/').'/life-tracker',
         ]);
     }
 }
