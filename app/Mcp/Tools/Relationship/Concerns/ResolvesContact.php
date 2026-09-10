@@ -52,7 +52,10 @@ trait ResolvesContact
         }
 
         $matches = Auth::user()->relationships()
-            ->where(fn ($query) => $query->where('full_name', 'like', "%{$name}%")->orWhere('nickname', 'like', "%{$name}%"))
+            ->where(fn ($query) => $query
+                ->where('full_name', 'like', "%{$name}%")
+                ->orWhere('nickname', 'like', "%{$name}%")
+                ->orWhereHas('aliases', fn ($aliases) => $aliases->where('alias', 'like', "%{$name}%")))
             ->get();
 
         if ($matches->isEmpty()) {

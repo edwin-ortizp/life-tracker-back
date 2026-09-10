@@ -6,6 +6,9 @@ use App\Mcp\Tools\Habit\CompleteHabitTool;
 use App\Mcp\Tools\Habit\ListHabitsTool;
 use App\Mcp\Tools\Health\ListHealthEventsTool;
 use App\Mcp\Tools\Health\LogHealthEventTool;
+use App\Mcp\Tools\Health\LogHealthFollowUpTool;
+use App\Mcp\Tools\Health\MarkHealthRecoveryTool;
+use App\Mcp\Tools\Relationship\AddContactAliasTool;
 use App\Mcp\Tools\Relationship\CreateContactTool;
 use App\Mcp\Tools\Relationship\ListContactsTool;
 use App\Mcp\Tools\Relationship\ListUpcomingBirthdaysTool;
@@ -34,11 +37,14 @@ class LifeTrackerServer extends Server
         ListHabitsTool::class,
         LogHealthEventTool::class,
         ListHealthEventsTool::class,
+        LogHealthFollowUpTool::class,
+        MarkHealthRecoveryTool::class,
         CreateContactTool::class,
         UpdateContactTool::class,
         ListContactsTool::class,
         LogRelationshipEventTool::class,
         ListUpcomingBirthdaysTool::class,
+        AddContactAliasTool::class,
         LogVehicleFillupTool::class,
         ListVehiclesTool::class,
     ];

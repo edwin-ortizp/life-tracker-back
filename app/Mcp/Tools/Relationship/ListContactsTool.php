@@ -20,11 +20,14 @@ class ListContactsTool extends Tool
             'category' => ['nullable', 'string'],
         ]);
 
-        $query = Auth::user()->relationships()->with('circle')->active();
+        $query = Auth::user()->relationships()->with(['circle', 'aliases'])->active();
 
         if (! empty($data['name'])) {
             $name = $data['name'];
-            $query->where(fn ($q) => $q->where('full_name', 'like', "%{$name}%")->orWhere('nickname', 'like', "%{$name}%"));
+            $query->where(fn ($q) => $q
+                ->where('full_name', 'like', "%{$name}%")
+                ->orWhere('nickname', 'like', "%{$name}%")
+                ->orWhereHas('aliases', fn ($aliases) => $aliases->where('alias', 'like', "%{$name}%")));
         }
 
         if (! empty($data['category'])) {
@@ -38,6 +41,7 @@ class ListContactsTool extends Tool
                 'id' => $relationship->id,
                 'full_name' => $relationship->full_name,
                 'nickname' => $relationship->nickname,
+                'aliases' => $relationship->aliases->pluck('alias')->all(),
                 'category' => $relationship->category,
                 'circle' => $relationship->circle?->name,
                 'birthday' => $relationship->birthday()?->label(),
@@ -50,7 +54,7 @@ class ListContactsTool extends Tool
     {
         return [
             'name' => $schema->string()
-                ->description('Filtra por nombre o apodo.'),
+                ->description('Filtra por nombre, apodo o alias.'),
             'category' => $schema->string()
                 ->description('Filtra por categoría exacta.'),
         ];
