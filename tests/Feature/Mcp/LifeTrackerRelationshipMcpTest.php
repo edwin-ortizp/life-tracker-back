@@ -3,6 +3,7 @@
 namespace Tests\Feature\Mcp;
 
 use App\Mcp\Servers\LifeTrackerServer;
+use App\Mcp\Tools\Relationship\AddContactAliasTool;
 use App\Mcp\Tools\Relationship\CreateContactTool;
 use App\Mcp\Tools\Relationship\ListContactsTool;
 use App\Mcp\Tools\Relationship\ListUpcomingBirthdaysTool;
@@ -136,6 +137,55 @@ class LifeTrackerRelationshipMcpTest extends TestCase
             ->assertOk()
             ->assertSee('Mi contacto')
             ->assertDontSee('Contacto ajeno');
+    }
+
+    public function test_add_contact_alias_tool_adds_an_alias(): void
+    {
+        $user = User::factory()->create();
+        $relationship = $user->relationships()->create(['full_name' => 'Alison Gómez', 'category' => 'amigo']);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(AddContactAliasTool::class, ['contact_id' => $relationship->id, 'alias' => 'Ali'])
+            ->assertOk()
+            ->assertSee('Ali');
+
+        $this->assertDatabaseHas('relationship_aliases', [
+            'relationship_id' => $relationship->id,
+            'alias' => 'Ali',
+        ]);
+    }
+
+    public function test_add_contact_alias_tool_does_not_duplicate_an_existing_alias(): void
+    {
+        $user = User::factory()->create();
+        $relationship = $user->relationships()->create(['full_name' => 'Alison Gómez', 'category' => 'amigo']);
+        $this->actingAs($user);
+        $relationship->aliases()->create(['alias' => 'Ali']);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(AddContactAliasTool::class, ['contact_id' => $relationship->id, 'alias' => 'Ali'])
+            ->assertOk()
+            ->assertSee('ya estaba registrado');
+
+        $this->assertSame(1, $relationship->aliases()->count());
+    }
+
+    public function test_log_relationship_event_tool_resolves_a_contact_by_alias(): void
+    {
+        $user = User::factory()->create();
+        $relationship = $user->relationships()->create(['full_name' => 'Alison Gómez', 'category' => 'amigo']);
+        $this->actingAs($user);
+        $relationship->aliases()->create(['alias' => 'Ali']);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(LogRelationshipEventTool::class, [
+                'name' => 'Ali',
+                'title' => 'Se graduó',
+                'category' => 'milestone',
+                'date' => today()->toDateString(),
+            ])
+            ->assertOk()
+            ->assertSee('Alison Gómez');
     }
 
     public function test_list_upcoming_birthdays_tool_orders_by_days_until(): void

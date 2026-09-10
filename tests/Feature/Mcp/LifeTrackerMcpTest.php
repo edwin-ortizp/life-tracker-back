@@ -8,6 +8,8 @@ use App\Mcp\Tools\Habit\CompleteHabitTool;
 use App\Mcp\Tools\Habit\ListHabitsTool;
 use App\Mcp\Tools\Health\ListHealthEventsTool;
 use App\Mcp\Tools\Health\LogHealthEventTool;
+use App\Mcp\Tools\Health\LogHealthFollowUpTool;
+use App\Mcp\Tools\Health\MarkHealthRecoveryTool;
 use App\Mcp\Tools\Task\CompleteTaskTool;
 use App\Mcp\Tools\Task\CreateTaskTool;
 use App\Mcp\Tools\Task\ListTasksTool;
@@ -258,6 +260,77 @@ class LifeTrackerMcpTest extends TestCase
             ->assertHasErrors();
 
         $this->assertSame(0, HealthEvent::where('user_id', $user->id)->count());
+    }
+
+    public function test_log_health_follow_up_tool_adds_an_intensity_log(): void
+    {
+        $user = User::factory()->create();
+        $event = $user->healthEvents()->create([
+            'type' => 'illness', 'title' => 'Gripe', 'event_date' => today()->subDays(2),
+        ]);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(LogHealthFollowUpTool::class, [
+                'health_event_id' => $event->id,
+                'date' => today()->toDateString(),
+                'intensity' => 4,
+            ])
+            ->assertOk()
+            ->assertSee('Gripe');
+
+        $this->assertDatabaseHas('health_logs', [
+            'health_event_id' => $event->id,
+            'intensity' => 4,
+        ]);
+    }
+
+    public function test_log_health_follow_up_tool_rejects_a_recovered_event(): void
+    {
+        $user = User::factory()->create();
+        $event = $user->healthEvents()->create([
+            'type' => 'illness', 'title' => 'Gripe', 'event_date' => today()->subDays(5), 'end_date' => today(),
+        ]);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(LogHealthFollowUpTool::class, [
+                'health_event_id' => $event->id,
+                'date' => today()->toDateString(),
+                'intensity' => 3,
+            ])
+            ->assertHasErrors();
+
+        $this->assertSame(0, $event->logs()->count());
+    }
+
+    public function test_mark_health_recovery_tool_closes_an_evolving_event(): void
+    {
+        $user = User::factory()->create();
+        $event = $user->healthEvents()->create([
+            'type' => 'symptom', 'title' => 'Dolor de espalda', 'event_date' => today()->subDays(3),
+        ]);
+        $this->actingAs($user);
+        $event->logs()->create(['date' => today(), 'intensity' => 2]);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(MarkHealthRecoveryTool::class, ['health_event_id' => $event->id, 'date' => today()->toDateString()])
+            ->assertOk()
+            ->assertSee('recuperado');
+
+        $this->assertSame(today()->toDateString(), $event->fresh()->end_date->toDateString());
+    }
+
+    public function test_mark_health_recovery_tool_requires_intensity_without_an_existing_log(): void
+    {
+        $user = User::factory()->create();
+        $event = $user->healthEvents()->create([
+            'type' => 'symptom', 'title' => 'Dolor de espalda', 'event_date' => today()->subDays(3),
+        ]);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(MarkHealthRecoveryTool::class, ['health_event_id' => $event->id, 'date' => today()->toDateString()])
+            ->assertHasErrors();
+
+        $this->assertNull($event->fresh()->end_date);
     }
 
     public function test_list_health_events_tool_only_returns_the_authenticated_users_events(): void

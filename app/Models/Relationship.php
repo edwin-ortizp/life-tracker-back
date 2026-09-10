@@ -83,6 +83,11 @@ class Relationship extends Model
             ->orderBy('created_at');
     }
 
+    public function aliases(): HasMany
+    {
+        return $this->hasMany(RelationshipAlias::class);
+    }
+
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(
