@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "habits",
+  "version": "1.0.0",
+  "title": "Hábitos",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "habits-daily",
+        "habits-weekly"
+      ],
+      "output": "habits.html"
+    }
+  ],
+  "screens": {
+    "habits-daily": {
+      "template": "screens/habits-daily.html.jinja",
+      "title": "Registro diario",
+      "bodyClass": ""
+    },
+    "habits-weekly": {
+      "template": "screens/habits-weekly.html.jinja",
+      "title": "Resumen semanal",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/habits-daily",
+      "screen": "habits-daily"
+    },
+    {
+      "path": "/habits-weekly",
+      "screen": "habits-weekly"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/habits-daily",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

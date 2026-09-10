@@ -1,0 +1,7 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('hydration', 'Registro diario', 'bi-droplet') %}
+{{ header('Registro diario', 'Consumo, objetivo y momentos del día.', 'bi-droplet') }}
+{{ module_tabs([('Registro diario','/water-daily','bi-droplet-half'),('Resumen semanal','/water-weekly','bi-bar-chart-line')], '/water-daily') }}
+<section class="lt-metrics">{{ metric('Consumido','1.5 L','success') }}{{ metric('Objetivo','2.2 L') }}{{ metric('Racha','6 días') }}</section>
+<section class="lt-grid-2"><article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-droplet"></i><h3>Objetivo de hoy</h3><small>68 %</small></div><div class="lt-panel__body"><div class="lt-progress"><span style="width:68%"></span></div><p class="lt-page-head__subtitle">Faltan 700 ml para alcanzar tu meta diaria.</p><div class="lt-route-links"><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Registrar agua</button></div></div></article><article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-clock-history"></i><h3>Registro de hoy</h3></div><div class="lt-panel__body"><div class="lt-list">{% for time, amount in [('08:00','350 ml'),('11:30','500 ml'),('15:00','650 ml')] %}<div class="lt-list-item"><i class="bi bi-droplet-fill" style="color:var(--lt-accent)"></i><div class="lt-list-item__body"><strong>{{ amount }}</strong><span>{{ time }}</span></div></div>{% endfor %}</div></div></article></section>
+{% endcall %}

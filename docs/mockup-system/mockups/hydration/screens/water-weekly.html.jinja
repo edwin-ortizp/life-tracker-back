@@ -1,0 +1,7 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('hydration', 'Resumen semanal', 'bi-bar-chart-line') %}
+{{ header('Resumen semanal', 'Ritmo de cumplimiento durante la semana.', 'bi-bar-chart-line', '/water-daily') }}
+{{ module_tabs([('Registro diario','/water-daily','bi-droplet-half'),('Resumen semanal','/water-weekly','bi-bar-chart-line')], '/water-weekly') }}
+<section class="lt-metrics">{{ metric('Promedio diario','1.9 L','success') }}{{ metric('Meta alcanzada','5 días') }}{{ metric('Mejor día','Viernes') }}</section>
+<section class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-bar-chart-line"></i><h3>Consumo por día</h3><small>Semana actual</small></div><div class="lt-panel__body"><div class="lt-list">{% for day, amount, width in [('Lunes','2.2 L',100),('Martes','1.8 L',82),('Miércoles','1.5 L',68),('Jueves','2.0 L',91),('Viernes','2.4 L',100),('Sábado','1.7 L',77),('Domingo','Pendiente',18)] %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ day }}</strong><div class="lt-progress"><span style="width:{{ width }}%"></span></div></div><span class="lt-chip">{{ amount }}</span></div>{% endfor %}</div></div></section>
+{% endcall %}

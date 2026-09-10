@@ -1,0 +1,7 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('goals', 'Objetivos', 'bi-flag') %}
+{{ header('Objetivos', 'Resultados activos y próximos pasos.', 'bi-flag') }}
+{{ module_tabs([('Objetivos','/goals-index','bi-flag'),('Detalle','/goals-detail','bi-bullseye')], '/goals-index') }}
+<section class="lt-metrics">{{ metric('Objetivos activos','5') }}{{ metric('Hitos este mes','9','success') }}{{ metric('Avance promedio','64 %') }}</section>
+<section class="lt-grid-2"><article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-flag"></i><h3>Objetivos activos</h3></div><div class="lt-panel__body"><div class="lt-list">{% for goal, progress in [('Correr 10K',68),('Certificación profesional',54),('Fondo de emergencia',72)] %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ goal }}</strong><div class="lt-progress"><span style="width:{{ progress }}%"></span></div></div><span class="lt-chip">{{ progress }} %</span></div>{% endfor %}</div></div></article><article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-stars"></i><h3>Próximo hito</h3></div><div class="lt-panel__body"><strong>Completar 8 km sin pausa</strong><p class="lt-page-head__subtitle">Faltan dos entrenamientos para el siguiente avance.</p><div class="lt-route-links"><a class="lt-button" href="#/goals-detail">Ver detalle</a></div></div></article></section>
+{% endcall %}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "tasks",
+  "version": "1.0.0",
+  "title": "Tareas",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "tasks-list",
+        "tasks-kanban",
+        "tasks-planning"
+      ],
+      "output": "tasks.html"
+    }
+  ],
+  "screens": {
+    "tasks-list": {
+      "template": "screens/tasks-list.html.jinja",
+      "title": "Lista de tareas",
+      "bodyClass": ""
+    },
+    "tasks-kanban": {
+      "template": "screens/tasks-kanban.html.jinja",
+      "title": "Kanban",
+      "bodyClass": ""
+    },
+    "tasks-planning": {
+      "template": "screens/tasks-planning.html.jinja",
+      "title": "Planificación",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/tasks-list",
+      "screen": "tasks-list"
+    },
+    {
+      "path": "/tasks-kanban",
+      "screen": "tasks-kanban"
+    },
+    {
+      "path": "/tasks-planning",
+      "screen": "tasks-planning"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/tasks-list",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

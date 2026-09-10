@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "mood",
+  "version": "1.0.0",
+  "title": "Ánimo y energía",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "mood-daily",
+        "mood-trend"
+      ],
+      "output": "mood.html"
+    }
+  ],
+  "screens": {
+    "mood-daily": {
+      "template": "screens/mood-daily.html.jinja",
+      "title": "Registro diario",
+      "bodyClass": ""
+    },
+    "mood-trend": {
+      "template": "screens/mood-trend.html.jinja",
+      "title": "Tendencia reciente",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/mood-daily",
+      "screen": "mood-daily"
+    },
+    {
+      "path": "/mood-trend",
+      "screen": "mood-trend"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/mood-daily",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

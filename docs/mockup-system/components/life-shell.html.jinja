@@ -1,0 +1,34 @@
+{% macro shell(module, title, icon) -%}
+{% set sections = [
+  ('Vista general', [('Mi día','bi-sunrise','home'),('Estadísticas','bi-bar-chart','statistics'),('Ajustes','bi-gear','settings')]),
+  ('Bienestar', [('Hábitos','bi-check2-square','habits'),('Hidratación','bi-droplet','hydration'),('Ejercicio','bi-activity','exercise'),('Salud','bi-heart-pulse','health'),('Ánimo y energía','bi-emoji-smile','mood'),('Hábitos a evitar','bi-shield-check','negative-habits')]),
+  ('Productividad', [('Tareas','bi-list-task','tasks'),('Pomodoro','bi-stopwatch','pomodoro'),('Objetivos','bi-flag','goals')]),
+  ('Alimentación', [('Comidas','bi-egg-fried','meals')]),
+  ('Vida personal', [('Diario','bi-journal-text','journal'),('Relaciones','bi-people','relationships')]),
+  ('Vehículos', [('Vehículos','bi-car-front','vehicles')])
+] %}
+<div class="lt-shell" data-module="{{ module }}">
+  <aside class="lt-sidebar" aria-label="Módulos de Life Tracker">
+    <div class="lt-sidebar__brand"><span class="lt-sidebar__mark" aria-hidden="true"><i class="bi bi-activity"></i></span><span class="lt-sidebar__name">Life Tracker</span></div>
+    <nav class="lt-sidebar__scroll">
+      {% for label, items in sections %}<div class="lt-nav-group"><span class="lt-nav-group__label">{{ label }}</span>{% for nav_label, nav_icon, nav_module in items %}<button class="lt-nav-item{% if nav_module == module %} is-active{% endif %}" type="button" data-lt-static-nav{% if nav_module == module %} aria-current="page"{% endif %}><span class="lt-nav-item__icon"><i class="bi {{ nav_icon }}" aria-hidden="true"></i></span><span class="lt-nav-item__label">{{ nav_label }}</span></button>{% endfor %}</div>{% endfor %}
+    </nav>
+  </aside>
+  <button class="lt-scrim" type="button" data-lt-close-drawer aria-label="Cerrar módulos"></button>
+  <div class="lt-shell__body">
+    <header class="lt-topbar"><button class="lt-icon-button" type="button" data-lt-nav-toggle aria-label="Mostrar módulos"><i class="bi bi-list" aria-hidden="true"></i></button><h1 class="lt-topbar__title">{{ title }}</h1><div class="lt-search" role="search"><i class="bi bi-search" aria-hidden="true"></i><label class="lt-sr-only" for="lt-search-{{ module }}">Buscar en todos los módulos</label><input id="lt-search-{{ module }}" type="search" placeholder="Buscar en todos los módulos…" data-lt-search-input></div><button class="lt-icon-button lt-topbar__search-button" type="button" data-lt-search aria-label="Buscar"><i class="bi bi-search" aria-hidden="true"></i></button><div class="lt-topbar__tools"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Ajustes"><i class="bi bi-gear" aria-hidden="true"></i></button><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Notificaciones"><i class="bi bi-bell" aria-hidden="true"></i></button></div></header>
+    <main class="lt-main"><div class="lt-page">{{ caller() }}</div></main>
+    <nav class="lt-bottom" aria-label="Destinos principales"><button class="lt-bottom__item{% if module == 'home' %} is-active{% endif %}" type="button" data-lt-static-nav><i class="bi bi-house" aria-hidden="true"></i><span>Inicio</span></button><button class="lt-bottom__item{% if module == 'habits' %} is-active{% endif %}" type="button" data-lt-static-nav><i class="bi bi-check2-square" aria-hidden="true"></i><span>Hábitos</span></button><button class="lt-bottom__item{% if module == 'tasks' %} is-active{% endif %}" type="button" data-lt-static-nav><i class="bi bi-list-task" aria-hidden="true"></i><span>Tareas</span></button><button class="lt-bottom__item" type="button" data-lt-static-nav><i class="bi bi-bar-chart" aria-hidden="true"></i><span>Stats</span></button><button class="lt-bottom__item" type="button" data-lt-open-drawer><i class="bi bi-grid" aria-hidden="true"></i><span>Módulos</span></button></nav>
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro tabs(items, current) -%}
+<nav class="lt-tabs" aria-label="Vistas del módulo">{% for label, route, icon in items %}<a class="lt-tab{% if route == current %} is-active{% endif %}" href="#{{ route }}"{% if route == current %} aria-current="page"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></a>{% endfor %}</nav>
+{%- endmacro %}
+
+{% macro header(title, subtitle, icon, back=None) -%}
+<header class="lt-page-head"><div class="lt-page-head__id"><span class="lt-page-head__icon" aria-hidden="true"><i class="bi {{ icon }}"></i></span><div>{% if back %}<a class="lt-page-head__back" href="#{{ back }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver</a>{% endif %}<h2 class="lt-page-head__title">{{ title }}</h2><p class="lt-page-head__subtitle">{{ subtitle }}</p></div></div></header>
+{%- endmacro %}
+
+{% macro metric(label, value, tone='primary') -%}<article class="lt-metric lt-metric--{{ tone }}"><span>{{ label }}</span><strong>{{ value }}</strong></article>{%- endmacro %}

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "goals",
+  "version": "1.0.0",
+  "title": "Objetivos",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "goals-index",
+        "goals-detail"
+      ],
+      "output": "goals.html"
+    }
+  ],
+  "screens": {
+    "goals-index": {
+      "template": "screens/goals-index.html.jinja",
+      "title": "Objetivos",
+      "bodyClass": ""
+    },
+    "goals-detail": {
+      "template": "screens/goals-detail.html.jinja",
+      "title": "Detalle de objetivo",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/goals-index",
+      "screen": "goals-index"
+    },
+    {
+      "path": "/goals-detail",
+      "screen": "goals-detail"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/goals-index",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

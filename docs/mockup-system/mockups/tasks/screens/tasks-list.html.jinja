@@ -1,0 +1,7 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('tasks', 'Lista de tareas', 'bi-list-task') %}
+{{ header('Lista de tareas', 'Decide y prioriza el trabajo del día.', 'bi-list-task') }}
+{{ module_tabs([('Lista','/tasks-list','bi-list-task'),('Kanban','/tasks-kanban','bi-kanban'),('Planificación','/tasks-planning','bi-calendar-week')], '/tasks-list') }}
+<section class="lt-metrics">{{ metric('Pendientes','12','warning') }}{{ metric('En curso','4') }}{{ metric('Completadas','18','success') }}</section>
+<section class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-list-task"></i><h3>Tareas priorizadas</h3><small>Hoy</small></div><div class="lt-panel__body"><div class="lt-list">{% for task, meta, done in [('Preparar propuesta','Alta prioridad · 10:00',false),('Revisar presupuesto','Finanzas · 14:00',false),('Planificar semana','Personal · 18:00',false),('Enviar seguimiento','Completada',true)] %}<div class="lt-list-item"><span class="lt-check{% if done %} is-done{% endif %}">{% if done %}✓{% endif %}</span><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ meta }}</span></div>{% if not done %}<span class="lt-chip">Pendiente</span>{% endif %}</div>{% endfor %}</div></div></section>
+{% endcall %}

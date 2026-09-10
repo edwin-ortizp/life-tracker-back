@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "my-day",
+  "version": "1.0.0",
+  "title": "Mi día",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "daily-dashboard"
+      ],
+      "output": "my-day.html"
+    }
+  ],
+  "screens": {
+    "daily-dashboard": {
+      "template": "screens/daily-dashboard.html.jinja",
+      "title": "Mi día",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/daily-dashboard",
+      "screen": "daily-dashboard"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/daily-dashboard",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

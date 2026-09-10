@@ -1,0 +1,7 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('mood', 'Tendencia reciente', 'bi-graph-up') %}
+{{ header('Tendencia reciente', 'Patrones de ánimo y energía de los últimos días.', 'bi-graph-up', '/mood-daily') }}
+{{ module_tabs([('Registro diario','/mood-daily','bi-emoji-smile'),('Tendencia reciente','/mood-trend','bi-graph-up')], '/mood-trend') }}
+<section class="lt-metrics">{{ metric('Promedio de ánimo','7.4','success') }}{{ metric('Energía media','6.8','warning') }}{{ metric('Días registrados','5 de 7') }}</section>
+<section class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-graph-up"></i><h3>Últimos siete días</h3><small>Ánimo y energía</small></div><div class="lt-panel__body"><div class="lt-list">{% for day, mood, energy in [('Lunes','🙂 Bien','8/10'),('Martes','😁 Muy bien','7/10'),('Miércoles','😐 Neutral','6/10'),('Jueves','🙂 Bien','7/10'),('Viernes','🙂 Bien','6/10')] %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ day }} · {{ mood }}</strong><span>Energía {{ energy }}</span></div><span class="lt-chip">{{ energy }}</span></div>{% endfor %}</div></div></section>
+{% endcall %}

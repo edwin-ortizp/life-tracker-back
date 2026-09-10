@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "hydration",
+  "version": "1.0.0",
+  "title": "Hidratación",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "water-daily",
+        "water-weekly"
+      ],
+      "output": "hydration.html"
+    }
+  ],
+  "screens": {
+    "water-daily": {
+      "template": "screens/water-daily.html.jinja",
+      "title": "Registro diario",
+      "bodyClass": ""
+    },
+    "water-weekly": {
+      "template": "screens/water-weekly.html.jinja",
+      "title": "Resumen semanal",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/water-daily",
+      "screen": "water-daily"
+    },
+    {
+      "path": "/water-weekly",
+      "screen": "water-weekly"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/water-daily",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

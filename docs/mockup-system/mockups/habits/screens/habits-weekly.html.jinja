@@ -1,0 +1,7 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('habits', 'Resumen semanal', 'bi-bar-chart-line') %}
+{{ header('Resumen semanal', 'Ritmo y consistencia durante la semana.', 'bi-bar-chart-line', '/habits-daily') }}
+{{ module_tabs([('Registro diario','/habits-daily','bi-check2-square'),('Resumen semanal','/habits-weekly','bi-bar-chart-line')], '/habits-weekly') }}
+<section class="lt-metrics">{{ metric('Cumplimiento','78 %','success') }}{{ metric('Mejor día','Lunes') }}{{ metric('Racha activa','12 días') }}</section>
+<section class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-calendar-week"></i><h3>Constancia semanal</h3><small>6 de 7 días</small></div><div class="lt-panel__body"><div class="lt-list">{% for day, value in [('Lunes','100 %'),('Martes','83 %'),('Miércoles','67 %'),('Jueves','83 %'),('Viernes','50 %'),('Sábado','67 %'),('Domingo','Pendiente')] %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ day }}</strong><span>{{ value }}</span></div><span class="lt-chip">{{ value }}</span></div>{% endfor %}</div></div></section>
+{% endcall %}

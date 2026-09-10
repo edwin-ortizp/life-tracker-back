@@ -1,0 +1,7 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('tasks', 'Kanban', 'bi-kanban') %}
+{{ header('Kanban', 'Visualiza el flujo de trabajo por estado.', 'bi-kanban', '/tasks-list') }}
+{{ module_tabs([('Lista','/tasks-list','bi-list-task'),('Kanban','/tasks-kanban','bi-kanban'),('Planificación','/tasks-planning','bi-calendar-week')], '/tasks-kanban') }}
+<section class="lt-metrics">{{ metric('Pendientes','12','warning') }}{{ metric('En curso','4') }}{{ metric('Completadas','18','success') }}</section>
+<section class="lt-kanban">{% for lane, tasks in [('Pendientes',[('Preparar propuesta','Alta · hoy'),('Revisar presupuesto','Media · mañana')]),('En curso',[('Planificar semana','Personal · 60 %'),('Actualizar portafolio','Trabajo · 40 %')]),('Completadas',[('Enviar seguimiento','Completada hoy'),('Organizar archivos','Completada ayer')]) ] %}<article class="lt-kanban__lane"><h3>{{ lane }} <span class="lt-chip">{{ tasks|length }}</span></h3>{% for task, meta in tasks %}<div class="lt-task-card"><strong>{{ task }}</strong><small>{{ meta }}</small></div>{% endfor %}</article>{% endfor %}</section>
+{% endcall %}

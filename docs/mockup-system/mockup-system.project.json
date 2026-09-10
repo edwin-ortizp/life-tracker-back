@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "life-tracker",
+  "engine": "standard",
+  "paths": {
+    "mockups": "mockups",
+    "datasets": "datasets",
+    "components": "components",
+    "assets": "project-assets",
+    "config_dir": "config",
+    "dist": "dist"
+  }
+}

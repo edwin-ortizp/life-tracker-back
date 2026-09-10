@@ -1,0 +1,7 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('mood', 'Registro diario', 'bi-emoji-smile') %}
+{{ header('Registro diario', 'Cómo te sientes y la energía disponible hoy.', 'bi-emoji-smile') }}
+{{ module_tabs([('Registro diario','/mood-daily','bi-emoji-smile'),('Tendencia reciente','/mood-trend','bi-graph-up')], '/mood-daily') }}
+<section class="lt-metrics">{{ metric('Ánimo actual','Bien','success') }}{{ metric('Energía','7 de 10','warning') }}{{ metric('Registros esta semana','5') }}</section>
+<section class="lt-grid-2"><article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-emoji-smile"></i><h3>Ánimo de hoy</h3></div><div class="lt-panel__body"><div class="lt-route-links">{% for face, label in [('😞','Bajo'),('😐','Neutral'),('🙂','Bien'),('😁','Muy bien')] %}<button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>{{ face }} {{ label }}</button>{% endfor %}</div></div></article><article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-lightning-charge"></i><h3>Energía</h3><small>7/10</small></div><div class="lt-panel__body"><div class="lt-progress"><span style="width:70%"></span></div><p class="lt-page-head__subtitle">Tu energía aumenta después de caminar y dormir temprano.</p></div></article></section>
+{% endcall %}
