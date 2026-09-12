@@ -1,31 +1,110 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
-{% call shell('health', 'Vista del cuerpo', 'bi-person-standing') %}
-{{ header('Vista del cuerpo', 'Tu cuerpo, visto a través del registro.', 'bi-person-standing') }}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs %}
+{% from '@project/components/body-models.html.jinja' import body_models %}
+{#
+  Mapa corporal interactivo. Cada zona es un <g data-zone> con un nivel de calor
+  (0 sin eventos → 4 con 6 o más). Los ids coinciden entre vista frontal y posterior,
+  y con las filas del panel "Zonas registradas", para sincronizar el resaltado.
+#}
+{% set counts = {'espalda-baja': 5, 'cabeza': 4, 'hombro-derecho': 2, 'rodilla-derecha': 2, 'pecho': 1, 'tobillo-derecho': 1} %}
+
+{% call shell('health', 'Salud', 'bi-heart-pulse') %}
 {{ module_tabs([('Registro','/health-index','bi-clock-history'),('Vista del cuerpo','/health-body','bi-person-standing')], '/health-body') }}
-<section class="lt-metrics">{{ metric('Zonas registradas','6') }}{{ metric('Zona más frecuente','Espalda baja','warning') }}{{ metric('Eventos este año','14') }}</section>
-<section class="lt-grid-2">
-  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-person-standing"></i><h3>Mapa corporal</h3><small>Últimos 12 meses</small></div><div class="lt-panel__body">
-    <div class="lt-body-map">
-      <svg viewBox="0 0 200 420" role="img" aria-label="Silueta con zonas registradas">
-        <circle class="body" cx="100" cy="40" r="28"/>
-        <rect class="body" x="62" y="74" width="76" height="140" rx="30"/>
-        <rect class="body" x="30" y="82" width="26" height="130" rx="13"/>
-        <rect class="body" x="144" y="82" width="26" height="130" rx="13"/>
-        <rect class="body" x="66" y="210" width="30" height="190" rx="15"/>
-        <rect class="body" x="104" y="210" width="30" height="190" rx="15"/>
-        <circle class="zone zone--hot" cx="100" cy="36" r="16"/>
-        <circle class="zone zone--hot" cx="100" cy="190" r="18"/>
-        <circle class="zone" cx="157" cy="100" r="12"/>
-        <circle class="zone" cx="119" cy="300" r="12"/>
-        <circle class="zone" cx="119" cy="385" r="11"/>
-        <circle class="zone" cx="100" cy="120" r="12"/>
-      </svg>
+
+<section class="lt-grid-main lt-body-page">
+  <div class="lt-stack">
+    <div class="lt-section-head lt-filter-anchor">
+      <h3><i class="bi bi-person-standing"></i> Mapa corporal <span class="lt-count" title="Eventos con zona del cuerpo en el periodo">(15 eventos)</span></h3>
+      <button class="lt-button lt-button--text lt-filter-button" type="button" data-lt-toggle="body-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="body-filters"><i class="bi bi-sliders"></i> Filtros<span class="lt-badge lt-badge--corner" data-lt-filter-count aria-label="1 filtro activo">1</span></button>
+      <div class="lt-popover" id="body-filters" role="dialog" aria-labelledby="body-filters-title" hidden>
+        <div class="lt-popover__head"><h4 id="body-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="body-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+        <label class="lt-field lt-field--icon"><span>Periodo</span><i class="bi bi-calendar-range" aria-hidden="true"></i><select>{% for r in ['Últimos 30 días','Últimos 6 meses','Últimos 12 meses','Este año','Todo el historial'] %}<option{% if r == 'Últimos 12 meses' %} selected{% endif %}>{{ r }}</option>{% endfor %}</select></label>
+        <label class="lt-field lt-field--icon"><span>Estado</span><i class="bi bi-activity" aria-hidden="true"></i><select>{% for r in ['Todos','En seguimiento','Recuperados'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+        <div class="lt-field"><span id="body-type-label">Tipo</span>
+          <div class="lt-multiselect"><button class="lt-multiselect__trigger" type="button" data-lt-toggle="body-type-options" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="body-type-label"><span>Todos los tipos</span><i class="bi bi-chevron-down"></i></button>
+            <div class="lt-multiselect__panel" id="body-type-options" role="listbox" aria-multiselectable="true" hidden>{% for r in ['Síntoma','Enfermedad','Procedimiento'] %}<label class="lt-multiselect__option"><input type="checkbox"> {{ r }}</label>{% endfor %}</div>
+          </div>
+        </div>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-clear-filters>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="body-filters">Aplicar</button></div>
+      </div>
     </div>
-  </div></article>
-  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-geo"></i><h3>Zonas registradas</h3></div><div class="lt-panel__body"><div class="lt-list">
-    {% for zone, last, count, tone in [('Espalda baja','Dolor lumbar · activo',5,'warning'),('Cabeza','Migraña · 7 sep.',4,'warning'),('Hombro derecho','Contractura · jun.',2,'neutral'),('Pecho','Gripe · ago.',1,'neutral'),('Rodilla derecha','Molestia al correr · may.',1,'neutral'),('Tobillo derecho','Esguince · jul.',1,'success')] %}
-    <button class="lt-list-item lt-button--text" type="button" data-lt-static-nav><span class="lt-list-item__icon"><i class="bi bi-bullseye"></i></span><div class="lt-list-item__body"><strong>{{ zone }}</strong><span>{{ last }}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ count }} {{ 'evento' if count == 1 else 'eventos' }}</span></button>
-    {% endfor %}
-  </div></div></article>
+    <div class="lt-chip-row lt-applied-filters" aria-label="Filtros aplicados">
+      <span class="lt-chip lt-chip--input" data-filter="range"><i class="bi bi-calendar-range"></i> <span data-filter-label>Últimos 12 meses</span><button class="lt-chip__remove" type="button" data-lt-remove-filter aria-label="Quitar filtro Últimos 12 meses"><i class="bi bi-x"></i></button></span>
+      <button class="lt-link" type="button" data-lt-clear-filters>Limpiar filtros</button>
+    </div>
+
+    <article class="lt-panel lt-body-card">
+      <div class="lt-body-card__toolbar">
+        <div class="lt-view-toggle" role="group" aria-label="Perspectiva del cuerpo">
+          <button type="button" data-body-view="front" aria-pressed="true">Frente</button>
+          <button type="button" data-body-view="back" aria-pressed="false">Espalda</button>
+        </div>
+        <span class="lt-body-card__caption" data-body-caption>Vista frontal</span>
+        <div class="lt-view-toggle lt-view-toggle--quiet" role="group" aria-label="Modelo corporal">
+          <button type="button" data-body-model-toggle="male" aria-pressed="true">Hombre</button>
+          <button type="button" data-body-model-toggle="female" aria-pressed="false">Mujer</button>
+        </div>
+      </div>
+
+      <div class="lt-body-card__stage">
+        {{ body_models(counts) }}
+
+        <aside class="lt-heat-legend" aria-label="Escala de frecuencia">
+          <p class="lt-section-label">Frecuencia de eventos</p>
+          <ul>
+            {% for level, text in [(0,'Sin eventos'),(1,'1 evento'),(2,'2–3 eventos'),(3,'4–5 eventos'),(4,'6 o más')] %}<li><span class="lt-heat-swatch lt-heat-{{ level }}" aria-hidden="true"></span>{{ text }}</li>{% endfor %}
+          </ul>
+          <p class="lt-heat-legend__hint"><i class="bi bi-hand-index" aria-hidden="true"></i> Toca una zona para ver sus eventos</p>
+        </aside>
+      </div>
+
+      <div class="lt-body-detail" data-body-detail hidden>
+        <span class="lt-body-detail__dot" aria-hidden="true"></span>
+        <div class="lt-body-detail__text"><strong data-detail-name></strong><span data-detail-meta></span></div>
+        <button class="lt-button lt-button--tonal" type="button" data-zone-open>Ver en Registro <i class="bi bi-arrow-right"></i></button>
+      </div>
+      <p class="lt-body-card__hint" data-body-hint><i class="bi bi-lightbulb" aria-hidden="true"></i> Selecciona una zona del cuerpo o de la lista para explorar sus eventos en el Registro con esa zona filtrada.</p>
+    </article>
+  </div>
+
+  <aside class="lt-stack">
+    <article class="lt-panel lt-zones">
+      <div class="lt-panel__head"><i class="bi bi-geo-alt"></i><h3>Zonas registradas</h3>
+        <div class="lt-menu-anchor lt-zones__sort"><button class="lt-button lt-button--text" type="button" data-lt-toggle="zones-sort" aria-haspopup="menu" aria-expanded="false">Más eventos <i class="bi bi-chevron-down"></i></button>
+          <div class="lt-menu lt-menu--down" id="zones-sort" role="menu" hidden>
+            <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-sort-numeric-down-alt"></i> Más eventos</button>
+            <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-clock-history"></i> Más recientes</button>
+            <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-sort-alpha-down"></i> Nombre</button>
+          </div>
+        </div>
+      </div>
+      <div class="lt-panel__body"><ul class="lt-zone-list">
+        {% for id, label, last, views, icon in [
+          ('espalda-baja','Espalda baja','Dolor lumbar · hace 3 días','back','bi-person-standing'),
+          ('cabeza','Cabeza','Migraña · hace 1 semana','front back','bi-emoji-dizzy'),
+          ('hombro-derecho','Hombro derecho','Contractura · hace 1 mes','front back','bi-bandaid'),
+          ('rodilla-derecha','Rodilla derecha','Molestia al correr · hace 2 meses','front back','bi-activity'),
+          ('pecho','Pecho','Gripe · hace 3 meses','front','bi-lungs'),
+          ('tobillo-derecho','Tobillo derecho','Esguince · hace 3 meses','front back','bi-bandaid')
+        ] %}
+        {% set n = counts[id] %}{% set level = 1 if n == 1 else (2 if n <= 3 else (3 if n <= 5 else 4)) %}
+        <li class="lt-zone-row" data-zone="{{ id }}" data-label="{{ label }}" data-count="{{ n }}" data-last="{{ last }}" data-views="{{ views }}">
+          <button class="lt-zone-row__main" type="button" data-zone-open="{{ id }}" aria-label="Ver {{ label }} en el Registro: {{ n }} {{ 'evento' if n == 1 else 'eventos' }}">
+            <span class="lt-zone-row__icon lt-heat-{{ level }}"><i class="bi {{ icon }}" aria-hidden="true"></i></span>
+            <span class="lt-zone-row__body"><strong>{{ label }}</strong><span>{{ last }}</span></span>
+            <span class="lt-zone-count lt-heat-{{ level }}">{{ n }} {{ 'evento' if n == 1 else 'eventos' }}</span>
+          </button>
+          <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="zone-menu-{{ loop.index }}" aria-haspopup="menu" aria-expanded="false" aria-label="Más opciones de {{ label }}"><i class="bi bi-three-dots-vertical"></i></button>
+            <div class="lt-menu lt-menu--down" id="zone-menu-{{ loop.index }}" role="menu" hidden>
+              <button class="lt-menu__item" role="menuitem" type="button" data-zone-locate="{{ id }}"><i class="bi bi-crosshair"></i> Ubicar en el mapa</button>
+              <button class="lt-menu__item" role="menuitem" type="button" data-zone-open="{{ id }}"><i class="bi bi-clock-history"></i> Ver en Registro</button>
+              <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Registrar evento en esta zona</button>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul></div>
+    </article>
+  </aside>
 </section>
+<button class="lt-fab" type="button" data-lt-static-nav aria-label="Registrar evento de salud"><i class="bi bi-plus-lg"></i><span>Registrar evento</span></button>
 {% endcall %}

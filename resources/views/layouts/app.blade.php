@@ -117,6 +117,9 @@
                 <i class="bi bi-arrow-left" aria-hidden="true"></i>
             </button>
 
+            @if ($activeModuleKey)
+                <span class="lt-topbar__icon" data-module="{{ $activeModuleKey }}" aria-hidden="true" x-show="!(compact && searchOpen)"><i class="bi {{ config("modules.{$activeModuleKey}.icon") ?? 'bi-grid' }}"></i></span>
+            @endif
             <h2 class="lt-topbar__title" x-show="!(compact && searchOpen)">{{ $activeModuleTitle }}</h2>
 
             {{-- Escritorio: buscador siempre visible. Compacto: icono que expande

@@ -103,6 +103,14 @@
 
 /* ===== Barra superior ===== */
 
+/* Identidad del módulo activo: icono en contenedor tonal con el acento del módulo. */
+.lt-topbar__icon {
+  display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 auto;
+  border-radius: 13px; background: color-mix(in srgb, var(--md-module-accent) 14%, var(--md-sys-color-surface-container-lowest));
+  color: var(--md-module-accent); font-size: 1.15rem;
+}
+@media (max-width: 767.98px) { .lt-topbar__icon { width: 36px; height: 36px; border-radius: 11px; font-size: 1rem; } }
+
 .lt-topbar {
   position: sticky; top: 0; z-index: var(--md-sys-z-sticky);
   display: flex; align-items: center; gap: 14px;

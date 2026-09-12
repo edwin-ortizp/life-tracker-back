@@ -96,3 +96,6 @@
   background: var(--md-module-accent, var(--md-sys-color-primary)); color: var(--md-sys-color-on-primary);
   font-size: .68rem; font-weight: 700; line-height: 1;
 }
+
+/* Un control con badge en esquina no puede recortar su contenido: el badge sobresale del borde. */
+:is(.md-btn-filled, .md-btn-tonal, .md-btn-outlined, .md-btn-text, .md-btn-icon):has(.md-count-badge--corner) { overflow: visible; }

@@ -1,6 +1,5 @@
 {% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog %}
 {% call shell('health', 'Salud', 'bi-heart-pulse') %}
-{{ header('Salud', 'Historial, síntomas y seguimiento corporal.', 'bi-heart-pulse') }}
 {{ module_tabs([('Registro','/health-index','bi-clock-history'),('Vista del cuerpo','/health-body','bi-person-standing')], '/health-index') }}
 <section class="lt-grid-main">
   <div class="lt-stack">
@@ -19,7 +18,7 @@
       </div>
     </div>
     <div class="lt-chip-row lt-applied-filters" aria-label="Filtros aplicados">
-      <span class="lt-chip lt-chip--input"><i class="bi bi-calendar-range"></i> Últimos 60 días<button class="lt-chip__remove" type="button" data-lt-remove-filter aria-label="Quitar filtro Últimos 60 días"><i class="bi bi-x"></i></button></span>
+      <span class="lt-chip lt-chip--input" data-filter="range"><i class="bi bi-calendar-range"></i> <span data-filter-label>Últimos 60 días</span><button class="lt-chip__remove" type="button" data-lt-remove-filter aria-label="Quitar filtro Últimos 60 días"><i class="bi bi-x"></i></button></span>
       <span class="lt-chip lt-chip--input"><i class="bi bi-activity"></i> En seguimiento<button class="lt-chip__remove" type="button" data-lt-remove-filter aria-label="Quitar filtro En seguimiento"><i class="bi bi-x"></i></button></span>
       <button class="lt-link" type="button" data-lt-clear-filters>Limpiar filtros</button>
     </div>

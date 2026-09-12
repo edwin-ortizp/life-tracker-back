@@ -308,7 +308,8 @@
 /* ===== Modal de formulario (x-ui.form-dialog) ===== */
 
 .md-form-dialog-layer { position: fixed; inset: 0; z-index: 1200; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); place-items: center; padding: 24px; }
-.md-form-dialog-layer > .md-dialog-scrim { position: absolute; }
+/* El scrim base declara z-index 1200; dentro de la capa debe quedar bajo la tarjeta del modal. */
+.md-form-dialog-layer > .md-dialog-scrim { position: absolute; z-index: 0; }
 .md-form-dialog {
   --md-field-surface: var(--md-sys-color-surface-container-lowest);
   position: relative; z-index: 1; display: flex; width: min(560px, 100%); max-height: calc(100vh - 48px);
