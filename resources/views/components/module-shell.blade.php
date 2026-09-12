@@ -20,28 +20,41 @@
     $definition = config("modules.{$moduleKey}", []);
     $screenArchetype = ScreenArchetype::resolve($archetype, $definition, $routeName);
     $archetypeSource = ScreenArchetype::isDeclared($archetype, $definition, $routeName) ? 'declared' : 'fallback';
+    $moduleTitle = $title ?? $definition['title'] ?? 'Life Tracker';
+    // Los módulos rediseñados omiten el banner: la identidad ya vive en la barra superior.
+    $showHeader = $definition['header'] ?? true;
+    // El panel contextual se retiró en la v1; los módulos que lo recuperan lo declaran.
+    $showRail = $definition['rail'] ?? false;
 @endphp
 
 <section {{ $attributes->class(['md-module-shell', 'md-archetype--'.$screenArchetype]) }}
          data-module="{{ $moduleKey }}"
          data-archetype="{{ $screenArchetype }}"
          data-archetype-source="{{ $archetypeSource }}">
-    <header class="md-module-header">
-        <div class="md-module-heading" data-region="identity">
-            <div class="md-module-icon" aria-hidden="true"><i class="bi {{ $icon ?? $definition['icon'] ?? 'bi-grid' }}"></i></div>
-            <div>
-                <p class="md-module-eyebrow mb-1">Life Tracker</p>
-                <h1 class="md-module-title">{{ $title ?? $definition['title'] ?? 'Life Tracker' }}</h1>
-                @if ($subtitle !== null || ! empty($definition['subtitle']))
-                    <p class="md-module-subtitle">{{ $subtitle ?? $definition['subtitle'] }}</p>
-                @endif
+    @if ($showHeader)
+        <header class="md-module-header">
+            <div class="md-module-heading" data-region="identity">
+                <div class="md-module-icon" aria-hidden="true"><i class="bi {{ $icon ?? $definition['icon'] ?? 'bi-grid' }}"></i></div>
+                <div>
+                    <p class="md-module-eyebrow mb-1">Life Tracker</p>
+                    <h1 class="md-module-title">{{ $moduleTitle }}</h1>
+                    @if ($subtitle !== null || ! empty($definition['subtitle']))
+                        <p class="md-module-subtitle">{{ $subtitle ?? $definition['subtitle'] }}</p>
+                    @endif
+                </div>
             </div>
-        </div>
 
+            @isset($actions)
+                <div class="md-module-header-tools" data-region="actions">{{ $actions }}</div>
+            @endisset
+        </header>
+    @else
+        {{-- Sin banner: el encabezado de página se conserva para lectores de pantalla. --}}
+        <h1 class="visually-hidden" data-region="identity">{{ $moduleTitle }}</h1>
         @isset($actions)
-            <div class="md-module-header-tools" data-region="actions">{{ $actions }}</div>
+            <div class="md-module-actions" data-region="actions">{{ $actions }}</div>
         @endisset
-    </header>
+    @endif
 
     @if (! empty($definition['tabs']))
         <div data-region="navigation">
@@ -57,7 +70,7 @@
         @isset($rail)
             {{-- El arquetipo resuelve su propia composición: contenido y contexto en paralelo
                  desde 1200 px y en una sola columna por debajo, sin utilidades externas. --}}
-            <div class="md-module-workspace">
+            <div @class(['md-module-workspace', 'md-module-workspace--rail' => $showRail])>
                 <div class="md-module-primary" data-region="content">{{ $slot }}</div>
                 <aside class="md-context-rail" data-region="context" aria-label="Contexto del módulo">{{ $rail }}</aside>
             </div>

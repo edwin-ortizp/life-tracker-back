@@ -1,5 +1,8 @@
 /* ===== Salud › Registro ===== */
 
+/* Espacio inferior reservado para el FAB flotante. */
+.health-page { padding-bottom: 96px; }
+
 /* Cabecera de la cronología: título con contador y un único botón de filtros. */
 .health-toolbar { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .health-toolbar__title { display: flex; align-items: center; gap: 10px; margin: 0; color: var(--md-sys-color-on-surface); font-size: 1.2rem; font-weight: 700; }
@@ -104,6 +107,7 @@
 .health-pending.is-done .health-pending__body strong { color: var(--md-sys-color-on-surface-variant); text-decoration: line-through; }
 
 @media (max-width: 767.98px) {
+    .health-page { padding-bottom: 88px; }
     .health-toolbar { flex-wrap: wrap; }
     .health-event { grid-template-columns: 44px minmax(0, 1fr); gap: 8px; }
     .health-event-date strong { font-size: 1.3rem; }

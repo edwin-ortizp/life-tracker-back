@@ -439,6 +439,19 @@
 .md-module-workspace { grid-template-columns: minmax(0, 1fr); }
 .md-context-rail { display: none; }
 
+/* Módulos rediseñados que recuperan el panel contextual (config `rail`): contenido
+ * y panel en paralelo desde 1200 px; debajo del contenido por debajo de ese ancho. */
+.md-module-workspace--rail { grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; }
+.md-module-workspace--rail > .md-context-rail { display: grid; gap: 16px; align-content: start; position: sticky; top: 72px; }
+.md-module-actions:empty { display: none; }
+@media (max-width: 1199.98px) {
+  .md-module-workspace--rail { grid-template-columns: minmax(0, 1fr); }
+  .md-module-workspace--rail > .md-context-rail { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767.98px) {
+  .md-module-workspace--rail > .md-context-rail { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* Fila de cuidado de un vehículo: nombre y periodicidad, avance, estado y acciones,
  * cada cosa en su columna para que todas las filas se lean en la misma vertical. */
 .lt-care-row {

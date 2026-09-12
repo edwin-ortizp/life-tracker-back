@@ -71,7 +71,7 @@
 @media (min-width: 768px) {
   .md-responsive-actions--fab-always .md-module-primary-fab,
   .md-responsive-actions--fab-always .md-module-primary-inline {
-    position: fixed; right: 28px; bottom: 28px; z-index: var(--md-sys-z-fab);
+    position: fixed; right: 28px; bottom: 28px; z-index: var(--md-sys-z-fab-floating, 90);
   }
 }
 
@@ -145,7 +145,7 @@
   .md-module-header-tools { width: 100%; justify-content: space-between; }
   .md-responsive-actions__desktop { display: none; }
   .md-responsive-actions__mobile { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-  .md-module-primary-fab { position: fixed; right: 16px; bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px); z-index: 55; }
+  .md-module-primary-fab { position: fixed; right: 16px; bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px + env(safe-area-inset-bottom)); z-index: var(--md-sys-z-fab-floating, 90); }
   .md-module-tabs { margin-inline: 0; }
   .md-context-rail { grid-template-columns: 1fr; }
   .md-date-navigator { width: auto; max-width: 100%; justify-content: space-between; }
@@ -154,4 +154,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .md-module-tab { transition: none; }
+}
+
+/* El FAB teletransportado vive fuera del shell; su capa no ocupa espacio y solo transmite el módulo. */
+.md-fab-layer { display: contents; }
+.md-fab-layer > .md-module-primary-fab { position: fixed; right: 28px; bottom: 28px; z-index: var(--md-sys-z-fab-floating, 90); }
+@media (max-width: 767.98px) {
+  .md-fab-layer > .md-module-primary-fab { right: 16px; bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px + env(safe-area-inset-bottom)); }
 }

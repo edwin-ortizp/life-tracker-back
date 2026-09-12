@@ -76,6 +76,7 @@
   --md-accent-amber: #8A5A00;
   --md-accent-orange: #B4530A;
   --md-accent-red: #B3261E;
+  --md-accent-health: #C2185B;
   --md-accent-slate: #4A5C75;
 
   /* Módulo activo: valor por defecto, sobrescrito por [data-module]. */
@@ -231,6 +232,8 @@
   --md-sys-z-base: 1;
   --md-sys-z-sticky: 40;
   --md-sys-z-fab: 55;
+  /* FAB global: sobre contenido, menús y barras; bajo el scrim del cajón y los diálogos. */
+  --md-sys-z-fab-floating: 90;
   --md-sys-z-menu: 70;
   --md-sys-z-navigation: 100;
   --md-sys-z-drawer: 200;
@@ -255,7 +258,14 @@ body {
 [data-module='water'] { --md-module-accent: var(--md-accent-cyan); }
 [data-module='exercise'] { --md-module-accent: var(--md-accent-orange); }
 [data-module='meals'] { --md-module-accent: var(--md-accent-amber); }
-[data-module='health'] { --md-module-accent: var(--md-accent-red); }
+[data-module='health'] {
+  /* Familia rojo-fucsia de Salud: acento y acciones del módulo; superficies y textos siguen neutros. */
+  --md-module-accent: var(--md-accent-health);
+  --md-module-action: var(--md-accent-health);
+  --md-module-on-action: #FFFFFF;
+  --md-module-action-container: color-mix(in srgb, var(--md-accent-health) 14%, var(--md-sys-color-surface-container-lowest));
+  --md-module-on-action-container: color-mix(in srgb, var(--md-accent-health) 82%, var(--md-sys-color-on-surface));
+}
 [data-module='mood'] { --md-module-accent: var(--md-accent-orange); }
 [data-module='journal'] { --md-module-accent: var(--md-accent-teal); }
 [data-module='goals'] { --md-module-accent: var(--md-accent-indigo); }
