@@ -1,0 +1,48 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('settings', 'Ajustes generales', 'bi-gear') %}
+{{ header('Ajustes generales', 'Perfil, seguridad y preferencias que afectan toda la aplicación.', 'bi-gear') }}
+{{ module_tabs([('Perfil y datos','/settings-profile','bi-person-circle'),('Integraciones','/settings-integrations','bi-plug')], '/settings-profile') }}
+<section class="lt-grid-main">
+  <div class="lt-stack">
+    <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-person-circle"></i><h3>Perfil</h3><small>Visible solo para ti</small></div><div class="lt-panel__body">
+      <div class="lt-form">
+        <label class="lt-field"><span>Nombre completo</span><input type="text" value="Edwin Ortiz"></label>
+        <label class="lt-field"><span>Email</span><input type="email" value="edwin@lifetracker.app"></label>
+        <label class="lt-field"><span>Zona horaria</span><select><option>America/Bogota (UTC−5)</option><option>America/Mexico_City (UTC−6)</option></select></label>
+        <label class="lt-field"><span>Idioma</span><select><option>Español</option><option>English</option></select></label>
+      </div>
+      <div class="lt-actions"><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-check2"></i> Guardar perfil</button></div>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-rulers"></i><h3>Datos físicos</h3><small>Usados en calorías, hidratación y vida</small></div><div class="lt-panel__body">
+      <div class="lt-form">
+        <label class="lt-field"><span>Fecha de nacimiento</span><input type="date" value="1994-03-18"></label>
+        <label class="lt-field"><span>Expectativa de vida (años)</span><input type="number" value="80"></label>
+        <label class="lt-field"><span>Estatura (cm)</span><input type="number" value="176"></label>
+        <label class="lt-field"><span>Peso actual (kg)</span><input type="number" value="74.5" step="0.1"></label>
+        <label class="lt-field lt-form--full"><span>Nivel de actividad</span><select><option>Moderado · 3–5 días por semana</option><option>Sedentario</option><option>Ligero</option><option>Intenso</option></select><small>Ajusta la meta diaria de agua y el gasto calórico estimado.</small></label>
+      </div>
+      <div class="lt-actions"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-check2"></i> Guardar datos</button></div>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-shield-lock"></i><h3>Cambiar contraseña</h3></div><div class="lt-panel__body">
+      <div class="lt-form">
+        <label class="lt-field lt-form--full"><span>Contraseña actual</span><input type="password" value="secreto123"></label>
+        <label class="lt-field"><span>Nueva contraseña</span><input type="password" placeholder="Mínimo 8 caracteres"></label>
+        <label class="lt-field"><span>Confirmar nueva contraseña</span><input type="password"></label>
+      </div>
+      <div class="lt-actions"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>Actualizar contraseña</button></div>
+    </div></article>
+  </div>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__body" >
+      <div class="lt-list-item"><span class="lt-avatar lt-avatar--lg">EO</span><div class="lt-list-item__body"><strong>Edwin Ortiz</strong><span>Miembro desde feb 2025</span></div></div>
+      <dl class="lt-dl">
+        <div><dt>Edad</dt><dd>32 años</dd></div><div><dt>IMC</dt><dd>24,1</dd></div>
+        <div><dt>Meta de agua</dt><dd>2,6 L</dd></div><div><dt>Semanas vividas</dt><dd>1.694</dd></div>
+      </dl>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-sliders"></i><h3>Preferencias de cada módulo</h3></div><div class="lt-panel__body"><div class="lt-list">
+      {% for label, icon in [('Hidratación','bi-droplet'),('Ánimo y energía','bi-emoji-smile'),('Pomodoro','bi-stopwatch')] %}<button class="lt-list-item lt-button--text" type="button" data-lt-static-nav><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ label }}</strong></div><i class="bi bi-chevron-right"></i></button>{% endfor %}
+    </div></div></article>
+  </aside>
+</section>
+{% endcall %}

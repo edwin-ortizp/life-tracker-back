@@ -1,0 +1,46 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% call shell('negative-habits', 'Hábitos a evitar', 'bi-shield-check') %}
+{{ module_tabs([('Semana','/negative-weekly','bi-calendar-week'),('Tendencia','/negative-trend','bi-graph-down')], '/negative-weekly') }}
+<section class="lt-toolbar"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><p class="lt-toolbar__label">Esta semana · 8 – 14 sep.</p><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Registrar incidencia</button></section>
+<section class="lt-metrics">{{ metric('Incidencias esta semana','6','warning') }}{{ metric('Días limpios','8 de 12','success') }}{{ metric('Frente a la semana pasada','−40 %','success') }}</section>
+<section class="lt-stack">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-calendar-week"></i><h3>Registro semanal</h3><small>Toca un día para registrar</small></div><div class="lt-panel__body">
+    <div class="lt-habit-week" role="table" aria-label="Incidencias por hábito y día">
+      <div class="lt-habit-week__row lt-habit-week__row--head" role="row"><span role="columnheader">Hábito</span>{% for d, today in [('L 8',false),('M 9',false),('X 10',true),('J 11',false),('V 12',false),('S 13',false),('D 14',false)] %}<span role="columnheader"{% if today %} class="is-today"{% endif %}>{{ d }}</span>{% endfor %}<span role="columnheader">Total</span></div>
+      {% for icon, name, limit, days, total, delta in [
+        ('bi-phone','Redes sociales de noche','Límite: 0 veces después de las 22:00',[0,2,1,None,None,None,None],3,'Semana pasada: 7'),
+        ('bi-cup-straw','Gaseosa','Límite: 1 por semana',[0,0,1,None,None,None,None],1,'Dentro del límite'),
+        ('bi-cash-coin','Compras impulsivas','Límite: 0',[0,0,0,None,None,None,None],0,'3 días limpio'),
+        ('bi-cookie','Picar entre comidas','Límite: 3 por semana',[1,0,1,None,None,None,None],2,'Semana pasada: 4')
+      ] %}
+      <div class="lt-habit-week__row" role="row">
+        <div class="lt-list-item" role="rowheader"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ limit }}</span></div></div>
+        {% for v in days %}{% set today = loop.index == 3 %}
+        {% if v is none %}<span class="lt-habit-cell is-future" role="cell" aria-label="Sin registrar"></span>
+        {% elif v == 0 %}<button class="lt-habit-cell is-clean{% if today %} is-today{% endif %}" type="button" role="cell" data-lt-static-nav aria-label="{{ name }}: día limpio"><i class="bi bi-check-lg"></i></button>
+        {% else %}<button class="lt-habit-cell {% if v > 1 %}is-heavy{% else %}is-slip{% endif %}{% if today %} is-today{% endif %}" type="button" role="cell" data-lt-static-nav aria-label="{{ name }}: {{ v }} incidencias">{{ v }}</button>{% endif %}
+        {% endfor %}
+        <div class="lt-habit-week__total" role="cell">{{ total }}<small>{{ delta }}</small></div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="lt-legend"><span><i class="bi bi-check-lg"></i> Día limpio</span><span>1 Una incidencia</span><span>2+ Varias</span></div>
+  </div></article>
+  <div class="lt-grid-2">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-pencil-square"></i><h3>Registrar incidencia</h3></div><div class="lt-panel__body">
+      <div class="lt-form">
+        <label class="lt-field lt-form--full"><span>Hábito</span><select><option>Redes sociales de noche</option><option>Gaseosa</option><option>Compras impulsivas</option><option>Picar entre comidas</option></select></label>
+        <label class="lt-field"><span>Fecha</span><input type="date" value="2026-09-10"></label>
+        <label class="lt-field"><span>Hora</span><input type="time" value="22:40"></label>
+        <label class="lt-field lt-form--full"><span>¿Qué lo disparó?</span><select><option>Cansancio</option><option>Aburrimiento</option><option>Estrés</option><option>Situación social</option></select></label>
+        <label class="lt-field lt-form--full"><span>Nota</span><textarea placeholder="Qué pasó y qué podrías hacer distinto la próxima vez">Revisé Instagram en la cama después de una reunión tensa.</textarea></label>
+      </div>
+      <div class="lt-actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Cancelar</button><button class="lt-button" type="button" data-lt-static-nav>Guardar</button></div>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-lightbulb"></i><h3>Plan de reemplazo</h3></div><div class="lt-panel__body"><div class="lt-list">
+      <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-book"></i></span><div class="lt-list-item__body"><strong>Leer 10 páginas en vez de redes</strong><span>Funcionó 4 de 6 noches</span></div></div>
+      <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-cup-hot"></i></span><div class="lt-list-item__body"><strong>Agua con limón en vez de gaseosa</strong><span>Funcionó 5 de 6 veces</span></div></div>
+    </div></div></article>
+  </div>
+</section>
+{% endcall %}

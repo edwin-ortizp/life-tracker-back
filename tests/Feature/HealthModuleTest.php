@@ -12,6 +12,7 @@ use App\Models\Task;
 use App\Models\TaskAssociation;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -178,18 +179,122 @@ class HealthModuleTest extends TestCase
 
     public function test_health_events_are_private_to_their_owner_and_filters_are_url_backed(): void
     {
+        Carbon::setTestNow('2026-07-12 10:00:00');
         $owner = User::factory()->create();
         $other = User::factory()->create();
         $owner->healthEvents()->create(['type' => 'vaccination', 'title' => 'Influenza', 'event_date' => '2026-06-01']);
+        $owner->healthEvents()->create(['type' => 'checkup', 'title' => 'Control antiguo', 'event_date' => '2025-01-10']);
         $other->healthEvents()->create(['type' => 'symptom', 'title' => 'No visible', 'event_date' => '2026-06-01']);
         $this->actingAs($owner);
 
-        Livewire::withQueryParams(['type' => 'vaccination', 'period' => 'history'])
+        Livewire::withQueryParams(['types' => ['vaccination'], 'range' => '60d'])
             ->test(HealthIndex::class)
-            ->assertSet('typeFilter', 'vaccination')
-            ->assertSet('period', 'history')
+            ->assertSet('types', ['vaccination'])
+            ->assertSet('range', '60d')
             ->assertSee('Influenza')
-            ->assertDontSee('No visible');
+            ->assertDontSee('Control antiguo')
+            ->assertDontSee('No visible')
+            ->assertSee('(1 de 2)');
+
+        Carbon::setTestNow();
+    }
+
+    public function test_filters_can_be_removed_one_by_one_or_cleared_at_once(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(HealthIndex::class)
+            ->set('range', '30d')
+            ->set('status', 'active')
+            ->set('types', ['symptom', 'illness'])
+            ->assertViewHas('activeFilters', fn (array $filters) => count($filters) === 4)
+            ->assertSee('Limpiar filtros')
+            ->call('removeFilter', 'types', 'illness')
+            ->assertSet('types', ['symptom'])
+            ->call('removeFilter', 'range')
+            ->assertSet('range', 'all')
+            ->call('clearFilters')
+            ->assertSet('status', 'all')
+            ->assertSet('types', [])
+            ->assertViewHas('activeFilters', [])
+            ->set('range', 'desconocido')
+            ->assertSet('range', 'all')
+            ->set('types', ['symptom', 'inventado'])
+            ->assertSet('types', ['symptom']);
+    }
+
+    public function test_status_filter_distinguishes_active_and_recovered_evolutions(): void
+    {
+        $this->actingAs(User::factory()->create());
+        HealthEvent::create(['type' => 'symptom', 'title' => 'Dolor activo', 'event_date' => '2026-06-01']);
+        HealthEvent::create(['type' => 'illness', 'title' => 'Gripe superada', 'event_date' => '2026-05-01', 'end_date' => '2026-05-07']);
+        HealthEvent::create(['type' => 'appointment', 'title' => 'Consulta dermatología', 'event_date' => '2026-06-02']);
+
+        Livewire::test(HealthIndex::class)
+            ->set('status', 'active')
+            ->assertSee('Dolor activo')
+            ->assertDontSee('Gripe superada')
+            ->assertDontSee('Consulta dermatología')
+            ->set('status', 'recovered')
+            ->assertSee('Gripe superada')
+            ->assertDontSee('Dolor activo');
+    }
+
+    public function test_illness_moments_count_symptoms_and_illnesses_per_month(): void
+    {
+        Carbon::setTestNow('2026-09-12 10:00:00');
+        $this->actingAs(User::factory()->create());
+        HealthEvent::create(['type' => 'symptom', 'title' => 'Migraña', 'event_date' => '2026-02-03']);
+        HealthEvent::create(['type' => 'illness', 'title' => 'Gripe', 'event_date' => '2026-02-20']);
+        HealthEvent::create(['type' => 'symptom', 'title' => 'Dolor lumbar', 'event_date' => '2026-05-01']);
+        HealthEvent::create(['type' => 'appointment', 'title' => 'Cita', 'event_date' => '2026-05-02']);
+        HealthEvent::create(['type' => 'symptom', 'title' => 'Tos', 'event_date' => '2025-12-01']);
+
+        Livewire::test(HealthIndex::class)
+            ->assertViewHas('moments', fn (array $moments) => $moments['total'] === 3
+                && $moments['monthsWithEvents'] === 2
+                && $moments['months'][1] === ['month' => 'Feb', 'count' => 2]
+                && count($moments['months']) === 12
+                && $moments['average'] === '0,3')
+            ->set('illnessPeriod', 'last_year')
+            ->assertViewHas('moments', fn (array $moments) => $moments['total'] === 1 && $moments['months'][11]['count'] === 1);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_pending_health_tasks_are_managed_from_their_menu(): void
+    {
+        Carbon::setTestNow('2026-09-12 10:00:00');
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $task = Task::create(['title' => 'Examen de sangre', 'category' => 'salud']);
+        $work = Task::create(['title' => 'Informe trimestral', 'category' => 'trabajo']);
+
+        $component = Livewire::test(HealthIndex::class)->call('completeTask', $task->id);
+        $this->assertTrue($task->fresh()->completed);
+        $component->assertViewHas('healthTasks', fn ($tasks) => $tasks->contains('title', 'Examen de sangre'));
+
+        $component->call('reopenTask', $task->id);
+        $this->assertFalse($task->fresh()->completed);
+
+        $component->call('openRescheduleTask', $task->id)
+            ->assertSet('showRescheduleForm', true)
+            ->set('rescheduleDate', '2026-09-20')
+            ->call('saveRescheduleTask')
+            ->assertSet('showRescheduleForm', false);
+        $this->assertSame('2026-09-20', $task->fresh()->start_date->toDateString());
+
+        try {
+            Livewire::test(HealthIndex::class)->call('deleteTask', $work->id);
+            $this->fail('Una tarea que no es de salud no debe poder eliminarse desde Salud.');
+        } catch (ModelNotFoundException) {
+            $this->assertNotNull(Task::find($work->id));
+        }
+
+        $component->call('deleteTask', $task->id);
+        $this->assertNull(Task::find($task->id));
+
+        Carbon::setTestNow();
     }
 
     public function test_deleting_event_only_removes_its_link_not_the_task(): void

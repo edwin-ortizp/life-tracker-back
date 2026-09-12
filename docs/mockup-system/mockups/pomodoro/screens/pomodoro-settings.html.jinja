@@ -1,0 +1,28 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% call shell('pomodoro', 'Ajustes de Pomodoro', 'bi-sliders') %}
+{{ module_tabs([('Temporizador','/pomodoro-timer','bi-stopwatch'),('Ajustes','/pomodoro-settings','bi-sliders')], '/pomodoro-settings') }}
+<section class="lt-grid-2">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-hourglass-split"></i><h3>Duración del temporizador</h3></div><div class="lt-panel__body">
+    <div class="lt-form">
+      <label class="lt-field"><span>Enfoque (min)</span><input type="number" value="25"></label>
+      <label class="lt-field"><span>Pausa corta (min)</span><input type="number" value="5"></label>
+      <label class="lt-field"><span>Pausa larga (min)</span><input type="number" value="15"></label>
+      <label class="lt-field"><span>Pausa larga cada</span><select><option>4 sesiones</option><option>3 sesiones</option><option>5 sesiones</option></select></label>
+    </div>
+    <div class="lt-actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Restablecer valores</button><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-check2"></i> Guardar</button></div>
+  </div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-flag"></i><h3>Metas de trabajo</h3></div><div class="lt-panel__body">
+    <div class="lt-form">
+      <label class="lt-field"><span>Sesiones por día</span><input type="number" value="8"><small>Equivale a 3 h 20 min de enfoque.</small></label>
+      <label class="lt-field"><span>Días laborales</span><select><option>Lunes a viernes</option><option>Todos los días</option></select></label>
+      <label class="lt-field lt-form--full"><span>Meta semanal</span><input type="text" value="16 h 40 min" readonly><small>Se calcula a partir de las sesiones por día.</small></label>
+    </div>
+    <div class="lt-actions"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>Guardar metas</button></div>
+  </div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-toggles"></i><h3>Comportamiento</h3></div><div class="lt-panel__body"><div class="lt-list">
+    {% for label, desc, state, tone in [('Iniciar pausas automáticamente','Al terminar una sesión de enfoque','Activado','success'),('Iniciar enfoque tras la pausa','Requiere confirmar para empezar','Desactivado','neutral'),('Sonido al terminar','Campana suave','Activado','success'),('Notificación del navegador','También con la pestaña en segundo plano','Activado','success')] %}
+    <button class="lt-list-item" type="button" data-lt-static-nav><div class="lt-list-item__body"><strong>{{ label }}</strong><span>{{ desc }}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ state }}</span></button>
+    {% endfor %}
+  </div></div></article>
+</section>
+{% endcall %}

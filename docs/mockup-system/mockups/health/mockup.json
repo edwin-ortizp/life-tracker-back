@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "health",
+  "version": "1.0.0",
+  "title": "Salud",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "health-index",
+        "health-body"
+      ],
+      "output": "health.html"
+    }
+  ],
+  "screens": {
+    "health-index": {
+      "template": "screens/health-index.html.jinja",
+      "title": "Registro",
+      "bodyClass": ""
+    },
+    "health-body": {
+      "template": "screens/health-body.html.jinja",
+      "title": "Vista del cuerpo",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/health-index",
+      "screen": "health-index"
+    },
+    {
+      "path": "/health-body",
+      "screen": "health-body"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/health-index",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

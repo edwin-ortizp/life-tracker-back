@@ -6,6 +6,10 @@ use App\Models\HealthEvent;
 use App\Models\HealthLog;
 use App\Models\Task;
 use App\Models\TaskAssociation;
+use App\Services\TaskGamificationService;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -17,11 +21,38 @@ use Livewire\Component;
 #[Title('Salud')]
 class HealthIndex extends Component
 {
-    #[Url(as: 'type', history: true, keep: true)]
-    public string $typeFilter = '';
+    public const RANGES = [
+        'all' => 'Todo el historial',
+        '30d' => 'Últimos 30 días',
+        '60d' => 'Últimos 60 días',
+        '6m' => 'Últimos 6 meses',
+        '1y' => 'Último año',
+    ];
 
-    #[Url(as: 'period', history: true, keep: true)]
-    public string $period = 'all';
+    public const STATUSES = [
+        'all' => 'Todos',
+        'active' => 'En seguimiento',
+        'recovered' => 'Recuperados',
+    ];
+
+    public const ILLNESS_PERIODS = [
+        'this_year' => 'Este año',
+        'last_year' => 'Año anterior',
+        'last_12m' => 'Últimos 12 meses',
+    ];
+
+    private const MONTH_LABELS = [1 => 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+    #[Url(as: 'range', history: true, keep: true)]
+    public string $range = 'all';
+
+    #[Url(as: 'status', history: true, keep: true)]
+    public string $status = 'all';
+
+    #[Url(as: 'types', history: true, keep: true)]
+    public array $types = [];
+
+    public string $illnessPeriod = 'this_year';
 
     public bool $showForm = false;
 
@@ -31,6 +62,8 @@ class HealthIndex extends Component
 
     public bool $showRecoveryForm = false;
 
+    public bool $showRescheduleForm = false;
+
     public ?string $editingId = null;
 
     public ?string $loggingEventId = null;
@@ -38,6 +71,8 @@ class HealthIndex extends Component
     public ?string $editingLogId = null;
 
     public ?string $recoveringEventId = null;
+
+    public ?string $reschedulingTaskId = null;
 
     public string $type = 'appointment';
 
@@ -73,6 +108,8 @@ class HealthIndex extends Component
 
     public ?string $pendingDate = null;
 
+    public ?string $rescheduleDate = null;
+
     public string $logDate = '';
 
     public ?int $logIntensity = null;
@@ -88,14 +125,28 @@ class HealthIndex extends Component
         $this->normalizeFilters();
     }
 
-    public function updatedTypeFilter(): void
+    public function updated(string $property): void
     {
-        $this->normalizeFilters();
+        if (in_array($property, ['range', 'status', 'types', 'illnessPeriod'], true) || str_starts_with($property, 'types.')) {
+            $this->normalizeFilters();
+        }
     }
 
-    public function updatedPeriod(): void
+    public function removeFilter(string $key, ?string $value = null): void
     {
-        $this->normalizeFilters();
+        match ($key) {
+            'range' => $this->range = 'all',
+            'status' => $this->status = 'all',
+            'types' => $this->types = $value === null ? [] : array_values(array_diff($this->types, [$value])),
+            default => null,
+        };
+    }
+
+    public function clearFilters(): void
+    {
+        $this->range = 'all';
+        $this->status = 'all';
+        $this->types = [];
     }
 
     public function updatedRecoveryDate(): void
@@ -111,6 +162,7 @@ class HealthIndex extends Component
     public function openForm(?string $id = null): void
     {
         $this->resetEventForm();
+        $this->resetValidation();
         $this->eventDate = today()->toDateString();
 
         if ($id && ($event = HealthEvent::find($id))) {
@@ -148,7 +200,7 @@ class HealthIndex extends Component
         $data = $this->validate($this->eventRules());
         $attributes = [
             'type' => $data['type'], 'title' => trim($data['title']), 'event_date' => $data['eventDate'],
-            'end_date' => $data['endDate'] ?: null, 'notes' => $data['notes'] ?: null, 'details' => $this->detailsFor($data['type']),
+            'end_date' => ($data['endDate'] ?? null) ?: null, 'notes' => ($data['notes'] ?? '') ?: null, 'details' => $this->detailsFor($data['type']),
         ];
 
         DB::transaction(function () use ($attributes, $data): void {
@@ -251,6 +303,13 @@ class HealthIndex extends Component
         $this->showRecoveryForm = true;
     }
 
+    public function closeRecoveryForm(): void
+    {
+        $this->showRecoveryForm = false;
+        $this->recoveringEventId = null;
+        $this->resetValidation();
+    }
+
     public function reopenEvolution(string $eventId): void
     {
         $event = HealthEvent::findOrFail($eventId);
@@ -279,32 +338,201 @@ class HealthIndex extends Component
             $event->logs()->create(['date' => $data['recoveryDate'], 'intensity' => $data['recoveryIntensity']]);
         }
         $event->update(['end_date' => $data['recoveryDate']]);
-        $this->showRecoveryForm = false;
-        $this->recoveringEventId = null;
-        $this->resetValidation();
+        $this->closeRecoveryForm();
     }
 
     public function openTaskForm(): void
     {
         $this->pendingTitle = '';
         $this->pendingDate = today()->toDateString();
+        $this->resetValidation();
         $this->showTaskForm = true;
+    }
+
+    public function closeTaskForm(): void
+    {
+        $this->showTaskForm = false;
+        $this->pendingTitle = '';
+        $this->pendingDate = null;
+        $this->resetValidation();
     }
 
     public function savePendingTask(): void
     {
         $data = $this->validate(['pendingTitle' => ['required', 'string', 'max:160'], 'pendingDate' => ['nullable', 'date']]);
         Task::create(['title' => trim($data['pendingTitle']), 'category' => 'salud', 'start_date' => $data['pendingDate'] ?: null, 'end_date' => $data['pendingDate'] ?: null, 'task_code' => rand(10000, 99999)]);
-        $this->showTaskForm = false;
-        $this->pendingTitle = '';
-        $this->pendingDate = null;
+        $this->closeTaskForm();
+    }
+
+    public function completeTask(string $id, TaskGamificationService $gamification): void
+    {
+        $task = $this->healthTask($id);
+        if ($task->completed) {
+            return;
+        }
+
+        $result = $gamification->complete($task);
+        if ($result['completed'] ?? false) {
+            $this->dispatch('task-completed', ...$result);
+        }
+    }
+
+    public function reopenTask(string $id, TaskGamificationService $gamification): void
+    {
+        $task = $this->healthTask($id);
+        if ($task->completed) {
+            $gamification->reopen($task);
+        }
+    }
+
+    public function openRescheduleTask(string $id): void
+    {
+        $task = $this->healthTask($id);
+        $this->reschedulingTaskId = $task->id;
+        $this->rescheduleDate = ($task->start_date ?? $task->end_date)?->toDateString() ?? today()->toDateString();
+        $this->resetValidation();
+        $this->showRescheduleForm = true;
+    }
+
+    public function closeRescheduleForm(): void
+    {
+        $this->showRescheduleForm = false;
+        $this->reschedulingTaskId = null;
+        $this->rescheduleDate = null;
+        $this->resetValidation();
+    }
+
+    public function saveRescheduleTask(): void
+    {
+        $data = $this->validate(['rescheduleDate' => ['required', 'date']]);
+        $this->healthTask((string) $this->reschedulingTaskId)->update(['start_date' => $data['rescheduleDate'], 'end_date' => $data['rescheduleDate']]);
+        $this->closeRescheduleForm();
+    }
+
+    public function deleteTask(string $id): void
+    {
+        $this->healthTask($id)->delete();
     }
 
     public function render()
     {
-        $upcomingQuery = HealthEvent::query()->whereDate('event_date', '>', today());
-        $nextEvent = (clone $upcomingQuery)->orderBy('event_date')->first();
-        $healthTasks = Task::query()
+        $nextEvent = HealthEvent::query()->whereDate('event_date', '>', today())->orderBy('event_date')->first();
+        $events = $this->filteredEvents()->with(['tasks', 'logs'])->orderByDesc('event_date')->orderByDesc('created_at')->get();
+
+        return view('livewire.health.health-index', [
+            'events' => $events,
+            'totalCount' => HealthEvent::query()->count(),
+            'activeFilters' => $this->activeFilters(),
+            'typeLabels' => HealthEvent::TYPES,
+            'ranges' => self::RANGES,
+            'statuses' => self::STATUSES,
+            'illnessPeriods' => self::ILLNESS_PERIODS,
+            'bodyAreas' => HealthEvent::BODY_AREAS,
+            'commonIllnesses' => HealthEvent::COMMON_ILLNESSES,
+            'nextEvent' => $nextEvent,
+            'upcomingCount' => HealthEvent::query()->whereDate('event_date', '>', today())->count(),
+            'pendingHealthTasks' => Task::query()->where('category', 'salud')->where('completed', false)->count(),
+            'healthTasks' => $this->healthTasks(),
+            'moments' => $this->illnessMoments(),
+        ]);
+    }
+
+    /**
+     * Filtros aplicados en forma de chips removibles.
+     *
+     * @return list<array{key: string, value: ?string, label: string, icon: string}>
+     */
+    public function activeFilters(): array
+    {
+        $filters = [];
+        if ($this->range !== 'all') {
+            $filters[] = ['key' => 'range', 'value' => null, 'label' => self::RANGES[$this->range], 'icon' => 'bi-calendar-range'];
+        }
+        if ($this->status !== 'all') {
+            $filters[] = ['key' => 'status', 'value' => null, 'label' => self::STATUSES[$this->status], 'icon' => 'bi-activity'];
+        }
+        foreach ($this->types as $type) {
+            $filters[] = ['key' => 'types', 'value' => $type, 'label' => HealthEvent::TYPES[$type], 'icon' => 'bi-tag'];
+        }
+
+        return $filters;
+    }
+
+    /**
+     * Distribución mensual de síntomas y enfermedades en el periodo elegido.
+     *
+     * @return array{label: string, months: list<array{month: string, count: int}>, monthsWithEvents: int, total: int, average: string}
+     */
+    public function illnessMoments(): array
+    {
+        $start = match ($this->illnessPeriod) {
+            'last_year' => CarbonImmutable::today()->subYear()->startOfYear(),
+            'last_12m' => CarbonImmutable::today()->startOfMonth()->subMonths(11),
+            default => CarbonImmutable::today()->startOfYear(),
+        };
+        $end = $start->addMonths(12)->subDay();
+
+        $counts = HealthEvent::query()
+            ->whereIn('type', ['symptom', 'illness'])
+            ->whereDate('event_date', '>=', $start)
+            ->whereDate('event_date', '<=', $end)
+            ->pluck('event_date')
+            ->countBy(fn ($date) => $date->format('Y-m'));
+
+        $months = collect(range(0, 11))->map(function (int $offset) use ($start, $counts): array {
+            $month = $start->addMonths($offset);
+
+            return ['month' => self::MONTH_LABELS[$month->month], 'count' => (int) ($counts[$month->format('Y-m')] ?? 0)];
+        })->all();
+
+        $total = array_sum(array_column($months, 'count'));
+
+        return [
+            'label' => self::ILLNESS_PERIODS[$this->illnessPeriod],
+            'months' => $months,
+            'monthsWithEvents' => count(array_filter($months, fn (array $month) => $month['count'] > 0)),
+            'total' => $total,
+            'average' => number_format($total / 12, 1, ',', '.'),
+        ];
+    }
+
+    private function filteredEvents(): Builder
+    {
+        $query = HealthEvent::query();
+
+        if ($this->types !== []) {
+            $query->whereIn('type', $this->types);
+        }
+
+        if ($since = $this->rangeStart()) {
+            $query->whereDate('event_date', '>=', $since);
+        }
+
+        if ($this->status === 'active') {
+            $query->whereIn('type', ['symptom', 'illness'])->whereNull('end_date');
+        } elseif ($this->status === 'recovered') {
+            $query->whereIn('type', ['symptom', 'illness'])->whereNotNull('end_date');
+        }
+
+        return $query;
+    }
+
+    private function rangeStart(): ?CarbonImmutable
+    {
+        $today = CarbonImmutable::today();
+
+        return match ($this->range) {
+            '30d' => $today->subDays(29),
+            '60d' => $today->subDays(59),
+            '6m' => $today->subMonths(6),
+            '1y' => $today->subYear(),
+            default => null,
+        };
+    }
+
+    private function healthTasks(): Collection
+    {
+        $pending = Task::query()
             ->where('category', 'salud')
             ->where('completed', false)
             ->orderByRaw('CASE WHEN start_date IS NULL THEN 1 ELSE 0 END')
@@ -312,21 +540,21 @@ class HealthIndex extends Component
             ->orderBy('created_at')
             ->limit(5)
             ->get();
-        $query = HealthEvent::query()->with(['tasks', 'logs']);
-        if ($this->typeFilter !== '') {
-            $query->where('type', $this->typeFilter);
-        }
-        if ($this->period === 'upcoming') {
-            $query->whereDate('event_date', '>', today());
-        } elseif ($this->period === 'history') {
-            $query->whereDate('event_date', '<=', today());
-        }
 
-        return view('livewire.health.health-index', [
-            'events' => $query->orderByDesc('event_date')->orderByDesc('created_at')->get(), 'types' => HealthEvent::TYPES,
-            'bodyAreas' => HealthEvent::BODY_AREAS, 'commonIllnesses' => HealthEvent::COMMON_ILLNESSES, 'nextEvent' => $nextEvent,
-            'upcomingCount' => (clone $upcomingQuery)->count(), 'pendingHealthTasks' => Task::query()->where('category', 'salud')->where('completed', false)->count(), 'healthTasks' => $healthTasks,
-        ]);
+        $recentlyCompleted = Task::query()
+            ->where('category', 'salud')
+            ->where('completed', true)
+            ->where('completed_at', '>=', now()->subDays(7))
+            ->orderByDesc('completed_at')
+            ->limit(3)
+            ->get();
+
+        return $pending->concat($recentlyCompleted);
+    }
+
+    private function healthTask(string $id): Task
+    {
+        return Task::query()->where('category', 'salud')->findOrFail($id);
     }
 
     private function eventRules(): array
@@ -394,11 +622,18 @@ class HealthIndex extends Component
 
     private function normalizeFilters(): void
     {
-        if ($this->typeFilter !== '' && ! array_key_exists($this->typeFilter, HealthEvent::TYPES)) {
-            $this->typeFilter = '';
+        if (! array_key_exists($this->range, self::RANGES)) {
+            $this->range = 'all';
         }
-        if (! in_array($this->period, ['all', 'upcoming', 'history'], true)) {
-            $this->period = 'all';
+        if (! array_key_exists($this->status, self::STATUSES)) {
+            $this->status = 'all';
         }
+        if (! array_key_exists($this->illnessPeriod, self::ILLNESS_PERIODS)) {
+            $this->illnessPeriod = 'this_year';
+        }
+        $this->types = array_values(array_unique(array_filter(
+            array_map('strval', (array) $this->types),
+            fn (string $type) => array_key_exists($type, HealthEvent::TYPES),
+        )));
     }
 }

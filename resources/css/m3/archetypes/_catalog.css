@@ -173,3 +173,7 @@
   margin-left: 0;
   padding-bottom: var(--md-sys-space-lg);
 }
+
+.md-catalog__static-menu { position: static; display: grid; width: max-content; }
+.md-catalog__popover-demo, .md-catalog__badge-host { position: relative; }
+.md-catalog__popover-demo { min-height: 56px; }

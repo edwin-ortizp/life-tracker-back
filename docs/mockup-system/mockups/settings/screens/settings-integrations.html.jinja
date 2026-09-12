@@ -1,0 +1,31 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('settings', 'Integraciones', 'bi-plug') %}
+{{ header('Integraciones', 'Conecta Life Tracker con tu asistente, tus notas y tu calendario.', 'bi-plug') }}
+{{ module_tabs([('Perfil y datos','/settings-profile','bi-person-circle'),('Integraciones','/settings-integrations','bi-plug')], '/settings-integrations') }}
+<section class="lt-metrics">{{ metric('Integraciones activas','2','success') }}{{ metric('Último acceso de IA','Hace 3 h') }}{{ metric('Tokens por revisar','1','warning') }}</section>
+<section class="lt-grid-2">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-robot"></i><h3>Asistente de IA (MCP)</h3><small><span class="lt-chip lt-chip--success">Conectado</span></small></div><div class="lt-panel__body">
+    <p class="lt-page-head__subtitle">Permite que tu asistente cree tareas, registre hábitos, agua, ánimo y eventos de salud en tu nombre.</p>
+    <div class="lt-form">
+      <label class="lt-field lt-form--full"><span>URL del servidor</span><input type="text" value="https://lifetracker.app/mcp" readonly></label>
+      <label class="lt-field lt-form--full"><span>Token de acceso</span><input type="password" value="lt_mcp_4f9a2c1b8e7d" readonly><small>Creado el 2 sep. · último uso hoy 09:12</small></label>
+    </div>
+    <div class="lt-actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-clipboard"></i> Copiar</button><button class="lt-button lt-button--danger" type="button" data-lt-static-nav>Revocar</button></div>
+  </div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-journal-bookmark"></i><h3>Integración con Obsidian</h3><small><span class="lt-chip lt-chip--success">Conectado</span></small></div><div class="lt-panel__body">
+    <p class="lt-page-head__subtitle">Sincroniza entradas del diario con tu bóveda de notas.</p>
+    <dl class="lt-dl"><div><dt>Bóveda</dt><dd>Personal</dd></div><div><dt>Última sincronización</dt><dd>Ayer, 22:40</dd></div><div><dt>Entradas enviadas</dt><dd>148</dd></div><div><dt>Carpeta</dt><dd>/Diario</dd></div></dl>
+    <div class="lt-actions"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-arrow-repeat"></i> Sincronizar</button><button class="lt-button lt-button--danger" type="button" data-lt-static-nav>Revocar</button></div>
+  </div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-calendar-check"></i><h3>Calendario (CalDAV)</h3><small><span class="lt-chip lt-chip--warning">Sin uso en 30 días</span></small></div><div class="lt-panel__body">
+    <p class="lt-page-head__subtitle">Suscríbete a tus tareas con fecha y cumpleaños desde cualquier calendario.</p>
+    <label class="lt-field"><span>URL de suscripción</span><input type="text" value="https://lifetracker.app/dav/edwin" readonly></label>
+    <div class="lt-actions"><button class="lt-button lt-button--danger" type="button" data-lt-static-nav>Revocar el acceso CalDAV</button></div>
+  </div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-app-indicator"></i><h3>Aplicación</h3></div><div class="lt-panel__body"><div class="lt-list">
+    <div class="lt-list-item"><div class="lt-list-item__body"><strong>Primer día de la semana</strong><span>Afecta resúmenes semanales</span></div><span class="lt-chip">Lunes</span></div>
+    <div class="lt-list-item"><div class="lt-list-item__body"><strong>Notificaciones</strong><span>Recordatorios de hábitos y cumpleaños</span></div><span class="lt-chip lt-chip--success">Activadas</span></div>
+    <div class="lt-list-item"><div class="lt-list-item__body"><strong>Exportar mis datos</strong><span>JSON con todos los módulos</span></div><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>Exportar</button></div>
+  </div></div></article>
+</section>
+{% endcall %}

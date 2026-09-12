@@ -62,7 +62,7 @@ return [
     'health' => [
         'archetype' => 'list',
         'title' => 'Salud', 'subtitle' => 'Historial, síntomas y seguimiento corporal.', 'icon' => 'bi-heart-pulse',
-        'patterns' => ['health*'], 'preserve' => ['period', 'type'],
+        'patterns' => ['health*'], 'preserve' => [],
         'tabs' => [
             ['label' => 'Registro', 'route' => 'health', 'icon' => 'bi-clock-history', 'active' => ['health']],
             ['label' => 'Vista del cuerpo', 'route' => 'health.body', 'archetype' => 'detail', 'icon' => 'bi-person-standing', 'active' => ['health.body']],

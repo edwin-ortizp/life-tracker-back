@@ -1,0 +1,23 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('journal', 'Semana 1.695 · 8–14 sep.', 'bi-calendar-week') %}
+{{ header('', '', '', '/journal-life') }}
+{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-week') }}
+<section class="lt-toolbar"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><p class="lt-toolbar__label">8 – 14 de septiembre de 2026</p><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button></section>
+<section class="lt-metrics">{{ metric('Ánimo promedio','Bien','success') }}{{ metric('Entradas escritas','3') }}{{ metric('Hábitos cumplidos','78 %','warning') }}</section>
+<section class="lt-grid-main">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-calendar-week"></i><h3>Días de la semana</h3></div><div class="lt-panel__body"><div class="lt-list">
+    {% for day, mood, detail, entry, tone in [('Lunes 8','🙂 Bien','Energía 6 · 4/6 hábitos · 45 min ejercicio',false,'success'),('Martes 9','😌 Agradecido','Energía 5 · 5/6 hábitos · llamada con mamá',true,'success'),('Miércoles 10','🙂 Tranquilo','Energía 7 · 4/6 hábitos · 75 min ejercicio',true,'success'),('Jueves 11','—','Hoy no hay registro todavía',false,'neutral'),('Viernes 12','—','',false,'neutral'),('Sábado 13','—','',false,'neutral'),('Domingo 14','—','',false,'neutral')] %}
+    <div class="lt-list-item"><span class="lt-avatar">{{ day.split(' ')[1] }}</span><div class="lt-list-item__body"><strong>{{ day }}</strong><span>{{ detail or 'Sin registros' }}</span></div><div class="lt-list-item__meta"><span class="lt-chip lt-chip--{{ tone }}">{{ mood }}</span>{% if entry %}<small><i class="bi bi-journal-text"></i> Entrada</small>{% endif %}</div></div>
+    {% endfor %}
+  </div></div></article>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-stars"></i><h3>Reflexión de la semana</h3></div><div class="lt-panel__body">
+      <label class="lt-field"><span>¿Qué quieres recordar de esta semana?</span><textarea>Proteger las mañanas funcionó. Retomar la llamada de los domingos.</textarea></label>
+      <div class="lt-actions"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>Guardar reflexión</button></div>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-graph-up"></i><h3>Energía diaria</h3></div><div class="lt-panel__body">
+      <div class="lt-bars">{% for d, v in [('L',60),('M',50),('X',70),('J',0),('V',0),('S',0),('D',0)] %}<div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:{{ v }}%"></span></div><span>{{ d }}</span></div>{% endfor %}</div>
+    </div></article>
+  </aside>
+</section>
+{% endcall %}

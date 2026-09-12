@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "id": "meals",
+  "version": "1.0.0",
+  "title": "Comidas",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "meals-weekly",
+        "meals-recipes",
+        "meals-ingredients",
+        "meals-shopping"
+      ],
+      "output": "meals.html"
+    }
+  ],
+  "screens": {
+    "meals-weekly": {
+      "template": "screens/meals-weekly.html.jinja",
+      "title": "Planificación",
+      "bodyClass": ""
+    },
+    "meals-recipes": {
+      "template": "screens/meals-recipes.html.jinja",
+      "title": "Recetas",
+      "bodyClass": ""
+    },
+    "meals-ingredients": {
+      "template": "screens/meals-ingredients.html.jinja",
+      "title": "Ingredientes",
+      "bodyClass": ""
+    },
+    "meals-shopping": {
+      "template": "screens/meals-shopping.html.jinja",
+      "title": "Compras",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/meals-weekly",
+      "screen": "meals-weekly"
+    },
+    {
+      "path": "/meals-recipes",
+      "screen": "meals-recipes"
+    },
+    {
+      "path": "/meals-ingredients",
+      "screen": "meals-ingredients"
+    },
+    {
+      "path": "/meals-shopping",
+      "screen": "meals-shopping"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/meals-weekly",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

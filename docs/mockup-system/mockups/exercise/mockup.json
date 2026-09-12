@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "exercise",
+  "version": "1.0.0",
+  "title": "Ejercicio",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "exercise-daily",
+        "exercise-weekly"
+      ],
+      "output": "exercise.html"
+    }
+  ],
+  "screens": {
+    "exercise-daily": {
+      "template": "screens/exercise-daily.html.jinja",
+      "title": "Registro diario",
+      "bodyClass": ""
+    },
+    "exercise-weekly": {
+      "template": "screens/exercise-weekly.html.jinja",
+      "title": "Resumen semanal",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/exercise-daily",
+      "screen": "exercise-daily"
+    },
+    {
+      "path": "/exercise-weekly",
+      "screen": "exercise-weekly"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/exercise-daily",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

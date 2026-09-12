@@ -1,0 +1,33 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('relationships', 'Camila Rojas', 'bi-person') %}
+{{ header('Camila Rojas', 'Perfil, cronología y pendientes de esta relación.', 'bi-person', '/relationships-index') }}
+<section class="lt-metrics">{{ metric('Último contacto','Hace 45 días','warning') }}{{ metric('Frecuencia deseada','Cada mes') }}{{ metric('Momentos este año','9','success') }}</section>
+<section class="lt-grid-main">
+  <div class="lt-stack">
+    <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-clock-history"></i><h3>Cronología</h3><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Registrar momento</button></div><div class="lt-panel__body">
+      <p class="lt-section-label">Próximos</p>
+      <div class="lt-timeline"><div class="lt-timeline__item"><span class="lt-timeline__dot"></span><div><strong>Cena de reencuentro</strong><span>Sáb 20 sep. · Planeado</span></div></div></div>
+      <p class="lt-section-label">Historial</p>
+      <div class="lt-timeline">
+        {% for title, meta, note in [('Llamada larga','27 jul. · Llamada · 😊 Alegría','Me contó de su nuevo trabajo en Medellín.'),('Boda de Andrés','14 jun. · En persona','Bailamos toda la noche; quedamos en vernos más.'),('Mensaje de cumpleaños','3 mar. · WhatsApp','')] %}
+        <div class="lt-timeline__item"><span class="lt-timeline__dot"></span><div><strong>{{ title }}</strong><span>{{ meta }}</span>{% if note %}<p>{{ note }}</p>{% endif %}</div></div>
+        {% endfor %}
+      </div>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-list-check"></i><h3>Pendientes</h3><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Nueva tarea asociada</button></div><div class="lt-panel__body"><div class="lt-list">
+      {% for task, meta, done in [('Reservar restaurante para el 20','Vence 15 sep.',false),('Enviarle el libro que le recomendé','Sin fecha',false),('Felicitarla por el nuevo trabajo','Completada 27 jul.',true)] %}<div class="lt-list-item"><span class="lt-check{% if done %} is-done{% endif %}">{% if done %}✓{% endif %}</span><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ meta }}</span></div></div>{% endfor %}
+    </div></div></article>
+  </div>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__body">
+      <div class="lt-list-item"><span class="lt-avatar lt-avatar--lg">CR</span><div class="lt-list-item__body"><strong>Camila Rojas</strong><span>“Cami” · Amigos cercanos</span></div></div>
+      <dl class="lt-dl"><div><dt>Cumpleaños</dt><dd>3 mar. · 31 años</dd></div><div><dt>Nos conocimos</dt><dd>2013 · Universidad</dd></div><div><dt>Ciudad</dt><dd>Medellín</dd></div><div><dt>Etiquetas</dt><dd><span class="lt-chip">Universidad</span></dd></div></dl>
+      <div class="lt-actions"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-check2-circle"></i> Marcar contacto</button><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-pencil"></i> Editar</button></div>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-telephone"></i><h3>Medios de contacto</h3></div><div class="lt-panel__body"><div class="lt-list">
+      {% for icon, value, kind in [('bi-whatsapp','+57 310 555 0142','WhatsApp'),('bi-envelope','camila.rojas@correo.com','Correo'),('bi-instagram','@camirojas','Instagram')] %}<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ value }}</strong><span>{{ kind }}</span></div></div>{% endfor %}
+    </div></div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-sticky"></i><h3>Notas</h3></div><div class="lt-panel__body"><p class="lt-page-head__subtitle">Vegetariana. Le encanta el café de especialidad y los conciertos de jazz.</p></div></article>
+  </aside>
+</section>
+{% endcall %}

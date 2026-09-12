@@ -1,0 +1,7 @@
+{% from '@project/components/life-shell.html.jinja' import shell, header %}
+{% import '@mockup-system/shared/catalog/screen.html.jinja' as catalog with context %}
+{% set catalog_navigation = [('Fundamentos', 'bi-palette', 'foundations'), ('Acciones', 'bi-lightning-charge', 'actions'), ('Formularios', 'bi-input-cursor-text', 'forms'), ('Overlays', 'bi-window-stack', 'overlays'), ('Datos', 'bi-table', 'data'), ('Navegación', 'bi-signpost-split', 'navigation'), ('Layout', 'bi-grid-1x2', 'layout')] %}
+{% call shell('component-catalog', 'Sistema visual', 'bi-palette', catalog_navigation=catalog_navigation) %}
+{{ header('Sistema visual', 'Inventario de componentes del mockup.', 'bi-palette') }}
+{{ catalog.content() }}
+{% endcall %}

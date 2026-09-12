@@ -1,0 +1,8 @@
+{% macro colors() -%}
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+  {% for token, label in [("--md-primary", "Primario"), ("--md-primary-container", "Contenedor"), ("--md-success", "Éxito"), ("--md-warning", "Advertencia")] %}
+  <span data-ui-component="life-tracker/foundations/color" data-ui-variant="{{ ['primary','container','success','warning'][loop.index0] }}" style="display:grid;gap:6px;min-width:108px;font-size:.75rem"><i aria-hidden="true" style="display:block;height:44px;border-radius:10px;background:var({{ token }});border:1px solid var(--md-outline-variant)"></i>{{ label }}</span>
+  {% endfor %}
+</div>
+{%- endmacro %}
+{% macro showcase() -%}{{ colors() }}{%- endmacro %}

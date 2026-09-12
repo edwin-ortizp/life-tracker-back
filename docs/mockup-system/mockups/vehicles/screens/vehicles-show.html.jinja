@@ -1,0 +1,22 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('vehicles', 'Mazda 3', 'bi-car-front') %}
+{{ header('Mazda 3', '2019 · Gasolina · Placa ABC-123', 'bi-car-front', '/vehicles-index') }}
+{{ module_tabs([('Resumen','/vehicles-show','bi-card-text'),('Combustible','/vehicles-fuel','bi-fuel-pump'),('Mantenimiento','/vehicles-maintenance','bi-wrench-adjustable')], '/vehicles-show') }}
+<section class="lt-metrics">{{ metric('Kilometraje','58.620 km') }}{{ metric('Rendimiento promedio','14,2 km/l','success') }}{{ metric('Costo por km','$ 312') }}</section>
+<section class="lt-grid-2">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-card-text"></i><h3>Ficha técnica</h3><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-pencil"></i> Editar</button></div><div class="lt-panel__body">
+    <dl class="lt-dl">
+      <div><dt>Marca y modelo</dt><dd>Mazda 3 Grand Touring</dd></div><div><dt>Año</dt><dd>2019</dd></div>
+      <div><dt>Energía</dt><dd>Gasolina corriente</dd></div><div><dt>Tanque</dt><dd>51 L</dd></div>
+      <div><dt>Placa</dt><dd>ABC-123</dd></div><div><dt>Color</dt><dd>Gris metálico</dd></div>
+      <div><dt>Comprado</dt><dd>Mar 2021 · 22.000 km</dd></div><div><dt>VIN</dt><dd>JM1BPA…4821</dd></div>
+    </dl>
+  </div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-calendar2-check"></i><h3>Próximos cuidados</h3><small>3 activos</small></div><div class="lt-panel__body"><div class="lt-list">
+    {% for task, meta, pct, tone, chip in [('Cambio de aceite','Cada 5.000 km · faltan 400 km',92,'warning','Pronto'),('Revisión técnico-mecánica','Anual · 25 sep.',85,'warning','15 días'),('Rotación de llantas','Cada 10.000 km · faltan 3.380 km',66,'neutral','Programado')] %}
+    <div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ meta }}</span><div class="lt-progress"><span style="width:{{ pct }}%"></span></div></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></div>
+    {% endfor %}
+  </div><div class="lt-route-links"><a class="lt-button lt-button--tonal" href="#/vehicles-maintenance">Ver plan de cuidados</a><a class="lt-button lt-button--tonal" href="#/vehicles-fuel"><i class="bi bi-fuel-pump"></i> Registrar repostaje</a></div></div></article>
+</section>
+<section class="lt-actions"><button class="lt-button lt-button--danger" type="button" data-lt-static-nav><i class="bi bi-trash"></i> Eliminar vehículo</button></section>
+{% endcall %}

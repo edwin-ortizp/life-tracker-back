@@ -13,6 +13,18 @@ La interfaz se comporta como una cabina serena: alta densidad de información, j
 5. `x-context-widget` contiene resúmenes, calendarios o accesos relacionados; no debe duplicar la lista principal.
 6. `x-empty-state` unifica pantallas sin datos y debe incluir una siguiente acción cuando exista.
 
+### Identidad en la barra superior
+
+La identidad de la pantalla vive **una sola vez**, en la barra superior: botón de menú → icono del módulo → título.
+
+- El icono del módulo va inmediatamente a la derecha del botón de menú, dentro de un contenedor redondeado con fondo tonal del acento del módulo (`color-mix` del acento sobre `--md-surface-lowest`) y el glifo en el color de acento.
+- El título de la barra es el título de la pantalla. Si la vista pertenece a una entidad, la incluye: `Combustible · Mazda 3`, `Camila Rojas`.
+- No se repite el título dentro del contenido: no hay bloque de encabezado con icono, título grande ni subtítulo descriptivo debajo de la barra. El contenido empieza con `Volver` (solo en vistas de detalle), las pestañas o las métricas.
+- Los datos que antes iban en el subtítulo y que sí aportan información (fecha del registro, placa, periodo) se trasladan a un control o métrica visible, nunca a texto decorativo.
+- En móvil se conserva el mismo orden; el icono se reduce a 36 px y el título se trunca con elipsis.
+
+Referencia visual: macro `shell` en `docs/mockup-system/components/life-shell.html.jinja` (clase `.lt-topbar__icon`).
+
 ## Reglas de navegación
 
 - Una vista funcional equivale a una ruta; no se usan pestañas para alternar contenido importante solo en memoria.
@@ -78,6 +90,37 @@ Los valores calculados que no pueden expresarse con variantes discretas se trans
 - `php artisan ui:conformance --list` enumera cada desviación con archivo, línea, regla y región.
 - `php artisan ui:conformance --update-baseline` regenera el inventario; solo debe reducirlo.
 - Las excepciones duraderas se declaran en `config/ui-conformance.php` con motivo y alcance, nunca como comentarios dispersos.
+
+## Modales con formulario
+
+Componente: `x-ui.form-dialog` con `x-ui.form-dialog-section`. Campos: `x-ui.field`, `x-ui.select`, `x-ui.textarea` y `x-ui.multi-select`, todos con prop `icon` opcional.
+
+Patrón común para todo modal que crea o edita información.
+
+- **Cabecera** separada del contenido por una línea divisoria. En orden: control del panel de secciones (solo si hay secciones), ícono de contexto, título, acción expandir/restaurar y cerrar. El título nunca se oculta.
+- **Panel de secciones** a la izquierda para formularios largos (por ejemplo: Información básica, Detalles adicionales, Archivos y adjuntos, Resumen). Es un menú, no un wizard: se entra a cualquier sección sin completar la anterior, sin números, progreso ni subtítulos. Es colapsable; al contraerlo solo desaparece la navegación y el formulario gana ancho. En móvil arranca contraído y se superpone.
+- **Información básica** contiene solo los datos esenciales; notas, contexto y adjuntos van en las demás secciones.
+- **Footer** separado por una línea divisoria: `Cancelar` (text) completamente a la izquierda y `Guardar` (filled) completamente a la derecha. Sin otras variantes de texto.
+- **Expandir** ocupa casi todo el viewport manteniendo el overlay; no usa el fullscreen del navegador. Restaurar conserva los datos y la sección activa.
+- Se cierra con la ×, Cancelar, clic en el overlay o Esc.
+
+### Campos (outlined, Material Design 3)
+
+Base visual de **todos** los formularios, no solo de los modales:
+
+- Borde de 1 px, radio 8 px, altura 56 px (textarea desde 120 px).
+- El label va sobre el borde e interrumpe el outline; no se coloca como texto separado encima del campo.
+- Ícono inicial opcional; los select muestran chevron propio.
+- Estados: hover (borde on-surface), focus (borde 2 px del acento y label del mismo color), error (borde, label y ayuda en rojo), disabled (opacidad .38).
+- Obligatorio: asterisco rojo junto al label.
+
+## Menús, filtros y botón flotante
+
+- **Más opciones (⋮)**: `x-ui.menu` con `x-ui.menu-item` y `x-ui.menu-divider`. La acción principal queda visible (tonal o filled) y las secundarias van al menú, con las destructivas al final tras un divisor y `tone="danger"`. Nunca un grupo de botones grandes sueltos.
+- **Filtros**: un único botón "Filtros" (outlined) que abre `x-ui.popover` con todas las opciones, incluido el rango de tiempo; no se duplica el concepto con un selector aparte. Con filtros activos el botón lleva `x-ui.badge placement="corner"` con el número. Debajo se listan como chips removibles y, si hay al menos uno, el enlace "Limpiar filtros".
+- **Opciones simples y múltiples**: `x-ui.select` para una opción, `x-ui.multi-select` (checkboxes) para varias.
+- **Botón flotante**: la acción de crear del módulo es un FAB extendido (`x-module-actions` con `fab-always`), solo icono en móvil y por encima de la barra inferior.
+- **Pestañas de módulo**: sin fondo ni pastilla; el estado activo es el color de acento con un indicador inferior de 3 px.
 
 ## Definición de terminado para una superficie nueva
 

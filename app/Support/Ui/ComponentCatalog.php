@@ -145,6 +145,54 @@ class ComponentCatalog
     <x-slot:actions><x-ui.action wire:click="save">Guardar</x-ui.action></x-slot:actions>
 </x-ui.dialog>',
         ],
+        'form-dialog' => [
+            'layer' => 'patterns',
+            'title' => 'Modal de formulario',
+            'description' => 'Modal para crear o editar: cabecera y footer con divisoria, secciones laterales colapsables (no es un wizard), expandir/restaurar y Cancelar a la izquierda / Guardar a la derecha.',
+            'usage' => '<x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" title="Registrar evento" icon="bi-heart-pulse" :sections="$sections">
+    <x-ui.form-dialog-section name="basic" title="Información básica">…</x-ui.form-dialog-section>
+</x-ui.form-dialog>',
+        ],
+        'form-dialog-section' => [
+            'layer' => 'patterns',
+            'title' => 'Sección de modal de formulario',
+            'description' => 'Bloque de campos de un modal de formulario; se muestra según la sección activa sin perder los datos.',
+            'usage' => '<x-ui.form-dialog-section name="details" title="Detalles adicionales" description="Contexto opcional.">…</x-ui.form-dialog-section>',
+        ],
+        'menu' => [
+            'layer' => 'patterns',
+            'title' => 'Menú de acciones',
+            'description' => 'Menú de más opciones (⋮) para acciones secundarias de un elemento.',
+            'usage' => '<x-ui.menu label="Más opciones de Dolor lumbar">
+    <x-ui.menu-item icon="bi-pencil" wire:click="edit">Editar</x-ui.menu-item>
+    <x-ui.menu-divider />
+    <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete">Eliminar</x-ui.menu-item>
+</x-ui.menu>',
+        ],
+        'menu-item' => [
+            'layer' => 'patterns',
+            'title' => 'Opción de menú',
+            'description' => 'Acción dentro de un menú, con icono y tono destructivo opcional.',
+            'usage' => '<x-ui.menu-item icon="bi-check2-circle" wire:click="complete">Marcar como completado</x-ui.menu-item>',
+        ],
+        'menu-divider' => [
+            'layer' => 'patterns',
+            'title' => 'Divisor de menú',
+            'description' => 'Separa grupos de acciones; se usa antes de las destructivas.',
+            'usage' => '<x-ui.menu-divider />',
+        ],
+        'popover' => [
+            'layer' => 'patterns',
+            'title' => 'Popover',
+            'description' => 'Superficie anclada con título, cierre y acciones; se usa para el panel único de filtros.',
+            'usage' => '<x-ui.popover state="filtersOpen" title="Filtros">…<x-slot:actions>…</x-slot:actions></x-ui.popover>',
+        ],
+        'multi-select' => [
+            'layer' => 'primitives',
+            'title' => 'Selección múltiple',
+            'description' => 'Campo outlined que abre una lista de checkboxes enlazada a una propiedad array.',
+            'usage' => '<x-ui.multi-select name="types" label="Tipo" :options="$types" all-label="Todos los tipos" />',
+        ],
         'sheet' => [
             'layer' => 'patterns',
             'title' => 'Hoja',

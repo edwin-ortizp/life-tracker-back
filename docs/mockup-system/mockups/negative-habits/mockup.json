@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "negative-habits",
+  "version": "1.0.0",
+  "title": "Hábitos a evitar",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "negative-weekly",
+        "negative-trend"
+      ],
+      "output": "negative-habits.html"
+    }
+  ],
+  "screens": {
+    "negative-weekly": {
+      "template": "screens/negative-weekly.html.jinja",
+      "title": "Semana",
+      "bodyClass": ""
+    },
+    "negative-trend": {
+      "template": "screens/negative-trend.html.jinja",
+      "title": "Tendencia",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/negative-weekly",
+      "screen": "negative-weekly"
+    },
+    {
+      "path": "/negative-trend",
+      "screen": "negative-trend"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/negative-weekly",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

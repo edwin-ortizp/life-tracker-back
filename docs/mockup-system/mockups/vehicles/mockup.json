@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "id": "vehicles",
+  "version": "1.0.0",
+  "title": "Vehículos",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "vehicles-index",
+        "vehicles-show",
+        "vehicles-fuel",
+        "vehicles-maintenance"
+      ],
+      "output": "vehicles.html"
+    }
+  ],
+  "screens": {
+    "vehicles-index": {
+      "template": "screens/vehicles-index.html.jinja",
+      "title": "Garaje",
+      "bodyClass": ""
+    },
+    "vehicles-show": {
+      "template": "screens/vehicles-show.html.jinja",
+      "title": "Detalle del vehículo",
+      "bodyClass": ""
+    },
+    "vehicles-fuel": {
+      "template": "screens/vehicles-fuel.html.jinja",
+      "title": "Combustible",
+      "bodyClass": ""
+    },
+    "vehicles-maintenance": {
+      "template": "screens/vehicles-maintenance.html.jinja",
+      "title": "Mantenimiento",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/vehicles-index",
+      "screen": "vehicles-index"
+    },
+    {
+      "path": "/vehicles-show",
+      "screen": "vehicles-show"
+    },
+    {
+      "path": "/vehicles-fuel",
+      "screen": "vehicles-fuel"
+    },
+    {
+      "path": "/vehicles-maintenance",
+      "screen": "vehicles-maintenance"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/vehicles-index",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

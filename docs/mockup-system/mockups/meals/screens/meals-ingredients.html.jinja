@@ -1,0 +1,30 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% call shell('meals', 'Ingredientes', 'bi-basket') %}
+{{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-ingredients') }}
+<section class="lt-toolbar" aria-label="Filtros de ingredientes">
+  <label class="lt-field"><span class="lt-sr-only">Buscar ingredientes</span><input type="search" placeholder="Buscar ingredientes..."></label>
+  {% for c, sel in [('Todos',true),('En stock',false),('Por agotarse',false),('Sin stock',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}
+  <button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-magic"></i> Agregar en bloque</button>
+</section>
+<section class="lt-grid-main">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-basket"></i><h3>Catálogo</h3><small>86 ingredientes</small></div><div class="lt-panel__body">
+    {% for cat, items in [
+      ('Verduras y frutas', [('Banano','6 unidades','En stock','success','Alias: guineo'),('Ahuyama','0,5 kg','Por agotarse','warning',''),('Cilantro','—','Sin stock','danger','Usado en 7 recetas')]),
+      ('Proteínas', [('Pechuga de pollo','1,2 kg','En stock','success','Variantes: filete, molida'),('Lentejas','250 g','Por agotarse','warning',''),('Tilapia','—','Sin stock','danger','Necesario por una receta')]),
+      ('Despensa', [('Avena en hojuelas','800 g','En stock','success',''),('Leche de coco','2 latas','En stock','success',''),('Arroz basmati','—','Sin stock','danger','')])
+    ] %}
+    <p class="lt-section-label">{{ cat }}</p>
+    <div class="lt-list">{% for name, qty, chip, tone, note in items %}<button class="lt-list-item" type="button" data-lt-static-nav><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ qty }}{% if note %} · {{ note }}{% endif %}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></button>{% endfor %}</div>
+    {% endfor %}
+  </div></article>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-pie-chart"></i><h3>Resumen</h3></div><div class="lt-panel__body">
+      <div class="lt-stack-bar" role="img" aria-label="62 en stock, 14 por agotarse, 10 sin stock"><span style="--value:72%"></span><span style="--value:16%"></span><span style="--value:12%"></span></div>
+      <dl class="lt-dl"><div><dt>En stock</dt><dd>62</dd></div><div><dt>Por agotarse</dt><dd>14</dd></div><div><dt>Sin stock</dt><dd>10</dd></div><div><dt>Sin usar en recetas</dt><dd>9</dd></div></dl>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-tags"></i><h3>Por categoría</h3></div><div class="lt-panel__body"><div class="lt-list">
+      {% for c, n in [('Verduras y frutas',28),('Proteínas',14),('Lácteos',9),('Despensa',25),('Especias',10)] %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ c }}</strong></div><span class="lt-chip lt-chip--neutral">{{ n }}</span></div>{% endfor %}
+    </div><div class="lt-route-links"><a class="lt-button lt-button--tonal" href="#/meals-shopping"><i class="bi bi-cart3"></i> Ir a compras</a></div></div></article>
+  </aside>
+</section>
+{% endcall %}

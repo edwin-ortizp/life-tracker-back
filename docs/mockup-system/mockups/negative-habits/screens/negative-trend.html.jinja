@@ -1,0 +1,26 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% call shell('negative-habits', 'Tendencia de hábitos a evitar', 'bi-graph-down') %}
+{{ module_tabs([('Semana','/negative-weekly','bi-calendar-week'),('Tendencia','/negative-trend','bi-graph-down')], '/negative-trend') }}
+<section class="lt-toolbar"><div class="lt-segmented" role="group" aria-label="Periodo"><button type="button" data-lt-static-nav>4 semanas</button><button class="is-active" type="button" data-lt-static-nav>12 semanas</button><button type="button" data-lt-static-nav>Año</button></div></section>
+<section class="lt-metrics">{{ metric('Mejor racha limpia','12 días','success') }}{{ metric('Promedio semanal','8,4 incidencias') }}{{ metric('Disparador principal','Cansancio','warning') }}</section>
+<section class="lt-grid-2">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-graph-down"></i><h3>Incidencias por semana</h3><small>Últimas 12 semanas</small></div><div class="lt-panel__body">
+    <div class="lt-stat-bars" style="--count:12" role="img" aria-label="Incidencias semanales: de 15 a 6">{% for v in [100,93,87,80,93,73,67,60,67,53,67,40] %}<span style="--value:{{ v }}%"></span>{% endfor %}</div>
+    <div class="lt-stat-axis"><span>23 jun.</span><span>4 ago.</span><span>Esta semana</span></div>
+    <p class="lt-page-head__subtitle">Bajaste de 15 a 6 incidencias por semana desde junio.</p>
+  </div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-list-ol"></i><h3>Por hábito</h3></div><div class="lt-panel__body"><div class="lt-list">
+    {% for name, detail, pct, chip, tone in [('Redes sociales de noche','41 incidencias · racha actual 1 día',80,'−35 %','success'),('Picar entre comidas','28 incidencias · racha actual 0 días',55,'−20 %','success'),('Gaseosa','17 incidencias · racha actual 1 día',33,'+5 %','warning'),('Compras impulsivas','9 incidencias · racha actual 3 días',18,'−60 %','success')] %}
+    <div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ detail }}</span><div class="lt-progress"><span style="width:{{ pct }}%"></span></div></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></div>
+    {% endfor %}
+  </div></div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-lightning"></i><h3>Disparadores</h3></div><div class="lt-panel__body">
+    <div class="lt-stack-bar" role="img" aria-label="Cansancio 45 %, estrés 30 %, otros 25 %"><span style="--value:45%"></span><span style="--value:30%"></span><span style="--value:25%"></span></div>
+    <dl class="lt-dl"><div><dt>Cansancio</dt><dd>45 %</dd></div><div><dt>Estrés</dt><dd>30 %</dd></div><div><dt>Aburrimiento</dt><dd>15 %</dd></div><div><dt>Situación social</dt><dd>10 %</dd></div></dl>
+  </div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-clock"></i><h3>Cuándo ocurre</h3></div><div class="lt-panel__body">
+    <div class="lt-bars">{% for d, v in [('L',40),('M',55),('X',50),('J',60),('V',85),('S',100),('D',70)] %}<div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:{{ v }}%"></span></div><span>{{ d }}</span></div>{% endfor %}</div>
+    <p class="lt-page-head__subtitle">El 62 % ocurre después de las 21:00, sobre todo viernes y sábados.</p>
+  </div></article>
+</section>
+{% endcall %}

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "statistics",
+  "version": "1.0.0",
+  "title": "Estadísticas",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "statistics-dashboard"
+      ],
+      "output": "statistics.html"
+    }
+  ],
+  "screens": {
+    "statistics-dashboard": {
+      "template": "screens/statistics-dashboard.html.jinja",
+      "title": "Estadísticas",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/statistics-dashboard",
+      "screen": "statistics-dashboard"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/statistics-dashboard",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

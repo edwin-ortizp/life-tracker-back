@@ -1,0 +1,27 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% call shell('meals', 'Recetas', 'bi-book') %}
+{{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-recipes') }}
+<section class="lt-toolbar" aria-label="Filtros de recetas">
+  <label class="lt-field"><span class="lt-sr-only">Buscar recetas</span><input type="search" placeholder="Buscar recetas..."></label>
+  {% for c, sel in [('Todas',true),('Desayuno',false),('Almuerzo',false),('Cena',false),('Vegetarianas',false),('Rápidas',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}
+  <button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Nueva receta</button>
+</section>
+<section class="lt-recipe-grid">
+  {% for emoji, name, desc, time, portions, tags, planned in [
+    ('🍛','Pollo al curry','Con leche de coco y arroz basmati.','40 min','4 porciones',['Almuerzo'],2),
+    ('🥣','Lentejas con arroz','Receta de la abuela, rinde para dos días.','45 min','6 porciones',['Almuerzo','Económica'],2),
+    ('🌮','Tacos de pescado','Tilapia apanada, repollo morado y salsa de yogur.','25 min','2 porciones',['Cena','Rápida'],1),
+    ('🥗','Ensalada César','Pollo a la plancha, crutones y aderezo casero.','20 min','2 porciones',['Cena','Rápida'],1),
+    ('🎃','Crema de ahuyama','Con jengibre y semillas tostadas.','30 min','4 porciones',['Cena','Vegetariana'],1),
+    ('🥞','Pancakes de avena','Sin harina refinada, con frutos rojos.','15 min','2 porciones',['Desayuno'],1),
+    ('🍲','Ajiaco','Tres papas, guascas, mazorca y alcaparras.','90 min','6 porciones',['Almuerzo','Fin de semana'],1),
+    ('🍕','Pizza casera','Masa de 24 h, tomate y mozzarella.','35 min','2 porciones',['Cena'],1)
+  ] %}
+  <article class="lt-recipe-card"><div class="lt-recipe-card__media" aria-hidden="true">{{ emoji }}</div><div class="lt-recipe-card__body">
+    <h3>{{ name }}</h3><p>{{ desc }}</p>
+    <div class="lt-chip-row"><span class="lt-chip lt-chip--neutral"><i class="bi bi-clock"></i>&nbsp;{{ time }}</span><span class="lt-chip lt-chip--neutral">{{ portions }}</span>{% for t in tags %}<span class="lt-chip">{{ t }}</span>{% endfor %}</div>
+    <div class="lt-list-item__body"><span>En el plan esta semana: {{ planned }} {{ 'vez' if planned == 1 else 'veces' }}</span></div>
+  </div></article>
+  {% endfor %}
+</section>
+{% endcall %}

@@ -9,6 +9,7 @@
     'error' => null,
     'required' => false,
     'disabled' => false,
+    'icon' => null,
 ])
 
 @php
@@ -20,7 +21,8 @@
     ])->filter()->implode(' ');
 @endphp
 
-<div class="md-text-field md-field @if ($message) md-error @endif">
+<div class="md-text-field md-field @if ($icon) md-field--icon @endif @if ($message) md-error @endif">
+    @if ($icon)<i class="bi {{ $icon }} md-field__icon" aria-hidden="true"></i>@endif
     <select id="{{ $fieldId }}"
             @if ($name) name="{{ $name }}" @endif
             {{ $attributes->class(['md-field__control', 'md-select']) }}

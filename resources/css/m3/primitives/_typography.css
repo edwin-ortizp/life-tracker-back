@@ -133,3 +133,6 @@ body {
   --md-typescale-weight: var(--md-sys-typescale-label-small-weight);
   --md-typescale-tracking: var(--md-sys-typescale-label-small-tracking);
 }
+
+/* Iconografía: trazo algo más grueso que el de Bootstrap Icons por defecto. */
+.bi::before { -webkit-text-stroke: .35px currentColor; }

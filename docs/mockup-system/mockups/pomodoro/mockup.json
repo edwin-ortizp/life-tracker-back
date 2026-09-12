@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "pomodoro",
+  "version": "1.0.0",
+  "title": "Pomodoro",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "pomodoro-timer",
+        "pomodoro-settings"
+      ],
+      "output": "pomodoro.html"
+    }
+  ],
+  "screens": {
+    "pomodoro-timer": {
+      "template": "screens/pomodoro-timer.html.jinja",
+      "title": "Temporizador",
+      "bodyClass": ""
+    },
+    "pomodoro-settings": {
+      "template": "screens/pomodoro-settings.html.jinja",
+      "title": "Ajustes",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/pomodoro-timer",
+      "screen": "pomodoro-timer"
+    },
+    {
+      "path": "/pomodoro-settings",
+      "screen": "pomodoro-settings"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/pomodoro-timer",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

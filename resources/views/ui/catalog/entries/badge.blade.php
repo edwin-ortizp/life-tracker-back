@@ -11,3 +11,7 @@
     <x-ui.badge tone="primary" label="128 tareas pendientes">128</x-ui.badge>
     <x-ui.badge tone="primary" label="Más de noventa y nueve">99+</x-ui.badge>
 </x-catalog.example>
+
+<x-catalog.example title="En esquina" description="Badge de notificación sobre un botón, por ejemplo el conteo de filtros activos.">
+    <x-ui.action variant="outlined" icon="bi-sliders" class="md-catalog__badge-host">Filtros <x-ui.badge placement="corner" label="2 filtros activos">2</x-ui.badge></x-ui.action>
+</x-catalog.example>

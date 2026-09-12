@@ -1,0 +1,128 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog %}
+{% call shell('health', 'Salud', 'bi-heart-pulse') %}
+{{ header('Salud', 'Historial, síntomas y seguimiento corporal.', 'bi-heart-pulse') }}
+{{ module_tabs([('Registro','/health-index','bi-clock-history'),('Vista del cuerpo','/health-body','bi-person-standing')], '/health-index') }}
+<section class="lt-grid-main">
+  <div class="lt-stack">
+    <div class="lt-section-head lt-filter-anchor"><h3><i class="bi bi-clock-history"></i> Cronología de salud <span class="lt-count" data-lt-visible-count title="Registros visibles de los existentes">(4 de 28)</span></h3>
+      <button class="lt-button lt-button--text lt-filter-button" type="button" data-lt-toggle="health-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="health-filters"><i class="bi bi-sliders"></i> Filtros<span class="lt-badge lt-badge--corner" data-lt-filter-count aria-label="2 filtros activos">2</span></button>
+      <div class="lt-popover" id="health-filters" role="dialog" aria-labelledby="health-filters-title" hidden>
+        <div class="lt-popover__head"><h4 id="health-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="health-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+        <label class="lt-field"><span>Rango de tiempo</span><select>{% for r in ['Últimos 30 días','Últimos 60 días','Últimos 6 meses','Último año','Todo el historial'] %}<option{% if r == 'Últimos 60 días' %} selected{% endif %}>{{ r }}</option>{% endfor %}</select></label>
+        <label class="lt-field"><span>Estado</span><select>{% for r in ['Todos','En seguimiento','Recuperados'] %}<option{% if r == 'En seguimiento' %} selected{% endif %}>{{ r }}</option>{% endfor %}</select></label>
+        <div class="lt-field"><span id="health-type-label">Tipo</span>
+          <div class="lt-multiselect"><button class="lt-multiselect__trigger" type="button" data-lt-toggle="health-type-options" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="health-type-label"><span>Todos los tipos</span><i class="bi bi-chevron-down"></i></button>
+            <div class="lt-multiselect__panel" id="health-type-options" role="listbox" aria-multiselectable="true" hidden>{% for r in ['Síntoma','Enfermedad','Cita','Control','Procedimiento','Vacuna'] %}<label class="lt-multiselect__option"><input type="checkbox"> {{ r }}</label>{% endfor %}</div>
+          </div>
+        </div>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="health-filters">Aplicar</button></div>
+      </div>
+    </div>
+    <div class="lt-chip-row lt-applied-filters" aria-label="Filtros aplicados">
+      <span class="lt-chip lt-chip--input"><i class="bi bi-calendar-range"></i> Últimos 60 días<button class="lt-chip__remove" type="button" data-lt-remove-filter aria-label="Quitar filtro Últimos 60 días"><i class="bi bi-x"></i></button></span>
+      <span class="lt-chip lt-chip--input"><i class="bi bi-activity"></i> En seguimiento<button class="lt-chip__remove" type="button" data-lt-remove-filter aria-label="Quitar filtro En seguimiento"><i class="bi bi-x"></i></button></span>
+      <button class="lt-link" type="button" data-lt-clear-filters>Limpiar filtros</button>
+    </div>
+    {% for ev in [
+      {'title':'Dolor lumbar','d':'02','m':'SEP','y':'2026','icon':'bi-person-standing','meta':'Espalda baja · desde 2 sep. · 9 días','note':'Mejora tras estiramientos. Evitar cargar peso.','chip':'En seguimiento','tone':'warning','now':4,'open':true,
+       'days':[('2',8),('3',8),('4',7),('5',7),('6',6),('7',6),('8',5),('9',4),('10',4)],
+       'log':[('10 sep.','4/10','Rigidez al levantarse, cede en 20 min.'),('8 sep.','5/10','Estiramientos de 15 min por la noche.'),('2 sep.','8/10','Apareció al mover una caja pesada.')]},
+      {'title':'Migraña','d':'07','m':'SEP','y':'2026','icon':'bi-lightning','meta':'Cabeza · 7 sep. · 5 horas','note':'Duró 5 h, asociada a poco sueño.','chip':'En seguimiento','tone':'warning','now':7,'open':false,
+       'days':[('7',7),('8',3),('9',1)],
+       'log':[('9 sep.','1/10','Sin dolor, algo de sensibilidad a la luz.'),('7 sep.','7/10','Ibuprofeno 400 mg, oscuridad y descanso.')]},
+      {'title':'Gripe','d':'18','m':'AGO','y':'2026','icon':'bi-thermometer-half','meta':'General · 18–24 ago. · 7 días','note':'Fiebre dos días, reposo completo.','chip':'Recuperado','tone':'success','now':0,'open':false,
+       'days':[('18',6),('19',8),('20',7),('21',5),('22',3),('23',2),('24',1)],
+       'log':[('24 ago.','Recuperado','Sin síntomas.'),('19 ago.','8/10','Fiebre de 38,6 °C.')]},
+      {'title':'Esguince de tobillo','d':'01','m':'JUL','y':'2026','icon':'bi-bandaid','meta':'Tobillo derecho · 1–15 jul. · 15 días','note':'Fisioterapia 4 sesiones.','chip':'Recuperado','tone':'success','now':0,'open':false,
+       'days':[('1',9),('3',7),('5',6),('7',5),('9',4),('11',3),('13',2),('15',1)],
+       'log':[('15 jul.','Recuperado','Alta de fisioterapia.'),('1 jul.','9/10','Torcedura jugando fútbol.')]}
+    ] %}
+    <div class="lt-event"><div class="lt-event__date" aria-hidden="true"><strong>{{ ev.d }}</strong><span>{{ ev.m }}</span><small>{{ ev.y }}</small></div>
+    <details class="lt-accordion"{% if ev.open %} open{% endif %}>
+      <summary class="lt-accordion__summary">
+        <span class="lt-list-item__icon"><i class="bi {{ ev.icon }}"></i></span>
+        <div class="lt-list-item__body"><strong>{{ ev.title }}</strong><span>{{ ev.meta }}</span></div>
+        <div class="lt-list-item__meta"><span class="lt-chip lt-chip--{{ ev.tone }}">{{ ev.chip }}</span>{% if ev.now %}<small>Intensidad {{ ev.now }}/10</small>{% endif %}</div>
+        <i class="bi bi-chevron-down lt-accordion__chevron" aria-hidden="true"></i>
+      </summary>
+      <div class="lt-accordion__body">
+        <div class="lt-accordion__chart">
+          <p class="lt-section-label">Evolución de intensidad diaria</p>
+          <div class="lt-bars lt-bars--mini" style="--count:{{ ev.days|length }}" role="img" aria-label="Evolución diaria de {{ ev.title }}">{% for d, v in ev.days %}<div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:{{ v * 10 }}%"></span></div><span>{{ d }}</span></div>{% endfor %}</div>
+        </div>
+        <div>
+          <p class="lt-section-label">Seguimiento</p>
+          <div class="lt-timeline">{% for date, value, text in ev.log %}<div class="lt-timeline__item"><span class="lt-timeline__dot"></span><div><strong>{{ date }} · {{ value }}</strong><span>{{ text }}</span></div></div>{% endfor %}</div>
+          <p class="lt-page-head__subtitle">{{ ev.note }}</p>
+        </div>
+        <div class="lt-actions lt-accordion__actions">
+          {% if ev.now %}<button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Registrar día</button><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-check2-circle"></i> Marcar recuperación</button>{% else %}<button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-arrow-counterclockwise"></i> Aún continúa</button>{% endif %}
+          <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="health-menu-{{ loop.index }}" aria-haspopup="menu" aria-expanded="false" aria-label="Más opciones de {{ ev.title }}"><i class="bi bi-three-dots-vertical"></i></button>
+            <div class="lt-menu" id="health-menu-{{ loop.index }}" role="menu" hidden>
+              <button class="lt-menu__item" role="menuitem" type="button" data-lt-toggle="health-event-edit"><i class="bi bi-pencil"></i> Editar evento</button>
+              {% if ev.now %}<button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-journal-plus"></i> Añadir nota</button>{% endif %}
+              <hr class="lt-menu__divider">
+              <button class="lt-menu__item lt-menu__item--danger" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-trash"></i> Eliminar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details></div>
+    {% endfor %}
+  </div>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-bar-chart-line"></i><h3>Momentos de enfermedad</h3><button class="lt-icon-button lt-panel__more" type="button" data-lt-static-nav aria-label="Ver estadísticas de salud"><i class="bi bi-chevron-right"></i></button></div><div class="lt-panel__body">
+      <div class="lt-illness-toolbar"><label class="lt-field lt-field--compact"><span class="lt-sr-only">Periodo</span><select aria-label="Periodo"><option selected>Este año</option><option>Año anterior</option><option>Últimos 12 meses</option></select></label></div>
+      {% set months = [('Ene', 1), ('Feb', 3), ('Mar', 2), ('Abr', 1), ('May', 4), ('Jun', 3), ('Jul', 1), ('Ago', 2), ('Sep', 4), ('Oct', 0), ('Nov', 0), ('Dic', 0)] %}
+      <div class="lt-bars lt-bars--mini lt-bars--months" style="--count:12" role="img" aria-label="Eventos de salud por mes en 2026">{% for m, n in months %}<div class="lt-bars__col{% if n == 0 %} is-empty{% endif %}" title="{{ m }}: {{ n }} {{ 'evento' if n == 1 else 'eventos' }}"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:{{ n * 25 }}%"></span></div><span>{{ m }}</span></div>{% endfor %}</div>
+      <dl class="lt-kpis"><div><dt>Meses con eventos</dt><dd>9</dd></div><div><dt>Total de eventos</dt><dd>21</dd></div><div><dt>Promedio por mes</dt><dd>2,3</dd></div></dl>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-calendar2-heart"></i><h3>Próximo cuidado</h3></div><div class="lt-panel__body">
+      <button class="lt-list-item" type="button" data-lt-static-nav><span class="lt-list-item__icon"><i class="bi bi-hospital"></i></span><div class="lt-list-item__body"><strong>Control con fisioterapeuta</strong><span>Mañana · 11 sep. · 16:00</span></div><i class="bi bi-chevron-right lt-list-item__trail" aria-hidden="true"></i></button>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-list-check"></i><h3>Pendientes de salud</h3><small>3</small></div><div class="lt-panel__body"><div class="lt-list">
+      {% for task, meta, done in [('Examen de sangre anual','Antes del 30 sep.',false),('Renovar fórmula de gafas','Octubre',false),('Vacuna de influenza','Completada 5 sep.',true)] %}<div class="lt-list-item lt-pending{% if done %} is-done{% endif %}"><span class="lt-pending__status" aria-hidden="true"><i class="bi {{ 'bi-check-circle-fill' if done else 'bi-circle' }}"></i></span><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ meta }}</span></div>{% if done %}<span class="lt-sr-only">Completado</span>{% endif %}
+        <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="health-pending-{{ loop.index }}" aria-haspopup="menu" aria-expanded="false" aria-label="Más opciones de {{ task }}"><i class="bi bi-three-dots-vertical"></i></button>
+          <div class="lt-menu lt-menu--down" id="health-pending-{{ loop.index }}" role="menu" hidden>
+            <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-pencil"></i> Editar</button>
+            {% if done %}<button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-arrow-counterclockwise"></i> Marcar como pendiente</button>{% else %}<button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-check2-circle"></i> Marcar como completado</button><button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-calendar-event"></i> Reprogramar</button>{% endif %}
+            <hr class="lt-menu__divider">
+            <button class="lt-menu__item lt-menu__item--danger" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-trash"></i> Eliminar</button>
+          </div>
+        </div></div>{% endfor %}
+    </div><div class="lt-route-links"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Nuevo pendiente</button></div></div></article>
+  </aside>
+</section>
+<button class="lt-fab" type="button" data-lt-toggle="health-event-new" aria-haspopup="dialog" aria-label="Registrar evento de salud"><i class="bi bi-plus-lg"></i><span>Registrar evento</span></button>
+{% set event_sections = [('basic','Información básica','bi-file-earmark-text'),('details','Detalles adicionales','bi-card-text'),('files','Archivos y adjuntos','bi-paperclip'),('summary','Resumen','bi-check2-circle')] %}
+{% macro event_form(v) -%}
+<section class="lt-dialog__section" data-section="basic">
+  <header class="lt-dialog__section-head"><h3>Información básica</h3><p>Registra los datos principales de tu evento de salud.</p></header>
+  <div class="lt-form">
+    <label class="lt-field lt-field--icon"><span>Tipo de evento <b>*</b></span><i class="bi bi-lightning" aria-hidden="true"></i><select>{% for t in ['Síntoma','Enfermedad','Cita médica','Control','Procedimiento','Vacuna'] %}<option{% if t == v.type %} selected{% endif %}>{{ t }}</option>{% endfor %}</select></label>
+    <label class="lt-field lt-field--icon"><span>Zona del cuerpo <b>*</b></span><i class="bi bi-person" aria-hidden="true"></i><select>{% for t in ['Sin zona','Cabeza','Espalda baja','Tobillo derecho','General'] %}<option{% if t == v.zone %} selected{% endif %}>{{ t }}</option>{% endfor %}</select></label>
+    <label class="lt-field lt-form--full"><span>Título <b>*</b></span><input type="text" value="{{ v.title }}" placeholder="Ej. Dolor lumbar"></label>
+    <label class="lt-field"><span>Fecha <b>*</b></span><input type="date" value="{{ v.date }}"></label>
+    <label class="lt-field lt-field--icon"><span>Intensidad (1–10) <b>*</b></span><i class="bi bi-bar-chart" aria-hidden="true"></i><select><option value=""{% if not v.intensity %} selected{% endif %}>Selecciona…</option>{% for n in range(1, 11) %}<option{% if n|string == v.intensity %} selected{% endif %}>{{ n }}</option>{% endfor %}</select></label>
+  </div>
+</section>
+<section class="lt-dialog__section" data-section="details" hidden>
+  <header class="lt-dialog__section-head"><h3>Detalles adicionales</h3><p>Contexto que ayuda a entender la evolución.</p></header>
+  <div class="lt-form">
+    <label class="lt-field lt-form--full"><span>Notas</span><textarea placeholder="¿Qué pasó? ¿Qué hiciste?">{{ v.notes }}</textarea></label>
+    <label class="lt-field lt-field--icon"><span>Tratamiento o medicación</span><i class="bi bi-capsule" aria-hidden="true"></i><input type="text" value="{{ v.treatment }}" placeholder="Ej. Ibuprofeno 400 mg"></label>
+    <label class="lt-field lt-field--icon"><span>Profesional que atendió</span><i class="bi bi-person-badge" aria-hidden="true"></i><input type="text" value="{{ v.provider }}" placeholder="Opcional"></label>
+  </div>
+</section>
+<section class="lt-dialog__section" data-section="files" hidden>
+  <header class="lt-dialog__section-head"><h3>Archivos y adjuntos</h3><p>Resultados, fórmulas u órdenes médicas.</p></header>
+  <button class="lt-dropzone" type="button" data-lt-static-nav><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i><strong>Arrastra archivos o selecciónalos</strong><span>PDF, JPG o PNG · hasta 10 MB</span></button>
+</section>
+<section class="lt-dialog__section" data-section="summary" hidden>
+  <header class="lt-dialog__section-head"><h3>Resumen</h3><p>Revisa la información antes de guardar.</p></header>
+  <dl class="lt-dl">{% for k, val in [('Tipo', v.type), ('Zona', v.zone), ('Título', v.title or '—'), ('Fecha', v.date), ('Intensidad', (v.intensity ~ '/10') if v.intensity else '—'), ('Adjuntos', 'Ninguno')] %}<div><dt>{{ k }}</dt><dd>{{ val }}</dd></div>{% endfor %}</dl>
+</section>
+{%- endmacro %}
+{% call dialog('health-event-new', 'Registrar evento de salud', 'Guardar', 'bi-heart-pulse', event_sections) %}{{ event_form({'type':'Síntoma','zone':'Sin zona','title':'','date':'2026-09-12','intensity':'','notes':'','treatment':'','provider':''}) }}{% endcall %}
+{% call dialog('health-event-edit', 'Editar evento de salud', 'Guardar', 'bi-heart-pulse', event_sections) %}{{ event_form({'type':'Síntoma','zone':'Espalda baja','title':'Dolor lumbar','date':'2026-09-02','intensity':'8','notes':'Mejora tras estiramientos. Evitar cargar peso.','treatment':'Estiramientos 15 min','provider':''}) }}{% endcall %}
+{% endcall %}

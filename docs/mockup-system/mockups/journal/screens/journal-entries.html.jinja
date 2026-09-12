@@ -1,0 +1,38 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% call shell('journal', 'Diario', 'bi-journal-text') %}
+{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-entries') }}
+<section class="lt-toolbar">
+  <label class="lt-field"><span class="lt-sr-only">Buscar en el diario</span><input type="search" placeholder="Buscar en tus entradas..."></label>
+  <button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>Esta semana</button>
+  <button class="lt-button lt-button--text" type="button" data-lt-static-nav>Este mes</button>
+  <button class="lt-button lt-button--text" type="button" data-lt-static-nav>Todo</button>
+  <button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-pencil-square"></i> Nueva entrada</button>
+</section>
+<section class="lt-grid-main">
+  <div class="lt-stack">
+    {% for date, title, paras, mood, tags in [
+      ('Hoy · miércoles 10 sep. · 21:40','Un día más liviano',['Terminé la propuesta antes del almuerzo y eso cambió el tono de toda la tarde. Salí a caminar sin el celular y noté que la espalda molesta menos.','Quiero proteger las mañanas para el trabajo profundo el resto de la semana.'],'🙂 Tranquilo · energía 7/10',['Trabajo','Salud']),
+      ('Martes 9 sep. · 22:15','Conversación con mamá',['Llamé a mamá después de varios días. Me sentí culpable por no hacerlo antes, pero la conversación fue cálida y me recordó por qué vale la pena sostener la rutina de los domingos.'],'😌 Agradecido · energía 5/10',['Familia']),
+      ('Domingo 7 sep. · 20:05','Migraña y descanso',['La migraña me sacó del día. Dormí poco el sábado; necesito cortar pantallas a las 22:00.'],'😣 Cansado · energía 3/10',['Salud','Sueño'])
+    ] %}
+    <article class="lt-panel{% if loop.first %} lt-panel--accent{% endif %}"><div class="lt-panel__head"><i class="bi bi-journal-text"></i><h3>{{ title }}</h3><small>{{ date }}</small><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Más acciones de la entrada"><i class="bi bi-three-dots-vertical"></i></button></div><div class="lt-panel__body">
+      {% for p in paras %}<p class="lt-prose">{{ p }}</p>{% endfor %}
+      <div class="lt-entry-meta"><span class="lt-chip">{{ mood }}</span>{% for t in tags %}<span class="lt-chip lt-chip--neutral">#{{ t }}</span>{% endfor %}</div>
+    </div></article>
+    {% endfor %}
+  </div>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-emoji-smile"></i><h3>¿Cómo te sientes?</h3></div><div class="lt-panel__body">
+      <div class="lt-chip-row">{% for e in ['😊 Alegre','😌 Tranquilo','🙏 Agradecido','😟 Ansioso','😣 Cansado','😠 Frustrado'] %}<button class="lt-button {% if loop.index == 2 %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ e }}</button>{% endfor %}</div>
+      <p class="lt-section-label">Energía</p>
+      <div class="lt-progress"><span style="width:70%"></span></div>
+      <label class="lt-field"><span class="lt-sr-only">Comentario</span><input type="text" placeholder="Comentario opcional"></label>
+      <div class="lt-actions"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>Registrar estado de ánimo</button></div>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-diagram-3"></i><h3>Conecta los puntos</h3></div><div class="lt-panel__body"><div class="lt-list">
+      <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-moon-stars"></i></span><div class="lt-list-item__body"><strong>Dormir poco → energía baja</strong><span>3 de tus 4 días con energía ≤ 4 siguen a noches de menos de 6 h.</span></div></div>
+      <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Caminar mejora tu ánimo</strong><span>Tus entradas son más positivas los días con ejercicio.</span></div></div>
+    </div></div></article>
+  </aside>
+</section>
+{% endcall %}

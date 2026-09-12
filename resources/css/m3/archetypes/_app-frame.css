@@ -55,14 +55,14 @@
 .lt-nav-item {
   display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 0 12px;
   border: 0; border-radius: var(--md-sys-shape-corner-full); background: transparent; color: var(--md-sys-color-on-surface-variant);
-  font-size: .875rem; font-weight: 550; text-align: left; text-decoration: none; cursor: pointer;
+  font-size: 15.5px; font-weight: 620; text-align: left; text-decoration: none; cursor: pointer;
   transition: background var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard), color var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
 }
 .lt-nav-item__icon { display: grid; place-items: center; width: 22px; flex: 0 0 auto; color: var(--md-module-accent); font-size: 1.1rem; }
 .lt-nav-item__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lt-nav-item:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) 6%, transparent); color: var(--md-sys-color-on-surface); }
 .lt-nav-item.is-active {
-  background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); font-weight: 700;
+  background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); font-weight: 750;
 }
 .lt-nav-item.is-active .lt-nav-item__icon { color: var(--md-sys-color-on-primary-container); }
 .lt-nav-item:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
@@ -154,10 +154,13 @@
 .lt-stat__ring::after { position: absolute; inset: 4px; border-radius: 50%; background: var(--md-sys-color-surface-container-lowest); content: ''; }
 
 .lt-avatar {
-  display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 auto;
+  display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 auto; margin-left: 4px; overflow: hidden;
   border: 0; border-radius: 50%; background: var(--md-sys-color-secondary-container);
   color: var(--md-sys-color-on-secondary-container); font-size: .78rem; font-weight: 700; cursor: pointer;
 }
+
+.lt-avatar__photo { display: block; width: 100%; height: 100%; object-fit: cover; }
+.lt-avatar:focus-visible { outline: 2px solid var(--md-module-accent); outline-offset: 2px; }
 
 /* Menú de accesos directos (garaje, alta rápida). */
 .lt-pop { position: relative; }

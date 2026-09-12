@@ -1,0 +1,28 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('relationships', 'Relaciones', 'bi-people') %}
+{{ header('Relaciones', 'Personas, círculos y momentos que quieres cuidar.', 'bi-people') }}
+{{ module_tabs([('Relaciones','/relationships-index','bi-people'),('Acontecimientos','/relationships-events','bi-calendar-event'),('Cumpleaños','/relationships-birthdays','bi-cake2')], '/relationships-index') }}
+<section class="lt-metrics">{{ metric('Contactos activos','46') }}{{ metric('Seguimiento vencido','4','warning') }}{{ metric('Contactados este mes','17','success') }}</section>
+<section class="lt-grid-main">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-people"></i><h3>Personas</h3><small>Ordenado por próximo contacto</small><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-person-plus"></i> Nuevo</button></div><div class="lt-panel__body">
+    <div class="lt-form"><label class="lt-field lt-form--full"><span class="lt-sr-only">Buscar</span><input type="search" placeholder="Buscar por nombre, apodo, teléfono o correo..."></label></div>
+    <div class="lt-route-links">{% for c, sel in [('Todos',true),('Familia',false),('Amigos cercanos',false),('Trabajo',false),('Archivados',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}</div>
+    {% for circle, people in [
+      ('Familia', [('MO','María Ortiz','Mamá · cada semana','Hace 9 días','warning','Vencido'),('JO','Julián Ortiz','Hermano · cada 2 semanas','Hace 4 días','success','Al día')]),
+      ('Amigos cercanos', [('CR','Camila Rojas','Universidad · cada mes','Hace 45 días','warning','Vencido'),('DP','Daniel Pérez','Fútbol · cada 2 semanas','Hace 6 días','success','Al día')]),
+      ('Trabajo', [('LG','Laura Gómez','Mentora · cada 2 meses','Hace 30 días','neutral','En 30 días')])
+    ] %}
+    <p class="lt-section-label">{{ circle }}</p>
+    <div class="lt-list">{% for ini, name, meta, last, tone, chip in people %}<a class="lt-list-item" href="#/relationships-show"><span class="lt-avatar">{{ ini }}</span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ meta }}</span></div><div class="lt-list-item__meta"><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span><small>{{ last }}</small></div></a>{% endfor %}</div>
+    {% endfor %}
+  </div></article>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-exclamation-circle"></i><h3>Seguimiento vencido</h3><small>4</small></div><div class="lt-panel__body"><div class="lt-list">
+      {% for ini, name, late in [('MO','María Ortiz','2 días de retraso'),('CR','Camila Rojas','15 días de retraso')] %}<div class="lt-list-item"><span class="lt-avatar">{{ ini }}</span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ late }}</span></div><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Marcar contacto con {{ name }}"><i class="bi bi-check2-circle"></i></button></div>{% endfor %}
+    </div></div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-cake2"></i><h3>Próximos cumpleaños</h3></div><div class="lt-panel__body"><div class="lt-list">
+      {% for name, when in [('Daniel Pérez','14 sep. · cumple 33'),('Laura Gómez','2 oct.')] %}<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-gift"></i></span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ when }}</span></div></div>{% endfor %}
+    </div><div class="lt-route-links"><a class="lt-button lt-button--tonal" href="#/relationships-birthdays">Ver todos</a></div></div></article>
+  </aside>
+</section>
+{% endcall %}

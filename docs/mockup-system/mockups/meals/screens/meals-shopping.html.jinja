@@ -1,0 +1,35 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% call shell('meals', 'Lista de compras', 'bi-cart3') %}
+{{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-shopping') }}
+<section class="lt-toolbar" aria-label="Filtros de la compra">
+  <label class="lt-field"><span class="lt-sr-only">Buscar</span><input type="search" placeholder="Buscar en lista de compras..."></label>
+  {% for c, sel in [('Pendientes',true),('Comprados',false),('Por receta',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}
+</section>
+<section class="lt-grid-main">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-cart3"></i><h3>Por comprar</h3><small>14 pendientes · 4 comprados</small></div><div class="lt-panel__body">
+    {% for cat, items in [
+      ('Verduras y frutas', [('Cilantro','1 atado','Tacos de pescado',false),('Ahuyama','1 kg','Crema de ahuyama',false),('Repollo morado','1/2 unidad','Tacos de pescado',false),('Limones','6 unidades','',true)]),
+      ('Proteínas', [('Tilapia','500 g','Tacos de pescado',false),('Salmón','400 g','Salmón al horno',false),('Huevos','30 unidades','',true)]),
+      ('Despensa', [('Arroz basmati','1 kg','Pollo al curry',false),('Harina de trigo','1 kg','Pizza casera',false),('Café','500 g','',true)])
+    ] %}
+    <p class="lt-section-label">{{ cat }}</p>
+    <div class="lt-list">{% for name, qty, recipe, done in items %}<div class="lt-list-item"><span class="lt-check{% if done %} is-done{% endif %}" title="Marcar como comprado">{% if done %}✓{% endif %}</span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ qty }}{% if done %} · comprado{% endif %}</span></div>{% if recipe %}<span class="lt-chip lt-chip--neutral" title="Necesario por una receta"><i class="bi bi-book"></i>&nbsp;{{ recipe }}</span>{% endif %}<button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Ver tiendas y precios de {{ name }}"><i class="bi bi-shop"></i></button></div>{% endfor %}</div>
+    {% endfor %}
+  </div></article>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-plus-circle"></i><h3>Agregar a compras</h3></div><div class="lt-panel__body">
+      <div class="lt-form">
+        <label class="lt-field lt-form--full"><span>Ingrediente</span><input type="text" placeholder="Ej. aguacate"></label>
+        <label class="lt-field"><span>Cantidad</span><input type="number" value="2"></label>
+        <label class="lt-field"><span>Unidad</span><select><option>unidades</option><option>kg</option><option>g</option><option>L</option></select></label>
+      </div>
+      <div class="lt-actions"><button class="lt-button" type="button" data-lt-static-nav>Agregar</button></div>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-receipt"></i><h3>Resumen</h3></div><div class="lt-panel__body">
+      <div class="lt-progress"><span style="width:22%"></span></div>
+      <dl class="lt-dl"><div><dt>Comprados</dt><dd>4 de 18</dd></div><div><dt>Costo estimado</dt><dd>$ 186.500</dd></div><div><dt>Tienda sugerida</dt><dd>Éxito Calle 80</dd></div><div><dt>Por recetas</dt><dd>9 ítems</dd></div></dl>
+      <div class="lt-route-links"><a class="lt-button lt-button--tonal" href="#/meals-weekly">Ver planificación</a></div>
+    </div></article>
+  </aside>
+</section>
+{% endcall %}

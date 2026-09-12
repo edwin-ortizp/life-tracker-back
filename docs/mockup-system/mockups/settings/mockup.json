@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "settings",
+  "version": "1.0.0",
+  "title": "Ajustes",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "settings-profile",
+        "settings-integrations"
+      ],
+      "output": "settings.html"
+    }
+  ],
+  "screens": {
+    "settings-profile": {
+      "template": "screens/settings-profile.html.jinja",
+      "title": "Perfil y datos",
+      "bodyClass": ""
+    },
+    "settings-integrations": {
+      "template": "screens/settings-integrations.html.jinja",
+      "title": "Integraciones",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/settings-profile",
+      "screen": "settings-profile"
+    },
+    {
+      "path": "/settings-integrations",
+      "screen": "settings-integrations"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/settings-profile",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

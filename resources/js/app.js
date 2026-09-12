@@ -26,6 +26,11 @@ function color(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
+// Lee un token resuelto en el propio elemento (p. ej. el acento del módulo).
+function localColor(element, name) {
+    return getComputedStyle(element).getPropertyValue(name).trim();
+}
+
 async function renderHealthChart(element) {
     if (charts.has(element) || pendingCharts.has(element)) {
         return;
@@ -41,39 +46,30 @@ async function renderHealthChart(element) {
 
     apexChartsPromise ??= import('apexcharts').then((module) => module.default);
     const ApexCharts = await apexChartsPromise;
+    // Barras redondeadas con el acento del módulo, como en el mockup de Salud.
     const chart = new ApexCharts(element, {
         chart: {
-            type: 'area',
-            height: 220,
+            type: 'bar',
+            height: 190,
             toolbar: { show: false },
             fontFamily: 'inherit',
-            animations: { easing: 'easeinout', speed: 450 },
+            animations: { easing: 'easeinout', speed: 350 },
+            parentHeightOffset: 0,
         },
         series: [{ name: 'Intensidad', data: points.map((point) => point.intensity) }],
-        colors: [color('--md-sys-color-primary')],
-        stroke: { curve: 'smooth', width: 3 },
-        fill: {
-            type: 'gradient',
-            gradient: { shadeIntensity: 0, opacityFrom: 0.42, opacityTo: 0.02, stops: [0, 92, 100] },
-        },
-        markers: { size: 4, strokeWidth: 2, strokeColors: color('--md-sys-color-surface') },
+        colors: [localColor(element, '--md-module-accent') || color('--md-sys-color-primary')],
+        plotOptions: { bar: { borderRadius: 6, borderRadiusApplication: 'end', columnWidth: '70%' } },
         dataLabels: { enabled: false },
-        grid: { borderColor: color('--md-sys-color-outline-variant'), strokeDashArray: 4, padding: { left: 2, right: 8 } },
+        grid: { show: false, padding: { left: 0, right: 0, top: -12, bottom: -4 } },
+        states: { hover: { filter: { type: 'darken', value: 0.9 } } },
         xaxis: {
             categories: points.map((point) => point.date),
             axisBorder: { show: false },
             axisTicks: { show: false },
-            labels: { style: { colors: color('--md-sys-color-on-surface-variant'), fontSize: '11px' } },
+            labels: { style: { colors: color('--md-sys-color-on-surface-variant'), fontSize: '12px', fontWeight: 600 } },
+            tooltip: { enabled: false },
         },
-        yaxis: {
-            min: 0,
-            max: 10,
-            tickAmount: 5,
-            labels: {
-                formatter: (value) => Number.isInteger(value) ? value : '',
-                style: { colors: color('--md-sys-color-on-surface-variant'), fontSize: '11px' },
-            },
-        },
+        yaxis: { min: 0, max: 10, show: false },
         tooltip: {
             theme: document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
             y: { formatter: (value) => `${value}/10` },
@@ -156,8 +152,66 @@ async function renderDashboardChart(element) {
     chart.render();
 }
 
+// Distribución mensual de síntomas y enfermedades (tarjeta "Momentos de enfermedad").
+async function renderHealthMonthsChart(element) {
+    if (charts.has(element) || pendingCharts.has(element)) {
+        return;
+    }
+
+    pendingCharts.add(element);
+
+    const months = JSON.parse(element.dataset.healthMonthsChart ?? '[]');
+    if (months.length === 0) {
+        pendingCharts.delete(element);
+        return;
+    }
+
+    apexChartsPromise ??= import('apexcharts').then((module) => module.default);
+    const ApexCharts = await apexChartsPromise;
+    const accent = localColor(element, '--md-module-accent') || color('--md-sys-color-primary');
+    const muted = color('--md-sys-color-surface-container-highest');
+    const chart = new ApexCharts(element, {
+        chart: {
+            type: 'bar',
+            height: 150,
+            toolbar: { show: false },
+            fontFamily: 'inherit',
+            animations: { easing: 'easeinout', speed: 350 },
+            parentHeightOffset: 0,
+        },
+        series: [{ name: 'Eventos', data: months.map((month) => Math.max(month.count, 0.15)) }],
+        colors: [({ dataPointIndex }) => (months[dataPointIndex]?.count ? accent : muted)],
+        plotOptions: { bar: { borderRadius: 4, borderRadiusApplication: 'end', columnWidth: '62%', distributed: true } },
+        dataLabels: { enabled: false },
+        grid: { show: false, padding: { left: 0, right: 0, top: -14, bottom: -6 } },
+        xaxis: {
+            categories: months.map((month) => month.month),
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+            labels: { style: { colors: color('--md-sys-color-on-surface-variant'), fontSize: '10px' } },
+            tooltip: { enabled: false },
+        },
+        yaxis: { show: false, min: 0 },
+        tooltip: {
+            theme: document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
+            y: {
+                formatter: (value, { dataPointIndex }) => {
+                    const count = months[dataPointIndex]?.count ?? 0;
+                    return `${count} ${count === 1 ? 'evento' : 'eventos'}`;
+                },
+            },
+        },
+        legend: { show: false },
+    });
+
+    charts.set(element, chart);
+    pendingCharts.delete(element);
+    chart.render();
+}
+
 const chartRenderers = {
     '[data-health-chart]': renderHealthChart,
+    '[data-health-months-chart]': renderHealthMonthsChart,
     '[data-dashboard-chart]': renderDashboardChart,
 };
 

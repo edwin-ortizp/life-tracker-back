@@ -1,0 +1,20 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% call shell('journal', 'Calendario de vida', 'bi-grid-3x3-gap') %}
+{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-life') }}
+<section class="lt-metrics">{{ metric('Semanas vividas','1.694') }}{{ metric('Semanas por delante','2.466','success') }}{{ metric('Recorrido','41 %','warning') }}</section>
+<section class="lt-grid-main">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-grid-3x3-gap"></i><h3>Tus semanas, de principio a fin</h3><small>80 años · 52 semanas por fila</small></div><div class="lt-panel__body">
+    <div class="lt-life" role="img" aria-label="Calendario completo de vida: 1.694 de 4.160 semanas vividas">{% for i in range(4160) %}<i{% if i < 1694 %} class="l"{% elif i == 1694 %} class="n"{% endif %}></i>{% endfor %}</div>
+    <div class="lt-legend" aria-label="Leyenda"><span><i class="l"></i> Vivida</span><span><i class="n"></i> Semana actual</span><span><i></i> Por vivir</span></div>
+  </div></article>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-calendar-week"></i><h3>Semana actual</h3></div><div class="lt-panel__body">
+      <dl class="lt-dl"><div><dt>Semana</dt><dd>1.695</dd></div><div><dt>Fechas</dt><dd>8–14 sep. 2026</dd></div><div><dt>Edad</dt><dd>32 años</dd></div><div><dt>Entradas</dt><dd>3</dd></div></dl>
+      <div class="lt-route-links"><a class="lt-button lt-button--tonal" href="#/journal-week">Abrir semana</a></div>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-signpost-split"></i><h3>Etapas</h3></div><div class="lt-panel__body"><div class="lt-list">
+      {% for stage, range in [('Infancia','1994–2006'),('Colegio','2000–2011'),('Universidad','2012–2017'),('Primer trabajo','2017–2021'),('Vida en Bogotá','2021–hoy')] %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ stage }}</strong><span>{{ range }}</span></div></div>{% endfor %}
+    </div></div></article>
+  </aside>
+</section>
+{% endcall %}

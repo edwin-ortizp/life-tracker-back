@@ -1,0 +1,29 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('exercise', 'Ejercicio', 'bi-activity') %}
+{{ header('Ejercicio', 'Actividad, esfuerzo y progreso físico · Miércoles 10 sep.', 'bi-activity') }}
+{{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Resumen semanal','/exercise-weekly','bi-bar-chart-line')], '/exercise-daily') }}
+<section class="lt-metrics">{{ metric('Duración','75 min','success') }}{{ metric('Calorías','612 kcal','warning') }}{{ metric('Pasos','8.420') }}</section>
+<section class="lt-grid-main">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-list-ul"></i><h3>Actividades del día</h3><small>3 registros</small></div><div class="lt-panel__body"><div class="lt-list">
+    {% for icon, name, detail, time, kcal in [('bi-person-walking','Correr','5,2 km · 32 min · ritmo 6:09/km','06:40','348 kcal'),('bi-universal-access','Sentadilla con barra','4 series × 8 reps · 60 kg','18:10','140 kcal'),('bi-universal-access','Press de banca','4 series × 10 reps · 45 kg','18:35','124 kcal')] %}
+    <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ detail }}</span></div><div class="lt-list-item__meta"><span class="lt-chip">{{ kcal }}</span><small>{{ time }}</small></div><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Eliminar registro"><i class="bi bi-trash"></i></button></div>
+    {% endfor %}
+  </div>
+  <p class="lt-section-label">Meta diaria</p>
+  <div class="lt-progress"><span style="width:83%"></span></div>
+  <p class="lt-page-head__subtitle">75 de 90 minutos activos. Una caminata de 15 min completa la meta.</p>
+  </div></article>
+  <aside class="lt-panel"><div class="lt-panel__head"><i class="bi bi-plus-circle"></i><h3>Nuevo ejercicio</h3></div><div class="lt-panel__body">
+    <div class="lt-form">
+      <label class="lt-field lt-form--full"><span>Tipo de ejercicio</span><select><option>Seleccionar...</option><option selected>Peso muerto</option><option>Correr</option><option>Bicicleta</option><option>Natación</option></select></label>
+      <label class="lt-field"><span>Series</span><input type="number" value="3"></label>
+      <label class="lt-field"><span>Reps</span><input type="number" value="6"></label>
+      <label class="lt-field"><span>Peso (kg)</span><input type="number" value="80"></label>
+      <label class="lt-field"><span>Duración (min)</span><input type="number" value="15"></label>
+      <label class="lt-field lt-form--full"><span>Notas (opcional)</span><textarea placeholder="Sensaciones, técnica, molestias…"></textarea></label>
+    </div>
+    <p class="lt-page-head__subtitle">Estimado: ~95 kcal según tu peso de 74,5 kg.</p>
+    <div class="lt-actions"><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-check2"></i> Guardar</button></div>
+  </div></aside>
+</section>
+{% endcall %}

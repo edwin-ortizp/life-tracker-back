@@ -206,4 +206,56 @@ class UiPrimitivesTest extends TestCase
 
         $this->render('<x-ui.destructive-action label="Eliminar" />');
     }
+
+    public function test_field_select_and_textarea_accept_a_leading_icon(): void
+    {
+        $field = $this->render('<x-ui.field name="provider" label="Profesional" icon="bi-person-badge" />');
+        $select = $this->render('<x-ui.select name="type" label="Tipo" icon="bi-lightning" :options="[\'a\' => \'A\']" />');
+
+        $this->assertStringContainsString('md-field--icon', $field);
+        $this->assertStringContainsString('bi-person-badge md-field__icon', $field);
+        $this->assertStringContainsString('md-field--icon', $select);
+        $this->assertStringNotContainsString('md-field--icon', $this->render('<x-ui.field name="title" label="Título" />'));
+    }
+
+    public function test_badge_can_sit_on_the_corner_of_a_control(): void
+    {
+        $html = $this->render('<x-ui.badge placement="corner" label="2 filtros activos">2</x-ui.badge>');
+
+        $this->assertStringContainsString('md-count-badge--corner', $html);
+        $this->assertStringContainsString('aria-label="2 filtros activos"', $html);
+
+        $this->expectException(HttpException::class);
+        $this->render('<x-ui.badge placement="floating">1</x-ui.badge>');
+    }
+
+    public function test_menu_exposes_menu_semantics_and_destructive_items(): void
+    {
+        $html = $this->render('<x-ui.menu label="Más opciones"><x-ui.menu-item icon="bi-pencil" wire:click="edit">Editar</x-ui.menu-item><x-ui.menu-divider /><x-ui.menu-item tone="danger" wire:click="delete">Eliminar</x-ui.menu-item></x-ui.menu>');
+
+        $this->assertStringContainsString('aria-haspopup="menu"', $html);
+        $this->assertStringContainsString('aria-label="Más opciones"', $html);
+        $this->assertStringContainsString('role="menu"', $html);
+        $this->assertStringContainsString('role="menuitem"', $html);
+        $this->assertStringContainsString('wire:click="edit"', $html);
+        $this->assertStringContainsString('md-menu__item--danger', $html);
+        $this->assertStringContainsString('role="separator"', $html);
+    }
+
+    public function test_form_dialog_follows_the_shared_modal_pattern(): void
+    {
+        $closed = $this->render('<x-ui.form-dialog :open="false" close="closeForm" title="Registrar evento">Contenido</x-ui.form-dialog>');
+        $this->assertStringNotContainsString('role="dialog"', $closed);
+
+        $html = $this->render('<x-ui.form-dialog :open="true" close="closeForm" submit-action="save" title="Registrar evento" icon="bi-heart-pulse" :sections="[\'basic\' => [\'label\' => \'Información básica\', \'icon\' => \'bi-file-earmark-text\'], \'details\' => [\'label\' => \'Detalles adicionales\', \'icon\' => \'bi-card-text\', \'error\' => true]]"><x-ui.form-dialog-section name="basic" title="Información básica">Campos</x-ui.form-dialog-section></x-ui.form-dialog>');
+
+        $this->assertStringContainsString('role="dialog"', $html);
+        $this->assertStringContainsString('aria-modal="true"', $html);
+        $this->assertStringContainsString('wire:submit="save"', $html);
+        $this->assertStringContainsString('bi-layout-sidebar', $html);
+        $this->assertStringContainsString('bi-arrows-fullscreen', $html);
+        $this->assertStringContainsString('Detalles adicionales', $html);
+        $this->assertStringContainsString('Contiene errores', $html);
+        $this->assertLessThan(strpos($html, 'bi-floppy'), strpos($html, '>Cancelar<'), 'Cancelar debe ir antes que Guardar.');
+    }
 }

@@ -1,0 +1,31 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% call shell('meals', 'Planificación de comidas', 'bi-egg-fried') %}
+{{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-weekly') }}
+<section class="lt-toolbar"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><p class="lt-toolbar__label">Semana del 8 al 14 de septiembre</p><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-cart-plus"></i> Generar lista de compras</button></section>
+<section class="lt-metrics">{{ metric('Comidas planificadas','16 de 21','success') }}{{ metric('Recetas distintas','9') }}{{ metric('Ingredientes por comprar','14','warning') }}</section>
+<section class="lt-week-plan" aria-label="Plan semanal">
+  {% set plan = [
+    ('Lun','8',[('Desayuno','Avena con banano'),('Almuerzo','Pollo al curry'),('Cena','Ensalada César')]),
+    ('Mar','9',[('Desayuno','Huevos pericos'),('Almuerzo','Pollo al curry'),('Cena','Crema de ahuyama')]),
+    ('Mié','10',[('Desayuno','Avena con banano'),('Almuerzo','Lentejas con arroz'),('Cena','Tacos de pescado')]),
+    ('Jue','11',[('Desayuno','Arepa con queso'),('Almuerzo','Lentejas con arroz'),('Cena','')]),
+    ('Vie','12',[('Desayuno','Yogur con granola'),('Almuerzo','Salmón al horno'),('Cena','Pizza casera')]),
+    ('Sáb','13',[('Desayuno','Calentado'),('Almuerzo',''),('Cena','')]),
+    ('Dom','14',[('Desayuno','Pancakes de avena'),('Almuerzo','Ajiaco'),('Cena','')])
+  ] %}
+  {% for dname, dnum, slots in plan %}
+  <div class="lt-day-col{% if dnum == '10' %} is-today{% endif %}"><h4>{{ dname }} <small>{{ dnum }}{% if dnum == '10' %} · hoy{% endif %}</small></h4>
+    {% for slot, recipe in slots %}{% if recipe %}<button class="lt-meal-slot" type="button" data-lt-static-nav><small>{{ slot }}</small>{{ recipe }}</button>{% else %}<button class="lt-meal-slot lt-meal-slot--empty" type="button" data-lt-static-nav><small>{{ slot }}</small><span><i class="bi bi-plus-lg"></i> Añadir</span></button>{% endif %}{% endfor %}
+  </div>
+  {% endfor %}
+</section>
+<section class="lt-grid-2">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-sun"></i><h3>Hoy · miércoles 10</h3></div><div class="lt-panel__body"><div class="lt-list">
+    {% for slot, recipe, meta in [('Desayuno','Avena con banano','10 min · 1 porción'),('Almuerzo','Lentejas con arroz','45 min · sobra para mañana'),('Cena','Tacos de pescado','25 min · 2 porciones')] %}<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-egg-fried"></i></span><div class="lt-list-item__body"><strong>{{ recipe }}</strong><span>{{ slot }} · {{ meta }}</span></div><a class="lt-button lt-button--text" href="#/meals-recipes">Ver receta</a></div>{% endfor %}
+  </div></div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-search"></i><h3>Asignar receta</h3></div><div class="lt-panel__body">
+    <label class="lt-field"><span>Jueves 11 · Cena</span><input type="search" value="cre" placeholder="Escribe para buscar entre tus recetas..."></label>
+    <div class="lt-list">{% for r, m in [('Crema de ahuyama','30 min · vegetariana'),('Crepes de espinaca','25 min'),('Cremoso de champiñones','35 min')] %}<button class="lt-list-item" type="button" data-lt-static-nav><div class="lt-list-item__body"><strong>{{ r }}</strong><span>{{ m }}</span></div><i class="bi bi-plus-circle"></i></button>{% endfor %}</div>
+  </div></article>
+</section>
+{% endcall %}

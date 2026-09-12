@@ -149,7 +149,7 @@
                     <i class="bi bi-bell" aria-hidden="true"></i>
                 </button>
                 @auth
-                    <a href="{{ route('settings') }}" wire:navigate class="lt-avatar" aria-label="Tu perfil">{{ \Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('') }}</a>
+                    <a href="{{ route('settings') }}" wire:navigate class="lt-avatar" aria-label="Abrir menú de perfil" title="Perfil">@if (filled(auth()->user()->avatar_url))<img src="{{ auth()->user()->avatar_url }}" alt="" class="lt-avatar__photo" width="40" height="40">@else{{ \Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('') }}@endif</a>
                 @endauth
             </div>
         </header>

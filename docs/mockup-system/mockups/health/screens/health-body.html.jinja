@@ -1,0 +1,31 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('health', 'Vista del cuerpo', 'bi-person-standing') %}
+{{ header('Vista del cuerpo', 'Tu cuerpo, visto a través del registro.', 'bi-person-standing') }}
+{{ module_tabs([('Registro','/health-index','bi-clock-history'),('Vista del cuerpo','/health-body','bi-person-standing')], '/health-body') }}
+<section class="lt-metrics">{{ metric('Zonas registradas','6') }}{{ metric('Zona más frecuente','Espalda baja','warning') }}{{ metric('Eventos este año','14') }}</section>
+<section class="lt-grid-2">
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-person-standing"></i><h3>Mapa corporal</h3><small>Últimos 12 meses</small></div><div class="lt-panel__body">
+    <div class="lt-body-map">
+      <svg viewBox="0 0 200 420" role="img" aria-label="Silueta con zonas registradas">
+        <circle class="body" cx="100" cy="40" r="28"/>
+        <rect class="body" x="62" y="74" width="76" height="140" rx="30"/>
+        <rect class="body" x="30" y="82" width="26" height="130" rx="13"/>
+        <rect class="body" x="144" y="82" width="26" height="130" rx="13"/>
+        <rect class="body" x="66" y="210" width="30" height="190" rx="15"/>
+        <rect class="body" x="104" y="210" width="30" height="190" rx="15"/>
+        <circle class="zone zone--hot" cx="100" cy="36" r="16"/>
+        <circle class="zone zone--hot" cx="100" cy="190" r="18"/>
+        <circle class="zone" cx="157" cy="100" r="12"/>
+        <circle class="zone" cx="119" cy="300" r="12"/>
+        <circle class="zone" cx="119" cy="385" r="11"/>
+        <circle class="zone" cx="100" cy="120" r="12"/>
+      </svg>
+    </div>
+  </div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-geo"></i><h3>Zonas registradas</h3></div><div class="lt-panel__body"><div class="lt-list">
+    {% for zone, last, count, tone in [('Espalda baja','Dolor lumbar · activo',5,'warning'),('Cabeza','Migraña · 7 sep.',4,'warning'),('Hombro derecho','Contractura · jun.',2,'neutral'),('Pecho','Gripe · ago.',1,'neutral'),('Rodilla derecha','Molestia al correr · may.',1,'neutral'),('Tobillo derecho','Esguince · jul.',1,'success')] %}
+    <button class="lt-list-item lt-button--text" type="button" data-lt-static-nav><span class="lt-list-item__icon"><i class="bi bi-bullseye"></i></span><div class="lt-list-item__body"><strong>{{ zone }}</strong><span>{{ last }}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ count }} {{ 'evento' if count == 1 else 'eventos' }}</span></button>
+    {% endfor %}
+  </div></div></article>
+</section>
+{% endcall %}

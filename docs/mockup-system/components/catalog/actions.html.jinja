@@ -1,0 +1,2 @@
+{% macro button(label, variant='filled', disabled=false) -%}<button class="lt-button{% if variant == 'tonal' %} lt-button--tonal{% elif variant == 'text' %} lt-button--text{% endif %}" type="button" data-ui-component="life-tracker/actions/button" data-ui-variant="{{ variant }}" {% if disabled %}disabled{% endif %}>{{ label }}</button>{%- endmacro %}
+{% macro showcase() -%}<div>{{ button('Guardar') }} {{ button('Posponer', 'tonal') }} {{ button('Cancelar', 'text') }} {{ button('Guardando', 'filled', true) }}</div>{%- endmacro %}

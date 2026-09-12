@@ -144,3 +144,38 @@
   overflow-wrap: anywhere;
   user-select: all;
 }
+
+/* ===== Menú de acciones (x-ui.menu) ===== */
+
+.md-menu { position: relative; display: inline-flex; flex: 0 0 auto; }
+.md-menu__surface {
+  position: absolute; top: calc(100% + 4px); right: 0; z-index: var(--md-sys-z-menu, 1100);
+  display: grid; min-width: 210px; padding: 6px 0;
+  border-radius: 12px; background: var(--md-sys-color-surface-container-lowest); box-shadow: var(--md-sys-elevation-2);
+}
+.md-menu--start .md-menu__surface { right: auto; left: 0; }
+.md-menu__item {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 0 16px;
+  border: 0; background: transparent; color: var(--md-sys-color-on-surface); font: inherit; font-size: .88rem; text-align: left; text-decoration: none; cursor: pointer; white-space: nowrap;
+}
+.md-menu__item i { color: var(--md-sys-color-on-surface-variant); font-size: 1rem; }
+.md-menu__item:hover, .md-menu__item:focus-visible { background: var(--md-sys-color-surface-container); outline: none; }
+.md-menu__item--danger, .md-menu__item--danger i { color: var(--md-sys-color-error); }
+.md-menu__divider { margin: 4px 0; border: 0; border-top: 1px solid var(--md-sys-color-outline-variant); opacity: 1; }
+
+/* ===== Popover (x-ui.popover) ===== */
+
+.md-popover {
+  --md-field-surface: var(--md-sys-color-surface-container-lowest);
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: var(--md-sys-z-menu, 1100);
+  display: grid; gap: 14px; width: min(360px, 92vw); padding: 14px 16px 16px;
+  border-radius: 16px; background: var(--md-sys-color-surface-container-lowest); box-shadow: var(--md-sys-elevation-3);
+}
+.md-popover__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-right: -6px; }
+.md-popover__title { margin: 0; color: var(--md-sys-color-on-surface); font-size: 1rem; font-weight: 700; }
+.md-popover__body { display: grid; gap: 14px; }
+.md-popover__actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+@media (max-width: 767.98px) {
+  .md-popover { position: fixed; top: auto; right: 0; bottom: 0; left: 0; width: auto; border-radius: 24px 24px 0 0; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+}

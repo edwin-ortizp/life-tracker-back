@@ -19,3 +19,7 @@
                     :value="\App\Support\Ui\CatalogFixtures::LONG_TEXT" />
     </div>
 </x-catalog.example>
+
+<x-catalog.example title="Icono inicial" description="Campo outlined con icono; la etiqueta vive sobre el borde.">
+    <x-ui.field name="catalog-field-icon" label="Profesional o centro" icon="bi-person-badge" />
+</x-catalog.example>

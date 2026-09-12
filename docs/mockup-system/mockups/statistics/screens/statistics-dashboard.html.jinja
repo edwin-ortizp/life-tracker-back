@@ -1,0 +1,42 @@
+{% from '@project/components/life-shell.html.jinja' import shell, metric %}
+{% call shell('statistics', 'Estadísticas', 'bi-bar-chart') %}
+<section class="lt-toolbar" aria-label="Ventana de análisis">
+  <div class="lt-segmented" role="group" aria-label="Periodo"><button type="button" data-lt-static-nav>7 días</button><button class="is-active" type="button" data-lt-static-nav>30 días</button><button type="button" data-lt-static-nav>90 días</button><button type="button" data-lt-static-nav>Año</button></div>
+  <p class="lt-toolbar__label">12 ago. – 10 sep. 2026</p>
+</section>
+<section class="lt-metrics">{{ metric('Hábitos completados','82 %','success') }}{{ metric('Tareas completadas','34 de 46') }}{{ metric('Días con registro','27 de 30','warning') }}</section>
+<section class="lt-grid-3">
+  {% set series = {
+    'mood': [60,70,70,50,40,60,80,70,60,70,80,80,60,50,30,50,60,70,70,80,60,70,60,40,60,70,80,70,70,80],
+    'energy': [50,60,70,40,30,50,70,60,60,70,70,80,50,40,20,40,60,60,70,70,50,60,50,30,50,60,70,60,50,70],
+    'water': [90,100,80,70,100,60,90,100,100,80,70,90,100,50,60,80,100,90,90,100,70,80,100,60,90,100,80,90,70,85],
+    'exercise': [60,0,100,0,50,40,0,70,0,90,0,60,30,0,0,50,0,80,0,100,40,0,70,0,60,0,90,40,55,100]
+  } %}
+  {% for key, title, icon, value, detail in [('mood','Estado de ánimo','bi-emoji-smile','Bien · 3,6/5','Mejor los días con ejercicio'),('energy','Energía','bi-lightning-charge','6,1 / 10','Baja los domingos'),('water','Hidratación','bi-droplet','2,3 L / día','Meta cumplida 19 de 30 días'),('exercise','Ejercicio','bi-activity','4 h 50 min','16 días activos')] %}
+  <article class="lt-panel{% if loop.first %} lt-panel--accent{% endif %}"><div class="lt-panel__head"><i class="bi {{ icon }}"></i><h3>{{ title }}</h3><small>{{ value }}</small></div><div class="lt-panel__body">
+    <div class="lt-stat-bars{% if key in ['energy','exercise'] %} lt-stat-bars--alt{% endif %}" style="--count:30" role="img" aria-label="{{ title }} diario de los últimos 30 días">{% for v in series[key] %}<span style="--value:{{ v }}%"></span>{% endfor %}</div>
+    <div class="lt-stat-axis"><span>12 ago.</span><span>26 ago.</span><span>10 sep.</span></div>
+    <p class="lt-page-head__subtitle">{{ detail }}</p>
+  </div></article>
+  {% endfor %}
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-check2-square"></i><h3>Hábitos completados</h3></div><div class="lt-panel__body"><div class="lt-list">
+    {% for h, pct in [('Meditar',93),('Caminar 30 min',80),('Leer 20 páginas',73),('Dormir antes de las 23:00',57)] %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ h }}</strong><div class="lt-progress"><span style="width:{{ pct }}%"></span></div></div><span class="lt-chip">{{ pct }} %</span></div>{% endfor %}
+  </div></div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-list-task"></i><h3>Tareas</h3><small>Estado de las tareas</small></div><div class="lt-panel__body">
+    <div class="lt-stack-bar" role="img" aria-label="34 completadas, 8 pendientes, 4 vencidas"><span style="--value:74%"></span><span style="--value:17%"></span><span style="--value:9%"></span></div>
+    <dl class="lt-dl"><div><dt>Completadas</dt><dd>34</dd></div><div><dt>Pendientes</dt><dd>8</dd></div><div><dt>Vencidas</dt><dd>4</dd></div><div><dt>Promedio por día</dt><dd>1,1</dd></div></dl>
+  </div></article>
+</section>
+<section class="lt-grid-2">
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-calculator"></i><h3>Promedios del periodo</h3></div><div class="lt-panel__body">
+    <dl class="lt-dl">
+      <div><dt>Sueño</dt><dd>6 h 50 min</dd></div><div><dt>Enfoque (Pomodoro)</dt><dd>1 h 35 min / día</dd></div>
+      <div><dt>Pasos</dt><dd>7.940 / día</dd></div><div><dt>Calorías de ejercicio</dt><dd>312 kcal / día</dd></div>
+      <div><dt>Diario</dt><dd>14 entradas</dd></div><div><dt>Contactos cuidados</dt><dd>17 personas</dd></div>
+    </dl>
+  </div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-lightbulb"></i><h3>Patrones detectados</h3></div><div class="lt-panel__body"><div class="lt-list">
+    {% for icon, t, d in [('bi-person-walking','Ejercicio → mejor ánimo','Tu ánimo sube 0,8 puntos los días con actividad.'),('bi-moon-stars','Poco sueño → menos tareas','Completas 40 % menos tareas tras dormir menos de 6 h.'),('bi-droplet','Agua en la tarde','El 60 % del consumo ocurre después de las 14:00.')] %}<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ t }}</strong><span>{{ d }}</span></div></div>{% endfor %}
+  </div></div></article>
+</section>
+{% endcall %}

@@ -1,0 +1,17 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% call shell('relationships', 'Acontecimientos', 'bi-calendar-event') %}
+{{ header('Acontecimientos', 'Momentos compartidos con las personas que te importan.', 'bi-calendar-event') }}
+{{ module_tabs([('Relaciones','/relationships-index','bi-people'),('Acontecimientos','/relationships-events','bi-calendar-event'),('Cumpleaños','/relationships-birthdays','bi-cake2')], '/relationships-events') }}
+<section class="lt-metrics">{{ metric('Momentos este mes','12') }}{{ metric('Personas vistas','9','success') }}{{ metric('Planeados','3') }}</section>
+<section class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-calendar-event"></i><h3>Septiembre 2026</h3><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Registrar momento</button></div><div class="lt-panel__body">
+  <div class="lt-route-links">{% for c, sel in [('Todos',true),('En persona',false),('Llamadas',false),('Mensajes',false),('Planeados',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}</div>
+  {% for group, items in [
+    ('Próximos', [('bi-cup-hot','Cena de reencuentro','Camila Rojas · Sáb 20 sep.','Planeado','neutral'),('bi-balloon','Cumpleaños de Daniel','Daniel Pérez · Dom 14 sep.','Planeado','neutral')]),
+    ('Esta semana', [('bi-telephone','Llamada del domingo','María Ortiz · 7 sep.','En persona · 😊','success'),('bi-dribbble','Partido de fútbol','Daniel Pérez, Julián Ortiz · 6 sep.','En persona','success')]),
+    ('Anteriores', [('bi-chat-dots','Consejo sobre la propuesta','Laura Gómez · 2 sep.','Mensaje','neutral'),('bi-house-heart','Almuerzo familiar','María, Julián · 31 ago.','En persona · ❤️','success')])
+  ] %}
+  <p class="lt-section-label">{{ group }}</p>
+  <div class="lt-list">{% for icon, title, who, chip, tone in items %}<a class="lt-list-item" href="#/relationships-show"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ title }}</strong><span>{{ who }}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></a>{% endfor %}</div>
+  {% endfor %}
+</div></section>
+{% endcall %}

@@ -87,3 +87,12 @@
 .md-icon--danger { color: var(--md-sys-color-error); }
 .md-icon--info { color: var(--md-custom-color-info); }
 .md-icon--muted { color: var(--md-sys-color-on-surface-variant); }
+
+/* Badge de notificación sobre la esquina de un control (el control debe ser `position: relative`). */
+.md-count-badge--corner {
+  position: absolute; top: -6px; right: -6px; z-index: 1;
+  justify-content: center; min-width: 20px; height: 20px; padding: 0 5px;
+  border: 2px solid var(--md-sys-color-surface); box-sizing: border-box;
+  background: var(--md-module-accent, var(--md-sys-color-primary)); color: var(--md-sys-color-on-primary);
+  font-size: .68rem; font-weight: 700; line-height: 1;
+}

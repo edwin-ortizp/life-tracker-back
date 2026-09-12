@@ -1,0 +1,40 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% call shell('pomodoro', 'Pomodoro', 'bi-stopwatch') %}
+{{ module_tabs([('Temporizador','/pomodoro-timer','bi-stopwatch'),('Ajustes','/pomodoro-settings','bi-sliders')], '/pomodoro-timer') }}
+<section class="lt-metrics" aria-label="Resumen de enfoque">{{ metric('Enfoque hoy','1 h 40 min','success') }}{{ metric('Sesiones','4 de 8') }}{{ metric('Racha','6 días','warning') }}</section>
+<section class="lt-grid-main">
+  <div class="lt-stack">
+    <article class="lt-panel lt-panel--accent"><div class="lt-panel__body">
+      <div class="lt-timer">
+        <div class="lt-segmented" role="group" aria-label="Modo del temporizador"><button class="is-active" type="button" data-lt-static-nav>Enfoque</button><button type="button" data-lt-static-nav>Pausa corta</button><button type="button" data-lt-static-nav>Pausa larga</button></div>
+        <div class="lt-timer__ring" style="--value:25" role="img" aria-label="Quedan 18 minutos y 42 segundos de 25"><div class="lt-timer__face"><strong>18:42</strong><span>Sesión 5 de 8</span></div></div>
+        <label class="lt-field"><span>¿En qué trabajas?</span><input type="text" value="Revisar presupuesto trimestral"></label>
+        <div class="lt-timer__controls"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Reiniciar el temporizador"><i class="bi bi-arrow-counterclockwise"></i></button><button class="lt-button lt-button--xl" type="button" data-lt-static-nav><i class="bi bi-pause-fill"></i> Pausar</button><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Saltar a la pausa"><i class="bi bi-skip-forward-fill"></i></button></div>
+      </div>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-list-check"></i><h3>Sesiones del día</h3><small>Miércoles 10 sep.</small></div><div class="lt-panel__body"><div class="lt-list">
+      {% for task, start, end, dur, manual in [('Preparar propuesta','08:00','08:25','25 min',false),('Preparar propuesta','08:30','08:55','25 min',false),('Correos y seguimiento','10:10','10:35','25 min',false),('Reunión de planeación','14:00','14:25','25 min',true)] %}
+      <div class="lt-list-item"><span class="lt-check is-done">✓</span><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ start }} – {{ end }}{% if manual %} · registro manual{% endif %}</span></div><span class="lt-chip">{{ dur }}</span><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Eliminar la sesión"><i class="bi bi-trash"></i></button></div>
+      {% endfor %}
+    </div></div></article>
+  </div>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-bullseye"></i><h3>Meta diaria</h3><small>4 de 8</small></div><div class="lt-panel__body">
+      <div class="lt-progress" aria-label="Avance de la meta diaria"><span style="width:50%"></span></div>
+      <p class="lt-page-head__subtitle">Faltan 4 sesiones (1 h 40 min) para cumplir la meta.</p>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-calendar-week"></i><h3>Esta semana</h3><small>6 h 15 min</small></div><div class="lt-panel__body">
+      <div class="lt-bars" aria-label="Enfoque de la semana">{% for d, v in [('L',100),('M',75),('X',50),('J',0),('V',0),('S',0),('D',0)] %}<div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:{{ v }}%"></span></div><span>{{ d }}</span></div>{% endfor %}</div>
+      <dl class="lt-dl"><div><dt>Enfoque del mes</dt><dd>21 h 30 min</dd></div><div><dt>Mejor día</dt><dd>Lunes · 8 sesiones</dd></div></dl>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-plus-circle"></i><h3>Registrar tiempo manual</h3></div><div class="lt-panel__body">
+      <div class="lt-form">
+        <label class="lt-field"><span>Inicio</span><input type="time" value="16:00"></label>
+        <label class="lt-field"><span>Fin</span><input type="time" value="16:45"></label>
+        <label class="lt-field lt-form--full"><span>Descripción (opcional)</span><input type="text" placeholder="Ej. lectura técnica"></label>
+      </div>
+      <div class="lt-actions"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>Registrar</button></div>
+    </div></article>
+  </aside>
+</section>
+{% endcall %}

@@ -123,7 +123,7 @@
   justify-content: center;
   width: 56px;
   height: 56px;
-  border-radius: var(--md-sys-shape-corner-large);
+  border-radius: 16px;
   background: var(--md-sys-color-primary-container);
   color: var(--md-sys-color-on-primary-container);
   border: none;
@@ -147,15 +147,20 @@
 .md-fab-extended {
   width: auto;
   height: 56px;
-  padding: 0 16px;
-  gap: 12px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding: 0 20px;
+  gap: 10px;
+  font-size: 15.5px;
+  font-weight: 800;
   letter-spacing: 0.1px;
 }
 
 .md-fab-extended i {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
+}
+
+@media (max-width: 767.98px) {
+  .md-fab-extended { width: 56px; padding: 0; }
+  .md-fab-extended > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 
 @media (max-width: 767.98px) {

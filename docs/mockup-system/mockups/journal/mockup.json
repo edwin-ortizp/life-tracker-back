@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "journal",
+  "version": "1.0.0",
+  "title": "Diario",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "journal-entries",
+        "journal-life",
+        "journal-week"
+      ],
+      "output": "journal.html"
+    }
+  ],
+  "screens": {
+    "journal-entries": {
+      "template": "screens/journal-entries.html.jinja",
+      "title": "Entradas",
+      "bodyClass": ""
+    },
+    "journal-life": {
+      "template": "screens/journal-life.html.jinja",
+      "title": "Vida",
+      "bodyClass": ""
+    },
+    "journal-week": {
+      "template": "screens/journal-week.html.jinja",
+      "title": "Semana",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/journal-entries",
+      "screen": "journal-entries"
+    },
+    {
+      "path": "/journal-life",
+      "screen": "journal-life"
+    },
+    {
+      "path": "/journal-week",
+      "screen": "journal-week"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/journal-entries",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

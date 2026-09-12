@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "id": "relationships",
+  "version": "1.0.0",
+  "title": "Relaciones",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "relationships-index",
+        "relationships-show",
+        "relationships-events",
+        "relationships-birthdays"
+      ],
+      "output": "relationships.html"
+    }
+  ],
+  "screens": {
+    "relationships-index": {
+      "template": "screens/relationships-index.html.jinja",
+      "title": "Relaciones",
+      "bodyClass": ""
+    },
+    "relationships-show": {
+      "template": "screens/relationships-show.html.jinja",
+      "title": "Detalle de contacto",
+      "bodyClass": ""
+    },
+    "relationships-events": {
+      "template": "screens/relationships-events.html.jinja",
+      "title": "Acontecimientos",
+      "bodyClass": ""
+    },
+    "relationships-birthdays": {
+      "template": "screens/relationships-birthdays.html.jinja",
+      "title": "Cumpleaños",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/relationships-index",
+      "screen": "relationships-index"
+    },
+    {
+      "path": "/relationships-show",
+      "screen": "relationships-show"
+    },
+    {
+      "path": "/relationships-events",
+      "screen": "relationships-events"
+    },
+    {
+      "path": "/relationships-birthdays",
+      "screen": "relationships-birthdays"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/relationships-index",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}
