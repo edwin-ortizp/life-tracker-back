@@ -120,3 +120,55 @@
 @media (prefers-reduced-motion: reduce) {
     .health-summary-chevron { transition: none; }
 }
+
+/* Vista del cuerpo: mapa de calor de zonas (paleta validada de azul frío a rojo). */
+.health-zones, .health-body-card { --health-heat-0: #EFEEF2; --health-heat-1: #7DB6EE; --health-heat-2: #5F68D6; --health-heat-3: #B246A6; --health-heat-4: #9A0F44; }
+.health-heat-0 { --heat: var(--health-heat-0); }
+.health-heat-1 { --heat: var(--health-heat-1); }
+.health-heat-2 { --heat: var(--health-heat-2); }
+.health-heat-3 { --heat: var(--health-heat-3); }
+.health-heat-4 { --heat: var(--health-heat-4); }
+.health-body-card__toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 0; }
+.health-body-card__caption { color: var(--md-sys-color-on-surface-variant); font-size: .84rem; font-weight: 600; }
+.health-view-toggle { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--md-sys-color-surface-container); }
+.health-view-toggle button { min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent; color: var(--md-sys-color-on-surface-variant); font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; transition: background .15s, color .15s; }
+.health-view-toggle button[aria-pressed="true"] { background: var(--md-module-accent); color: var(--md-sys-color-on-primary, #fff); }
+.health-view-toggle button[data-hint="true"] { box-shadow: inset 0 0 0 2px var(--md-module-accent); color: var(--md-module-accent); }
+.health-view-toggle--quiet button[aria-pressed="true"] { background: var(--md-sys-color-surface-container-lowest); color: var(--md-sys-color-on-surface); box-shadow: 0 1px 2px rgba(27, 27, 33, .18); }
+.health-body-card__stage { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 16px; align-items: center; padding: 8px 16px 12px; }
+.health-body-figure { display: grid; place-items: center; min-width: 0; }
+.health-body-svg { display: block; width: 100%; max-width: 300px; height: auto; max-height: 580px; margin: 0 auto; overflow: visible; }
+.health-body-svg[hidden] { display: none; }
+.health-bz { cursor: pointer; outline: none; }
+.health-bz > path { fill: var(--heat, var(--health-heat-0)); stroke: var(--md-sys-color-surface-container-lowest); stroke-width: 1.5; stroke-linejoin: round; transition: fill .2s, stroke .15s; }
+.health-bz.is-linked > path, .health-bz:focus-visible > path { stroke: var(--md-module-accent); stroke-width: 4; filter: drop-shadow(0 0 6px color-mix(in srgb, var(--md-module-accent) 45%, transparent)); }
+.health-bz.is-selected > path { stroke: var(--md-sys-color-on-surface); stroke-width: 4; }
+.health-bz:not(.is-registered).is-linked > path { stroke: var(--md-sys-color-outline); }
+.health-bz.is-pulse > path { animation: health-zone-pulse 1.1s ease-out 2; }
+@keyframes health-zone-pulse { 0% { filter: drop-shadow(0 0 0 var(--md-module-accent)); } 50% { filter: drop-shadow(0 0 12px var(--md-module-accent)); } 100% { filter: drop-shadow(0 0 0 transparent); } }
+.health-heat-legend { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--md-sys-color-outline-variant); border-radius: 14px; background: var(--md-sys-color-surface-container-lowest); }
+.health-heat-legend__title { margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: .74rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.health-heat-legend ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: .84rem; }
+.health-heat-legend li { display: flex; align-items: center; gap: 8px; }
+.health-heat-swatch { width: 18px; height: 18px; flex: 0 0 auto; border: 1px solid var(--md-sys-color-outline-variant); border-radius: 50%; background: var(--heat); }
+.health-heat-legend__hint { display: flex; gap: 6px; margin: 4px 0 0; padding-top: 8px; border-top: 1px solid var(--md-sys-color-outline-variant); color: var(--md-sys-color-on-surface-variant); font-size: .78rem; }
+.health-body-detail { display: flex; align-items: center; gap: 12px; margin: 0 16px 12px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--md-module-accent) 8%, var(--md-sys-color-surface-container-lowest)); }
+.health-body-detail__dot { width: 14px; height: 14px; flex: 0 0 auto; border-radius: 50%; background: var(--heat); }
+.health-body-detail__text { display: grid; flex: 1; min-width: 0; }
+.health-body-detail__text span { color: var(--md-sys-color-on-surface-variant); font-size: .84rem; }
+.health-body-card__hint { display: flex; align-items: center; gap: 8px; margin: 0 16px 16px; padding: 10px 12px; border-radius: 12px; background: var(--md-sys-color-surface-container-low); color: var(--md-sys-color-on-surface-variant); font-size: .84rem; }
+.health-zone-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.health-zone-row { display: flex; align-items: center; gap: 4px; border-radius: 14px; transition: background .15s; }
+.health-zone-row.is-linked, .health-zone-row:focus-within, .health-zone-row.is-selected { background: var(--md-sys-color-surface-container); }
+.health-zone-row__main { display: flex; flex: 1; align-items: center; gap: 12px; min-width: 0; min-height: 60px; padding: 8px; border-radius: 14px; color: inherit; text-decoration: none; }
+.health-zone-row__icon { display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 auto; border-radius: 12px; background: color-mix(in srgb, var(--heat) 18%, var(--md-sys-color-surface-container-lowest)); color: var(--heat); }
+.health-zone-row__body { display: grid; flex: 1; min-width: 0; }
+.health-zone-row__body strong { overflow: hidden; font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }
+.health-zone-row__body span { overflow: hidden; color: var(--md-sys-color-on-surface-variant); font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
+.health-zone-count { flex: 0 0 auto; padding: 4px 10px; border-radius: 999px; background: color-mix(in srgb, var(--heat) 16%, var(--md-sys-color-surface-container-lowest)); color: color-mix(in srgb, var(--heat) 70%, var(--md-sys-color-on-surface)); font-size: .76rem; font-weight: 700; }
+.health-body-empty { display: grid; justify-items: center; gap: 6px; padding: 16px; color: var(--md-sys-color-on-surface-variant); text-align: center; }
+.health-body-empty i { font-size: 1.6rem; }
+.health-body-empty p { margin: 0; font-size: .86rem; }
+@media (max-width: 1100px) { .health-body-card__stage { grid-template-columns: 1fr; } .health-heat-legend ul { grid-template-columns: repeat(5, auto); justify-content: start; gap: 6px 14px; } }
+@media (max-width: 767.98px) { .health-body-svg { max-height: 460px; } .health-heat-legend ul { grid-template-columns: repeat(3, auto); } .health-body-detail { flex-wrap: wrap; } }
+@media (prefers-reduced-motion: reduce) { .health-bz > path { transition: none; } .health-bz.is-pulse > path { animation: none; } }

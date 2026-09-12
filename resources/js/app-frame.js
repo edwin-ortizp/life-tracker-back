@@ -18,40 +18,15 @@ export function markPlatform() {
     root.classList.toggle('is-standalone', isStandalone);
 }
 
-/**
- * Transiciones push entre pantallas.
- *
- * `wire:navigate` no expone un hook sincrono compatible con la View Transitions
- * API, asi que se envuelve el intercambio del DOM en `startViewTransition`
- * cuando el navegador la soporta. Sin soporte, o con movimiento reducido, la
- * navegacion sigue siendo instantanea en vez de romperse.
- */
+// Animate only the new content after navigation. Never hold a browser snapshot
+// while the network request is pending (or when navigation is cancelled).
 export function registerPageTransitions() {
-    if (!document.startViewTransition) {
-        return;
-    }
-
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let release = null;
-
-    document.addEventListener('livewire:navigate', () => {
-        if (reduced.matches) {
-            return;
-        }
-
-        const transition = document.startViewTransition(() => new Promise((resolve) => {
-            release = resolve;
-        }));
-
-        // Si la navegacion se cancela, no dejamos la pagina congelada.
-        transition.finished.catch(() => {}).finally(() => { release = null; });
-    });
-
     document.addEventListener('livewire:navigated', () => {
-        if (release) {
-            release();
-            release = null;
-        }
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        document.querySelector('.lt-main')?.animate(
+            [{ opacity: 0.85, transform: 'translateX(6px)' }, { opacity: 1, transform: 'none' }],
+            { duration: 120, easing: 'ease-out' },
+        );
     });
 }
 
@@ -59,9 +34,17 @@ export function registerAppFrame(Alpine) {
     Alpine.data('ltConnection', () => ({
         offline: !navigator.onLine,
 
+        onlineHandler: null,
+        offlineHandler: null,
+        destroy() {
+            window.removeEventListener('online', this.onlineHandler);
+            window.removeEventListener('offline', this.offlineHandler);
+        },
         init() {
-            window.addEventListener('online', () => { this.offline = false; });
-            window.addEventListener('offline', () => { this.offline = true; });
+            this.onlineHandler = () => { this.offline = false; };
+            this.offlineHandler = () => { this.offline = true; };
+            window.addEventListener('online', this.onlineHandler);
+            window.addEventListener('offline', this.offlineHandler);
         },
     }));
 }

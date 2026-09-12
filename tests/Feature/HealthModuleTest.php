@@ -78,7 +78,7 @@ class HealthModuleTest extends TestCase
             ->set('type', 'symptom')
             ->set('title', 'Dolor de espalda')
             ->set('eventDate', '2026-07-12')
-            ->set('bodyArea', 'back')
+            ->set('bodyArea', 'lower_back')
             ->set('initialIntensity', 11)
             ->call('save')
             ->assertHasErrors(['initialIntensity' => 'between']);
@@ -88,12 +88,12 @@ class HealthModuleTest extends TestCase
             ->set('type', 'symptom')
             ->set('title', 'Dolor de espalda')
             ->set('eventDate', '2026-07-12')
-            ->set('bodyArea', 'back')
+            ->set('bodyArea', 'lower_back')
             ->set('initialIntensity', 3)
             ->call('save');
 
         $this->assertDatabaseHas('health_events', ['type' => 'symptom', 'title' => 'Dolor de espalda']);
-        $this->assertSame('back', HealthEvent::where('type', 'symptom')->firstOrFail()->details['body_area']);
+        $this->assertSame('lower_back', HealthEvent::where('type', 'symptom')->firstOrFail()->details['body_area']);
         $this->assertDatabaseHas('health_logs', ['intensity' => 3, 'date' => '2026-07-12 00:00:00']);
 
         Livewire::test(HealthIndex::class)
@@ -312,28 +312,67 @@ class HealthModuleTest extends TestCase
         $this->assertDatabaseMissing('task_associations', ['task_id' => $task->id, 'target_id' => $event->id]);
     }
 
-    public function test_body_map_aggregates_structured_symptoms_and_has_its_own_route(): void
+    public function test_body_map_counts_events_per_zone_with_filters_and_links_to_register(): void
     {
         Carbon::setTestNow('2026-07-12 10:00:00');
         $user = User::factory()->create();
         $this->actingAs($user);
-        $lumbarPain = $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Dolor lumbar', 'event_date' => '2026-07-01', 'details' => ['body_area' => 'back']]);
-        $lumbarPain->logs()->createMany([
-            ['date' => '2026-07-10', 'intensity' => 4],
-            ['date' => '2026-07-11', 'intensity' => 2],
-        ]);
-        $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Dolor de cabeza', 'event_date' => '2026-07-11', 'details' => ['body_area' => 'head', 'severity' => 4]]);
+        foreach (['2026-07-01', '2026-06-01', '2026-05-01'] as $date) {
+            $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Dolor lumbar', 'event_date' => $date, 'details' => ['body_area' => 'lower_back']]);
+        }
+        $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Dolor de cabeza', 'event_date' => '2026-07-11', 'end_date' => '2026-07-12', 'details' => ['body_area' => 'head']]);
+        $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Esguince antiguo', 'event_date' => '2024-01-01', 'details' => ['body_area' => 'ankle_right']]);
 
-        $this->get('/health/body')->assertOk()->assertSee('Vista del cuerpo')->assertSee('Mapa corporal');
+        $this->get('/health/body')->assertOk()->assertSee('Mapa corporal')->assertSee('Zonas registradas')->assertSee('data-zone="knee_left"', false);
 
-        Livewire::withQueryParams(['period' => '30'])
-            ->test(HealthBodyMap::class)
-            ->assertSet('period', '30')
-            ->assertSee('Espalda')
-            ->assertSee('Cabeza')
-            ->assertViewHas('areas', fn ($areas) => $areas['back']['count'] === 2 && $areas['back']['severity'] === 6);
+        Livewire::test(HealthBodyMap::class)
+            ->assertSet('range', '1y')
+            ->assertViewHas('total', 4)
+            ->assertViewHas('zones', fn ($zones) => $zones->keys()->all() === ['lower_back', 'head']
+                && $zones['lower_back']['level'] === 2
+                && $zones['lower_back']['href'] === route('health', ['zone' => 'lower_back', 'range' => '1y']))
+            ->assertViewHas('mapZones', fn ($zones) => $zones['head']['level'] === 1 && $zones['ankle_right']['count'] === 0 && ! isset($zones['skin']))
+            ->set('status', 'recovered')
+            ->assertViewHas('total', 1)
+            ->call('removeFilter', 'range')
+            ->assertSet('range', 'all')
+            ->call('clearFilters')
+            ->assertViewHas('total', 5)
+            ->set('sort', 'name')
+            ->assertViewHas('zones', fn ($zones) => $zones->keys()->first() === 'head');
+
+        Livewire::withQueryParams(['zone' => 'lower_back'])
+            ->test(HealthIndex::class)
+            ->assertSet('zone', 'lower_back')
+            ->assertViewHas('events', fn ($events) => $events->count() === 3)
+            ->assertSee('Espalda baja')
+            ->call('removeFilter', 'zone')
+            ->assertSet('zone', '');
+
+        Livewire::withQueryParams(['new_area' => 'knee_left'])
+            ->test(HealthIndex::class)
+            ->assertSet('showForm', true)
+            ->assertSet('type', 'symptom')
+            ->assertSet('bodyArea', 'knee_left');
 
         Carbon::setTestNow();
+    }
+
+    public function test_body_area_migration_converts_legacy_keys(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $back = $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Espalda', 'event_date' => '2026-07-01', 'details' => ['body_area' => 'back']]);
+        $knees = $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Rodillas', 'event_date' => '2026-07-01', 'details' => ['body_area' => 'knees', 'severity' => 3]]);
+
+        $migration = require database_path('migrations/2026_09_12_000001_migrate_health_body_areas.php');
+        $migration->up();
+
+        $this->assertSame(['body_area' => 'lower_back'], $back->fresh()->details);
+        $this->assertSame(['body_area' => 'knee_right', 'severity' => 3, 'body_area_note' => 'Ambos lados (migrado)'], $knees->fresh()->details);
+
+        $migration->down();
+        $this->assertSame(['body_area' => 'knees', 'severity' => 3], $knees->fresh()->details);
     }
 
     public function test_health_context_reports_next_event_and_pending_tasks(): void

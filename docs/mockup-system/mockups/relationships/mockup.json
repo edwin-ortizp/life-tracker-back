@@ -10,6 +10,7 @@
       "screens": [
         "relationships-index",
         "relationships-show",
+        "relationships-plans",
         "relationships-events",
         "relationships-birthdays"
       ],
@@ -36,6 +37,11 @@
       "template": "screens/relationships-birthdays.html.jinja",
       "title": "Cumpleaños",
       "bodyClass": ""
+    },
+    "relationships-plans": {
+      "template": "screens/relationships-plans.html.jinja",
+      "title": "Planes de la relación",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -46,6 +52,10 @@
     {
       "path": "/relationships-show",
       "screen": "relationships-show"
+    },
+    {
+      "path": "/relationships-plans",
+      "screen": "relationships-plans"
     },
     {
       "path": "/relationships-events",

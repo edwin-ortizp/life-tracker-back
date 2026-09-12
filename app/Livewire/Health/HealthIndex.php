@@ -52,6 +52,9 @@ class HealthIndex extends Component
     #[Url(as: 'types', history: true, keep: true)]
     public array $types = [];
 
+    #[Url(as: 'zone', history: true, keep: true)]
+    public string $zone = '';
+
     public string $illnessPeriod = 'this_year';
 
     public bool $showForm = false;
@@ -123,11 +126,24 @@ class HealthIndex extends Component
     public function mount(): void
     {
         $this->normalizeFilters();
+
+        // "Registrar evento en esta zona" desde la Vista del cuerpo.
+        $area = request()->query('new_area');
+        if (static::class !== self::class) {
+            return;
+        }
+        if (is_string($area) && array_key_exists($area, HealthEvent::BODY_AREAS)) {
+            $this->openForm();
+            $this->type = 'symptom';
+            $this->bodyArea = $area;
+        } elseif (request()->boolean('new')) {
+            $this->openForm();
+        }
     }
 
     public function updated(string $property): void
     {
-        if (in_array($property, ['range', 'status', 'types', 'illnessPeriod'], true) || str_starts_with($property, 'types.')) {
+        if (in_array($property, ['range', 'status', 'types', 'zone', 'illnessPeriod'], true) || str_starts_with($property, 'types.')) {
             $this->normalizeFilters();
         }
     }
@@ -137,6 +153,7 @@ class HealthIndex extends Component
         match ($key) {
             'range' => $this->range = 'all',
             'status' => $this->status = 'all',
+            'zone' => $this->zone = '',
             'types' => $this->types = $value === null ? [] : array_values(array_diff($this->types, [$value])),
             default => null,
         };
@@ -147,6 +164,7 @@ class HealthIndex extends Component
         $this->range = 'all';
         $this->status = 'all';
         $this->types = [];
+        $this->zone = '';
     }
 
     public function updatedRecoveryDate(): void
@@ -427,7 +445,7 @@ class HealthIndex extends Component
             'ranges' => self::RANGES,
             'statuses' => self::STATUSES,
             'illnessPeriods' => self::ILLNESS_PERIODS,
-            'bodyAreas' => HealthEvent::BODY_AREAS,
+            'bodyAreas' => HealthEvent::groupedBodyAreas(),
             'commonIllnesses' => HealthEvent::COMMON_ILLNESSES,
             'nextEvent' => $nextEvent,
             'upcomingCount' => HealthEvent::query()->whereDate('event_date', '>', today())->count(),
@@ -450,6 +468,9 @@ class HealthIndex extends Component
         }
         if ($this->status !== 'all') {
             $filters[] = ['key' => 'status', 'value' => null, 'label' => self::STATUSES[$this->status], 'icon' => 'bi-activity'];
+        }
+        if ($this->zone !== '') {
+            $filters[] = ['key' => 'zone', 'value' => null, 'label' => HealthEvent::BODY_AREAS[$this->zone], 'icon' => 'bi-person-standing'];
         }
         foreach ($this->types as $type) {
             $filters[] = ['key' => 'types', 'value' => $type, 'label' => HealthEvent::TYPES[$type], 'icon' => 'bi-tag'];
@@ -506,6 +527,10 @@ class HealthIndex extends Component
 
         if ($since = $this->rangeStart()) {
             $query->whereDate('event_date', '>=', $since);
+        }
+
+        if ($this->zone !== '') {
+            $query->where('details->body_area', $this->zone);
         }
 
         if ($this->status === 'active') {
@@ -627,6 +652,9 @@ class HealthIndex extends Component
         }
         if (! array_key_exists($this->status, self::STATUSES)) {
             $this->status = 'all';
+        }
+        if ($this->zone !== '' && ! array_key_exists($this->zone, HealthEvent::BODY_AREAS)) {
+            $this->zone = '';
         }
         if (! array_key_exists($this->illnessPeriod, self::ILLNESS_PERIODS)) {
             $this->illnessPeriod = 'this_year';

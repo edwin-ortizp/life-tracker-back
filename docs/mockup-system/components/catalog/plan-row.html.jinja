@@ -1,0 +1,23 @@
+{% macro plan_row(p, menu_id) -%}
+<div class="lt-plan" data-ui-component="life-tracker/data/plan-row" data-ui-variant="{{ p.variant }}">
+  <span class="lt-plan__media" aria-hidden="true"><i class="bi {{ p.icon }}"></i></span>
+  <div class="lt-plan__body"><strong>{{ p.title }}</strong><span><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ p.city }} · {{ p.type }} · {{ p.category }}</span></div>
+  <div class="lt-plan__meta">
+    <div class="lt-plan__line">{% if p.get('date') %}<span class="lt-plan__date"><i class="bi bi-calendar-event" aria-hidden="true"></i> {{ p.date }}</span>{% endif %}<span class="lt-chip lt-chip--{{ p.tone }}">{{ p.status }}</span></div>
+    {% if p.get('left') %}<small class="lt-plan__left">{{ p.left }}</small>{% endif %}
+    <small class="lt-plan__stats"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Última vez: {{ p.last }}{% if p.visits %} · {{ p.visits }} {{ 'visita' if p.visits == 1 else 'visitas' }}{% endif %}</small>
+  </div>
+  <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="{{ menu_id }}" aria-haspopup="menu" aria-expanded="false" aria-label="Más opciones de {{ p.title }}"><i class="bi bi-three-dots-vertical"></i></button>
+    <div class="lt-menu lt-menu--down" id="{{ menu_id }}" role="menu" hidden>
+      <button class="lt-menu__item" role="menuitem" type="button" data-lt-toggle="relationships-plan-done"><i class="bi bi-check2-circle"></i> Registrar que lo hicimos</button>
+      <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-calendar-plus"></i> Programar fecha</button>
+      <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-clock-history"></i> Ver historial</button>
+      <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-link-45deg"></i> Añadir enlace</button>
+      <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-person-plus"></i> Asociar a otra persona</button>
+      <hr class="lt-menu__divider">
+      <button class="lt-menu__item lt-menu__item--danger" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-x-circle"></i> Quitar de esta relación</button>
+    </div>
+  </div>
+</div>
+{%- endmacro %}
+{% macro showcase() -%}<div class="lt-page"><div class="lt-plan-list">{{ plan_row({'variant':'pending','icon':'bi-cup-straw','title':'Heladería Popsy','city':'Popayán','type':'Postres','category':'Gastronomía','status':'Pendiente','tone':'success','last':'hace 3 meses','visits':8}, 'catalog-plan-1') }}{{ plan_row({'variant':'scheduled','icon':'bi-music-note-beamed','title':'Concierto Morat','city':'Bogotá','type':'Concierto','category':'Música','status':'Programado','tone':'warning','date':'Dom, 15 nov. 2026','left':'Faltan 64 días','last':'nunca','visits':0}, 'catalog-plan-2') }}</div></div>{%- endmacro %}

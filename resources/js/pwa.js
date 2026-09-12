@@ -65,6 +65,12 @@ export function registerInstallPrompt(Alpine) {
     Alpine.data('ltInstallPrompt', () => ({
         open: false,
         platform: 'android',
+        installHandler: null,
+        promptTimer: null,
+        destroy() {
+            clearTimeout(this.promptTimer);
+            window.removeEventListener('lt-install-available', this.installHandler);
+        },
 
         init() {
             if (isStandalone() || wasRecentlyDismissed()) {
@@ -87,16 +93,17 @@ export function registerInstallPrompt(Alpine) {
                 if (/safari/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent)) {
                     this.platform = 'ios';
                     // Se espera un poco para no interrumpir el primer vistazo.
-                    setTimeout(() => { this.open = true; }, 4000);
+                    this.promptTimer = setTimeout(() => { this.open = true; }, 4000);
                 }
 
                 return;
             }
 
-            window.addEventListener('lt-install-available', () => {
+            this.installHandler = () => {
                 this.platform = 'android';
                 this.open = true;
-            });
+            };
+            window.addEventListener('lt-install-available', this.installHandler);
         },
 
         async install() {

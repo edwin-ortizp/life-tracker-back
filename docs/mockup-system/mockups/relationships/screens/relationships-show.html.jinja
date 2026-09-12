@@ -1,6 +1,7 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, relationship_tabs, header, metric %}
 {% call shell('relationships', 'Camila Rojas', 'bi-person') %}
 {{ header('Camila Rojas', 'Perfil, cronología y pendientes de esta relación.', 'bi-person', '/relationships-index') }}
+{{ relationship_tabs('/relationships-show') }}
 <section class="lt-metrics">{{ metric('Último contacto','Hace 45 días','warning') }}{{ metric('Frecuencia deseada','Cada mes') }}{{ metric('Momentos este año','9','success') }}</section>
 <section class="lt-grid-main">
   <div class="lt-stack">

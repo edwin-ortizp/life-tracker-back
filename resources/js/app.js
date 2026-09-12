@@ -1,3 +1,4 @@
+import { registerFormEditor } from './form-editor';
 import { Alpine, Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
 import { registerPomodoroTimer } from './pomodoro-timer';
 import { registerUiSurfaces } from './ui-surfaces';
@@ -5,12 +6,15 @@ import { markPlatform, registerAppFrame, registerPageTransitions } from './app-f
 import { registerInstallPrompt, registerServiceWorker } from './pwa';
 import { registerFeedback } from './feedback';
 import { registerSwipeRow } from './swipe-row';
+import { registerHealthBodyMap } from './health-body-map';
 
 registerPomodoroTimer(Alpine);
 registerUiSurfaces(Alpine);
+registerFormEditor(Alpine);
 registerAppFrame(Alpine);
 registerFeedback(Alpine);
 registerSwipeRow(Alpine);
+registerHealthBodyMap(Alpine);
 
 registerInstallPrompt(Alpine);
 
@@ -46,6 +50,7 @@ async function renderHealthChart(element) {
 
     apexChartsPromise ??= import('apexcharts').then((module) => module.default);
     const ApexCharts = await apexChartsPromise;
+    if (!element.isConnected) { pendingCharts.delete(element); return; }
     // Barras redondeadas con el acento del módulo, como en el mockup de Salud.
     const chart = new ApexCharts(element, {
         chart: {
@@ -97,6 +102,7 @@ async function renderDashboardChart(element) {
 
     apexChartsPromise ??= import('apexcharts').then((module) => module.default);
     const ApexCharts = await apexChartsPromise;
+    if (!element.isConnected) { pendingCharts.delete(element); return; }
     const chart = new ApexCharts(element, {
         chart: {
             type: 'area',
@@ -168,6 +174,7 @@ async function renderHealthMonthsChart(element) {
 
     apexChartsPromise ??= import('apexcharts').then((module) => module.default);
     const ApexCharts = await apexChartsPromise;
+    if (!element.isConnected) { pendingCharts.delete(element); return; }
     const accent = localColor(element, '--md-module-accent') || color('--md-sys-color-primary');
     const muted = color('--md-sys-color-surface-container-highest');
     const chart = new ApexCharts(element, {
@@ -238,9 +245,10 @@ function bootstrapUi() {
 
     new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach(discoverCharts);
+            if (mutation.target instanceof Element && mutation.target.closest('.apexcharts-canvas')) return;
+            mutation.addedNodes.forEach(node => { if (node.isConnected) discoverCharts(node); });
             mutation.removedNodes.forEach((node) => {
-                if (node.nodeType !== Node.ELEMENT_NODE) return;
+                if (node.nodeType !== Node.ELEMENT_NODE || node.isConnected) return;
                 Object.keys(chartRenderers).forEach((selector) => {
                     const targets = node.matches?.(selector)
                         ? [node]
@@ -252,7 +260,7 @@ function bootstrapUi() {
                 });
             });
         });
-    }).observe(document.body, { childList: true, subtree: true });
+    }).observe(document.documentElement, { childList: true, subtree: true });
 
     document.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'l' && e.target.matches('textarea.md-markdown-editor-input')) {

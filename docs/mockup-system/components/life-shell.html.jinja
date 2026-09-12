@@ -24,7 +24,11 @@
 {%- endmacro %}
 
 {% macro tabs(items, current) -%}
-<nav class="lt-tabs" aria-label="Vistas del módulo">{% for label, route, icon in items %}<a class="lt-tab{% if route == current %} is-active{% endif %}" href="#{{ route }}"{% if route == current %} aria-current="page"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></a>{% endfor %}</nav>
+<nav class="lt-tabs" aria-label="Vistas del módulo">{% for item in items %}{% set label, route, icon = item[0], item[1], item[2] %}{% if item|length > 3 and item[3] %}<button class="lt-tab" type="button" data-lt-static-nav><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></button>{% else %}<a class="lt-tab{% if route == current %} is-active{% endif %}" href="#{{ route }}"{% if route == current %} aria-current="page"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></a>{% endif %}{% endfor %}</nav>
+{%- endmacro %}
+
+{% macro relationship_tabs(current) -%}
+{{ tabs([('Inicio','/relationships-show','bi-house'),('Planes','/relationships-plans','bi-map'),('Fechas importantes',None,'bi-calendar-heart',true),('Experiencias emocionales',None,'bi-heart',true),('Tareas relacionadas',None,'bi-list-check',true)], current) }}
 {%- endmacro %}
 
 {% macro header(title, subtitle, icon, back=None) -%}

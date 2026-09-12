@@ -21,6 +21,7 @@
     ])->filter()->implode(' ');
 @endphp
 
+{{-- Las opciones admiten grupos: `['Grupo' => [valor => etiqueta]]` genera un <optgroup>. --}}
 <div class="md-text-field md-field @if ($icon) md-field--icon @endif @if ($message) md-error @endif">
     @if ($icon)<i class="bi {{ $icon }} md-field__icon" aria-hidden="true"></i>@endif
     <select id="{{ $fieldId }}"
@@ -34,7 +35,15 @@
             <option value="">{{ $placeholder }}</option>
         @endif
         @foreach ($options as $optionValue => $optionLabel)
-            <option value="{{ $optionValue }}" @selected((string) $optionValue === (string) $selected)>{{ $optionLabel }}</option>
+            @if (is_array($optionLabel))
+                <optgroup label="{{ $optionValue }}">
+                    @foreach ($optionLabel as $groupValue => $groupLabel)
+                        <option value="{{ $groupValue }}" @selected((string) $groupValue === (string) $selected)>{{ $groupLabel }}</option>
+                    @endforeach
+                </optgroup>
+            @else
+                <option value="{{ $optionValue }}" @selected((string) $optionValue === (string) $selected)>{{ $optionLabel }}</option>
+            @endif
         @endforeach
         {{ $slot }}
     </select>

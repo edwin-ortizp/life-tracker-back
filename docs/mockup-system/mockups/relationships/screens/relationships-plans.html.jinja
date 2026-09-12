@@ -1,0 +1,95 @@
+{% from '@project/components/life-shell.html.jinja' import shell, relationship_tabs, header, dialog %}
+{% from '@project/components/catalog/plan-row.html.jinja' import plan_row %}
+{% call shell('relationships', 'Camila Rojas', 'bi-person') %}
+{{ header('Camila Rojas', '', 'bi-person', '/relationships-index') }}
+{{ relationship_tabs('/relationships-plans') }}
+{% set plans = [
+  {'variant':'pending','icon':'bi-egg-fried','title':'Restaurante La Cosecha','city':'Popayán','type':'Restaurante','category':'Gastronomía','status':'Pendiente','tone':'success','last':'hace 5 meses','visits':3},
+  {'variant':'scheduled','icon':'bi-music-note-beamed','title':'Concierto Morat','city':'Bogotá','type':'Concierto','category':'Música','status':'Programado','tone':'warning','date':'Dom, 15 nov. 2026','left':'Faltan 64 días','last':'nunca','visits':0},
+  {'variant':'pending','icon':'bi-water','title':'Termales de Coconuco','city':'Popayán','type':'Viaje','category':'Naturaleza','status':'Pendiente','tone':'success','last':'nunca','visits':0},
+  {'variant':'pending','icon':'bi-film','title':'Ir al cine','city':'Popayán','type':'Cine','category':'Entretenimiento','status':'Pendiente','tone':'success','last':'hace 2 meses','visits':5},
+  {'variant':'pending','icon':'bi-basket','title':'Hacer un picnic','city':'Popayán','type':'Actividad','category':'Aire libre','status':'Pendiente','tone':'success','last':'nunca','visits':0},
+  {'variant':'pending','icon':'bi-cup-straw','title':'Heladería Popsy','city':'Popayán','type':'Postres','category':'Gastronomía','status':'Pendiente','tone':'success','last':'hace 3 meses','visits':8},
+  {'variant':'pending','icon':'bi-bank','title':'Museo Nacional','city':'Bogotá','type':'Museo','category':'Cultura','status':'Pendiente','tone':'success','last':'hace 1 año','visits':1},
+  {'variant':'scheduled','icon':'bi-palette','title':'Exposición Van Gogh','city':'Bogotá','type':'Evento','category':'Arte','status':'Programado','tone':'warning','date':'Lun, 7 dic. 2026','left':'Faltan 86 días','last':'nunca','visits':0},
+  {'variant':'pending','icon':'bi-airplane','title':'Cartagena','city':'Cartagena','type':'Viaje','category':'Playa','status':'Pendiente','tone':'success','last':'nunca','visits':0},
+  {'variant':'pending','icon':'bi-tree','title':'Caminata al Morro de Tulcán','city':'Popayán','type':'Naturaleza','category':'Aire libre','status':'Pendiente','tone':'success','last':'hace 8 meses','visits':2},
+  {'variant':'done','icon':'bi-egg-fried','title':"Restaurante Storia D'Amore",'city':'Popayán','type':'Restaurante','category':'Gastronomía','status':'Realizado','tone':'neutral','last':'1 jul. 2026','visits':2},
+  {'variant':'done','icon':'bi-film','title':'Cine · F1 La Película','city':'Popayán','type':'Cine','category':'Entretenimiento','status':'Realizado','tone':'neutral','last':'28 jun. 2026','visits':1}
+] %}
+<section class="lt-grid-main">
+  <div class="lt-stack">
+    <div class="lt-section-head lt-plans__head lt-filter-anchor"><h3><i class="bi bi-map"></i> Planes con Camila</h3>
+      <div class="lt-plans__actions">
+        <button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-shuffle"></i> Sorpréndeme</button>
+        <button class="lt-button lt-button--text lt-filter-button" type="button" data-lt-toggle="plans-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="plans-filters"><i class="bi bi-sliders"></i> Filtros<span class="lt-badge lt-badge--corner" data-lt-filter-count hidden>0</span></button>
+      </div>
+      <div class="lt-popover" id="plans-filters" role="dialog" aria-labelledby="plans-filters-title" hidden>
+        <div class="lt-popover__head"><h4 id="plans-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="plans-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+        <label class="lt-field"><span>Ciudad</span><select>{% for r in ['Todas','Popayán','Bogotá','Cartagena'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+        <div class="lt-field"><span id="plans-type-label">Tipo de plan</span>
+          <div class="lt-multiselect"><button class="lt-multiselect__trigger" type="button" data-lt-toggle="plans-type-options" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="plans-type-label"><span>Todos los tipos</span><i class="bi bi-chevron-down"></i></button>
+            <div class="lt-multiselect__panel" id="plans-type-options" role="listbox" aria-multiselectable="true" hidden>{% for r in ['Restaurante','Viaje','Actividad','Cine','Concierto','Evento','Lugar','Postres','Museo','Naturaleza','Experiencia'] %}<label class="lt-multiselect__option"><input type="checkbox"> {{ r }}</label>{% endfor %}</div>
+          </div>
+        </div>
+        <label class="lt-field"><span>Categoría</span><select>{% for r in ['Todas','Gastronomía','Música','Entretenimiento','Aire libre','Cultura','Naturaleza','Playa'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+        <label class="lt-field"><span>Estado</span><select>{% for r in ['Todos','Pendientes','Programados','Realizados'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+        <label class="lt-field"><span>Fecha</span><select>{% for r in ['Cualquier fecha','Con fecha','Sin fecha','Próximos 30 días','Próximos 3 meses'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+        <label class="lt-field"><span>Persona</span><select disabled><option>Camila Rojas</option></select><small>Disponible fuera de la relación</small></label>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="plans-filters">Aplicar</button></div>
+      </div>
+    </div>
+    <div class="lt-chip-row" aria-label="Estado de los planes">{% for label, n, icon, sel in [('Todos',12,'bi-grid',true),('Pendientes',8,'bi-bookmark',false),('Programados',2,'bi-calendar-event',false),('Realizados',2,'bi-check2',false)] %}<button class="lt-chip lt-chip--filter{% if sel %} is-selected{% endif %}" type="button" data-lt-static-nav{% if sel %} aria-pressed="true"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i> {{ label }} ({{ n }})</button>{% endfor %}</div>
+    <div class="lt-plan-list">{% for p in plans %}{{ plan_row(p, 'plan-menu-' ~ loop.index) }}{% endfor %}</div>
+  </div>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-bar-chart-line"></i><h3>Resumen de planes</h3></div><div class="lt-panel__body">
+      <dl class="lt-kpis"><div><dt>Pendientes</dt><dd>8</dd></div><div><dt>Programados</dt><dd>2</dd></div><div><dt>Realizados</dt><dd>2</dd></div></dl>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-calendar2-week"></i><h3>Próximos planes</h3></div><div class="lt-panel__body"><div class="lt-list">
+      {% for icon, title, date, left in [('bi-music-note-beamed','Concierto Morat','Dom, 15 nov. 2026','64 días'),('bi-palette','Exposición Van Gogh','Lun, 7 dic. 2026','86 días')] %}<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ title }}</strong><span>{{ date }}</span></div><span class="lt-chip lt-chip--warning">{{ left }}</span></div>{% endfor %}
+    </div></div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-clock-history"></i><h3>Últimas actividades</h3></div><div class="lt-panel__body">
+      <div class="lt-timeline">{% for title, date, note in [("Restaurante Storia D'Amore",'1 jul. 2026','Pedimos la lasaña; repetir.'),('Cine · F1 La Película','28 jun. 2026',''),('Heladería Popsy','14 jun. 2026','')] %}<div class="lt-timeline__item"><span class="lt-timeline__dot"></span><div><strong>{{ title }}</strong><span>{{ date }}</span>{% if note %}<p>{{ note }}</p>{% endif %}</div></div>{% endfor %}</div>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-link-45deg"></i><h3>Enlaces compartidos</h3></div><div class="lt-panel__body"><div class="lt-list">
+      {% for icon, title, meta in [('bi-instagram','Restaurante La Cosecha','instagram.com · 27 ago. 2026'),('bi-tiktok','Hacer un picnic','tiktok.com · 15 ago. 2026'),('bi-geo-alt-fill','Termales de Coconuco','Google Maps · 2 ago. 2026')] %}<button class="lt-list-item" type="button" data-lt-static-nav><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ title }}</strong><span>{{ meta }}</span></div><i class="bi bi-box-arrow-up-right lt-list-item__trail" aria-hidden="true"></i></button>{% endfor %}
+    </div><button class="lt-button lt-button--text lt-link-share" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Compartir enlace</button></div></article>
+  </aside>
+</section>
+<button class="lt-fab" type="button" data-lt-toggle="relationships-plan-new" aria-haspopup="dialog" aria-label="Agregar plan"><i class="bi bi-plus-lg"></i><span>Agregar plan</span></button>
+{% call dialog('relationships-plan-new', 'Agregar plan', 'Guardar', 'bi-map', [('basic','Información básica','bi-file-earmark-text'),('people','Personas','bi-people'),('links','Enlaces','bi-link-45deg'),('summary','Resumen','bi-check2-circle')]) %}
+<section class="lt-dialog__section" data-section="basic">
+  <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
+  <div class="lt-form">
+    <label class="lt-field lt-form--full"><span>Nombre <b>*</b></span><input type="text" placeholder="Ej. Heladería Popsy"></label>
+    <label class="lt-field lt-field--icon"><span>Tipo <b>*</b></span><i class="bi bi-tag" aria-hidden="true"></i><select>{% for t in ['Restaurante','Viaje','Actividad','Cine','Concierto','Evento','Lugar','Postres','Museo','Naturaleza','Experiencia'] %}<option>{{ t }}</option>{% endfor %}</select></label>
+    <label class="lt-field lt-field--icon"><span>Categoría</span><i class="bi bi-bookmark" aria-hidden="true"></i><select>{% for t in ['Gastronomía','Música','Entretenimiento','Aire libre','Cultura'] %}<option>{{ t }}</option>{% endfor %}</select></label>
+    <label class="lt-field lt-field--icon"><span>Ciudad</span><i class="bi bi-geo-alt" aria-hidden="true"></i><input type="text" value="Popayán"></label>
+    <label class="lt-field"><span>Fecha (opcional)</span><input type="date"></label>
+  </div>
+</section>
+<section class="lt-dialog__section" data-section="people" hidden>
+  <header class="lt-dialog__section-head"><h3>Personas</h3></header>
+  <div class="lt-field"><span id="plan-people-label">Con quién</span>
+    <div class="lt-multiselect"><button class="lt-multiselect__trigger" type="button" data-lt-toggle="plan-people-options" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="plan-people-label"><span>Camila Rojas</span><i class="bi bi-chevron-down"></i></button>
+      <div class="lt-multiselect__panel" id="plan-people-options" role="listbox" aria-multiselectable="true" hidden>{% for r, on in [('Camila Rojas',true),('María Ortiz',false),('Daniel Pérez',false),('Laura Gómez',false)] %}<label class="lt-multiselect__option"><input type="checkbox"{% if on %} checked{% endif %}> {{ r }}</label>{% endfor %}</div>
+    </div>
+  </div>
+</section>
+<section class="lt-dialog__section" data-section="links" hidden>
+  <header class="lt-dialog__section-head"><h3>Enlaces</h3></header>
+  <div class="lt-form"><label class="lt-field lt-field--icon lt-form--full"><span>URL</span><i class="bi bi-link-45deg" aria-hidden="true"></i><input type="url" placeholder="Instagram, TikTok, Google Maps o cualquier web"></label></div>
+</section>
+<section class="lt-dialog__section" data-section="summary" hidden>
+  <header class="lt-dialog__section-head"><h3>Resumen</h3></header>
+  <dl class="lt-dl">{% for k, val in [('Nombre','—'),('Tipo','Restaurante'),('Ciudad','Popayán'),('Fecha','Sin fecha'),('Personas','Camila Rojas'),('Enlaces','Ninguno')] %}<div><dt>{{ k }}</dt><dd>{{ val }}</dd></div>{% endfor %}</dl>
+</section>
+{% endcall %}
+{% call dialog('relationships-plan-done', 'Registrar plan realizado', 'Guardar', 'bi-check2-circle') %}
+<div class="lt-form">
+  <label class="lt-field lt-form--full"><span>Fecha <b>*</b></span><input type="date" value="2026-09-12"></label>
+  <label class="lt-field lt-form--full"><span>Comentario</span><textarea placeholder="Opcional"></textarea></label>
+</div>
+{% endcall %}
+{% endcall %}

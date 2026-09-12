@@ -21,7 +21,10 @@ function focusable(surface) {
  * para que el estado lo maneje quien la declara.
  */
 export function registerUiSurfaces(Alpine) {
-    Alpine.directive('md-surface', (el, { modifiers }, { cleanup }) => {
+    Alpine.directive('md-surface', (el, { modifiers, expression }, { cleanup, effect, evaluateLater }) => {
+        let deactivate = () => {};
+        let active = false;
+        const activate = () => {
         const invoker = document.activeElement;
         const locksScroll = !modifiers.includes('no-scroll-lock');
 
@@ -92,7 +95,7 @@ export function registerUiSurfaces(Alpine) {
         el.addEventListener('keydown', onKeydown);
         document.addEventListener('focusin', onFocusIn);
 
-        cleanup(() => {
+        return () => {
             timers.forEach(clearTimeout);
             el.removeEventListener('keydown', onKeydown);
             document.removeEventListener('focusin', onFocusIn);
@@ -104,6 +107,18 @@ export function registerUiSurfaces(Alpine) {
             if (invoker instanceof HTMLElement && document.body.contains(invoker)) {
                 invoker.focus({ preventScroll: true });
             }
-        });
+        };
+        };
+        const update = (open) => {
+            if (!!open === active) return;
+            active = !!open;
+            if (active) deactivate = activate();
+            else { deactivate(); deactivate = () => {}; }
+        };
+        if (expression) {
+            const read = evaluateLater(expression);
+            effect(() => read(update));
+        } else update(true);
+        cleanup(() => deactivate());
     });
 }

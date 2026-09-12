@@ -24,25 +24,53 @@ class HealthEvent extends Model
 
     public const SCHEDULED_TYPES = ['appointment', 'checkup', 'procedure'];
 
+    /** Zonas del cuerpo. Las que no están en `OFF_MAP_BODY_AREAS` se dibujan en el mapa corporal. */
     public const BODY_AREAS = [
         'head' => 'Cabeza',
-        'eyes_face' => 'Ojos y cara',
-        'mouth_throat' => 'Boca y garganta',
         'neck' => 'Cuello',
         'chest' => 'Pecho',
         'abdomen' => 'Abdomen',
-        'back' => 'Espalda',
-        'shoulders' => 'Hombros',
-        'arms' => 'Brazos',
-        'hands' => 'Manos y muñecas',
-        'hips_pelvis' => 'Cadera y pelvis',
-        'legs' => 'Piernas',
-        'knees' => 'Rodillas',
-        'feet_ankles' => 'Pies y tobillos',
+        'upper_back' => 'Espalda alta',
+        'lower_back' => 'Espalda baja',
+        'glutes' => 'Glúteos',
+        'shoulder_right' => 'Hombro derecho',
+        'shoulder_left' => 'Hombro izquierdo',
+        'arm_right' => 'Brazo derecho',
+        'arm_left' => 'Brazo izquierdo',
+        'forearm_right' => 'Antebrazo derecho',
+        'forearm_left' => 'Antebrazo izquierdo',
+        'hand_right' => 'Mano derecha',
+        'hand_left' => 'Mano izquierda',
+        'thigh_right' => 'Muslo derecho',
+        'thigh_left' => 'Muslo izquierdo',
+        'hamstring_right' => 'Isquiotibial derecho',
+        'hamstring_left' => 'Isquiotibial izquierdo',
+        'knee_right' => 'Rodilla derecha',
+        'knee_left' => 'Rodilla izquierda',
+        'leg_right' => 'Pierna derecha',
+        'leg_left' => 'Pierna izquierda',
+        'calf_right' => 'Pantorrilla derecha',
+        'calf_left' => 'Pantorrilla izquierda',
+        'ankle_right' => 'Tobillo derecho',
+        'ankle_left' => 'Tobillo izquierdo',
+        'foot_right' => 'Pie derecho',
+        'foot_left' => 'Pie izquierdo',
+        'eyes_face' => 'Ojos y cara',
+        'mouth_throat' => 'Boca y garganta',
         'skin' => 'Piel',
         'whole_body' => 'Todo el cuerpo',
         'other' => 'Otra zona',
     ];
+
+    public const BODY_AREA_GROUPS = [
+        'Cabeza y tronco' => ['head', 'neck', 'chest', 'abdomen', 'upper_back', 'lower_back', 'glutes'],
+        'Brazos' => ['shoulder_right', 'shoulder_left', 'arm_right', 'arm_left', 'forearm_right', 'forearm_left', 'hand_right', 'hand_left'],
+        'Piernas' => ['thigh_right', 'thigh_left', 'hamstring_right', 'hamstring_left', 'knee_right', 'knee_left', 'leg_right', 'leg_left', 'calf_right', 'calf_left', 'ankle_right', 'ankle_left', 'foot_right', 'foot_left'],
+        'Otras' => ['eyes_face', 'mouth_throat', 'skin', 'whole_body', 'other'],
+    ];
+
+    /** Zonas sin trazado en el mapa corporal: solo aparecen en la lista. */
+    public const OFF_MAP_BODY_AREAS = ['eyes_face', 'mouth_throat', 'skin', 'whole_body', 'other'];
 
     public const COMMON_ILLNESSES = [
         'common_cold' => 'Resfriado común',
@@ -87,6 +115,30 @@ class HealthEvent extends Model
     public function scheduledTask(): ?Task
     {
         return $this->tasks()->orderBy('tasks.created_at')->first();
+    }
+
+    /** Opciones agrupadas para un select con <optgroup>. */
+    public static function groupedBodyAreas(): array
+    {
+        return array_map(
+            fn (array $keys) => array_intersect_key(self::BODY_AREAS, array_flip($keys)),
+            self::BODY_AREA_GROUPS,
+        );
+    }
+
+    public static function bodyAreaIcon(string $area): string
+    {
+        return match (true) {
+            $area === 'head' => 'bi-emoji-dizzy',
+            $area === 'eyes_face' => 'bi-eye',
+            $area === 'mouth_throat' => 'bi-chat-square',
+            $area === 'chest' => 'bi-lungs',
+            in_array($area, ['upper_back', 'lower_back', 'whole_body'], true) => 'bi-person-standing',
+            $area === 'skin' => 'bi-droplet',
+            str_starts_with($area, 'hand_') || str_starts_with($area, 'arm_') || str_starts_with($area, 'forearm_') => 'bi-hand-index',
+            str_starts_with($area, 'knee_') || str_starts_with($area, 'leg_') => 'bi-activity',
+            default => 'bi-bandaid',
+        };
     }
 
     public static function bodyAreaLabel(?string $area, ?string $customArea = null): ?string

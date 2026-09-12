@@ -2,6 +2,8 @@
 
 return [
 
+    'measure_performance' => env('MEASURE_PERFORMANCE', false),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name

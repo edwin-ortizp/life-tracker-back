@@ -1,56 +1,144 @@
+@php
+    $legend = [0 => 'Sin eventos', 1 => '1 evento', 2 => '2–3 eventos', 3 => '4–5 eventos', 4 => '6 o más'];
+    $events = fn (int $count) => $count.' '.($count === 1 ? 'evento' : 'eventos');
+@endphp
+
 <x-module-shell module="health" class="health-page">
-    <x-slot:actions><x-module-actions :primary="['label' => 'Registrar síntoma', 'icon' => 'bi-plus-lg', 'href' => route('health')]" /></x-slot:actions>
+    <x-slot:actions>
+        <x-module-actions :primary="['label' => 'Registrar evento', 'icon' => 'bi-plus-lg', 'href' => route('health', ['new' => 1])]" :fab-always="true" />
+    </x-slot:actions>
 
-    <section class="health-body-hero mb-3">
-        <div>
-            <p class="health-eyebrow"><i class="bi bi-activity"></i> Mapa de intensidad</p>
-            <h2 class="md-headline-small mb-2">Tu cuerpo, visto a través del registro</h2>
-            <p class="mb-0">El color reúne frecuencia e intensidad de los síntomas guardados en cada zona.</p>
-        </div>
-        <div class="health-body-total"><strong>{{ $totalSymptoms }}</strong><span>síntomas<br>registrados</span></div>
-    </section>
+    <section class="health-timeline-section" aria-labelledby="health-body-title">
+        <div class="health-toolbar" x-data="{ filtersOpen: false }">
+            <h2 id="health-body-title" class="health-toolbar__title">
+                <i class="bi bi-person-standing" aria-hidden="true"></i>
+                <span>Mapa corporal</span>
+                <span class="health-count" title="Eventos con zona del cuerpo en el periodo">({{ $events($total) }})</span>
+            </h2>
 
-    <div class="md-chip-rail mb-3">
-        @foreach(['30' => 'Últimos 30 días', '90' => 'Últimos 90 días', 'all' => 'Todo el historial'] as $value => $label)
-            <button wire:click="$set('period', '{{ $value }}')" class="md-chip md-chip-filter {{ $period === $value ? 'selected' : '' }}">{{ $label }}</button>
-        @endforeach
-    </div>
+            <div class="health-toolbar__filters">
+                <x-ui.action variant="outlined" icon="bi-sliders" class="health-filter-button"
+                             data-popover-trigger aria-haspopup="dialog" aria-controls="health-body-filters"
+                             x-on:click="filtersOpen = !filtersOpen" x-bind:aria-expanded="filtersOpen.toString()">
+                    Filtros
+                    @if (count($activeFilters) > 0)
+                        <x-ui.badge placement="corner" :label="count($activeFilters).' '.(count($activeFilters) === 1 ? 'filtro activo' : 'filtros activos')">{{ count($activeFilters) }}</x-ui.badge>
+                    @endif
+                </x-ui.action>
 
-    <section class="health-body-layout">
-        <div class="md-card-elevated health-body-map-card">
-            <div class="health-body-map-card__header"><div><span class="health-type-chip">Lectura visual</span><h2 class="md-title-large mb-0">Mapa corporal</h2></div><span class="health-heat-key"><i></i> Menor <b></b> Mayor</span></div>
-            <div class="health-figure-wrap">
-                <svg class="health-figure" viewBox="0 0 360 620" role="img" aria-labelledby="body-map-title body-map-description">
-                    <title id="body-map-title">Mapa corporal de síntomas</title><desc id="body-map-description">Las zonas con mayor acumulación de síntomas e intensidad se ven más oscuras.</desc>
-                    @php($heat = fn ($area) => ($areas[$area]['severity'] / $maximumSeverity))
-                    <g class="health-figure-silhouette">
-                        <ellipse class="health-region health-region--head" style="--health-heat: {{ $heat('head') }}" cx="180" cy="72" rx="44" ry="52"><title>Cabeza: {{ $areas['head']['count'] }} registros</title></ellipse>
-                        <path class="health-region health-region--face" style="--health-heat: {{ $heat('eyes_face') }}" d="M148 72 Q180 92 212 72 L212 96 Q180 112 148 96Z"><title>Ojos y cara: {{ $areas['eyes_face']['count'] }} registros</title></path>
-                        <rect class="health-region health-region--throat" style="--health-heat: {{ max($heat('mouth_throat'), $heat('neck')) }}" x="160" y="118" width="40" height="34" rx="12"><title>Boca, garganta y cuello</title></rect>
-                        <path class="health-region health-region--chest" style="--health-heat: {{ $heat('chest') }}" d="M126 150 Q180 132 234 150 L250 250 Q180 276 110 250Z"><title>Pecho: {{ $areas['chest']['count'] }} registros</title></path>
-                        <path class="health-region health-region--abdomen" style="--health-heat: {{ $heat('abdomen') }}" d="M110 252 Q180 275 250 252 L240 347 Q180 365 120 347Z"><title>Abdomen: {{ $areas['abdomen']['count'] }} registros</title></path>
-                        <path class="health-region health-region--pelvis" style="--health-heat: {{ $heat('hips_pelvis') }}" d="M120 347 Q180 365 240 347 L231 391 L129 391Z"><title>Cadera y pelvis: {{ $areas['hips_pelvis']['count'] }} registros</title></path>
-                        <path class="health-region health-region--shoulders" style="--health-heat: {{ $heat('shoulders') }}" d="M126 153 L90 181 L106 245 L126 232ZM234 153 L270 181 L254 245 L234 232Z"><title>Hombros: {{ $areas['shoulders']['count'] }} registros</title></path>
-                        <path class="health-region health-region--arms" style="--health-heat: {{ $heat('arms') }}" d="M91 181 L58 317 L83 323 L119 223ZM269 181 L302 317 L277 323 L241 223Z"><title>Brazos: {{ $areas['arms']['count'] }} registros</title></path>
-                        <path class="health-region health-region--hands" style="--health-heat: {{ $heat('hands') }}" d="M58 317 L51 359 Q61 377 82 361 L83 323ZM302 317 L309 359 Q299 377 278 361 L277 323Z"><title>Manos y muñecas: {{ $areas['hands']['count'] }} registros</title></path>
-                        <path class="health-region health-region--legs" style="--health-heat: {{ $heat('legs') }}" d="M130 392 L171 392 L164 515 L123 515ZM189 392 L230 392 L237 515 L196 515Z"><title>Piernas: {{ $areas['legs']['count'] }} registros</title></path>
-                        <path class="health-region health-region--knees" style="--health-heat: {{ $heat('knees') }}" d="M123 474 L164 474 L164 516 L123 516ZM196 474 L237 474 L237 516 L196 516Z"><title>Rodillas: {{ $areas['knees']['count'] }} registros</title></path>
-                        <path class="health-region health-region--feet" style="--health-heat: {{ $heat('feet_ankles') }}" d="M122 515 L164 515 L164 560 Q143 575 112 563ZM196 515 L238 515 L248 563 Q217 575 196 560Z"><title>Pies y tobillos: {{ $areas['feet_ankles']['count'] }} registros</title></path>
-                    </g>
-                </svg>
+                <x-ui.popover state="filtersOpen" title="Filtros" id="health-body-filters">
+                    <x-ui.select name="range" label="Periodo" :options="$ranges" :selected="$range" icon="bi-calendar-range" wire:model.live="range" />
+                    <x-ui.select name="status" label="Estado" :options="$statuses" :selected="$status" icon="bi-activity" wire:model.live="status" />
+                    <x-ui.multi-select name="types" label="Tipo" :options="$typeLabels" all-label="Todos los tipos" icon="bi-tag" />
+                    <x-slot:actions>
+                        <x-ui.action variant="text" wire:click="clearFilters">Limpiar</x-ui.action>
+                        <x-ui.action variant="filled" x-on:click="filtersOpen = false">Aplicar</x-ui.action>
+                    </x-slot:actions>
+                </x-ui.popover>
             </div>
-            <p class="health-body-map-note mb-0"><i class="bi bi-info-circle"></i> Espalda, piel y síntomas de todo el cuerpo se muestran en el resumen porque no corresponden a una sola zona frontal.</p>
         </div>
 
-        <aside class="md-card-outlined health-area-summary">
-            <div class="health-area-summary__header"><div><span class="health-type-chip">Detalle</span><h2 class="md-title-large mb-0">Zonas registradas</h2></div><span class="health-area-summary__badge">{{ $areas->filter(fn ($item) => $item['count'] > 0)->count() }}</span></div>
-            <div class="health-area-list">
-                @forelse($areas->filter(fn ($item) => $item['count'] > 0)->sortByDesc('severity') as $key => $stat)
-                    <div class="health-area-row"><div class="health-area-row__name"><span style="--health-heat: {{ $stat['severity'] / $maximumSeverity }}"></span><strong>{{ \App\Models\HealthEvent::bodyAreaLabel($key) }}</strong></div><div><b>{{ $stat['count'] }}</b><small>{{ $stat['count'] === 1 ? 'registro' : 'registros' }}</small></div></div>
-                @empty
-                    <div class="health-body-empty"><i class="bi bi-person-standing"></i><p>Aún no hay síntomas con zona corporal para este período.</p><a href="{{ route('health') }}" class="md-btn-text">Registrar síntoma</a></div>
-                @endforelse
+        @if (count($activeFilters) > 0)
+            <div class="health-applied-filters" role="group" aria-label="Filtros aplicados">
+                @foreach ($activeFilters as $filter)
+                    <span class="md-chip md-chip-input health-applied-chip" wire:key="body-filter-{{ $filter['key'] }}-{{ $filter['value'] }}">
+                        <i class="bi {{ $filter['icon'] }}" aria-hidden="true"></i>
+                        <span>{{ $filter['label'] }}</span>
+                        <button type="button" class="md-btn-icon md-btn--sm health-applied-chip__remove"
+                                wire:click="removeFilter(@js($filter['key']), @js($filter['value']))"
+                                aria-label="Quitar filtro {{ $filter['label'] }}" title="Quitar filtro">
+                            <i class="bi bi-x" aria-hidden="true"></i>
+                        </button>
+                    </span>
+                @endforeach
+                <button type="button" class="md-btn-text md-btn--sm health-clear-filters" wire:click="clearFilters">Limpiar filtros</button>
             </div>
-        </aside>
+        @endif
+
+        <article class="health-card health-body-card" x-data="healthBodyMap" @health-body-locate.window="locate($event.detail.zone)">
+            <div data-body-levels-host>
+                <script type="application/json" data-body-levels>@json($mapZones)</script>
+            </div>
+
+            <div class="health-body-card__toolbar">
+                <div class="health-view-toggle" role="group" aria-label="Perspectiva del cuerpo">
+                    <button type="button" :aria-pressed="(view === 'front').toString()" :data-hint="(hint === 'front').toString()" @click="setView('front')">Frente</button>
+                    <button type="button" :aria-pressed="(view === 'back').toString()" :data-hint="(hint === 'back').toString()" @click="setView('back')">Espalda</button>
+                </div>
+                <span class="health-body-card__caption" x-text="view === 'front' ? 'Vista frontal' : 'Vista posterior'">Vista frontal</span>
+                <div class="health-view-toggle health-view-toggle--quiet" role="group" aria-label="Modelo corporal">
+                    <button type="button" :aria-pressed="(model === 'male').toString()" @click="setModel('male')">Hombre</button>
+                    <button type="button" :aria-pressed="(model === 'female').toString()" @click="setModel('female')">Mujer</button>
+                </div>
+            </div>
+
+            <div class="health-body-card__stage">
+                <div wire:ignore>
+                    <x-health.body-models />
+                </div>
+
+                <aside class="health-heat-legend" aria-label="Escala de frecuencia">
+                    <p class="health-heat-legend__title">Frecuencia de eventos</p>
+                    <ul>
+                        @foreach ($legend as $level => $text)
+                            <li><span class="health-heat-swatch health-heat-{{ $level }}" aria-hidden="true"></span>{{ $text }}</li>
+                        @endforeach
+                    </ul>
+                    <p class="health-heat-legend__hint"><i class="bi bi-hand-index" aria-hidden="true"></i> Toca una zona para ver sus eventos</p>
+                </aside>
+            </div>
+
+            <div class="health-body-detail" x-cloak x-show="detail" :class="{ 'is-empty': detail && detail.count === 0 }">
+                <span class="health-body-detail__dot" :class="detail ? 'health-heat-' + detail.level : ''" aria-hidden="true"></span>
+                <div class="health-body-detail__text" aria-live="polite">
+                    <strong x-text="detail?.label"></strong>
+                    <span x-text="detail ? (detail.count === 0 ? 'Sin eventos en el periodo seleccionado' : detail.count + (detail.count === 1 ? ' evento' : ' eventos') + ' · Último: ' + detail.last) : ''"></span>
+                </div>
+                <a class="md-btn-tonal" x-show="detail && detail.href" :href="detail?.href" wire:navigate>Ver en Registro <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+            </div>
+            <p class="health-body-card__hint" x-show="!detail"><i class="bi bi-lightbulb" aria-hidden="true"></i> Selecciona una zona del cuerpo o de la lista para explorar sus eventos en el Registro con esa zona filtrada.</p>
+        </article>
     </section>
+
+    <x-slot:rail>
+        <section class="health-card health-zones" aria-labelledby="health-zones-title">
+            <header class="health-card__head">
+                <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                <h2 id="health-zones-title">Zonas registradas</h2>
+                <span class="health-card__count">{{ $sorts[$sort] }}</span>
+                <x-ui.menu label="Ordenar zonas" icon="bi-sort-down" size="sm">
+                    @foreach ($sorts as $key => $label)
+                        <x-ui.menu-item :icon="$key === $sort ? 'bi-check2' : null" wire:click="$set('sort', '{{ $key }}')">{{ $label }}</x-ui.menu-item>
+                    @endforeach
+                </x-ui.menu>
+            </header>
+            <div class="health-card__body">
+                @if ($zones->isEmpty())
+                    <div class="health-body-empty">
+                        <i class="bi bi-person-standing" aria-hidden="true"></i>
+                        <p>No hay eventos con zona del cuerpo en este periodo.</p>
+                    </div>
+                @else
+                    <ul class="health-zone-list">
+                        @foreach ($zones as $zone)
+                            <li class="health-zone-row" data-zone="{{ $zone['key'] }}" wire:key="zone-{{ $zone['key'] }}">
+                                <a class="health-zone-row__main" href="{{ $zone['href'] }}" wire:navigate aria-label="Ver {{ $zone['label'] }} en el Registro: {{ $events($zone['count']) }}">
+                                    <span class="health-zone-row__icon health-heat-{{ $zone['level'] }}"><i class="bi {{ $zone['icon'] }}" aria-hidden="true"></i></span>
+                                    <span class="health-zone-row__body"><strong>{{ $zone['label'] }}</strong><span>{{ $zone['last'] }}</span></span>
+                                    <span class="health-zone-count health-heat-{{ $zone['level'] }}">{{ $events($zone['count']) }}</span>
+                                </a>
+                                <x-ui.menu label="Más opciones de {{ $zone['label'] }}" size="sm">
+                                    @if ($zone['onMap'])
+                                        <x-ui.menu-item icon="bi-crosshair" x-on:click="$dispatch('health-body-locate', { zone: @js($zone['key']) })">Ubicar en el mapa</x-ui.menu-item>
+                                    @endif
+                                    <x-ui.menu-item icon="bi-clock-history" :href="$zone['href']">Ver en Registro</x-ui.menu-item>
+                                    <x-ui.menu-item icon="bi-plus-lg" :href="route('health', ['new_area' => $zone['key']])">Registrar evento en esta zona</x-ui.menu-item>
+                                </x-ui.menu>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        </section>
+    </x-slot:rail>
 </x-module-shell>
