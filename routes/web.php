@@ -70,6 +70,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/relationships/events', \App\Livewire\Relationship\RelationshipEvents::class)->name('relationships.events');
     Route::get('/relationships/birthdays', \App\Livewire\Relationship\RelationshipBirthdays::class)->name('relationships.birthdays');
     Route::get('/relationships/{relationship}', \App\Livewire\Relationship\RelationshipShow::class)->name('relationships.show');
+    Route::get('/relationships/{relationship}/plans', \App\Livewire\Relationship\RelationshipPlans::class)->name('relationships.plans');
+    Route::get('/plans', \App\Livewire\Plan\PlanIndex::class)->name('plans');
+    Route::get('/plans/{plan}', \App\Livewire\Plan\PlanShow::class)->name('plans.show');
     Route::get('/goals', \App\Livewire\Goal\GoalIndex::class)->name('goals');
     Route::get('/goals/{goal}', \App\Livewire\Goal\GoalDetail::class)->name('goals.show');
     Route::get('/statistics', \App\Livewire\Statistics\StatisticsDashboard::class)->name('statistics');

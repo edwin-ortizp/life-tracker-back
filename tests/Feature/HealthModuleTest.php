@@ -78,7 +78,7 @@ class HealthModuleTest extends TestCase
             ->set('type', 'symptom')
             ->set('title', 'Dolor de espalda')
             ->set('eventDate', '2026-07-12')
-            ->set('bodyArea', 'lower_back')
+            ->set('bodyAreas', ['lower_back'])
             ->set('initialIntensity', 11)
             ->call('save')
             ->assertHasErrors(['initialIntensity' => 'between']);
@@ -88,12 +88,12 @@ class HealthModuleTest extends TestCase
             ->set('type', 'symptom')
             ->set('title', 'Dolor de espalda')
             ->set('eventDate', '2026-07-12')
-            ->set('bodyArea', 'lower_back')
+            ->set('bodyAreas', ['lower_back'])
             ->set('initialIntensity', 3)
             ->call('save');
 
         $this->assertDatabaseHas('health_events', ['type' => 'symptom', 'title' => 'Dolor de espalda']);
-        $this->assertSame('lower_back', HealthEvent::where('type', 'symptom')->firstOrFail()->details['body_area']);
+        $this->assertSame(['lower_back'], HealthEvent::where('type', 'symptom')->firstOrFail()->details['body_areas']);
         $this->assertDatabaseHas('health_logs', ['intensity' => 3, 'date' => '2026-07-12 00:00:00']);
 
         Livewire::test(HealthIndex::class)
@@ -128,7 +128,7 @@ class HealthModuleTest extends TestCase
             ->set('type', 'symptom')
             ->set('title', 'Dolor de garganta')
             ->set('eventDate', '2026-07-10')
-            ->set('bodyArea', 'mouth_throat')
+            ->set('bodyAreas', ['mouth_throat'])
             ->set('initialIntensity', 3)
             ->call('save');
 
@@ -353,7 +353,7 @@ class HealthModuleTest extends TestCase
             ->test(HealthIndex::class)
             ->assertSet('showForm', true)
             ->assertSet('type', 'symptom')
-            ->assertSet('bodyArea', 'knee_left');
+            ->assertSet('bodyAreas', ['knee_left']);
 
         Carbon::setTestNow();
     }
@@ -373,6 +373,111 @@ class HealthModuleTest extends TestCase
 
         $migration->down();
         $this->assertSame(['body_area' => 'knees', 'severity' => 3], $knees->fresh()->details);
+    }
+
+    public function test_illnesses_and_procedures_relate_to_several_body_areas_and_procedures_track_recovery(): void
+    {
+        Carbon::setTestNow('2026-07-12 10:00:00');
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Livewire::test(HealthIndex::class)
+            ->call('openForm')
+            ->set('type', 'symptom')
+            ->set('title', 'Molestia')
+            ->set('eventDate', '2026-07-12')
+            ->set('initialIntensity', 3)
+            ->call('save')
+            ->assertHasErrors(['bodyAreas' => 'required']);
+
+        Livewire::test(HealthIndex::class)
+            ->call('openForm')
+            ->set('type', 'illness')
+            ->set('title', 'Gripe')
+            ->set('eventDate', '2026-07-10')
+            ->set('illness', 'flu')
+            ->set('bodyAreas', ['head', 'mouth_throat', 'chest'])
+            ->set('initialIntensity', 6)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        Livewire::test(HealthIndex::class)
+            ->call('openForm')
+            ->set('type', 'illness')
+            ->set('title', 'Alergia')
+            ->set('eventDate', '2026-07-11')
+            ->set('illness', 'allergy')
+            ->set('initialIntensity', 2)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        Livewire::test(HealthIndex::class)
+            ->call('openForm')
+            ->set('type', 'procedure')
+            ->set('title', 'Cirugía de hernia')
+            ->set('eventDate', '2026-07-08')
+            ->set('provider', 'Dr. Ruiz')
+            ->set('facility', 'Clínica Central')
+            ->set('bodyAreas', ['lower_back', 'head'])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $flu = HealthEvent::where('title', 'Gripe')->firstOrFail();
+        $this->assertSame(['condition' => 'flu', 'body_areas' => ['head', 'mouth_throat', 'chest']], $flu->details);
+        $this->assertArrayNotHasKey('body_areas', HealthEvent::where('title', 'Alergia')->firstOrFail()->details);
+
+        $surgery = HealthEvent::where('title', 'Cirugía de hernia')->firstOrFail();
+        $this->assertSame(['provider' => 'Dr. Ruiz', 'facility' => 'Clínica Central', 'body_areas' => ['lower_back', 'head']], $surgery->details);
+        $this->assertSame(0, $surgery->logs()->count());
+
+        Livewire::test(HealthIndex::class)
+            ->call('openLogForm', $surgery->id)
+            ->set('logDate', '2026-07-09')
+            ->set('logIntensity', 5)
+            ->call('saveLog')
+            ->call('openRecoveryForm', $surgery->id)
+            ->set('recoveryDate', '2026-07-12')
+            ->set('recoveryIntensity', 1)
+            ->call('saveRecovery');
+        $this->assertSame('2026-07-12', $surgery->fresh()->end_date->toDateString());
+        $this->assertSame(2, $surgery->logs()->count());
+
+        Livewire::test(HealthIndex::class)->call('openForm', $surgery->id)
+            ->assertSet('bodyAreas', ['lower_back', 'head'])
+            ->assertSet('facility', 'Clínica Central');
+
+        Livewire::test(HealthBodyMap::class)
+            ->assertViewHas('total', 2)
+            ->assertViewHas('zones', fn ($zones) => $zones['head']['count'] === 2 && $zones['mouth_throat']['count'] === 1 && $zones['lower_back']['count'] === 1)
+            ->set('status', 'recovered')
+            ->assertViewHas('total', 1);
+
+        Livewire::withQueryParams(['zone' => 'head'])
+            ->test(HealthIndex::class)
+            ->assertViewHas('events', fn ($events) => $events->pluck('title')->sort()->values()->all() === ['Cirugía de hernia', 'Gripe']);
+
+        $future = HealthEvent::create(['type' => 'procedure', 'title' => 'Cirugía programada', 'event_date' => '2026-08-01']);
+        Livewire::test(HealthIndex::class)->call('openLogForm', $future->id)->assertStatus(404);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_multiple_body_areas_migration_and_legacy_rows(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $legacy = $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Dolor', 'event_date' => '2026-07-01', 'details' => ['body_area' => 'neck', 'severity' => 2]]);
+
+        $this->assertSame(['neck'], $legacy->bodyAreas());
+        Livewire::withQueryParams(['zone' => 'neck'])->test(HealthIndex::class)
+            ->assertViewHas('events', fn ($events) => $events->count() === 1);
+
+        $migration = require database_path('migrations/2026_09_13_000001_health_events_multiple_body_areas.php');
+        $migration->up();
+        $this->assertSame(['severity' => 2, 'body_areas' => ['neck']], $legacy->fresh()->details);
+
+        $migration->down();
+        $this->assertSame(['severity' => 2, 'body_area' => 'neck'], $legacy->fresh()->details);
     }
 
     public function test_health_context_reports_next_event_and_pending_tasks(): void

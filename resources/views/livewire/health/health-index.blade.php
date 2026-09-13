@@ -62,16 +62,21 @@
             @forelse ($events as $event)
                 @php
                     $task = $event->tasks->sortBy('created_at')->first();
-                    $tracks = in_array($event->type, ['symptom', 'illness'], true);
+                    // Un procedimiento agendado se sigue como cita hasta que llega su fecha.
+                    $tracks = in_array($event->type, \App\Models\HealthEvent::EVOLUTION_TYPES, true) && ! $event->event_date->isFuture();
                     $logs = $tracks ? $event->logs : collect();
                     $details = $event->details ?? [];
-                    $detailLabel = match (true) {
-                        isset($details['body_area']) => \App\Models\HealthEvent::bodyAreaLabel($details['body_area'], $details['body_area_note'] ?? null),
-                        isset($details['condition']) => \App\Models\HealthEvent::illnessLabel($details['condition'], $details['condition_note'] ?? null),
-                        isset($details['provider']) => $details['provider'],
-                        isset($details['vaccine_name']) => $details['vaccine_name'],
-                        default => $typeLabels[$event->type],
-                    };
+                    $areasLabel = \App\Models\HealthEvent::bodyAreasLabel($event->bodyAreas(), $details['body_area_note'] ?? null);
+                    $detailLabel = collect([
+                        match (true) {
+                            isset($details['condition']) => \App\Models\HealthEvent::illnessLabel($details['condition'], $details['condition_note'] ?? null),
+                            isset($details['provider']) => $details['provider'],
+                            isset($details['vaccine_name']) => $details['vaccine_name'],
+                            default => null,
+                        },
+                        $areasLabel,
+                    ])->filter()->implode(' · ') ?: $typeLabels[$event->type];
+                    $hasCareDetails = collect(['provider', 'specialty', 'facility', 'vaccine_name'])->contains(fn ($key) => isset($details[$key]));
                     if ($tracks && $event->end_date) {
                         $span = $event->event_date->translatedFormat('j M').'–'.$event->end_date->translatedFormat('j M').' · '.$days((int) $event->event_date->diffInDays($event->end_date) + 1);
                     } elseif ($tracks) {
@@ -116,10 +121,11 @@
                                 <p class="health-muted">Hasta {{ $event->end_date->translatedFormat('j \d\e F \d\e Y') }}</p>
                             @endif
 
-                            @if ($details && ! $tracks)
+                            @if ($hasCareDetails)
                                 <div class="health-details">
                                     @if (isset($details['provider']))<span><i class="bi bi-person-badge" aria-hidden="true"></i> {{ $details['provider'] }}</span>@endif
                                     @if (isset($details['specialty']))<span><i class="bi bi-heart-pulse" aria-hidden="true"></i> {{ $details['specialty'] }}</span>@endif
+                                    @if (isset($details['facility']))<span><i class="bi bi-building" aria-hidden="true"></i> {{ $details['facility'] }}</span>@endif
                                     @if (isset($details['vaccine_name']))<span><i class="bi bi-shield-check" aria-hidden="true"></i> {{ $details['vaccine_name'] }}{{ isset($details['dose']) ? ' · '.$details['dose'] : '' }}</span>@endif
                                 </div>
                             @endif
@@ -180,7 +186,7 @@
 
                             <div class="health-event-actions">
                                 @if ($tracks && ! $event->end_date)
-                                    <x-ui.action variant="tonal" icon="bi-plus-lg" wire:click="openLogForm('{{ $event->id }}')">Registrar día</x-ui.action>
+                                    <x-ui.action variant="tonal" icon="bi-plus-lg" wire:click="openLogForm('{{ $event->id }}')">{{ $event->type === 'procedure' ? 'Registrar día de recuperación' : 'Registrar día' }}</x-ui.action>
                                     <x-ui.action variant="text" icon="bi-check2-circle" wire:click="openRecoveryForm('{{ $event->id }}')">Marcar recuperación</x-ui.action>
                                 @elseif ($tracks)
                                     <x-ui.action variant="text" icon="bi-arrow-counterclockwise" wire:click="reopenEvolution('{{ $event->id }}')">Aún continúa</x-ui.action>
@@ -309,9 +315,11 @@
     </x-slot:rail>
 
     @php
-        $basicErrors = $errors->hasAny(['type', 'title', 'eventDate', 'bodyArea', 'customBodyArea', 'initialIntensity', 'illness', 'customIllness']);
+        $basicErrors = $errors->hasAny(['type', 'title', 'eventDate', 'bodyAreas', 'bodyAreas.*', 'customBodyArea', 'initialIntensity', 'illness', 'customIllness']);
         $detailErrors = $errors->hasAny(['endDate', 'notes', 'provider', 'specialty', 'vaccineName', 'vaccineDose']);
-        $tracksForm = in_array($type, ['symptom', 'illness'], true);
+        $tracksForm = in_array($type, \App\Models\HealthEvent::EVOLUTION_TYPES, true);
+        $zonesForm = in_array($type, \App\Models\HealthEvent::BODY_AREA_TYPES, true);
+        $careForm = in_array($type, \App\Models\HealthEvent::SCHEDULED_TYPES, true);
     @endphp
 
     <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="health-event-dialog"
@@ -326,11 +334,11 @@
                 <x-ui.select name="type" label="Tipo de evento" :options="$typeLabels" :selected="$type" icon="bi-lightning" :required="true" wire:model.live="type" />
 
                 @if ($type === 'symptom')
-                    <x-ui.select name="bodyArea" label="Zona del cuerpo" :options="$bodyAreas" :selected="$bodyArea" placeholder="Selecciona una zona" icon="bi-person" :required="true" wire:model.live="bodyArea" />
+                    <x-ui.field name="eventDate" type="date" label="Fecha" :required="true" wire:model.blur="eventDate" />
                 @elseif ($type === 'illness')
                     <x-ui.select name="illness" label="Enfermedad" :options="$commonIllnesses" :selected="$illness" placeholder="Selecciona una enfermedad" icon="bi-thermometer-half" :required="true" wire:model.live="illness" />
-                @elseif (in_array($type, ['appointment', 'checkup'], true))
-                    <x-ui.field name="provider" label="Profesional o centro" icon="bi-person-badge" wire:model.blur="provider" />
+                @elseif ($careForm)
+                    <x-ui.field name="provider" :label="$type === 'procedure' ? 'Profesional o cirujano' : 'Profesional'" icon="bi-person-badge" wire:model.blur="provider" />
                 @elseif ($type === 'vaccination')
                     <x-ui.field name="vaccineName" label="Vacuna" icon="bi-shield-plus" wire:model.blur="vaccineName" />
                 @else
@@ -341,17 +349,30 @@
                     <x-ui.field name="title" label="Título" :required="true" wire:model.blur="title" />
                 </div>
 
-                <x-ui.field name="eventDate" type="date" label="Fecha" :required="true" wire:model.blur="eventDate" />
+                @if ($type !== 'symptom')
+                    <x-ui.field name="eventDate" type="date" label="Fecha" :required="true" wire:model.blur="eventDate" />
+                @endif
 
                 @if ($tracksForm && ! $editingId)
-                    <x-ui.select name="initialIntensity" label="Intensidad (1–10)" :options="$intensityOptions" :selected="$initialIntensity" placeholder="Selecciona…" icon="bi-bar-chart" :required="true" wire:model.live="initialIntensity" />
+                    <x-ui.select name="initialIntensity" :label="$type === 'procedure' ? 'Molestia inicial (opcional)' : 'Intensidad (1–10)'" :options="$intensityOptions" :selected="$initialIntensity" placeholder="Selecciona…" icon="bi-bar-chart" :required="$type !== 'procedure'" wire:model.live="initialIntensity" />
                 @elseif (in_array($type, ['appointment', 'checkup'], true))
                     <x-ui.field name="specialty" label="Especialidad" icon="bi-heart-pulse" wire:model.blur="specialty" />
                 @elseif ($type === 'vaccination')
                     <x-ui.field name="vaccineDose" label="Dosis" wire:model.blur="vaccineDose" />
                 @endif
 
-                @if ($type === 'symptom' && $bodyArea === 'other')
+                @if ($careForm)
+                    <x-ui.field name="facility" label="Centro o clínica" icon="bi-building" wire:model.blur="facility" />
+                @endif
+
+                @if ($zonesForm)
+                    <div class="md-form-dialog__full">
+                        <x-ui.multi-select name="bodyAreas" :label="$type === 'symptom' ? 'Zonas del cuerpo *' : 'Zonas del cuerpo (opcional)'"
+                                           :options="$bodyAreaOptions" :all-label="$type === 'symptom' ? 'Selecciona una o varias zonas' : 'Sin zonas relacionadas'" icon="bi-person" />
+                    </div>
+                @endif
+
+                @if ($zonesForm && in_array('other', $bodyAreas, true))
                     <div class="md-form-dialog__full"><x-ui.field name="customBodyArea" label="Describe la zona" :required="true" wire:model.blur="customBodyArea" /></div>
                 @endif
                 @if ($type === 'illness' && $illness === 'other')
@@ -379,10 +400,15 @@
                 <div><dt>Tipo</dt><dd>{{ $typeLabels[$type] ?? '—' }}</dd></div>
                 <div><dt>Título</dt><dd>{{ filled($title) ? $title : '—' }}</dd></div>
                 <div><dt>Fecha</dt><dd>{{ filled($eventDate) ? \Illuminate\Support\Carbon::parse($eventDate)->translatedFormat('j \d\e F \d\e Y') : '—' }}</dd></div>
-                @if ($type === 'symptom')
-                    <div><dt>Zona del cuerpo</dt><dd>{{ filled($bodyArea) ? \App\Models\HealthEvent::bodyAreaLabel($bodyArea, $customBodyArea ?: null) : '—' }}</dd></div>
-                @elseif ($type === 'illness')
+                @if ($type === 'illness')
                     <div><dt>Enfermedad</dt><dd>{{ filled($illness) ? \App\Models\HealthEvent::illnessLabel($illness, $customIllness ?: null) : '—' }}</dd></div>
+                @endif
+                @if ($careForm)
+                    <div><dt>Profesional</dt><dd>{{ filled($provider) ? $provider : '—' }}</dd></div>
+                    <div><dt>Centro</dt><dd>{{ filled($facility) ? $facility : '—' }}</dd></div>
+                @endif
+                @if ($zonesForm)
+                    <div><dt>Zonas del cuerpo</dt><dd>{{ \App\Models\HealthEvent::bodyAreasLabel($bodyAreas, $customBodyArea ?: null) ?? '—' }}</dd></div>
                 @endif
                 @if ($tracksForm && ! $editingId)
                     <div><dt>Intensidad</dt><dd>{{ $initialIntensity ? $initialIntensity.'/10' : '—' }}</dd></div>

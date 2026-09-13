@@ -25,6 +25,19 @@ La identidad de la pantalla vive **una sola vez**, en la barra superior: botón 
 
 Referencia visual: macro `shell` en `docs/mockup-system/components/life-shell.html.jinja` (clase `.lt-topbar__icon`).
 
+## Categorías y color de módulo
+
+Cada módulo tiene un color de énfasis simbólico (`--lt-accent`) que se usa en su pantalla y en su ítem del menú lateral; los módulos de una misma categoría comparten familia de color. Tokens en `resources/css/m3/tokens/_tokens.css` (`[data-module]` → `--md-module-accent`); cada ítem de `modules.navigation` declara su `module`. Referencia visual en `docs/mockup-system/project-assets/mockups.css`.
+
+| Categoría | Módulos y acento |
+| --- | --- |
+| Vista general | Mi día #3949AB · Estadísticas #3949AB · Ajustes #5B5F97 |
+| Salud y cuerpo | Salud #C62828 · Ejercicio #E65100 · Hidratación #0277BD · Comidas #558B2F |
+| Hábitos | Hábitos #2E7D4F · Hábitos a evitar #8A5A00 |
+| Productividad | Tareas #2F53C8 · Pomodoro #4527A0 · Objetivos #00786E |
+| Vida personal | Diario #6A1B9A · Relaciones #8E24AA · Planes #AD1457 · Ánimo y energía #7B1FA2 |
+| Vehículos | Vehículos #455A64 |
+
 ## Reglas de navegación
 
 - Una vista funcional equivale a una ruta; no se usan pestañas para alternar contenido importante solo en memoria.

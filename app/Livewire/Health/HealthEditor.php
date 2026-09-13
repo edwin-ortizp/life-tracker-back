@@ -13,7 +13,7 @@ class HealthEditor extends HealthIndex
         parent::openForm($id);
     }
 
-    public const FORM_FIELDS = ['editingId', 'loggingEventId', 'editingLogId', 'recoveringEventId', 'reschedulingTaskId', 'type', 'title', 'eventDate', 'endDate', 'notes', 'bodyArea', 'customBodyArea', 'initialIntensity', 'storedIntensity', 'illness', 'customIllness', 'provider', 'specialty', 'vaccineName', 'vaccineDose', 'pendingTitle', 'pendingDate', 'rescheduleDate', 'logDate', 'logIntensity', 'logNotes', 'recoveryDate', 'recoveryIntensity'];
+    public const FORM_FIELDS = ['editingId', 'loggingEventId', 'editingLogId', 'recoveringEventId', 'reschedulingTaskId', 'type', 'title', 'eventDate', 'endDate', 'notes', 'bodyAreas', 'customBodyArea', 'initialIntensity', 'storedIntensity', 'illness', 'customIllness', 'provider', 'specialty', 'facility', 'vaccineName', 'vaccineDose', 'pendingTitle', 'pendingDate', 'rescheduleDate', 'logDate', 'logIntensity', 'logNotes', 'recoveryDate', 'recoveryIntensity'];
 
     public function render()
     {
@@ -25,7 +25,7 @@ class HealthEditor extends HealthIndex
         return view('livewire.health.health-editor', [
             'defaults' => $defaults,
             'typeLabels' => HealthEvent::TYPES,
-            'bodyAreas' => HealthEvent::groupedBodyAreas(),
+            'bodyAreaOptions' => HealthEvent::groupedBodyAreas(),
             'commonIllnesses' => HealthEvent::COMMON_ILLNESSES,
             'intensityOptions' => array_combine(range(1, 10), range(1, 10)),
         ]);

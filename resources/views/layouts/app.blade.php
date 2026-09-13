@@ -88,6 +88,7 @@
                     @foreach ($section['items'] as $item)
                         @php($active = request()->routeIs(...$item['active']))
                         <a href="{{ route($item['route']) }}" wire:navigate class="lt-nav-item {{ $active ? 'is-active' : '' }}"
+                           @isset($item['module']) data-module="{{ $item['module'] }}" @endisset
                            @if($active) aria-current="page" @endif
                            @click="sidebarOpen = false">
                             <span class="lt-nav-item__icon"><i class="bi {{ $item['icon'] }}" aria-hidden="true"></i></span>

@@ -14,7 +14,8 @@ use Laravel\Mcp\Server\Tool;
 #[Description('Registra un evento de salud (cita, chequeo, procedimiento, síntoma, enfermedad o vacuna) para el usuario autenticado.')]
 class LogHealthEventTool extends Tool
 {
-    private const EVOLUTION_TYPES = ['symptom', 'illness'];
+    /** Tipos que exigen intensidad inicial (el procedimiento la admite de forma opcional). */
+    private const INTENSITY_REQUIRED_TYPES = ['symptom', 'illness'];
 
     public function handle(Request $request): Response
     {
@@ -24,11 +25,19 @@ class LogHealthEventTool extends Tool
             'event_date' => ['required', 'date'],
             'notes' => ['nullable', 'string', 'max:4000'],
             'initial_intensity' => ['nullable', 'integer', 'between:1,10'],
+            'body_areas' => ['nullable', 'string', 'max:500'],
+            'provider' => ['nullable', 'string', 'max:120'],
+            'facility' => ['nullable', 'string', 'max:120'],
         ]);
 
-        $tracksEvolution = in_array($data['type'], self::EVOLUTION_TYPES, true);
+        $areas = array_values(array_unique(array_filter(array_map('trim', explode(',', $data['body_areas'] ?? '')))));
+        if ($unknown = array_diff($areas, array_keys(HealthEvent::BODY_AREAS))) {
+            return Response::error('Zonas del cuerpo desconocidas: '.implode(', ', $unknown).'. Usa: '.implode(', ', array_keys(HealthEvent::BODY_AREAS)).'.');
+        }
 
-        if ($tracksEvolution && ! isset($data['initial_intensity'])) {
+        $tracksEvolution = in_array($data['type'], HealthEvent::EVOLUTION_TYPES, true);
+
+        if (in_array($data['type'], self::INTENSITY_REQUIRED_TYPES, true) && ! isset($data['initial_intensity'])) {
             return Response::error('Los eventos de tipo "symptom" o "illness" requieren "initial_intensity" (1-10).');
         }
 
@@ -37,9 +46,14 @@ class LogHealthEventTool extends Tool
             'title' => trim($data['title']),
             'event_date' => $data['event_date'],
             'notes' => $data['notes'] ?? null,
+            'details' => array_filter([
+                'body_areas' => in_array($data['type'], HealthEvent::BODY_AREA_TYPES, true) && $areas !== [] ? $areas : null,
+                'provider' => trim($data['provider'] ?? '') ?: null,
+                'facility' => trim($data['facility'] ?? '') ?: null,
+            ]) ?: null,
         ]);
 
-        if ($tracksEvolution) {
+        if ($tracksEvolution && isset($data['initial_intensity']) && ! $event->event_date->isFuture()) {
             $event->logs()->create([
                 'date' => $event->event_date,
                 'intensity' => $data['initial_intensity'],
@@ -65,7 +79,13 @@ class LogHealthEventTool extends Tool
             'notes' => $schema->string()
                 ->description('Notas adicionales.'),
             'initial_intensity' => $schema->integer()
-                ->description('Intensidad inicial (1-10). Requerido si el tipo es "symptom" o "illness".'),
+                ->description('Intensidad inicial (1-10). Requerido si el tipo es "symptom" o "illness"; opcional para "procedure" (molestia de la recuperación).'),
+            'body_areas' => $schema->string()
+                ->description('Zonas del cuerpo separadas por comas para "symptom", "illness" o "procedure" (p. ej. "head,mouth_throat"). Claves: '.implode(', ', array_keys(HealthEvent::BODY_AREAS)).'.'),
+            'provider' => $schema->string()
+                ->description('Profesional o cirujano (citas, chequeos y procedimientos).'),
+            'facility' => $schema->string()
+                ->description('Centro o clínica (citas, chequeos y procedimientos).'),
         ];
     }
 }

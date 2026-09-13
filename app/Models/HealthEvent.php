@@ -24,6 +24,12 @@ class HealthEvent extends Model
 
     public const SCHEDULED_TYPES = ['appointment', 'checkup', 'procedure'];
 
+    /** Tipos con seguimiento diario de intensidad y recuperación. */
+    public const EVOLUTION_TYPES = ['symptom', 'illness', 'procedure'];
+
+    /** Tipos que se relacionan con zonas del cuerpo (y aparecen en el mapa corporal). */
+    public const BODY_AREA_TYPES = ['symptom', 'illness', 'procedure'];
+
     /** Zonas del cuerpo. Las que no están en `OFF_MAP_BODY_AREAS` se dibujan en el mapa corporal. */
     public const BODY_AREAS = [
         'head' => 'Cabeza',
@@ -139,6 +145,27 @@ class HealthEvent extends Model
             str_starts_with($area, 'knee_') || str_starts_with($area, 'leg_') => 'bi-activity',
             default => 'bi-bandaid',
         };
+    }
+
+    /**
+     * Zonas del cuerpo del evento. Acepta el formato antiguo de una sola zona.
+     *
+     * @return list<string>
+     */
+    public function bodyAreas(): array
+    {
+        $details = $this->details ?? [];
+        $areas = $details['body_areas'] ?? (isset($details['body_area']) ? [$details['body_area']] : []);
+
+        return array_values(array_unique(array_map(
+            fn (string $area) => array_key_exists($area, self::BODY_AREAS) ? $area : 'other',
+            array_filter(array_map('strval', (array) $areas), 'filled'),
+        )));
+    }
+
+    public static function bodyAreasLabel(array $areas, ?string $customArea = null): ?string
+    {
+        return $areas === [] ? null : implode(', ', array_map(fn (string $area) => self::bodyAreaLabel($area, $customArea), $areas));
     }
 
     public static function bodyAreaLabel(?string $area, ?string $customArea = null): ?string

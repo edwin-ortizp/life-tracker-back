@@ -1,15 +1,15 @@
-@props(['tabs' => [], 'preserve' => []])
+@props(['tabs' => [], 'preserve' => [], 'label' => 'Vistas del módulo'])
 
 @php
     $query = \Illuminate\Support\Arr::only(request()->query(), $preserve);
 @endphp
 
-<nav class="md-module-tabs" aria-label="Vistas del módulo">
+<nav class="md-module-tabs" aria-label="{{ $label }}">
     <div class="md-module-tabs__track">
         @foreach ($tabs as $tab)
             @php
                 $active = request()->routeIs(...($tab['active'] ?? [$tab['route']]));
-                $href = route($tab['route'], $query);
+                $href = route($tab['route'], array_merge($tab['params'] ?? [], $query));
             @endphp
             <a href="{{ $href }}" wire:navigate class="md-module-tab {{ $active ? 'is-active' : '' }}" @if($active) aria-current="page" @endif>
                 <i class="bi {{ $tab['icon'] ?? 'bi-circle' }}" aria-hidden="true"></i>

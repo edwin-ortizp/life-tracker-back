@@ -1,0 +1,29 @@
+{% from '@project/components/life-shell.html.jinja' import shell, header, metric %}
+{% from '@project/components/catalog/plan-row.html.jinja' import plan_dialogs %}
+{% call shell('plans', 'Heladería Popsy', 'bi-cup-straw') %}
+{{ header('Heladería Popsy', '', 'bi-cup-straw', '/plans-index') }}
+<section class="lt-metrics">{{ metric('Visitas','8') }}{{ metric('Última vez','Hace 3 meses','warning') }}{{ metric('Personas','3','success') }}</section>
+<section class="lt-grid-main">
+  <div class="lt-stack">
+    <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-clock-history"></i><h3>Historial</h3><button class="lt-button" type="button" data-lt-toggle="plan-done"><i class="bi bi-check2-circle"></i> Registrar visita</button></div><div class="lt-panel__body">
+      <div class="lt-timeline">
+        {% for date, who, note in [('14 jun. 2026','Camila Rojas','Probamos el de maracuyá; el mejor hasta ahora.'),('2 may. 2026','María Ortiz, Julián Ortiz',''),('21 mar. 2026','Camila Rojas','Después del cine.'),('8 feb. 2026','Familia','Cumpleaños de mamá.'),('30 dic. 2025','Camila Rojas','')] %}
+        <div class="lt-timeline__item"><span class="lt-timeline__dot"></span><div><strong>{{ date }}</strong><span><i class="bi bi-people" aria-hidden="true"></i> {{ who }}</span>{% if note %}<p>{{ note }}</p>{% endif %}</div></div>
+        {% endfor %}
+      </div>
+    </div></article>
+  </div>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-info-circle"></i><h3>Datos</h3><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-pencil"></i> Editar</button></div><div class="lt-panel__body">
+      <dl class="lt-dl"><div><dt>Estado</dt><dd><span class="lt-chip lt-chip--success">Pendiente</span></dd></div><div><dt>Tipo</dt><dd>Postres</dd></div><div><dt>Categoría</dt><dd>Gastronomía</dd></div><div><dt>Ciudad</dt><dd>Popayán</dd></div><div><dt>Dirección</dt><dd>Cra. 6 # 3-45, Centro</dd></div></dl>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-people"></i><h3>Personas asociadas</h3></div><div class="lt-panel__body"><div class="lt-list">
+      {% for initials, name, meta in [('CR','Camila Rojas','5 visitas · última hace 3 meses'),('MO','María Ortiz','2 visitas · última hace 4 meses'),('FA','Familia','1 visita · última hace 7 meses')] %}<button class="lt-list-item" type="button" data-lt-static-nav><span class="lt-avatar">{{ initials }}</span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ meta }}</span></div><i class="bi bi-chevron-right lt-list-item__trail" aria-hidden="true"></i></button>{% endfor %}
+    </div><button class="lt-button lt-button--text lt-link-share" type="button" data-lt-static-nav><i class="bi bi-person-plus"></i> Asociar persona</button></div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-link-45deg"></i><h3>Enlaces</h3></div><div class="lt-panel__body"><div class="lt-list">
+      {% for icon, title, meta in [('bi-instagram','@heladeriapopsy','Instagram'),('bi-geo-alt-fill','Popsy Centro','Google Maps')] %}<button class="lt-list-item" type="button" data-lt-static-nav><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ title }}</strong><span>{{ meta }}</span></div><i class="bi bi-box-arrow-up-right lt-list-item__trail" aria-hidden="true"></i></button>{% endfor %}
+    </div><button class="lt-button lt-button--text lt-link-share" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Compartir enlace</button></div></article>
+  </aside>
+</section>
+{{ plan_dialogs() }}
+{% endcall %}

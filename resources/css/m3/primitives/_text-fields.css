@@ -28,7 +28,10 @@
   appearance: none;
 }
 
-.md-text-field > textarea {
+/* `textarea.md-field__control` iguala la especificidad de la regla base: sin él, el
+   `padding: 0 16px` común pega el texto al borde superior, debajo de la etiqueta. */
+.md-text-field > textarea,
+.md-text-field > textarea.md-field__control {
   min-height: 120px;
   padding: 16px;
   resize: vertical;
@@ -135,6 +138,9 @@
 .md-multi-select__option:hover { background: var(--md-sys-color-surface-container); }
 .md-multi-select__option input { width: 18px; height: 18px; margin: 0; accent-color: var(--md-module-accent, var(--md-sys-color-primary)); cursor: pointer; }
 .md-multi-select__option-label { cursor: pointer; }
+.md-multi-select__group { display: block; padding: 10px 16px 4px; color: var(--md-sys-color-on-surface-variant); font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.md-multi-select__group:not(:first-child) { margin-top: 4px; border-top: 1px solid var(--md-sys-color-outline-variant); }
+.md-text-field.md-multi-select > .md-supporting-text { margin-top: 4px; }
 
 /* Checkbox M3 style */
 .md-checkbox {

@@ -87,7 +87,7 @@ class HealthIndex extends Component
 
     public string $notes = '';
 
-    public string $bodyArea = '';
+    public array $bodyAreas = [];
 
     public string $customBodyArea = '';
 
@@ -102,6 +102,8 @@ class HealthIndex extends Component
     public string $provider = '';
 
     public string $specialty = '';
+
+    public string $facility = '';
 
     public string $vaccineName = '';
 
@@ -135,7 +137,7 @@ class HealthIndex extends Component
         if (is_string($area) && array_key_exists($area, HealthEvent::BODY_AREAS)) {
             $this->openForm();
             $this->type = 'symptom';
-            $this->bodyArea = $area;
+            $this->bodyAreas = [$area];
         } elseif (request()->boolean('new')) {
             $this->openForm();
         }
@@ -191,15 +193,16 @@ class HealthIndex extends Component
             $this->endDate = $event->end_date?->toDateString();
             $this->notes = $event->notes ?? '';
             $details = $event->details ?? [];
-            $storedArea = $details['body_area'] ?? '';
-            $this->bodyArea = array_key_exists($storedArea, HealthEvent::BODY_AREAS) ? $storedArea : ($storedArea === '' ? '' : 'other');
-            $this->customBodyArea = $details['body_area_note'] ?? ($this->bodyArea === 'other' ? $storedArea : '');
+            $this->bodyAreas = $event->bodyAreas();
+            $storedArea = (string) ($details['body_area'] ?? '');
+            $this->customBodyArea = $details['body_area_note'] ?? (in_array('other', $this->bodyAreas, true) && ! array_key_exists($storedArea, HealthEvent::BODY_AREAS) ? $storedArea : '');
             $this->storedIntensity = $details['severity'] ?? null;
             $storedIllness = $details['condition'] ?? '';
             $this->illness = array_key_exists($storedIllness, HealthEvent::COMMON_ILLNESSES) ? $storedIllness : ($storedIllness === '' ? '' : 'other');
             $this->customIllness = $details['condition_note'] ?? ($this->illness === 'other' ? $storedIllness : '');
             $this->provider = $details['provider'] ?? '';
             $this->specialty = $details['specialty'] ?? '';
+            $this->facility = $details['facility'] ?? '';
             $this->vaccineName = $details['vaccine_name'] ?? '';
             $this->vaccineDose = $details['dose'] ?? '';
         }
@@ -225,7 +228,7 @@ class HealthIndex extends Component
             $event = $this->editingId ? HealthEvent::findOrFail($this->editingId) : HealthEvent::create($attributes);
             if ($this->editingId) {
                 $event->update($attributes);
-            } elseif ($this->tracksEvolution($event)) {
+            } elseif ($this->tracksEvolution($event) && filled($data['initialIntensity'] ?? null) && ! $event->event_date->isFuture()) {
                 $event->logs()->create(['date' => $event->event_date, 'intensity' => $data['initialIntensity']]);
             }
             if (in_array($event->type, HealthEvent::SCHEDULED_TYPES, true) && $event->event_date->isFuture()) {
@@ -245,7 +248,7 @@ class HealthIndex extends Component
     public function openLogForm(string $eventId): void
     {
         $event = HealthEvent::findOrFail($eventId);
-        abort_unless($this->tracksEvolution($event) && ! $event->end_date, 404);
+        abort_unless($this->tracksEvolution($event) && ! $event->end_date && ! $event->event_date->isFuture(), 404);
         $this->loggingEventId = $event->id;
         $this->editingLogId = null;
         $this->logDate = today()->toDateString();
@@ -259,7 +262,7 @@ class HealthIndex extends Component
     {
         $data = $this->validate(['logDate' => ['required', 'date'], 'logIntensity' => ['required', 'integer', 'between:1,10'], 'logNotes' => ['nullable', 'string', 'max:1000']]);
         $event = HealthEvent::findOrFail($this->loggingEventId);
-        abort_unless($this->tracksEvolution($event) && ! $event->end_date, 404);
+        abort_unless($this->tracksEvolution($event) && ! $event->end_date && ! $event->event_date->isFuture(), 404);
         if ($data['logDate'] < $event->event_date->toDateString()) {
             $this->addError('logDate', 'La fecha no puede ser anterior al inicio del malestar.');
 
@@ -313,7 +316,7 @@ class HealthIndex extends Component
     public function openRecoveryForm(string $eventId): void
     {
         $event = HealthEvent::findOrFail($eventId);
-        abort_unless($this->tracksEvolution($event) && ! $event->end_date, 404);
+        abort_unless($this->tracksEvolution($event) && ! $event->end_date && ! $event->event_date->isFuture(), 404);
         $this->recoveringEventId = $event->id;
         $this->recoveryDate = today()->toDateString();
         $this->recoveryIntensity = $event->logs()->whereDate('date', $this->recoveryDate)->value('intensity');
@@ -340,7 +343,7 @@ class HealthIndex extends Component
     {
         $data = $this->validate(['recoveryDate' => ['required', 'date'], 'recoveryIntensity' => ['nullable', 'integer', 'between:1,10']]);
         $event = HealthEvent::findOrFail($this->recoveringEventId);
-        abort_unless($this->tracksEvolution($event) && ! $event->end_date, 404);
+        abort_unless($this->tracksEvolution($event) && ! $event->end_date && ! $event->event_date->isFuture(), 404);
         if ($data['recoveryDate'] < $event->event_date->toDateString()) {
             $this->addError('recoveryDate', 'La recuperación no puede ser anterior al inicio.');
 
@@ -445,7 +448,7 @@ class HealthIndex extends Component
             'ranges' => self::RANGES,
             'statuses' => self::STATUSES,
             'illnessPeriods' => self::ILLNESS_PERIODS,
-            'bodyAreas' => HealthEvent::groupedBodyAreas(),
+            'bodyAreaOptions' => HealthEvent::groupedBodyAreas(),
             'commonIllnesses' => HealthEvent::COMMON_ILLNESSES,
             'nextEvent' => $nextEvent,
             'upcomingCount' => HealthEvent::query()->whereDate('event_date', '>', today())->count(),
@@ -530,13 +533,15 @@ class HealthIndex extends Component
         }
 
         if ($this->zone !== '') {
-            $query->where('details->body_area', $this->zone);
+            $query->where(fn (Builder $zone) => $zone
+                ->whereJsonContains('details->body_areas', $this->zone)
+                ->orWhere('details->body_area', $this->zone));
         }
 
         if ($this->status === 'active') {
-            $query->whereIn('type', ['symptom', 'illness'])->whereNull('end_date');
+            $query->whereIn('type', HealthEvent::EVOLUTION_TYPES)->whereNull('end_date');
         } elseif ($this->status === 'recovered') {
-            $query->whereIn('type', ['symptom', 'illness'])->whereNotNull('end_date');
+            $query->whereIn('type', HealthEvent::EVOLUTION_TYPES)->whereNotNull('end_date');
         }
 
         return $query;
@@ -585,20 +590,22 @@ class HealthIndex extends Component
     private function eventRules(): array
     {
         $rules = ['type' => ['required', Rule::in(array_keys(HealthEvent::TYPES))], 'title' => ['required', 'string', 'max:160'], 'eventDate' => ['required', 'date'], 'endDate' => ['nullable', 'date', 'after_or_equal:eventDate'], 'notes' => ['nullable', 'string', 'max:4000']];
-        if (in_array($this->type, ['symptom', 'illness'], true) && ! $this->editingId) {
-            $rules['initialIntensity'] = ['required', 'integer', 'between:1,10'];
+        if (in_array($this->type, HealthEvent::EVOLUTION_TYPES, true) && ! $this->editingId) {
+            $rules['initialIntensity'] = [$this->type === 'procedure' ? 'nullable' : 'required', 'integer', 'between:1,10'];
         }
-        if ($this->type === 'symptom') {
-            $rules['bodyArea'] = ['required', Rule::in(array_keys(HealthEvent::BODY_AREAS))];
-            $rules['customBodyArea'] = ['required_if:bodyArea,other', 'nullable', 'string', 'max:100'];
+        if (in_array($this->type, HealthEvent::BODY_AREA_TYPES, true)) {
+            $rules['bodyAreas'] = $this->type === 'symptom' ? ['required', 'array', 'min:1'] : ['nullable', 'array'];
+            $rules['bodyAreas.*'] = ['string', Rule::in(array_keys(HealthEvent::BODY_AREAS))];
+            $rules['customBodyArea'] = [in_array('other', $this->bodyAreas, true) ? 'required' : 'nullable', 'string', 'max:100'];
         }
         if ($this->type === 'illness') {
             $rules['illness'] = ['required', Rule::in(array_keys(HealthEvent::COMMON_ILLNESSES))];
             $rules['customIllness'] = ['required_if:illness,other', 'nullable', 'string', 'max:120'];
         }
-        if (in_array($this->type, ['appointment', 'checkup'], true)) {
+        if (in_array($this->type, HealthEvent::SCHEDULED_TYPES, true)) {
             $rules['provider'] = ['nullable', 'string', 'max:120'];
             $rules['specialty'] = ['nullable', 'string', 'max:120'];
+            $rules['facility'] = ['nullable', 'string', 'max:120'];
         }
         if ($this->type === 'vaccination') {
             $rules['vaccineName'] = ['nullable', 'string', 'max:120'];
@@ -610,10 +617,12 @@ class HealthIndex extends Component
 
     private function detailsFor(string $type): ?array
     {
+        $areas = in_array($type, HealthEvent::BODY_AREA_TYPES, true) ? array_values(array_unique($this->bodyAreas)) : [];
+        $areaDetails = array_filter(['body_areas' => $areas ?: null, 'body_area_note' => in_array('other', $areas, true) ? trim($this->customBodyArea) : null]);
         $details = match ($type) {
-            'symptom' => array_filter(['body_area' => $this->bodyArea, 'body_area_note' => $this->bodyArea === 'other' ? trim($this->customBodyArea) : null, 'severity' => $this->storedIntensity], fn ($value) => $value !== null && $value !== ''),
-            'illness' => array_filter(['condition' => $this->illness, 'condition_note' => $this->illness === 'other' ? trim($this->customIllness) : null]),
-            'appointment', 'checkup' => array_filter(['provider' => trim($this->provider), 'specialty' => trim($this->specialty)]),
+            'symptom' => array_filter([...$areaDetails, 'severity' => $this->storedIntensity], fn ($value) => $value !== null && $value !== ''),
+            'illness' => array_filter(['condition' => $this->illness, 'condition_note' => $this->illness === 'other' ? trim($this->customIllness) : null, ...$areaDetails]),
+            'appointment', 'checkup', 'procedure' => array_filter(['provider' => trim($this->provider), 'specialty' => trim($this->specialty), 'facility' => trim($this->facility), ...$areaDetails]),
             'vaccination' => array_filter(['vaccine_name' => trim($this->vaccineName), 'dose' => trim($this->vaccineDose)]), default => [],
         };
 
@@ -622,7 +631,7 @@ class HealthIndex extends Component
 
     private function tracksEvolution(HealthEvent $event): bool
     {
-        return in_array($event->type, ['symptom', 'illness'], true);
+        return in_array($event->type, HealthEvent::EVOLUTION_TYPES, true);
     }
 
     private function resetEventForm(): void
@@ -633,7 +642,7 @@ class HealthIndex extends Component
         $this->eventDate = '';
         $this->endDate = null;
         $this->notes = '';
-        $this->bodyArea = '';
+        $this->bodyAreas = [];
         $this->customBodyArea = '';
         $this->initialIntensity = null;
         $this->storedIntensity = null;
@@ -641,6 +650,7 @@ class HealthIndex extends Component
         $this->customIllness = '';
         $this->provider = '';
         $this->specialty = '';
+        $this->facility = '';
         $this->vaccineName = '';
         $this->vaccineDose = '';
     }

@@ -70,6 +70,11 @@ class Relationship extends Model
         return $this->belongsTo(Circle::class);
     }
 
+    public function plans(): BelongsToMany
+    {
+        return $this->belongsToMany(Plan::class);
+    }
+
     public function relationshipEvents(): HasMany
     {
         return $this->hasMany(RelationshipEvent::class);

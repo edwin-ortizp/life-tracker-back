@@ -3,32 +3,33 @@
 return [
     'navigation' => [
         'overview' => ['label' => 'Vista general', 'icon' => 'bi-grid-1x2', 'items' => [
-            ['label' => 'Mi día', 'route' => 'home', 'icon' => 'bi-sunrise', 'active' => ['home']],
-            ['label' => 'Estadísticas', 'route' => 'statistics', 'icon' => 'bi-bar-chart', 'active' => ['statistics*']],
-            ['label' => 'Ajustes', 'route' => 'settings', 'icon' => 'bi-gear', 'active' => ['settings*']],
+            ['label' => 'Mi día', 'route' => 'home', 'module' => 'home', 'icon' => 'bi-sunrise', 'active' => ['home']],
+            ['label' => 'Estadísticas', 'route' => 'statistics', 'module' => 'statistics', 'icon' => 'bi-bar-chart', 'active' => ['statistics*']],
+            ['label' => 'Ajustes', 'route' => 'settings', 'module' => 'settings', 'icon' => 'bi-gear', 'active' => ['settings*']],
         ]],
-        'wellbeing' => ['label' => 'Bienestar', 'icon' => 'bi-heart-pulse', 'items' => [
-            ['label' => 'Hábitos', 'route' => 'habits', 'icon' => 'bi-check2-square', 'active' => ['habits*']],
-            ['label' => 'Hidratación', 'route' => 'water.daily', 'icon' => 'bi-droplet', 'active' => ['water*']],
-            ['label' => 'Ejercicio', 'route' => 'exercise', 'icon' => 'bi-activity', 'active' => ['exercise*']],
-            ['label' => 'Salud', 'route' => 'health', 'icon' => 'bi-heart-pulse', 'active' => ['health*']],
-            ['label' => 'Ánimo y energía', 'route' => 'mood', 'icon' => 'bi-emoji-smile', 'active' => ['mood*']],
-            ['label' => 'Hábitos a evitar', 'route' => 'negative-habits', 'icon' => 'bi-shield-check', 'active' => ['negative-habits*']],
+        'body' => ['label' => 'Salud y cuerpo', 'icon' => 'bi-heart-pulse', 'items' => [
+            ['label' => 'Salud', 'route' => 'health', 'module' => 'health', 'icon' => 'bi-heart-pulse', 'active' => ['health*']],
+            ['label' => 'Ejercicio', 'route' => 'exercise', 'module' => 'exercise', 'icon' => 'bi-activity', 'active' => ['exercise*']],
+            ['label' => 'Hidratación', 'route' => 'water.daily', 'module' => 'water', 'icon' => 'bi-droplet', 'active' => ['water*']],
+            ['label' => 'Comidas', 'route' => 'meals.weekly', 'module' => 'meals', 'archetype' => 'dashboard', 'icon' => 'bi-egg-fried', 'active' => ['meals*']],
+        ]],
+        'habits' => ['label' => 'Hábitos', 'icon' => 'bi-check2-square', 'items' => [
+            ['label' => 'Hábitos', 'route' => 'habits', 'module' => 'habits', 'icon' => 'bi-check2-square', 'active' => ['habits*']],
+            ['label' => 'Hábitos a evitar', 'route' => 'negative-habits', 'module' => 'negative-habits', 'icon' => 'bi-shield-check', 'active' => ['negative-habits*']],
         ]],
         'productivity' => ['label' => 'Productividad', 'icon' => 'bi-calendar-check', 'items' => [
-            ['label' => 'Tareas', 'route' => 'tasks.list', 'icon' => 'bi-list-task', 'active' => ['tasks*']],
-            ['label' => 'Pomodoro', 'route' => 'pomodoro', 'icon' => 'bi-stopwatch', 'active' => ['pomodoro*']],
-            ['label' => 'Objetivos', 'route' => 'goals', 'icon' => 'bi-flag', 'active' => ['goals*']],
-        ]],
-        'food' => ['label' => 'Alimentación', 'icon' => 'bi-egg-fried', 'items' => [
-            ['label' => 'Comidas', 'route' => 'meals.weekly', 'archetype' => 'dashboard', 'icon' => 'bi-egg-fried', 'active' => ['meals*']],
+            ['label' => 'Tareas', 'route' => 'tasks.list', 'module' => 'tasks', 'icon' => 'bi-list-task', 'active' => ['tasks*']],
+            ['label' => 'Pomodoro', 'route' => 'pomodoro', 'module' => 'pomodoro', 'icon' => 'bi-stopwatch', 'active' => ['pomodoro*']],
+            ['label' => 'Objetivos', 'route' => 'goals', 'module' => 'goals', 'icon' => 'bi-flag', 'active' => ['goals*']],
         ]],
         'life' => ['label' => 'Vida personal', 'icon' => 'bi-person-heart', 'items' => [
-            ['label' => 'Diario', 'route' => 'journal', 'icon' => 'bi-journal-text', 'active' => ['journal*']],
-            ['label' => 'Relaciones', 'route' => 'relationships', 'icon' => 'bi-people', 'active' => ['relationships*']],
+            ['label' => 'Diario', 'route' => 'journal', 'module' => 'journal', 'icon' => 'bi-journal-text', 'active' => ['journal*']],
+            ['label' => 'Relaciones', 'route' => 'relationships', 'module' => 'relationships', 'icon' => 'bi-people', 'active' => ['relationships*']],
+            ['label' => 'Planes', 'route' => 'plans', 'module' => 'plans', 'icon' => 'bi-map', 'active' => ['plans*']],
+            ['label' => 'Ánimo y energía', 'route' => 'mood', 'module' => 'mood', 'icon' => 'bi-emoji-smile', 'active' => ['mood*']],
         ]],
         'vehicles' => ['label' => 'Vehículos', 'icon' => 'bi-car-front', 'items' => [
-            ['label' => 'Vehículos', 'route' => 'vehicles', 'icon' => 'bi-car-front', 'active' => ['vehicles*']],
+            ['label' => 'Vehículos', 'route' => 'vehicles', 'module' => 'vehicles', 'icon' => 'bi-car-front', 'active' => ['vehicles*']],
         ]],
     ],
     'home' => [
@@ -140,12 +141,21 @@ return [
         'archetype' => 'list',
         'title' => 'Relaciones', 'subtitle' => 'Personas, círculos y momentos que quieres cuidar.', 'icon' => 'bi-people',
         'patterns' => ['relationships*'],
+        // Solo la pestaña Planes de una persona aporta panel contextual.
+        'rail' => true,
         'preserve' => ['circle', 'status', 'archived', 'q', 'tag', 'category', 'period', 'month'],
         'tabs' => [
             ['label' => 'Relaciones', 'route' => 'relationships', 'icon' => 'bi-people', 'active' => ['relationships']],
             ['label' => 'Acontecimientos', 'route' => 'relationships.events', 'icon' => 'bi-calendar-event', 'active' => ['relationships.events']],
             ['label' => 'Cumpleaños', 'route' => 'relationships.birthdays', 'icon' => 'bi-cake2', 'active' => ['relationships.birthdays']],
         ],
+    ],
+    'plans' => [
+        'archetype' => 'list',
+        'title' => 'Planes', 'subtitle' => 'Lugares, actividades y experiencias para compartir.', 'icon' => 'bi-map',
+        'patterns' => ['plans*'],
+        'header' => false, 'rail' => true,
+        'preserve' => ['group', 'status', 'q', 'sort', 'city', 'types', 'circles', 'people'],
     ],
     'goals' => [
         'archetype' => 'list',

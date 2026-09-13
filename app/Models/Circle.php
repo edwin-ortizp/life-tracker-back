@@ -22,4 +22,9 @@ class Circle extends Model
     {
         return $this->hasMany(Relationship::class);
     }
+
+    public function plans()
+    {
+        return $this->belongsToMany(Plan::class);
+    }
 }

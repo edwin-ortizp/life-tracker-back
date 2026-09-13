@@ -208,12 +208,12 @@ class RelationshipModuleTest extends TestCase
     {
         $component = Livewire::test(RelationshipIndex::class)
             ->call('openCircleForm')
-            ->set('circleName', 'Familia')
+            ->set('circleName', 'Vecinos')
             ->set('circleFrequencyDays', 15)
             ->call('saveCircle')
             ->assertHasNoErrors();
 
-        $circle = Circle::firstWhere('name', 'Familia');
+        $circle = Circle::firstWhere('name', 'Vecinos');
         $this->assertSame(15, $circle->contact_frequency_days);
 
         $component->call('openTagForm')

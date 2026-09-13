@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Actions\SeedDefaultCircles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -38,6 +39,16 @@ class User extends Authenticatable
             'birth_date' => 'date',
             'daily_water_goal' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::created(fn (self $user) => SeedDefaultCircles::for($user));
+    }
+
+    public function plans()
+    {
+        return $this->hasMany(Plan::class);
     }
 
     public function exerciseTypes()

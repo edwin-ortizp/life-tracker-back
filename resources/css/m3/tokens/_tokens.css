@@ -78,6 +78,16 @@
   --md-accent-red: #B3261E;
   --md-accent-health: #C2185B;
   --md-accent-slate: #4A5C75;
+  --md-accent-crimson: #C62828;
+  --md-accent-ember: #E65100;
+  --md-accent-water: #0277BD;
+  --md-accent-lime: #558B2F;
+  --md-accent-deep-purple: #4527A0;
+  --md-accent-purple: #6A1B9A;
+  --md-accent-violet: #8E24AA;
+  --md-accent-grape: #7B1FA2;
+  --md-accent-magenta: #AD1457;
+  --md-accent-neutral-indigo: #3949AB;
 
   /* Módulo activo: valor por defecto, sobrescrito por [data-module]. */
   --md-module-accent: var(--md-accent-blue);
@@ -251,26 +261,29 @@ body {
 
 /* Acento por módulo — se aplica al contenedor de la pantalla con data-module.
  * Claves alineadas con config/modules.php. */
-[data-module='home'] { --md-module-accent: var(--md-accent-blue); }
-[data-module='habits'] { --md-module-accent: var(--md-accent-green); }
-[data-module='negative-habits'] { --md-module-accent: var(--md-accent-red); }
-[data-module='tasks'] { --md-module-accent: var(--md-accent-indigo); }
-[data-module='water'] { --md-module-accent: var(--md-accent-cyan); }
-[data-module='exercise'] { --md-module-accent: var(--md-accent-orange); }
-[data-module='meals'] { --md-module-accent: var(--md-accent-amber); }
-[data-module='health'] {
-  /* Familia rojo-fucsia de Salud: acento y acciones del módulo; superficies y textos siguen neutros. */
-  --md-module-accent: var(--md-accent-health);
-  --md-module-action: var(--md-accent-health);
-  --md-module-on-action: #FFFFFF;
-  --md-module-action-container: color-mix(in srgb, var(--md-accent-health) 14%, var(--md-sys-color-surface-container-lowest));
-  --md-module-on-action-container: color-mix(in srgb, var(--md-accent-health) 82%, var(--md-sys-color-on-surface));
-}
-[data-module='mood'] { --md-module-accent: var(--md-accent-orange); }
-[data-module='journal'] { --md-module-accent: var(--md-accent-teal); }
-[data-module='goals'] { --md-module-accent: var(--md-accent-indigo); }
-[data-module='relationships'] { --md-module-accent: var(--md-accent-orange); }
-[data-module='vehicles'] { --md-module-accent: var(--md-accent-slate); }
-[data-module='pomodoro'] { --md-module-accent: var(--md-accent-red); }
-[data-module='statistics'] { --md-module-accent: var(--md-accent-blue); }
+/* Familias por categoría del menú (tabla en docs/design-system.md):
+ * Salud y cuerpo en rojo, naranja, azul agua y verde; Vida personal en morados. */
+[data-module='home'] { --md-module-accent: var(--md-accent-neutral-indigo); }
+[data-module='statistics'] { --md-module-accent: var(--md-accent-neutral-indigo); }
 [data-module='settings'] { --md-module-accent: var(--md-accent-slate); }
+[data-module='health'] {
+  /* Familia roja de Salud: acento y acciones del módulo; superficies y textos siguen neutros. */
+  --md-module-accent: var(--md-accent-crimson);
+  --md-module-action: var(--md-accent-crimson);
+  --md-module-on-action: #FFFFFF;
+  --md-module-action-container: color-mix(in srgb, var(--md-accent-crimson) 14%, var(--md-sys-color-surface-container-lowest));
+  --md-module-on-action-container: color-mix(in srgb, var(--md-accent-crimson) 82%, var(--md-sys-color-on-surface));
+}
+[data-module='exercise'] { --md-module-accent: var(--md-accent-ember); }
+[data-module='water'] { --md-module-accent: var(--md-accent-water); }
+[data-module='meals'] { --md-module-accent: var(--md-accent-lime); }
+[data-module='habits'] { --md-module-accent: var(--md-accent-green); }
+[data-module='negative-habits'] { --md-module-accent: var(--md-accent-amber); }
+[data-module='tasks'] { --md-module-accent: var(--md-accent-indigo); }
+[data-module='pomodoro'] { --md-module-accent: var(--md-accent-deep-purple); }
+[data-module='goals'] { --md-module-accent: var(--md-accent-teal); }
+[data-module='journal'] { --md-module-accent: var(--md-accent-purple); }
+[data-module='relationships'] { --md-module-accent: var(--md-accent-violet); }
+[data-module='plans'] { --md-module-accent: var(--md-accent-magenta); }
+[data-module='mood'] { --md-module-accent: var(--md-accent-grape); }
+[data-module='vehicles'] { --md-module-accent: var(--md-accent-slate); }

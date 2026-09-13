@@ -74,6 +74,10 @@
 .lt-nav-item.is-active .lt-nav-item__count { background: color-mix(in srgb, var(--md-sys-color-on-primary-container) 12%, transparent); color: var(--md-sys-color-on-primary-container); }
 .lt-nav-item > .lt-nav-item__dot { flex: 0 0 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--md-sys-color-error); }
 
+/* Cada ítem del menú toma el acento de su propio módulo (data-module); el activo se tiñe de ese color. */
+.lt-nav-item[data-module].is-active { background: color-mix(in srgb, var(--md-module-accent) 14%, var(--md-sys-color-surface-container-lowest)); color: color-mix(in srgb, var(--md-module-accent) 82%, var(--md-sys-color-on-surface)); }
+.lt-nav-item[data-module].is-active .lt-nav-item__icon { color: var(--md-module-accent); }
+
 /* Sub-elementos: los vehículos, las metas o los círculos cuelgan de su módulo. */
 .lt-nav-sub { display: grid; gap: 1px; margin: 1px 0 4px; padding-left: 22px; }
 .lt-nav-sub .lt-nav-item { min-height: 36px; font-size: .8rem; font-weight: 500; }
@@ -98,6 +102,8 @@
   .lt-frame.is-rail .lt-nav-item:hover .lt-nav-item__icon { background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent); }
   .lt-frame.is-rail .lt-nav-item.is-active { background: transparent; color: var(--md-sys-color-on-surface); }
   .lt-frame.is-rail .lt-nav-item.is-active .lt-nav-item__icon { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+  .lt-frame.is-rail .lt-nav-item[data-module].is-active { background: transparent; color: var(--md-sys-color-on-surface); }
+  .lt-frame.is-rail .lt-nav-item[data-module].is-active .lt-nav-item__icon { background: color-mix(in srgb, var(--md-module-accent) 16%, var(--md-sys-color-surface-container-lowest)); color: var(--md-module-accent); }
   .lt-frame.is-rail .lt-nav-item__count, .lt-frame.is-rail .lt-nav-item__dot { position: absolute; top: 4px; right: 12px; }
 }
 

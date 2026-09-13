@@ -1,5 +1,5 @@
 {% from '@project/components/life-shell.html.jinja' import shell, relationship_tabs, header, dialog %}
-{% from '@project/components/catalog/plan-row.html.jinja' import plan_row %}
+{% from '@project/components/catalog/plan-row.html.jinja' import plan_row, plan_dialogs %}
 {% call shell('relationships', 'Camila Rojas', 'bi-person') %}
 {{ header('Camila Rojas', '', 'bi-person', '/relationships-index') }}
 {{ relationship_tabs('/relationships-plans') }}
@@ -57,39 +57,6 @@
     </div><button class="lt-button lt-button--text lt-link-share" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Compartir enlace</button></div></article>
   </aside>
 </section>
-<button class="lt-fab" type="button" data-lt-toggle="relationships-plan-new" aria-haspopup="dialog" aria-label="Agregar plan"><i class="bi bi-plus-lg"></i><span>Agregar plan</span></button>
-{% call dialog('relationships-plan-new', 'Agregar plan', 'Guardar', 'bi-map', [('basic','Información básica','bi-file-earmark-text'),('people','Personas','bi-people'),('links','Enlaces','bi-link-45deg'),('summary','Resumen','bi-check2-circle')]) %}
-<section class="lt-dialog__section" data-section="basic">
-  <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
-  <div class="lt-form">
-    <label class="lt-field lt-form--full"><span>Nombre <b>*</b></span><input type="text" placeholder="Ej. Heladería Popsy"></label>
-    <label class="lt-field lt-field--icon"><span>Tipo <b>*</b></span><i class="bi bi-tag" aria-hidden="true"></i><select>{% for t in ['Restaurante','Viaje','Actividad','Cine','Concierto','Evento','Lugar','Postres','Museo','Naturaleza','Experiencia'] %}<option>{{ t }}</option>{% endfor %}</select></label>
-    <label class="lt-field lt-field--icon"><span>Categoría</span><i class="bi bi-bookmark" aria-hidden="true"></i><select>{% for t in ['Gastronomía','Música','Entretenimiento','Aire libre','Cultura'] %}<option>{{ t }}</option>{% endfor %}</select></label>
-    <label class="lt-field lt-field--icon"><span>Ciudad</span><i class="bi bi-geo-alt" aria-hidden="true"></i><input type="text" value="Popayán"></label>
-    <label class="lt-field"><span>Fecha (opcional)</span><input type="date"></label>
-  </div>
-</section>
-<section class="lt-dialog__section" data-section="people" hidden>
-  <header class="lt-dialog__section-head"><h3>Personas</h3></header>
-  <div class="lt-field"><span id="plan-people-label">Con quién</span>
-    <div class="lt-multiselect"><button class="lt-multiselect__trigger" type="button" data-lt-toggle="plan-people-options" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="plan-people-label"><span>Camila Rojas</span><i class="bi bi-chevron-down"></i></button>
-      <div class="lt-multiselect__panel" id="plan-people-options" role="listbox" aria-multiselectable="true" hidden>{% for r, on in [('Camila Rojas',true),('María Ortiz',false),('Daniel Pérez',false),('Laura Gómez',false)] %}<label class="lt-multiselect__option"><input type="checkbox"{% if on %} checked{% endif %}> {{ r }}</label>{% endfor %}</div>
-    </div>
-  </div>
-</section>
-<section class="lt-dialog__section" data-section="links" hidden>
-  <header class="lt-dialog__section-head"><h3>Enlaces</h3></header>
-  <div class="lt-form"><label class="lt-field lt-field--icon lt-form--full"><span>URL</span><i class="bi bi-link-45deg" aria-hidden="true"></i><input type="url" placeholder="Instagram, TikTok, Google Maps o cualquier web"></label></div>
-</section>
-<section class="lt-dialog__section" data-section="summary" hidden>
-  <header class="lt-dialog__section-head"><h3>Resumen</h3></header>
-  <dl class="lt-dl">{% for k, val in [('Nombre','—'),('Tipo','Restaurante'),('Ciudad','Popayán'),('Fecha','Sin fecha'),('Personas','Camila Rojas'),('Enlaces','Ninguno')] %}<div><dt>{{ k }}</dt><dd>{{ val }}</dd></div>{% endfor %}</dl>
-</section>
-{% endcall %}
-{% call dialog('relationships-plan-done', 'Registrar plan realizado', 'Guardar', 'bi-check2-circle') %}
-<div class="lt-form">
-  <label class="lt-field lt-form--full"><span>Fecha <b>*</b></span><input type="date" value="2026-09-12"></label>
-  <label class="lt-field lt-form--full"><span>Comentario</span><textarea placeholder="Opcional"></textarea></label>
-</div>
-{% endcall %}
+<button class="lt-fab" type="button" data-lt-toggle="plan-new" aria-haspopup="dialog" aria-label="Agregar plan"><i class="bi bi-plus-lg"></i><span>Agregar plan</span></button>
+{{ plan_dialogs('Camila Rojas') }}
 {% endcall %}

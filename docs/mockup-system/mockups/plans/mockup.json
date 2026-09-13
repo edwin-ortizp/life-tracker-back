@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "plans",
+  "version": "1.0.0",
+  "title": "Planes",
+  "pages": [
+    {
+      "id": "main",
+      "template": "pages/main.html.jinja",
+      "screens": [
+        "plans-index",
+        "plans-show"
+      ],
+      "output": "plans.html"
+    }
+  ],
+  "screens": {
+    "plans-index": {
+      "template": "screens/plans-index.html.jinja",
+      "title": "Planes",
+      "bodyClass": ""
+    },
+    "plans-show": {
+      "template": "screens/plans-show.html.jinja",
+      "title": "Detalle de plan",
+      "bodyClass": ""
+    }
+  },
+  "routes": [
+    {
+      "path": "/plans-index",
+      "screen": "plans-index"
+    },
+    {
+      "path": "/plans-show",
+      "screen": "plans-show"
+    }
+  ],
+  "datasets": {
+    "include": [
+      "empty",
+      "alternate"
+    ],
+    "default": "empty",
+    "switcher": true,
+    "changePolicy": "reset"
+  },
+  "roles": [
+    "reviewer"
+  ],
+  "defaultRole": "reviewer",
+  "entryRoute": "/plans-index",
+  "entryScript": "scripts/entry.js",
+  "styles": [
+    "@project/project-assets/mockups.css"
+  ],
+  "runtime": {
+    "persistence": "none",
+    "resetEnabled": true
+  },
+  "build": {
+    "selfContained": true,
+    "offline": true,
+    "externalResources": "forbid",
+    "externalNavigation": "forbid",
+    "maxOutputBytes": 10000000
+  }
+}

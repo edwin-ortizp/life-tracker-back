@@ -24,7 +24,7 @@ class ModuleExperienceTest extends TestCase
             '/exercise', '/health', '/health/body', '/vehicles', '/habits', '/habits/weekly', '/mood',
             '/journal', '/journal/life', '/journal/life/week?week=2026-W28', '/pomodoro', '/meals/weekly',
             '/tasks/list', '/tasks/gantt', '/tasks/flow', '/tasks/kanban', '/tasks/planning', '/tasks/progress',
-            '/relationships', '/goals', '/statistics', '/negative-habits', '/settings',
+            '/relationships', '/plans', '/goals', '/statistics', '/negative-habits', '/settings',
         ] as $url) {
             $response = $this->actingAs($user)->get($url)
                 ->assertOk()

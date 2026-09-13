@@ -1,0 +1,72 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs %}
+{% from '@project/components/catalog/plan-row.html.jinja' import plan_row, plan_dialogs %}
+{% call shell('plans', 'Planes', 'bi-map') %}
+{{ module_tabs([('Todos','/plans-index','bi-grid'),('Programados',None,'bi-calendar-event',true),('Historial',None,'bi-clock-history',true)], '/plans-index') }}
+{% set plans = [
+  {'variant':'pending','icon':'bi-egg-fried','title':'Restaurante La Cosecha','city':'Popayán','type':'Restaurante','category':'Gastronomía','status':'Pendiente','tone':'success','last':'hace 5 meses','visits':3,'people':['Camila','Familia','+1']},
+  {'variant':'scheduled','icon':'bi-music-note-beamed','title':'Concierto Morat','city':'Bogotá','type':'Concierto','category':'Música','status':'Programado','tone':'warning','date':'Dom, 15 nov. 2026','left':'Faltan 64 días','last':'nunca','visits':0,'people':['Camila']},
+  {'variant':'pending','icon':'bi-water','title':'Termales de Coconuco','city':'Coconuco','type':'Viaje','category':'Naturaleza','status':'Pendiente','tone':'success','last':'hace 1 año','visits':1,'people':['Camila','Amigos']},
+  {'variant':'pending','icon':'bi-film','title':'Ir al cine','city':'Popayán','type':'Cine','category':'Entretenimiento','status':'Pendiente','tone':'success','last':'hace 2 meses','visits':5,'people':['Camila']},
+  {'variant':'pending','icon':'bi-basket','title':'Hacer un picnic','city':'Popayán','type':'Actividad','category':'Aire libre','status':'Pendiente','tone':'success','last':'nunca','visits':0,'people':['Camila','+2']},
+  {'variant':'pending','icon':'bi-cup-straw','title':'Heladería Popsy','city':'Popayán','type':'Postres','category':'Gastronomía','status':'Pendiente','tone':'success','last':'hace 3 meses','visits':8,'people':['Camila','Familia']},
+  {'variant':'pending','icon':'bi-bank','title':'Museo Nacional','city':'Bogotá','type':'Museo','category':'Cultura','status':'Pendiente','tone':'success','last':'hace 1 año','visits':1,'people':['Familia']},
+  {'variant':'scheduled','icon':'bi-palette','title':'Exposición Van Gogh','city':'Bogotá','type':'Evento','category':'Arte','status':'Programado','tone':'warning','date':'Lun, 7 dic. 2026','left':'Faltan 86 días','last':'nunca','visits':0,'people':['Camila','María']},
+  {'variant':'pending','icon':'bi-airplane','title':'Cartagena','city':'Cartagena','type':'Viaje','category':'Playa','status':'Pendiente','tone':'success','last':'nunca','visits':0,'people':['Camila']},
+  {'variant':'pending','icon':'bi-dribbble','title':'Partido en el Pueblito Patojo','city':'Popayán','type':'Actividad','category':'Deporte','status':'Pendiente','tone':'success','last':'hace 3 semanas','visits':6,'people':['Daniel','Amigos']}
+] %}
+<section class="lt-grid-main">
+  <div class="lt-stack">
+    <div class="lt-section-head lt-plans__head lt-filter-anchor">
+      <div class="lt-chip-row" aria-label="Grupos de planes">{% for label, n, icon, sel in [('Todos',28,'bi-grid',true),('Lugares',12,'bi-geo-alt',false),('Actividades',6,'bi-stars',false),('Eventos',4,'bi-calendar-event',false),('Viajes',4,'bi-airplane',false),('Otros',2,'bi-three-dots',false)] %}<button class="lt-chip lt-chip--filter{% if sel %} is-selected{% endif %}" type="button" data-lt-static-nav{% if sel %} aria-pressed="true"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i> {{ label }} ({{ n }})</button>{% endfor %}</div>
+      <div class="lt-plans__actions">
+        <button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-shuffle"></i> Sorpréndeme</button>
+        <button class="lt-button lt-button--text lt-filter-button" type="button" data-lt-toggle="plans-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="plans-filters"><i class="bi bi-sliders"></i> Filtros<span class="lt-badge lt-badge--corner" data-lt-filter-count hidden>0</span></button>
+      </div>
+      <div class="lt-popover" id="plans-filters" role="dialog" aria-labelledby="plans-filters-title" hidden>
+        <div class="lt-popover__head"><h4 id="plans-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="plans-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+        <label class="lt-field"><span>Ciudad</span><select>{% for r in ['Todas','Popayán','Bogotá','Cartagena','Coconuco'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+        <div class="lt-field"><span id="plans-type-label">Tipo de plan</span>
+          <div class="lt-multiselect"><button class="lt-multiselect__trigger" type="button" data-lt-toggle="plans-type-options" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="plans-type-label"><span>Todos los tipos</span><i class="bi bi-chevron-down"></i></button>
+            <div class="lt-multiselect__panel" id="plans-type-options" role="listbox" aria-multiselectable="true" hidden>{% for r in ['Restaurante','Viaje','Actividad','Cine','Concierto','Evento','Lugar','Postres','Museo','Naturaleza','Experiencia'] %}<label class="lt-multiselect__option"><input type="checkbox"> {{ r }}</label>{% endfor %}</div>
+          </div>
+        </div>
+        <label class="lt-field"><span>Categoría</span><select>{% for r in ['Todas','Gastronomía','Música','Entretenimiento','Aire libre','Cultura','Deporte','Playa'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+        <label class="lt-field"><span>Estado</span><select>{% for r in ['Todos','Pendientes','Programados','Realizados'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+        <label class="lt-field"><span>Fecha</span><select>{% for r in ['Cualquier fecha','Con fecha','Sin fecha','Próximos 30 días','Próximos 3 meses'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+        <div class="lt-field"><span id="plans-circles-label">Círculo</span>
+          <div class="lt-multiselect"><button class="lt-multiselect__trigger" type="button" data-lt-toggle="plans-circles-options" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="plans-circles-label"><span>Todos los círculos</span><i class="bi bi-chevron-down"></i></button>
+            <div class="lt-multiselect__panel" id="plans-circles-options" role="listbox" aria-multiselectable="true" hidden>{% for r in ['Pareja','Familia','Amigos cercanos','Amigos','Trabajo'] %}<label class="lt-multiselect__option"><input type="checkbox"> {{ r }}</label>{% endfor %}</div>
+          </div>
+        </div>
+        <div class="lt-field"><span id="plans-people-label">Persona</span>
+          <div class="lt-multiselect"><button class="lt-multiselect__trigger" type="button" data-lt-toggle="plans-people-options" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="plans-people-label"><span>Todas las personas</span><i class="bi bi-chevron-down"></i></button>
+            <div class="lt-multiselect__panel" id="plans-people-options" role="listbox" aria-multiselectable="true" hidden>{% for r in ['Camila Rojas','María Ortiz','Julián Ortiz','Daniel Pérez','Laura Gómez'] %}<label class="lt-multiselect__option"><input type="checkbox"> {{ r }}</label>{% endfor %}</div>
+          </div>
+        </div>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="plans-filters">Aplicar</button></div>
+      </div>
+    </div>
+    <section class="lt-toolbar" aria-label="Buscar y ordenar planes">
+      <label class="lt-field lt-field--icon lt-plans__search"><span class="lt-sr-only">Buscar planes</span><i class="bi bi-search" aria-hidden="true"></i><input type="search" placeholder="Buscar planes…"></label>
+      <label class="lt-field lt-plans__sort"><span>Ordenar por</span><select>{% for r in ['Más recientes','Hace más tiempo sin ir','Más visitados','Fecha próxima','Nombre'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+    </section>
+    <div class="lt-plan-list">{% for p in plans %}{{ plan_row(p, 'plans-menu-' ~ loop.index, true) }}{% endfor %}</div>
+  </div>
+  <aside class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-bar-chart-line"></i><h3>Resumen de planes</h3></div><div class="lt-panel__body">
+      <dl class="lt-kpis"><div><dt>Pendientes</dt><dd>20</dd></div><div><dt>Programados</dt><dd>4</dd></div><div><dt>Realizados</dt><dd>4</dd></div></dl>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-calendar2-week"></i><h3>Próximos planes</h3></div><div class="lt-panel__body"><div class="lt-list">
+      {% for icon, title, date, left in [('bi-music-note-beamed','Concierto Morat','Dom, 15 nov. 2026 · Camila','64 días'),('bi-palette','Exposición Van Gogh','Lun, 7 dic. 2026 · Camila, María','86 días')] %}<a class="lt-list-item" href="#/plans-show"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ title }}</strong><span>{{ date }}</span></div><span class="lt-chip lt-chip--warning">{{ left }}</span></a>{% endfor %}
+    </div></div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-hourglass-split"></i><h3>Hace tiempo que no van</h3></div><div class="lt-panel__body"><div class="lt-list">
+      {% for icon, title, meta in [('bi-water','Termales de Coconuco','Hace 1 año · 1 visita'),('bi-bank','Museo Nacional','Hace 1 año · 1 visita'),('bi-egg-fried','Restaurante La Cosecha','Hace 5 meses · 3 visitas')] %}<a class="lt-list-item" href="#/plans-show"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ title }}</strong><span>{{ meta }}</span></div><i class="bi bi-chevron-right lt-list-item__trail" aria-hidden="true"></i></a>{% endfor %}
+    </div></div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-link-45deg"></i><h3>Enlaces compartidos</h3></div><div class="lt-panel__body"><div class="lt-list">
+      {% for icon, title, meta in [('bi-instagram','Restaurante La Cosecha','instagram.com · 27 ago. 2026'),('bi-tiktok','Hacer un picnic','tiktok.com · 15 ago. 2026')] %}<button class="lt-list-item" type="button" data-lt-static-nav><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ title }}</strong><span>{{ meta }}</span></div><i class="bi bi-box-arrow-up-right lt-list-item__trail" aria-hidden="true"></i></button>{% endfor %}
+    </div><button class="lt-button lt-button--text lt-link-share" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Compartir enlace</button></div></article>
+  </aside>
+</section>
+<button class="lt-fab" type="button" data-lt-toggle="plan-new" aria-haspopup="dialog" aria-label="Agregar plan"><i class="bi bi-plus-lg"></i><span>Agregar plan</span></button>
+{{ plan_dialogs() }}
+{% endcall %}

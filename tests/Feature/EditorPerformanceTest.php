@@ -22,7 +22,7 @@ class EditorPerformanceTest extends TestCase
         $editor = Livewire::test(HealthEditor::class);
         DB::enableQueryLog();
         DB::flushQueryLog();
-        $editor->set('title', 'Draft')->set('type', 'symptom')->set('bodyArea', 'head');
+        $editor->set('title', 'Draft')->set('type', 'symptom')->set('bodyAreas', ['head']);
         $this->assertSame([], DB::getQueryLog());
         DB::disableQueryLog();
     }

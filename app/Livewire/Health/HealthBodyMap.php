@@ -31,6 +31,8 @@ class HealthBodyMap extends Component
 
     public string $sort = 'count';
 
+    private int $eventTotal = 0;
+
     public function mount(): void
     {
         $this->normalizeFilters();
@@ -104,11 +106,11 @@ class HealthBodyMap extends Component
         return view('livewire.health.health-body-map', [
             'zones' => $this->sorted($zones),
             'mapZones' => $mapZones,
-            'total' => $zones->sum('count'),
+            'total' => $this->eventTotal,
             'activeFilters' => $this->activeFilters(),
             'ranges' => HealthIndex::RANGES,
             'statuses' => HealthIndex::STATUSES,
-            'typeLabels' => HealthEvent::TYPES,
+            'typeLabels' => array_intersect_key(HealthEvent::TYPES, array_flip(HealthEvent::BODY_AREA_TYPES)),
             'sorts' => self::SORTS,
         ]);
     }
@@ -129,31 +131,40 @@ class HealthBodyMap extends Component
             $query->whereDate('event_date', '>=', $since);
         }
         if ($this->status === 'active') {
-            $query->whereIn('type', ['symptom', 'illness'])->whereNull('end_date');
+            $query->whereIn('type', HealthEvent::EVOLUTION_TYPES)->whereNull('end_date');
         } elseif ($this->status === 'recovered') {
-            $query->whereIn('type', ['symptom', 'illness'])->whereNotNull('end_date');
+            $query->whereIn('type', HealthEvent::EVOLUTION_TYPES)->whereNotNull('end_date');
         }
 
-        return $query->orderByDesc('event_date')->get()
-            ->filter(fn (HealthEvent $event) => array_key_exists($event->details['body_area'] ?? '', HealthEvent::BODY_AREAS))
-            ->groupBy(fn (HealthEvent $event) => $event->details['body_area'])
-            ->map(function (Collection $events, string $key): array {
-                /** @var HealthEvent $latest */
-                $latest = $events->first();
-                $count = $events->count();
+        $events = $query->whereIn('type', HealthEvent::BODY_AREA_TYPES)->orderByDesc('event_date')->get()
+            ->filter(fn (HealthEvent $event) => $event->bodyAreas() !== []);
+        $this->eventTotal = $events->count();
 
-                return [
-                    'key' => $key,
-                    'label' => HealthEvent::BODY_AREAS[$key],
-                    'icon' => HealthEvent::bodyAreaIcon($key),
-                    'count' => $count,
-                    'level' => self::heatLevel($count),
-                    'onMap' => ! in_array($key, HealthEvent::OFF_MAP_BODY_AREAS, true),
-                    'latest' => CarbonImmutable::parse($latest->event_date),
-                    'last' => $latest->title.' · '.$latest->event_date->locale('es')->diffForHumans(),
-                    'href' => route('health', array_filter(['zone' => $key, 'range' => $this->range === 'all' ? null : $this->range])),
-                ];
-            });
+        // Un evento con varias zonas cuenta una vez en cada una.
+        $byZone = [];
+        foreach ($events as $event) {
+            foreach ($event->bodyAreas() as $area) {
+                $byZone[$area][] = $event;
+            }
+        }
+
+        return collect($byZone)->map(function (array $zoneEvents, string $key): array {
+            /** @var HealthEvent $latest */
+            $latest = $zoneEvents[0];
+            $count = count($zoneEvents);
+
+            return [
+                'key' => $key,
+                'label' => HealthEvent::BODY_AREAS[$key],
+                'icon' => HealthEvent::bodyAreaIcon($key),
+                'count' => $count,
+                'level' => self::heatLevel($count),
+                'onMap' => ! in_array($key, HealthEvent::OFF_MAP_BODY_AREAS, true),
+                'latest' => CarbonImmutable::parse($latest->event_date),
+                'last' => $latest->title.' · '.$latest->event_date->locale('es')->diffForHumans(),
+                'href' => route('health', array_filter(['zone' => $key, 'range' => $this->range === 'all' ? null : $this->range])),
+            ];
+        });
     }
 
     private function sorted(Collection $zones): Collection
@@ -191,7 +202,7 @@ class HealthBodyMap extends Component
         }
         $this->types = array_values(array_unique(array_filter(
             array_map('strval', (array) $this->types),
-            fn (string $type) => array_key_exists($type, HealthEvent::TYPES),
+            fn (string $type) => in_array($type, HealthEvent::BODY_AREA_TYPES, true),
         )));
     }
 }

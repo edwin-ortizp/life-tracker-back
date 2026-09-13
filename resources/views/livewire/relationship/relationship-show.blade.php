@@ -20,6 +20,8 @@
         </a>
     </div>
 
+    @include('livewire.relationship.partials.person-tabs', ['relationship' => $relationship])
+
     @if ($relationship->isFollowUpDue())
         <div class="md-card-outlined md-relationship-followup mb-3">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">

@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Tools\Health;
 
+use App\Models\HealthEvent;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Request;
@@ -26,8 +27,8 @@ class LogHealthFollowUpTool extends Tool
             return Response::error('No se encontró el evento de salud o no te pertenece.');
         }
 
-        if (! in_array($event->type, ['symptom', 'illness'], true)) {
-            return Response::error('Solo los eventos de tipo "symptom" o "illness" admiten seguimiento de evolución.');
+        if (! in_array($event->type, HealthEvent::EVOLUTION_TYPES, true)) {
+            return Response::error('Solo los eventos de tipo "symptom", "illness" o "procedure" admiten seguimiento de evolución.');
         }
 
         if ($event->end_date) {
