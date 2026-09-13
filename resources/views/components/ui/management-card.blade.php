@@ -34,10 +34,12 @@
     <header class="md-mcard__head" :class="{ 'is-searching': searching }">
         <div class="md-mcard__title">
             <span class="md-mcard__icon" aria-hidden="true"><i class="bi {{ $icon }}"></i></span>
-            <h2 class="md-mcard__heading" id="{{ $cardId }}-title">{{ $title }}</h2>
-            @if (filled($count))
-                <span class="md-mcard__count" title="Registros visibles del total">{{ $count }}</span>
-            @endif
+            <h2 class="md-mcard__heading" id="{{ $cardId }}-title">
+                <span class="md-mcard__heading-text">{{ $title }}</span>
+                @if (filled($count))
+                    <span class="md-mcard__count" title="Registros visibles del total"><span aria-hidden="true">·</span> {{ $count }}</span>
+                @endif
+            </h2>
         </div>
 
         @if ($search || $hasFilters || $hasMenu)

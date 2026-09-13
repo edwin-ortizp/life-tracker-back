@@ -80,7 +80,7 @@
 {% macro manage_card(id, title, icon, count=None, search='Buscar', filters=0, menu=None, footer=None, total=None) -%}
 <article class="lt-mcard" id="{{ id }}" aria-labelledby="{{ id }}-title">
   <header class="lt-mcard__head">
-    <div class="lt-mcard__title"><span class="lt-mcard__icon" aria-hidden="true"><i class="bi {{ icon }}"></i></span><h3 id="{{ id }}-title">{{ title }}</h3>{% if count %}<span class="lt-count" data-lt-visible-count data-total="{{ total or '' }}" title="Registros visibles de los existentes">{{ count }}</span>{% endif %}</div>
+    <div class="lt-mcard__title"><span class="lt-mcard__icon" aria-hidden="true"><i class="bi {{ icon }}"></i></span><h3 id="{{ id }}-title"><span class="lt-mcard__heading-text">{{ title }}</span>{% if count %}<span class="lt-count" title="Registros visibles de los existentes"><span aria-hidden="true">·</span> <span data-lt-visible-count data-total="{{ total or '' }}">{{ count }}</span></span>{% endif %}</h3></div>
     <span class="lt-mcard__divider" aria-hidden="true"></span>
     <div class="lt-mcard__tools lt-filter-anchor">
       <label class="lt-mcard__search"><i class="bi bi-search" aria-hidden="true"></i><span class="lt-sr-only">{{ search }}</span><input type="search" placeholder="{{ search }}"><button class="lt-icon-button lt-mcard__search-close" type="button" data-lt-mcard-search aria-label="Cerrar búsqueda"><i class="bi bi-x-lg"></i></button></label>

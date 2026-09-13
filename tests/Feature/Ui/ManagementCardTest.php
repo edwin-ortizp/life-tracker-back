@@ -28,7 +28,7 @@ class ManagementCardTest extends TestCase
 
         $this->assertStringContainsString('md-mcard__head', $html);
         $this->assertStringContainsString('Cronología de salud', $html);
-        $this->assertStringContainsString('(25 / 58)', $html);
+        $this->assertMatchesRegularExpression('/<h2 class="md-mcard__heading"[^>]*>\s*<span class="md-mcard__heading-text">Cronología de salud<\/span>\s*<span class="md-mcard__count"[^>]*><span aria-hidden="true">·<\/span> \(25 \/ 58\)<\/span>\s*<\/h2>/u', $html);
         $this->assertStringContainsString('wire:model.live.debounce.300ms="search"', $html);
         $this->assertStringContainsString('id="demo-filters"', $html);
         $this->assertStringContainsString('2 filtros activos', $html);
