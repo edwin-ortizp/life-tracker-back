@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Plan\Concerns;
 
+use App\Actions\RecordPlanVisit;
 use App\Actions\SavePlan;
 use App\Models\Circle;
 use App\Models\Plan;
@@ -9,7 +10,6 @@ use App\Models\PlanVisit;
 use App\Models\Relationship;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 /**
@@ -237,22 +237,7 @@ trait ManagesPlanDialogs
             return;
         }
 
-        DB::transaction(function () use ($people): void {
-            $plan = Plan::query()->findOrFail($this->visitPlanId);
-
-            $visit = $plan->visits()->create([
-                'visited_on' => $this->visitDate,
-                'comment' => trim($this->visitComment) ?: null,
-            ]);
-
-            $visit->relationships()->sync($people);
-            $plan->relationships()->syncWithoutDetaching($people);
-
-            // A dated plan is fulfilled by doing it; open-ended plans stay available to repeat.
-            if ($plan->status === 'scheduled') {
-                $plan->update(['status' => 'done']);
-            }
-        });
+        RecordPlanVisit::handle(Plan::query()->findOrFail($this->visitPlanId), $this->visitDate, $people, $this->visitComment);
 
         $this->closeVisitForm();
     }

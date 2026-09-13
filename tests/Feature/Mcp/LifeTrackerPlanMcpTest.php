@@ -5,11 +5,14 @@ namespace Tests\Feature\Mcp;
 use App\Mcp\Servers\LifeTrackerServer;
 use App\Mcp\Tools\Plan\CreatePlanTool;
 use App\Mcp\Tools\Plan\ListPlansTool;
+use App\Mcp\Tools\Plan\ListPlanVisitsTool;
+use App\Mcp\Tools\Plan\RecordPlanVisitTool;
 use App\Mcp\Tools\Plan\UpdatePlanTool;
 use App\Mcp\Tools\Relationship\CreateContactTool;
 use App\Mcp\Tools\Relationship\ListCirclesTool;
 use App\Models\Circle;
 use App\Models\Plan;
+use App\Models\PlanVisit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -170,5 +173,128 @@ class LifeTrackerPlanMcpTest extends TestCase
             ->assertOk();
 
         $this->assertSame('Familia', $user->relationships()->sole()->circle()->withoutGlobalScopes()->value('name'));
+    }
+
+    public function test_record_visit_finds_the_plan_and_contact_by_alias(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $alison = $user->relationships()->create(['full_name' => 'Alison Pino', 'category' => 'pareja']);
+        $alison->aliases()->create(['alias' => 'Ali']);
+        $plan = Plan::factory()->for($user)->create(['title' => 'Heladería Popsy']);
+        \App\Actions\RecordPlanVisit::handle($plan, today()->subMonths(3)->toDateString(), [$alison->id]);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(RecordPlanVisitTool::class, [
+                'plan_title' => 'popsy',
+                'contact_names' => ['Ali'],
+                'visited_on' => today()->subDay()->toDateString(),
+                'comment' => 'Probamos el de maracuyá.',
+            ])
+            ->assertOk()
+            ->assertSee('Visita registrada')
+            ->assertSee('Alison Pino')
+            ->assertSee('2 visitas');
+
+        $visit = PlanVisit::withoutGlobalScopes()->where('plan_id', $plan->id)->orderByDesc('visited_on')->with('relationships')->first();
+        $this->assertSame(today()->subDay()->toDateString(), $visit->visited_on->toDateString());
+        $this->assertSame('Probamos el de maracuyá.', $visit->comment);
+        $this->assertSame([$alison->id], $visit->relationships->pluck('id')->all());
+    }
+
+    public function test_record_visit_defaults_to_today_and_rejects_future_dates(): void
+    {
+        $user = User::factory()->create();
+        $user->relationships()->create(['full_name' => 'Julián Ortiz', 'category' => 'amigo']);
+        Plan::factory()->for($user)->create(['title' => 'Ir al cine']);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(RecordPlanVisitTool::class, ['plan_title' => 'Ir al cine', 'contact_names' => ['Julián'], 'visited_on' => today()->addDay()->toDateString()])
+            ->assertHasErrors();
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(RecordPlanVisitTool::class, ['plan_title' => 'Ir al cine', 'contact_names' => ['Julián']])
+            ->assertOk();
+
+        $this->assertSame(today()->toDateString(), PlanVisit::withoutGlobalScopes()->sole()->visited_on->toDateString());
+    }
+
+    public function test_record_visit_rejects_unknown_contacts_without_saving(): void
+    {
+        $user = User::factory()->create();
+        Plan::factory()->for($user)->create(['title' => 'Museo Nacional']);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(RecordPlanVisitTool::class, ['plan_title' => 'Museo Nacional', 'contact_names' => ['Persona Inexistente']])
+            ->assertHasErrors()
+            ->assertSee('Persona Inexistente');
+
+        $this->assertSame(0, PlanVisit::withoutGlobalScopes()->count());
+    }
+
+    public function test_record_visit_on_a_missing_plan_asks_or_creates_it(): void
+    {
+        $user = User::factory()->create();
+        $user->relationships()->create(['full_name' => 'Alison Pino', 'category' => 'pareja']);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(RecordPlanVisitTool::class, ['plan_title' => 'Restaurante Storia', 'contact_names' => ['Alison']])
+            ->assertHasErrors()
+            ->assertSee('create_if_missing');
+
+        $this->assertSame(0, Plan::withoutGlobalScopes()->count());
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(RecordPlanVisitTool::class, [
+                'plan_title' => 'Restaurante Storia',
+                'contact_names' => ['Alison'],
+                'create_if_missing' => true,
+                'type' => 'restaurant',
+                'city' => 'Popayán',
+                'circle_names' => ['Pareja'],
+            ])
+            ->assertOk()
+            ->assertSee('Plan creado y visita registrada');
+
+        $plan = Plan::withoutGlobalScopes()->where('user_id', $user->id)->with(['circles', 'visits'])->sole();
+        $this->assertSame('restaurant', $plan->type);
+        $this->assertSame(['Pareja'], $plan->circles->pluck('name')->all());
+        $this->assertCount(1, $plan->visits);
+    }
+
+    public function test_record_visit_completes_a_scheduled_plan_and_skips_duplicates(): void
+    {
+        $user = User::factory()->create();
+        $user->relationships()->create(['full_name' => 'Alison Pino', 'category' => 'pareja']);
+        $plan = Plan::factory()->for($user)->scheduled(today()->toDateString())->create(['title' => 'Concierto Morat']);
+
+        $payload = ['plan_id' => $plan->id, 'contact_names' => ['Alison']];
+
+        LifeTrackerServer::actingAs($user)->tool(RecordPlanVisitTool::class, $payload)->assertOk();
+        LifeTrackerServer::actingAs($user)->tool(RecordPlanVisitTool::class, $payload)->assertHasErrors()->assertSee('Ya estaba registrada');
+
+        $this->assertSame('done', $plan->fresh()->status);
+        $this->assertSame(1, PlanVisit::withoutGlobalScopes()->count());
+    }
+
+    public function test_list_plan_visits_filters_by_person_and_user(): void
+    {
+        $user = User::factory()->create();
+        $alison = $user->relationships()->create(['full_name' => 'Alison Pino', 'category' => 'pareja']);
+        $julian = $user->relationships()->create(['full_name' => 'Julián Ortiz', 'category' => 'amigo']);
+        $popsy = Plan::factory()->for($user)->create(['title' => 'Heladería Popsy']);
+        $cine = Plan::factory()->for($user)->create(['title' => 'Ir al cine']);
+
+        $this->actingAs($user);
+        \App\Actions\RecordPlanVisit::handle($popsy, today()->subWeek()->toDateString(), [$alison->id], 'Con Ali');
+        \App\Actions\RecordPlanVisit::handle($cine, today()->subDays(2)->toDateString(), [$julian->id]);
+        Plan::factory()->create(['title' => 'Plan ajeno']);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(ListPlanVisitsTool::class, ['contact_name' => 'Alison'])
+            ->assertOk()
+            ->assertSee('Heladería Popsy')
+            ->assertDontSee('Ir al cine')
+            ->assertDontSee('Plan ajeno');
     }
 }
