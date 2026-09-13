@@ -26,6 +26,9 @@ class Relationship extends Model
         'occupation',
         'organization',
         'address',
+        'city',
+        'document_type',
+        'document_number',
         'photo_path',
         'general_notes',
         'category',
@@ -54,7 +57,33 @@ class Relationship extends Model
             'archived_at' => 'datetime',
             'notes' => 'array',
             'is_archived' => 'boolean',
+            'document_number' => 'encrypted',
         ];
+    }
+
+    public const DOCUMENT_TYPES = [
+        'cc' => 'Cédula de ciudadanía',
+        'ce' => 'Cédula de extranjería',
+        'ti' => 'Tarjeta de identidad',
+        'passport' => 'Pasaporte',
+        'ppt' => 'Permiso de protección temporal',
+        'nit' => 'NIT',
+        'other' => 'Otro documento',
+    ];
+
+    public function documentTypeLabel(): ?string
+    {
+        return $this->document_type ? (self::DOCUMENT_TYPES[$this->document_type] ?? self::DOCUMENT_TYPES['other']) : null;
+    }
+
+    /** The document for summaries that leave the app (MCP): type and last four characters only. */
+    public function maskedDocument(): ?string
+    {
+        if (! $this->document_number) {
+            return null;
+        }
+
+        return trim(($this->documentTypeLabel() ?? 'Documento').' terminado en '.mb_substr($this->document_number, -4));
     }
 
     protected static function booted(): void

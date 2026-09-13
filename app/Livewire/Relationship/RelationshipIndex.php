@@ -50,6 +50,12 @@ class RelationshipIndex extends Component
 
     public string $address = '';
 
+    public string $city = '';
+
+    public string $documentType = '';
+
+    public string $documentNumber = '';
+
     public string $generalNotes = '';
 
     public string $circleId = '';
@@ -133,6 +139,9 @@ class RelationshipIndex extends Component
             $this->occupation = $relationship->occupation ?? '';
             $this->organization = $relationship->organization ?? '';
             $this->address = $relationship->address ?? '';
+            $this->city = $relationship->city ?? '';
+            $this->documentType = $relationship->document_type ?? '';
+            $this->documentNumber = $relationship->document_number ?? '';
             $this->generalNotes = $relationship->general_notes ?? '';
             $this->circleId = $relationship->circle_id ?? '';
             $this->category = $relationship->category ?: 'otro';
@@ -189,6 +198,9 @@ class RelationshipIndex extends Component
             'occupation' => trim($validated['occupation']) ?: null,
             'organization' => trim($validated['organization']) ?: null,
             'address' => trim($validated['address']) ?: null,
+            'city' => trim($validated['city']) ?: null,
+            'document_type' => trim($validated['documentNumber']) !== '' ? $validated['documentType'] : null,
+            'document_number' => trim($validated['documentNumber']) ?: null,
             'general_notes' => trim($validated['generalNotes']) ?: null,
             'circle_id' => $validated['circleId'] ?: null,
             'category' => $validated['category'] ?: 'otro',
@@ -443,6 +455,9 @@ class RelationshipIndex extends Component
             'occupation' => ['nullable', 'string', 'max:150'],
             'organization' => ['nullable', 'string', 'max:150'],
             'address' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:120'],
+            'documentType' => ['nullable', 'required_with:documentNumber', 'in:'.implode(',', array_keys(Relationship::DOCUMENT_TYPES))],
+            'documentNumber' => ['nullable', 'string', 'max:40'],
             'generalNotes' => ['nullable', 'string', 'max:5000'],
             'circleId' => ['nullable', 'string'],
             // The legacy free-form category predates circles and tags, so unknown values still load.
@@ -463,6 +478,7 @@ class RelationshipIndex extends Component
     {
         return [
             'birthdayMonth.required_with' => 'Indica también el mes de cumpleaños.',
+            'documentType.required_with' => 'Indica el tipo de documento.',
             'birthdayDay.required_with' => 'Indica también el día de cumpleaños.',
         ];
     }
@@ -476,6 +492,9 @@ class RelationshipIndex extends Component
         $this->occupation = '';
         $this->organization = '';
         $this->address = '';
+        $this->city = '';
+        $this->documentType = '';
+        $this->documentNumber = '';
         $this->generalNotes = '';
         $this->circleId = '';
         $this->category = 'otro';

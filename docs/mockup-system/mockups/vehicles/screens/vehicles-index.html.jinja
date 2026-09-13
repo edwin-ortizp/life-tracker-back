@@ -4,8 +4,8 @@
 <section class="lt-metrics">{{ metric('Vehículos','2') }}{{ metric('Gasto del mes','$ 486.000') }}{{ metric('Cuidados próximos','3','warning') }}</section>
 <section class="lt-vehicle-grid">
   <a class="lt-vehicle-card" href="#/vehicles-show">
-    <header><span class="lt-list-item__icon"><i class="bi bi-car-front"></i></span><div><h3>Mazda 3</h3><p>2019 · Gasolina · ABC-123</p></div><span class="lt-chip lt-chip--warning">Cuidado en 400 km</span></header>
-    <dl class="lt-dl"><div><dt>Kilometraje</dt><dd>58.620 km</dd></div><div><dt>Rendimiento</dt><dd>14,2 km/l</dd></div><div><dt>Último repostaje</dt><dd>6 sep.</dd></div><div><dt>Próximo cuidado</dt><dd>Cambio de aceite</dd></div></dl>
+    <header><span class="lt-list-item__icon"><i class="bi bi-car-front"></i></span><div><h3>Chevrolet Cruze</h3><p>2012 · Gasolina · KKU261</p></div><span class="lt-chip lt-chip--warning">Cuidado en 400 km</span></header>
+    <dl class="lt-dl"><div><dt>Kilometraje</dt><dd>142.620 km</dd></div><div><dt>Rendimiento</dt><dd>14,2 km/l</dd></div><div><dt>Último repostaje</dt><dd>6 sep.</dd></div><div><dt>Próximo cuidado</dt><dd>Cambio de aceite</dd></div></dl>
   </a>
   <a class="lt-vehicle-card" href="#/vehicles-show">
     <header><span class="lt-list-item__icon"><i class="bi bi-bicycle"></i></span><div><h3>Yamaha NMAX</h3><p>2022 · Gasolina · XYZ-45F</p></div><span class="lt-chip lt-chip--success">Al día</span></header>
@@ -14,7 +14,7 @@
   <button class="lt-vehicle-card lt-vehicle-card--add" type="button" data-lt-static-nav><i class="bi bi-plus-circle"></i> Agregar vehículo</button>
 </section>
 <section class="lt-panel"><div class="lt-panel__head"><i class="bi bi-calendar2-check"></i><h3>Próximos cuidados de todo el garaje</h3><small>Catálogo de mantenimiento</small></div><div class="lt-panel__body"><div class="lt-list">
-  {% for task, veh, when, tone in [('Cambio de aceite y filtro','Mazda 3','En 400 km · aprox. 12 días','warning'),('Revisión técnico-mecánica','Mazda 3','25 sep.','warning'),('SOAT','Yamaha NMAX','12 nov.','neutral')] %}
+  {% for task, veh, when, tone in [('Cambio de aceite y filtro','Chevrolet Cruze','En 400 km · aprox. 12 días','warning'),('Revisión técnico-mecánica','Chevrolet Cruze','25 sep.','warning'),('SOAT','Yamaha NMAX','12 nov.','neutral')] %}
   <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-wrench-adjustable"></i></span><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ veh }}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ when }}</span></div>
   {% endfor %}
 </div></div></section>

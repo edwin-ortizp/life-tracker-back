@@ -1,0 +1,64 @@
+{% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs %}
+{% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
+{{ vehicle_tabs('/vehicles-expenses') }}
+<section class="lt-vehicle-bar">
+  <p>Seguros, llantas, pintura y demás gastos. El combustible y los mantenimientos se registran en sus pestañas.</p>
+  <div class="lt-menu-anchor"><button class="lt-select-button" type="button" data-lt-toggle="expenses-period" aria-haspopup="menu" aria-expanded="false"><i class="bi bi-calendar3"></i> Últimos 6 meses <i class="bi bi-chevron-down"></i></button>
+    <div class="lt-menu lt-menu--down" id="expenses-period" role="menu" hidden>
+      {% for p in ['Últimos 3 meses','Últimos 6 meses','Últimos 12 meses','Este año','Desde la compra'] %}<button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav>{% if p == 'Últimos 6 meses' %}<i class="bi bi-check2"></i>{% else %}<i class="bi bi-blank"></i>{% endif %} {{ p }}</button>{% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="lt-expense-kpis">
+  <article class="lt-kpi lt-kpi--violet"><span class="lt-kpi__icon"><i class="bi bi-wallet2"></i></span><div><span>Otros gastos</span><strong>$ 835.200</strong><small>36% del gasto total del vehículo</small></div></article>
+  <article class="lt-kpi lt-kpi--blue"><span class="lt-kpi__icon"><i class="bi bi-shield-check"></i></span><div><span>Mayor concepto</span><strong>Seguros</strong><small>$ 464.000 · 56% de estos gastos</small></div></article>
+  <article class="lt-kpi lt-kpi--rose"><span class="lt-kpi__icon"><i class="bi bi-calendar-event"></i></span><div><span>Próximo pago</span><strong>$ 77.300</strong><small>Cuota seguro todo riesgo · 1 oct.</small></div></article>
+</section>
+
+<section class="lt-expense-layout">
+  <article class="lt-panel lt-vehicle-notes">
+    <div class="lt-panel__head"><i class="bi bi-receipt"></i><h3>Historial de gastos</h3><small>10 registros</small></div>
+    <div class="lt-panel__body">
+      <div class="lt-expense-filters">
+        {% for label, on in [('Todos',true),('Seguros',false),('Llantas',false),('Pintura y latonería',false),('Accesorios y lujos',false),('Trámites y peajes',false)] %}<button class="lt-chip lt-chip--filter{% if on %} is-selected{% endif %}" type="button" data-lt-static-nav>{% if on %}<i class="bi bi-check2"></i>{% endif %}{{ label }}</button>{% endfor %}
+      </div>
+      {% set rows = [
+        ('1 sep. 2026','Cuota seguro todo riesgo · Sura','Seguros','lt-c-insure','bi-shield-check','Cuota 11 de 12','$ 77.300'),
+        ('24 ago. 2026','Retoque de pintura puerta trasera','Pintura y latonería','lt-c-paint','bi-brush','Rayón en parqueadero','$ 96.000'),
+        ('10 ago. 2026','Llanta de repuesto · Hankook R16','Llantas','lt-c-wheel','bi-vinyl','Reemplazo por pinchazo','$ 185.000'),
+        ('1 ago. 2026','Cuota seguro todo riesgo · Sura','Seguros','lt-c-insure','bi-shield-check','Cuota 10 de 12','$ 77.300'),
+        ('20 jul. 2026','Tapetes de caucho a la medida','Accesorios y lujos','lt-c-lux','bi-stars','Tienda Chevrolet','$ 58.000'),
+        ('1 jul. 2026','Cuota seguro todo riesgo · Sura','Seguros','lt-c-insure','bi-shield-check','Cuota 9 de 12','$ 77.300'),
+        ('18 jun. 2026','Peajes viaje a Popayán','Trámites y peajes','lt-c-fees','bi-sign-turn-right','Ida y regreso','$ 32.200')
+      ] %}
+      {% for date, concept, cat, cls, ic, detail, cost in rows %}
+      <div class="lt-expense-row">
+        <span class="lt-care__icon"><i class="bi {{ ic }}"></i></span>
+        <div><strong>{{ concept }}</strong><span>{{ date }} · {{ detail }}</span></div>
+        <span class="lt-expense-cat"><i class="lt-dot {{ cls }}"></i>{{ cat }}</span>
+        <b>{{ cost }}</b>
+        <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="expense-{{ loop.index }}" aria-haspopup="menu" aria-expanded="false" aria-label="Opciones del gasto"><i class="bi bi-three-dots-vertical"></i></button>
+          <div class="lt-menu" id="expense-{{ loop.index }}" role="menu" hidden><button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-pencil"></i> Editar gasto</button><button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-paperclip"></i> Ver soporte</button><hr class="lt-menu__divider"><button class="lt-menu__item lt-menu__item--danger" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-trash"></i> Eliminar</button></div>
+        </div>
+      </div>
+      {% endfor %}
+      <div class="lt-route-links"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Cargar más</button></div>
+    </div>
+  </article>
+
+  <aside class="lt-panel">
+    <div class="lt-panel__head"><i class="bi bi-pie-chart"></i><h3>Por concepto</h3></div>
+    <div class="lt-panel__body">
+      {% for key, name, pct, amount in [('insure','Seguros',56,'$ 464.000'),('wheel','Llantas',22,'$ 185.000'),('paint','Pintura y latonería',11,'$ 96.000'),('lux','Accesorios y lujos',7,'$ 58.000'),('fees','Trámites y peajes',4,'$ 32.200')] %}
+      <div class="lt-expense-share">
+        <div><i class="lt-dot lt-c-{{ key }}"></i><strong>{{ name }}</strong><span>{{ pct }}%</span><b>{{ amount }}</b></div>
+        <div class="lt-progress"><span class="lt-bg-{{ key }}" style="width:{{ pct }}%"></span></div>
+      </div>
+      {% endfor %}
+    </div>
+  </aside>
+</section>
+
+<button class="lt-fab" type="button" data-lt-static-nav aria-label="Registrar gasto"><i class="bi bi-plus-lg"></i><span>Registrar gasto</span></button>
+{% endcall %}

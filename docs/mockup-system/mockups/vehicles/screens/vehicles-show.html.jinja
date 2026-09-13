@@ -1,22 +1,119 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
-{% call shell('vehicles', 'Mazda 3', 'bi-car-front') %}
-{{ header('Mazda 3', '2019 · Gasolina · Placa ABC-123', 'bi-car-front', '/vehicles-index') }}
-{{ module_tabs([('Resumen','/vehicles-show','bi-card-text'),('Combustible','/vehicles-fuel','bi-fuel-pump'),('Mantenimiento','/vehicles-maintenance','bi-wrench-adjustable')], '/vehicles-show') }}
-<section class="lt-metrics">{{ metric('Kilometraje','58.620 km') }}{{ metric('Rendimiento promedio','14,2 km/l','success') }}{{ metric('Costo por km','$ 312') }}</section>
-<section class="lt-grid-2">
-  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-card-text"></i><h3>Ficha técnica</h3><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-pencil"></i> Editar</button></div><div class="lt-panel__body">
-    <dl class="lt-dl">
-      <div><dt>Marca y modelo</dt><dd>Mazda 3 Grand Touring</dd></div><div><dt>Año</dt><dd>2019</dd></div>
-      <div><dt>Energía</dt><dd>Gasolina corriente</dd></div><div><dt>Tanque</dt><dd>51 L</dd></div>
-      <div><dt>Placa</dt><dd>ABC-123</dd></div><div><dt>Color</dt><dd>Gris metálico</dd></div>
-      <div><dt>Comprado</dt><dd>Mar 2021 · 22.000 km</dd></div><div><dt>VIN</dt><dd>JM1BPA…4821</dd></div>
-    </dl>
-  </div></article>
-  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-calendar2-check"></i><h3>Próximos cuidados</h3><small>3 activos</small></div><div class="lt-panel__body"><div class="lt-list">
-    {% for task, meta, pct, tone, chip in [('Cambio de aceite','Cada 5.000 km · faltan 400 km',92,'warning','Pronto'),('Revisión técnico-mecánica','Anual · 25 sep.',85,'warning','15 días'),('Rotación de llantas','Cada 10.000 km · faltan 3.380 km',66,'neutral','Programado')] %}
-    <div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ meta }}</span><div class="lt-progress"><span style="width:{{ pct }}%"></span></div></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></div>
-    {% endfor %}
-  </div><div class="lt-route-links"><a class="lt-button lt-button--tonal" href="#/vehicles-maintenance">Ver plan de cuidados</a><a class="lt-button lt-button--tonal" href="#/vehicles-fuel"><i class="bi bi-fuel-pump"></i> Registrar repostaje</a></div></div></article>
+{% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs %}
+{% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
+{{ vehicle_tabs('/vehicles-show') }}
+<section class="lt-vehicle-bar">
+  <p>Indicadores y gráficos del periodo seleccionado</p>
+  <div class="lt-menu-anchor"><button class="lt-select-button" type="button" data-lt-toggle="vehicle-period" aria-haspopup="menu" aria-expanded="false"><i class="bi bi-calendar3"></i> Últimos 6 meses <i class="bi bi-chevron-down"></i></button>
+    <div class="lt-menu lt-menu--down" id="vehicle-period" role="menu" hidden>
+      {% for p in ['Últimos 3 meses','Últimos 6 meses','Últimos 12 meses','Este año','Desde la compra'] %}<button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav>{% if p == 'Últimos 6 meses' %}<i class="bi bi-check2"></i>{% else %}<i class="bi bi-blank"></i>{% endif %} {{ p }}</button>{% endfor %}
+    </div>
+  </div>
 </section>
-<section class="lt-actions"><button class="lt-button lt-button--danger" type="button" data-lt-static-nav><i class="bi bi-trash"></i> Eliminar vehículo</button></section>
+
+<section class="lt-vehicle-dash">
+  <article class="lt-panel">
+    <div class="lt-panel__head"><i class="bi bi-card-text"></i><h3>Información del vehículo</h3>
+      <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="vehicle-info-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Acciones del vehículo"><i class="bi bi-three-dots-vertical"></i></button>
+        <div class="lt-menu lt-menu--down" id="vehicle-info-menu" role="menu" hidden>
+          <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-pencil"></i> Editar vehículo</button>
+          <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-image"></i> Cambiar foto</button>
+          <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-pause-circle"></i> Marcar como inactivo</button>
+          <hr class="lt-menu__divider">
+          <button class="lt-menu__item lt-menu__item--danger" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-trash"></i> Eliminar vehículo</button>
+        </div>
+      </div>
+    </div>
+    <div class="lt-panel__body">
+      <img class="lt-vehicle-info__photo" alt="Foto del Chevrolet Cruze" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 110'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23E6EDF5'/%3E%3Cstop offset='1' stop-color='%23CBD5E1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='110' fill='url(%23g)'/%3E%3Crect y='88' width='400' height='22' fill='%23B8C2CE'/%3E%3Cpath d='M95 82c4-16 18-22 40-26l40-18c16-6 60-6 78 2l34 18c24 2 40 8 44 24z' fill='%232C4A78'/%3E%3Cpath d='M180 42c14-5 52-5 66 2l22 14H158z' fill='%23A9C3DB'/%3E%3Ccircle cx='145' cy='86' r='14' fill='%23262A30'/%3E%3Ccircle cx='280' cy='86' r='14' fill='%23262A30'/%3E%3Ccircle cx='145' cy='86' r='6' fill='%239AA3AD'/%3E%3Ccircle cx='280' cy='86' r='6' fill='%239AA3AD'/%3E%3C/svg%3E">
+      <dl class="lt-vehicle-info__grid">
+        {% for ic, dt, dd in [('bi-car-front','Marca y modelo','Chevrolet Cruze'),('bi-calendar3','Año','2012'),('bi-credit-card-2-front','Placa','KKU261'),('bi-fuel-pump','Combustible','Gasolina corriente'),('bi-droplet-half','Tanque','60 L · 15,9 gal'),('bi-palette','Color','Azul Onix'),('bi-upc','VIN','9GAPJ…4821'),('bi-bag-check','Comprado','Mar 2021 · 106.000 km')] %}
+        <div><i class="bi {{ ic }}" aria-hidden="true"></i><dt>{{ dt }}</dt><dd>{{ dd }}</dd></div>
+        {% endfor %}
+      </dl>
+    </div>
+  </article>
+
+  <div class="lt-kpis-2">
+    <article class="lt-kpi lt-kpi--blue"><span class="lt-kpi__icon"><i class="bi bi-speedometer2"></i></span><div><span>Kilometraje total</span><strong>142.620 km</strong><small>+7.440 km en el periodo</small></div></article>
+    <article class="lt-kpi lt-kpi--green"><span class="lt-kpi__icon"><i class="bi bi-fuel-pump"></i></span><div><span>Rendimiento promedio</span><strong>14,2 km/gal</strong><small class="lt-trend--good"><i class="bi bi-arrow-up"></i> +0,8 vs. periodo anterior</small></div></article>
+    <article class="lt-kpi lt-kpi--rose"><span class="lt-kpi__icon"><i class="bi bi-cash-coin"></i></span><div><span>Costo por kilómetro</span><strong>$ 312 COP/km</strong><small class="lt-trend--good"><i class="bi bi-arrow-down"></i> −8% vs. periodo anterior</small><small>6 km ≈ $ 1.872</small></div></article>
+    <article class="lt-kpi lt-kpi--violet"><span class="lt-kpi__icon"><i class="bi bi-wallet2"></i></span><div><span>Gasto total</span><strong>$ 2.320.000</strong><small>Promedio $ 312 / km</small></div></article>
+  </div>
+
+  <article class="lt-panel">
+    <div class="lt-panel__head"><i class="bi bi-calendar2-check"></i><h3>Próximos cuidados</h3><a class="lt-panel__link" href="#/vehicles-maintenance">Ver todos</a></div>
+    <div class="lt-panel__body">
+      {% for ic, name, rule, left, tone, chip in [('bi-droplet','Cambio de aceite','Cada 5.000 km','Faltan 400 km','warning','Pronto'),('bi-clipboard2-check','Revisión técnico-mecánica','Anual','25 sep. 2026','warning','En 13 días'),('bi-arrow-repeat','Rotación de llantas','Cada 10.000 km','Faltan 3.380 km','neutral','Programado'),('bi-shield-check','SOAT','Anual','Vence 12 ene. 2027','neutral','En 4 meses')] %}
+      <div class="lt-care"><span class="lt-care__icon"><i class="bi {{ ic }}"></i></span><div><strong>{{ name }}</strong><span>{{ rule }} · {{ left }}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+<section class="lt-vehicle-charts">
+  <article class="lt-panel">
+    <div class="lt-panel__head"><i class="bi bi-fuel-pump"></i><h3>Rendimiento de combustible</h3><small>km/gal</small></div>
+    <div class="lt-panel__body">
+      <div class="lt-chart"><div class="lt-chart__axis"><span>20</span><span>15</span><span>10</span><span>5</span><span>0</span></div>
+        <div class="lt-chart__plot">
+          {% for m, v in [('Mar',13.1),('Abr',14.6),('May',13.8),('Jun',14.0),('Jul',15.2),('Ago',14.5)] %}<div class="lt-chart__col" title="{{ m }}: {{ v }} km/gal"><span class="lt-chart__bar" style="--value:{{ v * 5 }}%"></span><em>{{ m }}</em></div>{% endfor %}
+          <span class="lt-chart__avg" style="--value:71"></span>
+        </div>
+      </div>
+      <div class="lt-chart__legend"><span><i class="lt-dot lt-c-fuel"></i> Rendimiento</span><span><i class="lt-dash"></i> Promedio 14,2 km/gal</span></div>
+    </div>
+  </article>
+
+  <article class="lt-panel">
+    <div class="lt-panel__head"><i class="bi bi-cash-coin"></i><h3>Gasto por kilómetro</h3><small>COP/km</small></div>
+    <div class="lt-panel__body">
+      <div class="lt-chart lt-chart--rose"><div class="lt-chart__axis"><span>500</span><span>375</span><span>250</span><span>125</span><span>0</span></div>
+        <div class="lt-chart__plot">
+          {% for m, v in [('Mar',338),('Abr',352),('May',296),('Jun',318),('Jul',284),('Ago',289)] %}<div class="lt-chart__col" title="{{ m }}: $ {{ v }}/km"><span class="lt-chart__bar" style="--value:{{ v / 5 }}%"></span><em>{{ m }}</em></div>{% endfor %}
+        </div>
+      </div>
+      <div class="lt-chart__legend"><span><i class="lt-dot lt-c-cost"></i> Costo por km · bajando desde abril</span></div>
+    </div>
+  </article>
+
+  <article class="lt-panel">
+    <div class="lt-panel__head"><i class="bi bi-pie-chart"></i><h3>Distribución de gastos</h3></div>
+    <div class="lt-panel__body lt-donut">
+      <div class="lt-donut__ring">
+        <svg viewBox="0 0 42 42" aria-hidden="true">
+          {% set ns = namespace(acc=0) %}
+          {% for cls, pct in [('lt-c-fuel',42),('lt-c-maint',22),('lt-c-insure',20),('lt-c-other',16)] %}<circle class="{{ cls }}" cx="21" cy="21" r="15.9155" stroke-dasharray="{{ pct - 0.6 }} {{ 100 - pct + 0.6 }}" stroke-dashoffset="{{ -ns.acc }}"></circle>{% set ns.acc = ns.acc + pct %}{% endfor %}
+        </svg>
+        <div class="lt-donut__center"><strong>$ 2,32 M</strong><small>Total</small></div>
+      </div>
+      <ul class="lt-donut__legend">
+        {% for cls, name, pct in [('lt-c-fuel','Combustible',42),('lt-c-maint','Mantenimiento',22),('lt-c-insure','Seguros',20),('lt-c-other','Otros gastos',16)] %}<li><i class="lt-dot {{ cls }}"></i>{{ name }}<b>{{ pct }}%</b></li>{% endfor %}
+      </ul>
+    </div>
+  </article>
+</section>
+
+<article class="lt-panel lt-vehicle-notes">
+  <div class="lt-panel__head"><i class="bi bi-journal-text"></i><h3>Notas recientes</h3><button class="lt-panel__link" type="button" data-lt-static-nav>Ver todas</button></div>
+  <div class="lt-panel__body">
+    {% for d, t in [('5 sep. 2026','El carro ha presentado un leve ruido en la suspensión delantera. Revisar en el próximo mantenimiento.'),('12 jul. 2026','Se cambió la batería. Marca Bosch, garantía de 18 meses.'),('20 jun. 2026','Muy buen rendimiento en el viaje a Popayán: 16,1 km/gal.')] %}
+    <div class="lt-note-row"><time>{{ d }}</time><span>{{ t }}</span>
+      <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="vehicle-note-{{ loop.index }}" aria-haspopup="menu" aria-expanded="false" aria-label="Opciones de la nota"><i class="bi bi-three-dots-vertical"></i></button>
+        <div class="lt-menu" id="vehicle-note-{{ loop.index }}" role="menu" hidden><button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-pencil"></i> Editar nota</button><hr class="lt-menu__divider"><button class="lt-menu__item lt-menu__item--danger" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-trash"></i> Eliminar</button></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</article>
+
+<div class="lt-fab-anchor">
+  <div class="lt-menu" id="vehicle-fab-menu" role="menu" hidden>
+    <a class="lt-menu__item" role="menuitem" href="#/vehicles-fuel"><i class="bi bi-fuel-pump"></i> Combustible</a>
+    <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-wrench-adjustable"></i> Mantenimiento</button>
+    <a class="lt-menu__item" role="menuitem" href="#/vehicles-expenses"><i class="bi bi-wallet2"></i> Gasto</a>
+    <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-journal-plus"></i> Nota</button>
+    <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-calendar-event"></i> Otro evento</button>
+  </div>
+  <button class="lt-fab" type="button" data-lt-toggle="vehicle-fab-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Registrar en el vehículo"><i class="bi bi-plus-lg"></i></button>
+</div>
 {% endcall %}

@@ -20,7 +20,7 @@ class ListContactsTool extends Tool
             'category' => ['nullable', 'string'],
         ]);
 
-        $query = Auth::user()->relationships()->with(['circle', 'aliases'])->active();
+        $query = Auth::user()->relationships()->with(['circle', 'aliases', 'contactMethods'])->active();
 
         if (! empty($data['name'])) {
             $name = $data['name'];
@@ -46,6 +46,18 @@ class ListContactsTool extends Tool
                 'circle' => $relationship->circle?->name,
                 'birthday' => $relationship->birthday()?->label(),
                 'contact_frequency_days' => $relationship->contact_frequency_days,
+                'occupation' => $relationship->occupation,
+                'organization' => $relationship->organization,
+                'address' => $relationship->address,
+                'city' => $relationship->city,
+                'document' => $relationship->maskedDocument(),
+                'contact_methods' => $relationship->contactMethods->map(fn ($method) => [
+                    'id' => $method->id,
+                    'type' => $method->type,
+                    'label' => $method->label,
+                    'value' => $method->value,
+                    'is_primary' => $method->is_primary,
+                ])->all(),
             ])->all(),
         ]);
     }

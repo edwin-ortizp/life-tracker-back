@@ -11,7 +11,8 @@
         "vehicles-index",
         "vehicles-show",
         "vehicles-fuel",
-        "vehicles-maintenance"
+        "vehicles-maintenance",
+        "vehicles-expenses"
       ],
       "output": "vehicles.html"
     }
@@ -36,6 +37,11 @@
       "template": "screens/vehicles-maintenance.html.jinja",
       "title": "Mantenimiento",
       "bodyClass": ""
+    },
+    "vehicles-expenses": {
+      "template": "screens/vehicles-expenses.html.jinja",
+      "title": "Gastos",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -54,6 +60,10 @@
     {
       "path": "/vehicles-maintenance",
       "screen": "vehicles-maintenance"
+    },
+    {
+      "path": "/vehicles-expenses",
+      "screen": "vehicles-expenses"
     }
   ],
   "datasets": {

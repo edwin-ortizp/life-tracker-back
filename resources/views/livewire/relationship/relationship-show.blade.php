@@ -45,7 +45,7 @@
         <h2 class="md-title-medium mb-2">Medios de contacto</h2>
         @forelse ($relationship->contactMethods as $method)
             <div class="md-relationship-contact-row">
-                <span class="md-chip-tonal md-chip-tonal--info">{{ $method->typeLabel() }}</span>
+                <span class="md-chip-tonal md-chip-tonal--info"><i class="bi {{ $method->icon() }}" aria-hidden="true"></i> {{ $method->typeLabel() }}</span>
                 <span class="md-body-medium">{{ $method->value }}</span>
                 @if ($method->label)
                     <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);">{{ $method->label }}</span>
@@ -283,6 +283,12 @@
                 @endif
                 @if ($relationship->address)
                     <div><dt>Dirección</dt><dd>{{ $relationship->address }}</dd></div>
+                @endif
+                @if ($relationship->city)
+                    <div><dt>Ciudad</dt><dd>{{ $relationship->city }}</dd></div>
+                @endif
+                @if ($relationship->document_number)
+                    <div><dt>{{ $relationship->documentTypeLabel() ?? 'Documento' }}</dt><dd>{{ $relationship->document_number }}</dd></div>
                 @endif
                 @if ($relationship->circle)
                     <div><dt>Círculo</dt><dd>{{ $relationship->circle->name }}</dd></div>

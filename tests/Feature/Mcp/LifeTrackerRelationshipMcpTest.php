@@ -4,12 +4,15 @@ namespace Tests\Feature\Mcp;
 
 use App\Mcp\Servers\LifeTrackerServer;
 use App\Mcp\Tools\Relationship\AddContactAliasTool;
+use App\Mcp\Tools\Relationship\AddContactMethodTool;
+use App\Mcp\Tools\Relationship\RemoveContactMethodTool;
 use App\Mcp\Tools\Relationship\CreateContactTool;
 use App\Mcp\Tools\Relationship\ListContactsTool;
 use App\Mcp\Tools\Relationship\ListUpcomingBirthdaysTool;
 use App\Mcp\Tools\Relationship\LogRelationshipEventTool;
 use App\Mcp\Tools\Relationship\UpdateContactTool;
 use App\Models\Relationship;
+use App\Models\RelationshipContactMethod;
 use App\Models\RelationshipEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -207,5 +210,102 @@ class LifeTrackerRelationshipMcpTest extends TestCase
             ->assertOk()
             ->assertSee('Cumple cercano')
             ->assertSee('Cumple lejano');
+    }
+
+    public function test_update_contact_tool_saves_location_and_an_encrypted_document(): void
+    {
+        $user = User::factory()->create();
+        $relationship = $user->relationships()->create(['full_name' => 'Camila Rojas', 'category' => 'amigo']);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(UpdateContactTool::class, [
+                'name' => 'Camila',
+                'city' => 'Medellín',
+                'address' => 'Cra. 43A # 1-50',
+                'occupation' => 'Diseñadora',
+                'document_type' => 'cc',
+                'document_number' => '1061234567',
+            ])
+            ->assertOk();
+
+        $relationship->refresh();
+        $this->assertSame('Medellín', $relationship->city);
+        $this->assertSame('Cra. 43A # 1-50', $relationship->address);
+        $this->assertSame('1061234567', $relationship->document_number);
+        $this->assertNotSame('1061234567', \Illuminate\Support\Facades\DB::table('relationships')->where('id', $relationship->id)->value('document_number'));
+    }
+
+    public function test_update_contact_tool_requires_a_document_type(): void
+    {
+        $user = User::factory()->create();
+        $user->relationships()->create(['full_name' => 'Camila Rojas', 'category' => 'amigo']);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(UpdateContactTool::class, ['name' => 'Camila', 'document_number' => '1061234567'])
+            ->assertHasErrors()
+            ->assertSee('document_type');
+    }
+
+    public function test_contact_methods_can_be_added_without_duplicates_and_removed(): void
+    {
+        $user = User::factory()->create();
+        $relationship = $user->relationships()->create(['full_name' => 'Camila Rojas', 'category' => 'amigo']);
+
+        foreach ([
+            ['type' => 'phone', 'value' => '+57 310 555 0142', 'label' => 'Personal', 'is_primary' => true],
+            ['type' => 'phone', 'value' => '+57 604 444 1234', 'label' => 'Casa'],
+            ['type' => 'instagram', 'value' => '@camirojas'],
+        ] as $method) {
+            LifeTrackerServer::actingAs($user)
+                ->tool(AddContactMethodTool::class, ['name' => 'Camila'] + $method)
+                ->assertOk()
+                ->assertSee('agregado');
+        }
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(AddContactMethodTool::class, ['name' => 'Camila', 'type' => 'phone', 'value' => '+573105550142'])
+            ->assertOk()
+            ->assertSee('ya tenía');
+
+        $this->assertSame(3, RelationshipContactMethod::withoutGlobalScopes()->where('relationship_id', $relationship->id)->count());
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(RemoveContactMethodTool::class, ['name' => 'Camila', 'value' => '604 444 1234'])
+            ->assertOk()
+            ->assertSee('eliminado');
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(ListContactsTool::class, ['name' => 'Camila'])
+            ->assertOk()
+            ->assertSee('310 555 0142')
+            ->assertSee('@camirojas')
+            ->assertDontSee('604 444 1234');
+    }
+
+    public function test_create_contact_tool_accepts_contact_methods_and_list_masks_the_document(): void
+    {
+        $user = User::factory()->create();
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(CreateContactTool::class, [
+                'full_name' => 'Daniel Pérez',
+                'city' => 'Bogotá',
+                'document_type' => 'cc',
+                'document_number' => '80123456',
+                'contact_methods' => [
+                    ['type' => 'whatsapp', 'value' => '+57 300 111 2233'],
+                    ['type' => 'email', 'value' => 'daniel@example.com'],
+                ],
+            ])
+            ->assertOk()
+            ->assertSee('Medios de contacto: 2');
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(ListContactsTool::class, ['name' => 'Daniel'])
+            ->assertOk()
+            ->assertSee('Bogotá')
+            ->assertSee('terminado en 3456')
+            ->assertSee('daniel@example.com')
+            ->assertDontSee('80123456');
     }
 }

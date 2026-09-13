@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools\Relationship;
 
 use App\Mcp\Tools\Relationship\Concerns\ResolvesContact;
+use App\Models\Relationship;
 use App\Support\Birthday;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -10,7 +11,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Actualiza campos de un contacto existente del usuario autenticado, por ejemplo para añadirle el cumpleaños.')]
+#[Description('Actualiza datos de un contacto existente: nombre, apodo, círculo, cumpleaños, ocupación, dirección, ciudad, documento o notas. Para teléfonos, correos y redes usa add-contact-method-tool y remove-contact-method-tool.')]
 class UpdateContactTool extends Tool
 {
     use ResolvesContact;
@@ -33,6 +34,13 @@ class UpdateContactTool extends Tool
             'birthday_year' => ['sometimes', 'nullable', 'integer', 'between:1900,'.$currentYear],
             'contact_frequency_days' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:3650'],
             'general_notes' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'pronouns' => ['sometimes', 'nullable', 'string', 'max:60'],
+            'occupation' => ['sometimes', 'nullable', 'string', 'max:150'],
+            'organization' => ['sometimes', 'nullable', 'string', 'max:150'],
+            'address' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'city' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'document_type' => ['sometimes', 'nullable', 'string', 'in:'.implode(',', array_keys(Relationship::DOCUMENT_TYPES))],
+            'document_number' => ['sometimes', 'nullable', 'string', 'max:40'],
         ]);
 
         $relationship = $this->resolveContact($data['contact_id'] ?? null, $data['name'] ?? null);
@@ -48,7 +56,12 @@ class UpdateContactTool extends Tool
 
         $updates = array_intersect_key($data, array_flip([
             'full_name', 'nickname', 'category', 'birthday_month', 'birthday_day', 'birthday_year', 'contact_frequency_days', 'general_notes',
+            'pronouns', 'occupation', 'organization', 'address', 'city', 'document_type', 'document_number',
         ]));
+
+        if (! empty($updates['document_number']) && empty($updates['document_type'] ?? $relationship->document_type)) {
+            return Response::error('Indica document_type junto con document_number.');
+        }
 
         if (array_key_exists('circle_name', $data)) {
             $circleId = $this->resolveCircleId($data['circle_name']);
@@ -100,6 +113,22 @@ class UpdateContactTool extends Tool
                 ->description('Cada cuántos días se sugiere retomar contacto.'),
             'general_notes' => $schema->string()
                 ->description('Nuevas notas generales sobre el contacto.'),
+            'pronouns' => $schema->string()
+                ->description('Pronombres, opcional.'),
+            'occupation' => $schema->string()
+                ->description('Ocupación o profesión.'),
+            'organization' => $schema->string()
+                ->description('Empresa, universidad u organización.'),
+            'address' => $schema->string()
+                ->description('Dirección de residencia.'),
+            'city' => $schema->string()
+                ->description('Ciudad donde vive.'),
+            'document_type' => $schema->string()
+                ->enum(array_keys(Relationship::DOCUMENT_TYPES))
+                ->description('Tipo de documento: cc (cédula de ciudadanía), ce (cédula de extranjería), ti (tarjeta de identidad), passport, ppt, nit u other.'),
+            'document_number' => $schema->string()
+                ->description('Número de documento. Se guarda cifrado; requiere document_type.'),
+
         ];
     }
 }

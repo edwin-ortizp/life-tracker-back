@@ -103,7 +103,7 @@
                             @endif
                             @foreach ($rel->contactMethods->take(2) as $method)
                                 <span class="md-label-small md-relationship-card__contact">
-                                    <i class="bi {{ $method->type === 'email' ? 'bi-envelope' : ($method->type === 'phone' ? 'bi-telephone' : 'bi-link-45deg') }}"></i>
+                                    <i class="bi {{ $method->icon() }}" aria-hidden="true"></i>
                                     {{ $method->value }}
                                 </span>
                             @endforeach
@@ -300,9 +300,32 @@
                             </div>
                         </div>
 
-                        <div class="md-text-field">
-                            <input type="text" wire:model="address" placeholder=" " id="rel-address">
-                            <label for="rel-address">Dirección</label>
+                        <div class="row g-3">
+                            <div class="col-12 col-sm-8">
+                                <div class="md-text-field">
+                                    <input type="text" wire:model="address" placeholder=" " id="rel-address">
+                                    <label for="rel-address">Dirección</label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-4">
+                                <div class="md-text-field">
+                                    <input type="text" wire:model="city" placeholder=" " id="rel-city">
+                                    <label for="rel-city">Ciudad</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12 col-sm-5">
+                                <x-ui.select name="documentType" label="Tipo de documento" :options="\App\Models\Relationship::DOCUMENT_TYPES" :selected="$documentType" placeholder="Sin documento" icon="bi-person-vcard" wire:model="documentType" />
+                            </div>
+                            <div class="col-12 col-sm-7">
+                                <div class="md-text-field @error('documentNumber') md-error @enderror">
+                                    <input type="text" wire:model="documentNumber" placeholder=" " id="rel-document-number" autocomplete="off">
+                                    <label for="rel-document-number">Número de documento</label>
+                                    @error('documentNumber')<p class="md-supporting-text" role="alert">{{ $message }}</p>@enderror
+                                </div>
+                            </div>
                         </div>
 
                         <div class="row g-3">

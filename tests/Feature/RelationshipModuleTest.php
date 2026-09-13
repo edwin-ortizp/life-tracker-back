@@ -279,4 +279,39 @@ class RelationshipModuleTest extends TestCase
         $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
         Livewire::test(RelationshipShow::class, ['relationship' => $foreign->id]);
     }
+
+    public function test_contact_form_saves_city_and_an_encrypted_document(): void
+    {
+        Livewire::test(RelationshipIndex::class)
+            ->call('openForm')
+            ->set('fullName', 'Camila Rojas')
+            ->set('city', 'Medellín')
+            ->set('documentType', 'cc')
+            ->set('documentNumber', '1061234567')
+            ->set('contactMethods', [
+                ['id' => null, 'type' => 'phone', 'label' => 'Personal', 'value' => '+57 310 555 0142', 'is_primary' => true],
+                ['id' => null, 'type' => 'phone', 'label' => 'Trabajo', 'value' => '+57 604 444 1234', 'is_primary' => false],
+                ['id' => null, 'type' => 'instagram', 'label' => '', 'value' => '@camirojas', 'is_primary' => false],
+            ])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $relationship = Relationship::query()->with('contactMethods')->sole();
+        $this->assertSame('Medellín', $relationship->city);
+        $this->assertSame('1061234567', $relationship->document_number);
+        $this->assertNotSame('1061234567', \Illuminate\Support\Facades\DB::table('relationships')->value('document_number'));
+        $this->assertSame(['phone', 'phone', 'instagram'], $relationship->contactMethods->pluck('type')->all());
+
+        $this->get('/relationships/'.$relationship->id)->assertOk()->assertSee('Medellín')->assertSee('Cédula de ciudadanía');
+    }
+
+    public function test_contact_document_number_requires_a_type(): void
+    {
+        Livewire::test(RelationshipIndex::class)
+            ->call('openForm')
+            ->set('fullName', 'Camila Rojas')
+            ->set('documentNumber', '1061234567')
+            ->call('save')
+            ->assertHasErrors(['documentType']);
+    }
 }

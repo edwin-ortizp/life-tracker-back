@@ -15,9 +15,30 @@ class RelationshipContactMethod extends Model
 
     public const TYPES = [
         'phone' => 'Teléfono',
+        'whatsapp' => 'WhatsApp',
         'email' => 'Correo',
-        'social' => 'Perfil social',
+        'instagram' => 'Instagram',
+        'facebook' => 'Facebook',
+        'tiktok' => 'TikTok',
+        'linkedin' => 'LinkedIn',
+        'x' => 'X',
+        'social' => 'Otra red social',
+        'website' => 'Sitio web',
         'other' => 'Otro',
+    ];
+
+    public const ICONS = [
+        'phone' => 'bi-telephone',
+        'whatsapp' => 'bi-whatsapp',
+        'email' => 'bi-envelope',
+        'instagram' => 'bi-instagram',
+        'facebook' => 'bi-facebook',
+        'tiktok' => 'bi-tiktok',
+        'linkedin' => 'bi-linkedin',
+        'x' => 'bi-twitter-x',
+        'social' => 'bi-person-badge',
+        'website' => 'bi-globe',
+        'other' => 'bi-three-dots',
     ];
 
     protected $fillable = [
@@ -64,6 +85,11 @@ class RelationshipContactMethod extends Model
     public function typeLabel(): string
     {
         return self::TYPES[$this->type] ?? self::TYPES['other'];
+    }
+
+    public function icon(): string
+    {
+        return self::ICONS[$this->type] ?? self::ICONS['other'];
     }
 
     private function demoteSiblings(): void

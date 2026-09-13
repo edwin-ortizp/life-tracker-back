@@ -1,7 +1,6 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
-{% call shell('vehicles', 'Mantenimiento · Mazda 3', 'bi-wrench-adjustable') %}
-{{ header('Mantenimiento · Mazda 3', 'Mantenimiento y próximos cuidados.', 'bi-wrench-adjustable', '/vehicles-index') }}
-{{ module_tabs([('Resumen','/vehicles-show','bi-card-text'),('Combustible','/vehicles-fuel','bi-fuel-pump'),('Mantenimiento','/vehicles-maintenance','bi-wrench-adjustable')], '/vehicles-maintenance') }}
+{% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs, tabs as module_tabs, header, metric %}
+{% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
+{{ vehicle_tabs('/vehicles-maintenance') }}
 <section class="lt-metrics">{{ metric('Planes activos','5') }}{{ metric('Vencen este mes','2','warning') }}{{ metric('Gastado en 2026','$ 1.240.000') }}</section>
 <section class="lt-grid-2">
   <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-calendar2-check"></i><h3>Plan de cuidados</h3><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Añadir plan</button></div><div class="lt-panel__body"><div class="lt-list">
@@ -11,7 +10,7 @@
   </div></div></article>
   <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-clock-history"></i><h3>Historial de servicios</h3></div><div class="lt-panel__body">
     <div class="lt-timeline">
-      {% for title, meta, note in [('Cambio de aceite y filtro','14 jul. · 54.020 km · $ 245.000','Taller Autolab · aceite 0W-20 sintético.'),('Alineación y balanceo','2 jun. · 52.800 km · $ 90.000','Vibración al frenar resuelta.'),('Batería nueva','20 mar. · 49.900 km · $ 420.000','Garantía 18 meses.'),('Cambio de aceite y filtro','5 feb. · 49.010 km · $ 238.000','')] %}
+      {% for title, meta, note in [('Cambio de aceite y filtro','14 jul. · 138.020 km · $ 245.000','Taller Autolab · aceite 0W-20 sintético.'),('Alineación y balanceo','2 jun. · 136.800 km · $ 90.000','Vibración al frenar resuelta.'),('Batería nueva','20 mar. · 133.900 km · $ 420.000','Garantía 18 meses.'),('Cambio de aceite y filtro','5 feb. · 133.010 km · $ 238.000','')] %}
       <div class="lt-timeline__item"><span class="lt-timeline__dot"></span><div><strong>{{ title }}</strong><span>{{ meta }}</span>{% if note %}<p>{{ note }}</p>{% endif %}</div></div>
       {% endfor %}
     </div>
