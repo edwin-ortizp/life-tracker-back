@@ -22,7 +22,7 @@ class ModuleExperienceTest extends TestCase
         foreach ([
             '/', '/water/daily', '/water/calendar', '/water/weekly', '/water/range', '/water/settings',
             '/exercise', '/exercise/statistics', '/exercise/settings', '/health', '/health/body', '/vehicles', '/habits', '/habits/weekly', '/mood',
-            '/journal', '/journal/life', '/journal/life/week?week=2026-W28', '/pomodoro', '/meals/weekly',
+            '/journal', '/journal/summary', '/journal/life', '/journal/life/week?week=2026-W28', '/pomodoro', '/meals/weekly',
             '/tasks/list', '/tasks/gantt', '/tasks/flow', '/tasks/kanban', '/tasks/planning', '/tasks/progress',
             '/relationships', '/plans', '/goals', '/statistics', '/negative-habits', '/settings',
         ] as $url) {

@@ -47,7 +47,11 @@
                 <i class="bi {{ $icon }}" aria-hidden="true"></i><span>{{ $label }}</span>
             </{{ $tag($primary) }}>
         @elseif ($split)
-            <div class="md-create-fab__menu" id="{{ $menuId }}" x-show="fabOpen" x-cloak x-transition.origin.bottom.right role="menu" aria-label="Más acciones de creación">
+            <div class="md-create-fab__menu" id="{{ $menuId }}" x-show="fabOpen" x-cloak x-transition.origin.bottom.right role="menu" aria-label="{{ $label }}">
+                <{{ $tag($primary) }} @if ($tag($primary) === 'button') type="button" @endif {!! $binding($primary) !!}
+                    class="md-create-fab__item md-create-fab__item--primary" role="menuitem" @click="fabOpen = false">
+                    <span>{{ $label }}</span><i class="bi {{ $icon }}" aria-hidden="true"></i>
+                </{{ $tag($primary) }}>
                 @foreach ($actions as $item)
                     <{{ $tag($item) }} @if ($tag($item) === 'button') type="button" @endif {!! $binding($item) !!}
                         class="md-create-fab__item" role="menuitem" @click="fabOpen = false">
@@ -65,6 +69,11 @@
                     <i class="bi bi-chevron-up" aria-hidden="true"></i>
                 </button>
             </div>
+            {{-- Móvil: sin split, un único FAB que despliega todas las opciones hacia arriba. --}}
+            <button type="button" class="md-fab md-fab-extended md-create-fab md-fab-split__compact" @click="fabOpen = !fabOpen"
+                    :aria-expanded="fabOpen.toString()" aria-haspopup="menu" aria-controls="{{ $menuId }}" aria-label="{{ $label }}" title="{{ $label }}">
+                <i class="bi" :class="fabOpen ? 'bi-x-lg' : @js($icon)" aria-hidden="true"></i><span>{{ $label }}</span>
+            </button>
         @else
             <div class="md-create-fab__menu" x-show="fabOpen" x-cloak x-transition.origin.bottom.right role="menu" aria-label="{{ $label }}">
                 @foreach ($actions->prepend($primary) as $item)

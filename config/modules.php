@@ -102,9 +102,10 @@ return [
     'journal' => [
         'archetype' => 'list',
         'title' => 'Diario', 'subtitle' => 'Pensamientos, emociones y perspectiva en un mismo lugar.', 'icon' => 'bi-journal-text',
-        'patterns' => ['journal*'], 'preserve' => ['date', 'week'],
+        'patterns' => ['journal*'], 'preserve' => ['date', 'week', 'period', 'from', 'to'],
         'tabs' => [
             ['label' => 'Entradas', 'route' => 'journal', 'icon' => 'bi-journal-text', 'active' => ['journal']],
+            ['label' => 'Resumen', 'route' => 'journal.summary', 'icon' => 'bi-card-list', 'active' => ['journal.summary']],
             ['label' => 'Vida', 'route' => 'journal.life', 'archetype' => 'dashboard', 'icon' => 'bi-grid-3x3-gap', 'active' => ['journal.life']],
             ['label' => 'Semana', 'route' => 'journal.life.week', 'archetype' => 'detail', 'icon' => 'bi-calendar-week', 'active' => ['journal.life.week']],
         ],

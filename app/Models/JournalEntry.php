@@ -14,6 +14,7 @@ class JournalEntry extends Model
     protected $fillable = [
         'date',
         'text',
+        'summary',
         'display_time',
         'source',
         'source_key',

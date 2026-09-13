@@ -69,5 +69,7 @@ class ManagementCardTest extends TestCase
         $this->assertStringContainsString('md-fab-split__main', $html);
         $this->assertStringContainsString('md-fab-split__toggle', $html);
         $this->assertStringContainsString('Nuevo pendiente', $html);
+        $this->assertStringContainsString('md-fab-split__compact', $html);
+        $this->assertStringContainsString('md-create-fab__item--primary', $html);
     }
 }

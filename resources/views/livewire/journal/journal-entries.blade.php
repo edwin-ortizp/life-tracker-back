@@ -19,6 +19,12 @@
             </div>
         </div>
         <div style="padding: 0 16px 16px 16px;">
+            <div class="mb-3" x-data="{ length: @js(mb_strlen($summary)) }">
+                <x-ui.field name="summary" label="Resumen del día" icon="bi-card-list" maxlength="255"
+                            help="Lo más importante del día en una línea. Aparece en la pestaña Resumen."
+                            wire:model="summary" x-on:input="length = $event.target.value.length" />
+                <p class="md-label-small journal-summary-field__meta mb-0" aria-live="polite"><span x-text="length"></span>/255</p>
+            </div>
             @include('partials.markdown-editor', [
                 'model' => 'text',
                 'mode' => 'viewMode',
@@ -52,7 +58,7 @@
                     </div>
                 </div>
                 <div class="md-list-item-content">
-                    <div class="md-list-item-headline text-truncate">{{ Str::limit($entry->text, 80) }}</div>
+                    <div class="md-list-item-headline text-truncate">{{ filled($entry->summary) ? $entry->summary : Str::limit($entry->text, 80) }}</div>
                     @if ($entry->display_time)
                         <div class="md-list-item-supporting">{{ $entry->display_time }}</div>
                     @endif

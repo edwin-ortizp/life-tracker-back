@@ -52,7 +52,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/mood', \App\Livewire\Mood\MoodTracker::class)->name('mood');
     Route::get('/mood/settings', \App\Livewire\Mood\MoodSettings::class)->name('mood.settings');
     Route::get('/journal', \App\Livewire\Journal\JournalEntries::class)->name('journal');
-    Route::get('/journal/life', \App\Livewire\Journal\JournalLifeCalendar::class)->name('journal.life');
+    Route::get('/journal/summary', \App\Livewire\Journal\JournalSummary::class)->name('journal.summary');
+    Route::get('/journal/life',\App\Livewire\Journal\JournalLifeCalendar::class)->name('journal.life');
     Route::get('/journal/life/week', \App\Livewire\Journal\JournalLifeWeek::class)->name('journal.life.week');
     Route::get('/pomodoro', \App\Livewire\Pomodoro\PomodoroTimer::class)->name('pomodoro');
     Route::get('/pomodoro/settings', \App\Livewire\Pomodoro\PomodoroSettings::class)->name('pomodoro.settings');

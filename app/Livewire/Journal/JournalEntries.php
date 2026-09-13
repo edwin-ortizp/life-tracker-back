@@ -17,6 +17,7 @@ class JournalEntries extends Component
     use HasUrlDate;
     use WithManagementCard;
     public string $text = '';
+    public string $summary = '';
     public bool $isEditing = false;
     public string $viewMode = 'write'; // write, preview
 
@@ -51,6 +52,7 @@ class JournalEntries extends Component
     {
         $entry = JournalEntry::where('date', $this->selectedDate)->first();
         $this->text = $entry?->text ?? '';
+        $this->summary = $entry?->summary ?? '';
         $this->isEditing = false;
         $this->viewMode = 'write';
     }
@@ -62,6 +64,9 @@ class JournalEntries extends Component
 
     public function save()
     {
+        $this->summary = trim($this->summary);
+        $this->validate(['summary' => ['nullable', 'string', 'max:255']], [], ['summary' => 'resumen']);
+
         $entry = JournalEntry::where('date', $this->selectedDate)->first();
 
         if (empty(trim($this->text))) {
@@ -75,12 +80,14 @@ class JournalEntries extends Component
         if ($entry) {
             $entry->update([
                 'text' => $this->text,
+                'summary' => $this->summary !== '' ? $this->summary : null,
                 'display_time' => now()->format('H:i'),
             ]);
         } else {
             JournalEntry::create([
                 'date' => $this->selectedDate,
                 'text' => $this->text,
+                'summary' => $this->summary !== '' ? $this->summary : null,
                 'display_time' => now()->format('H:i'),
             ]);
         }
@@ -92,8 +99,9 @@ class JournalEntries extends Component
     {
         $entry = JournalEntry::where('date', $this->selectedDate)->first();
         $currentText = $entry?->text ?? '';
+        $currentSummary = $entry?->summary ?? '';
 
-        if ($this->text !== $currentText && !empty(trim($this->text))) {
+        if (($this->text !== $currentText || trim($this->summary) !== $currentSummary) && !empty(trim($this->text))) {
             $this->save();
         }
     }
