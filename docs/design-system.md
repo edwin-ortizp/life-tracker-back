@@ -116,6 +116,7 @@ Regla transversal y obligatoria para producción y mockups: **toda acción cuyo 
 - **Escritorio**: FAB extendido, rectángulo redondeado con ícono y texto de la acción en infinitivo + objeto: «Registrar evento», «Agregar objetivo», «Crear receta».
 - **Móvil (< 768 px)**: solo ícono, con `aria-label` igual al texto; se sitúa por encima de la barra inferior.
 - **Varias opciones**: las creaciones alternativas del mismo contexto se despliegan desde el FAB (menú FAB) con el mismo patrón visual. En `x-module-actions`, marca la secundaria con `'create' => true`; en `x-ui.fab`, pásalas en `actions`. Las acciones que no crean (archivar, navegar, configurar) van al menú ⋮.
+- **FAB dividido** (`:split="true"`): un solo FAB de 56 px con radio 16 px, sombra única y dos zonas: acción principal con su padding completo y zona de 36 px con chevron de .95rem, separadas por un divisor de 1 px. El menú se despliega hacia arriba, por encima del FAB. Posición y medidas salen solo de los tokens `--md-sys-fab-*` (`offset-inline`, `offset-block`, `height`, `radius`, `padding-inline`, `icon-size`, `split-toggle-width`, `split-icon-size`, `menu-gap`); ninguna pantalla los define.
 - **Jerarquía**: se teletransporta a `<body>` con `--md-sys-z-fab-floating`; queda sobre acordeones, menús, ⋮ y paneles, bajo los diálogos, y se oculta mientras hay un modal abierto.
 - **Estados**: hover, foco visible, presionado y deshabilitado vienen del componente.
 - **Destino**: al activarse abre `x-ui.form-dialog` (ver abajo) sin navegar a otra vista. Editar un elemento reutiliza el mismo modal.

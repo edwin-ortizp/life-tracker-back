@@ -20,7 +20,7 @@
 @media (min-width: 768px) {
   .md-responsive-actions--fab-always .md-module-primary-fab,
   .md-responsive-actions--fab-always .md-module-primary-inline {
-    position: fixed; right: 28px; bottom: 28px; z-index: var(--md-sys-z-fab-floating, 90);
+    position: fixed; right: var(--md-sys-fab-offset-inline); bottom: var(--md-sys-fab-offset-block); z-index: var(--md-sys-z-fab-floating, 90);
   }
 }
 
@@ -89,7 +89,7 @@
 @media (max-width: 767.98px) {
   .md-responsive-actions__desktop { display: none; }
   .md-responsive-actions__mobile { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-  .md-module-primary-fab { position: fixed; right: 16px; bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px + env(safe-area-inset-bottom)); z-index: var(--md-sys-z-fab-floating, 90); }
+  .md-module-primary-fab { position: fixed; right: var(--md-sys-fab-offset-inline); bottom: var(--md-sys-fab-offset-block); z-index: var(--md-sys-z-fab-floating, 90); }
   .md-module-tabs { margin-inline: 0; }
   .md-context-rail { grid-template-columns: 1fr; }
   .md-date-navigator { width: auto; max-width: 100%; justify-content: space-between; }
@@ -102,23 +102,21 @@
 
 /* El FAB teletransportado vive fuera del shell; su capa no ocupa espacio y solo transmite el módulo. */
 .md-fab-layer { display: contents; }
-.md-fab-layer > .md-module-primary-fab { position: fixed; right: 28px; bottom: 28px; z-index: var(--md-sys-z-fab-floating, 90); }
-@media (max-width: 767.98px) {
-  .md-fab-layer > .md-module-primary-fab { right: 16px; bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px + env(safe-area-inset-bottom)); }
-}
+.md-fab-layer > .md-module-primary-fab { position: fixed; right: var(--md-sys-fab-offset-inline); bottom: var(--md-sys-fab-offset-block); z-index: var(--md-sys-z-fab-floating, 90); }
 
 /* ===== FAB canónico de creación (x-ui.fab) =====
  * Única implementación de las acciones crear / registrar / agregar. Fijo abajo a la
  * derecha, extendido en escritorio y solo ícono en móvil. Queda sobre acordeones,
  * menús (z-menu), ⋮ y la barra inferior, pero bajo los diálogos (z-scrim) y se oculta
  * mientras un modal está abierto. */
-.md-fab-host { position: fixed; right: 28px; bottom: 28px; z-index: var(--md-sys-z-fab-floating, 90); display: grid; justify-items: end; gap: 12px; }
-.md-fab-host > .md-create-fab { position: static; }
+.md-fab-host { position: fixed; right: var(--md-sys-fab-offset-inline); bottom: var(--md-sys-fab-offset-block); z-index: var(--md-sys-z-fab-floating, 90); display: flex; flex-direction: column; align-items: flex-end; gap: var(--md-sys-fab-menu-gap); }
+/* Ninguna pieza dentro del host se posiciona sola: el host es el único punto fijo. */
+.md-fab-host .md-fab { position: static; inset: auto; }
 .md-create-fab i { transition: transform var(--md-sys-motion-duration-short2, .15s) ease; }
 .md-fab-host.is-open > .md-create-fab i { transform: rotate(90deg); }
 .md-create-fab:focus-visible, .md-create-fab__item:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 3px; }
 .md-create-fab:active { box-shadow: var(--md-sys-elevation-2); }
-.md-create-fab__menu { display: grid; justify-items: end; gap: 10px; }
+.md-create-fab__menu { position: relative; z-index: 1; display: grid; justify-items: end; gap: 10px; }
 .md-create-fab__item { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 8px 0 18px; border: 0; border-radius: 16px; background: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface); box-shadow: var(--md-sys-elevation-3); font-size: .9rem; font-weight: 700; text-decoration: none; cursor: pointer; }
 .md-create-fab__item i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--md-module-action-container, var(--md-sys-color-primary-container)); color: var(--md-module-on-action-container, var(--md-sys-color-on-primary-container)); font-size: 1.1rem; }
 .md-create-fab__item:hover { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
@@ -126,16 +124,19 @@
 body:has(.md-form-dialog-layer:not([style*="display: none"]):not([x-cloak])) .md-fab-host,
 body:has(:not([style*="display: none"]):not([x-cloak]) > .md-dialog-scrim) .md-fab-host { visibility: hidden; }
 @media (max-width: 767.98px) {
-  .md-fab-host { right: 16px; bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px + env(safe-area-inset-bottom)); }
   .md-create-fab__item { min-height: 44px; font-size: .84rem; }
 }
 /* FAB dividido (M3 split button): acción principal + chevron que despliega las demás creaciones. */
-.md-fab-split { display: flex; gap: 2px; }
-.md-fab-split > .md-fab-split__main { border-radius: 16px 4px 4px 16px; }
-.md-fab-split > .md-fab-split__toggle { justify-content: center; width: 48px; min-width: 48px; padding: 0; border-radius: 4px 16px 16px 4px; }
+.md-fab-split { display: inline-flex; align-items: stretch; height: var(--md-sys-fab-height); overflow: hidden; border-radius: var(--md-sys-fab-radius); background: var(--md-module-action-container, var(--md-sys-color-primary-container)); box-shadow: var(--md-sys-elevation-3); }
+.md-fab-split > .md-fab { height: 100%; border-radius: 0; box-shadow: none; }
+.md-fab-split > .md-fab:hover, .md-fab-split > .md-fab:active { box-shadow: none; }
+.md-fab-split > .md-fab:focus-visible { outline-offset: -3px; }
+.md-fab-split > .md-fab-split__toggle { position: relative; justify-content: center; width: var(--md-sys-fab-split-toggle-width); min-width: var(--md-sys-fab-split-toggle-width); padding: 0; font-size: var(--md-sys-fab-split-icon-size); }
+.md-fab-split > .md-fab-split__toggle::before { position: absolute; top: 14px; bottom: 14px; left: 0; width: 1px; background: color-mix(in srgb, currentColor 22%, transparent); content: ''; }
+.md-fab-split__toggle i { font-size: inherit; }
 .md-fab-host.is-open .md-fab-split__toggle i { transform: rotate(180deg); }
 @media (max-width: 767.98px) {
-  .md-fab-split > .md-fab-split__toggle { width: 40px; min-width: 40px; }
+  .md-fab-split > .md-fab-extended { border-radius: 0; }
 }
 .md-catalog-fab-preview { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
 .md-catalog-fab-preview .md-fab { position: static; }

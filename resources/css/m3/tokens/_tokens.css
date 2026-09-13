@@ -251,6 +251,24 @@
   --md-sys-z-dropdown: 1000;
   --md-sys-z-scrim: 1200;
   --md-sys-z-dialog: 1210;
+
+  /* FAB: posición, tamaño y FAB dividido. Ninguna pantalla los redefine. */
+  --md-sys-fab-offset-inline: 28px;
+  --md-sys-fab-offset-block: 28px;
+  --md-sys-fab-height: 56px;
+  --md-sys-fab-radius: 16px;
+  --md-sys-fab-padding-inline: 20px;
+  --md-sys-fab-gap: 10px;
+  --md-sys-fab-icon-size: 1.35rem;
+  --md-sys-fab-split-toggle-width: 36px;
+  --md-sys-fab-split-icon-size: .95rem;
+  --md-sys-fab-menu-gap: 12px;
+}
+@media (max-width: 767.98px) {
+  :root {
+    --md-sys-fab-offset-inline: 16px;
+    --md-sys-fab-offset-block: calc(var(--md-sys-layout-nav-bar-height) + 16px + env(safe-area-inset-bottom));
+  }
 }
 
 body {

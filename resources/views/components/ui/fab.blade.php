@@ -34,6 +34,7 @@
 
         return 'wire:click="'.e($item['action'] ?? '').'"';
     };
+    $menuId = 'fab-menu-'.\Illuminate\Support\Str::random(6);
     $tag = static fn (array $item): string => empty($item['href']) ? 'button' : 'a';
 @endphp
 
@@ -46,7 +47,7 @@
                 <i class="bi {{ $icon }}" aria-hidden="true"></i><span>{{ $label }}</span>
             </{{ $tag($primary) }}>
         @elseif ($split)
-            <div class="md-create-fab__menu" x-show="fabOpen" x-cloak x-transition.origin.bottom.right role="menu" aria-label="Más acciones de creación">
+            <div class="md-create-fab__menu" id="{{ $menuId }}" x-show="fabOpen" x-cloak x-transition.origin.bottom.right role="menu" aria-label="Más acciones de creación">
                 @foreach ($actions as $item)
                     <{{ $tag($item) }} @if ($tag($item) === 'button') type="button" @endif {!! $binding($item) !!}
                         class="md-create-fab__item" role="menuitem" @click="fabOpen = false">
@@ -60,7 +61,7 @@
                     <i class="bi {{ $icon }}" aria-hidden="true"></i><span>{{ $label }}</span>
                 </{{ $tag($primary) }}>
                 <button type="button" class="md-fab md-create-fab md-fab-split__toggle" @click="fabOpen = !fabOpen"
-                        :aria-expanded="fabOpen.toString()" aria-haspopup="menu" aria-label="Más acciones de creación" title="Más acciones de creación">
+                        :aria-expanded="fabOpen.toString()" aria-haspopup="menu" aria-controls="{{ $menuId }}" aria-label="Más acciones de creación" title="Más acciones de creación">
                     <i class="bi bi-chevron-up" aria-hidden="true"></i>
                 </button>
             </div>
