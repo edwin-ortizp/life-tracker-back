@@ -1,0 +1,62 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab %}
+{% call shell('exercise', 'Tipos de ejercicio', 'bi-tags') %}
+{{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Resumen semanal','/exercise-weekly','bi-bar-chart-line'),('Tipos','/exercise-types','bi-tags')], '/exercise-types') }}
+<section class="lt-metrics">{{ metric('Tipos creados','11') }}{{ metric('Usados este mes','7 de 11','success') }}{{ metric('Sin registros','4','warning') }}</section>
+<section class="lt-toolbar" aria-label="Filtros de tipos">
+  <label class="lt-field"><span class="lt-sr-only">Buscar</span><input type="search" placeholder="Buscar tipo de ejercicio..."></label>
+  {% for c, sel in [('Todos',true),('Cardio',false),('Fuerza',false),('Flexibilidad',false),('Sin categoría',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}
+</section>
+{% for cat, cicon, items in [
+  ('Cardio', 'bi-heart-pulse', [('bi-person-walking','Correr',720,9000,'14 registros · último hoy'),('bi-bicycle','Bicicleta',540,0,'6 registros · último 7 sep.'),('bi-water','Natación',600,0,'2 registros · último 22 ago.'),('bi-person-walking','Caminar',280,6000,'Sin registros')]),
+  ('Fuerza', 'bi-universal-access', [('bi-universal-access','Sentadilla con barra',420,0,'9 registros · último hoy'),('bi-universal-access','Press de banca',360,0,'9 registros · último hoy'),('bi-universal-access','Peso muerto',450,0,'5 registros · último 8 sep.'),('bi-universal-access','Dominadas',400,0,'Sin registros')]),
+  ('Flexibilidad', 'bi-flower1', [('bi-flower1','Yoga',180,0,'3 registros · último 31 ago.'),('bi-flower1','Estiramientos',120,0,'Sin registros')]),
+  ('Sin categoría', 'bi-question-circle', [('bi-dribbble','Fútbol con amigos',650,7000,'Sin registros')])
+] %}
+<article class="lt-panel{% if loop.first %} lt-panel--accent{% endif %}"><div class="lt-panel__head"><i class="bi {{ cicon }}"></i><h3>{{ cat }}</h3><small>{{ items|length }} tipos</small></div><div class="lt-panel__body"><div class="lt-list">
+  {% set outer = loop.index %}
+  {% for icon, name, kcal, steps, usage in items %}
+  <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ usage }}</span></div>
+    <div class="lt-list-item__meta"><span class="lt-chip">{{ kcal }} kcal/h</span>{% if steps %}<small>{{ '{:,}'.format(steps).replace(',', '.') }} pasos/h</small>{% endif %}</div>
+    <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="type-menu-{{ outer }}-{{ loop.index }}" aria-haspopup="menu" aria-expanded="false" aria-label="Más opciones de {{ name }}"><i class="bi bi-three-dots-vertical"></i></button>
+      <div class="lt-menu" id="type-menu-{{ outer }}-{{ loop.index }}" role="menu" hidden>
+        <button class="lt-menu__item" role="menuitem" type="button" data-lt-toggle="exercise-type-edit"><i class="bi bi-pencil"></i> Editar tipo</button>
+        <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-clock-history"></i> Ver registros</button>
+        <hr class="lt-menu__divider">
+        <button class="lt-menu__item lt-menu__item--danger" role="menuitem" type="button" data-lt-toggle="{{ 'exercise-type-delete-used' if 'Sin registros' not in usage else 'exercise-type-delete' }}"><i class="bi bi-trash"></i> Eliminar</button>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div></div></article>
+{% endfor %}
+{{ fab('Nuevo tipo', 'bi-plus-lg', 'exercise-type-new') }}
+
+{% macro type_form(name, category, icon, kcal, steps) -%}
+<div class="lt-form">
+  <label class="lt-field lt-form--full"><span>Nombre *</span><input type="text" value="{{ name }}" placeholder="Ej. Remo, Spinning, Boxeo"></label>
+  <label class="lt-field"><span>Categoría</span><select>{% for c in ['Sin categoría','Cardio','Fuerza','Flexibilidad'] %}<option{% if c == category %} selected{% endif %}>{{ c }}</option>{% endfor %}</select></label>
+  <label class="lt-field"><span>Ícono</span><select>{% for i, l in [('bi-person-walking','Persona corriendo'),('bi-bicycle','Bicicleta'),('bi-water','Agua'),('bi-universal-access','Fuerza'),('bi-flower1','Flexibilidad'),('bi-dribbble','Balón')] %}<option{% if i == icon %} selected{% endif %}>{{ l }}</option>{% endfor %}</select></label>
+  <label class="lt-field"><span>Calorías por hora</span><input type="number" value="{{ kcal }}"></label>
+  <label class="lt-field"><span>Pasos equivalentes por hora</span><input type="number" value="{{ steps }}"></label>
+  <p class="lt-page-head__subtitle lt-form--full">Se usan para estimar calorías y pasos cuando registras solo la duración. Puedes ajustarlos en cada registro.</p>
+</div>
+{%- endmacro %}
+
+{% call dialog('exercise-type-new', 'Nuevo tipo de ejercicio', submit='Crear tipo', icon='bi-tags') %}
+{{ type_form('', 'Sin categoría', 'bi-person-walking', '', '0') }}
+{% endcall %}
+
+{% call dialog('exercise-type-edit', 'Editar tipo · Correr', icon='bi-pencil') %}
+{{ type_form('Correr', 'Cardio', 'bi-person-walking', '720', '9000') }}
+<p class="lt-page-head__subtitle">Cambiar las tasas no recalcula los 14 registros anteriores; aplica a los nuevos.</p>
+{% endcall %}
+
+{% call dialog('exercise-type-delete', 'Eliminar «Caminar»', submit='Eliminar', icon='bi-trash') %}
+<p class="lt-page-head__subtitle">Este tipo no tiene registros. Se eliminará definitivamente.</p>
+{% endcall %}
+
+{% call dialog('exercise-type-delete-used', 'Eliminar «Correr»', submit='Reasignar y eliminar', icon='bi-exclamation-triangle') %}
+<p class="lt-page-head__subtitle">Hay 14 registros con este tipo. Elige a qué tipo pasarlos antes de eliminarlo; el historial y el resumen semanal se conservan.</p>
+<div class="lt-form"><label class="lt-field lt-form--full"><span>Reasignar registros a *</span><select><option>Caminar</option><option>Bicicleta</option><option>Natación</option><option>Fútbol con amigos</option></select></label></div>
+{% endcall %}
+{% endcall %}

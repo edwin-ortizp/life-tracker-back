@@ -122,8 +122,9 @@
 .md-create-fab__item { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 8px 0 18px; border: 0; border-radius: 16px; background: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface); box-shadow: var(--md-sys-elevation-3); font-size: .9rem; font-weight: 700; text-decoration: none; cursor: pointer; }
 .md-create-fab__item i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--md-module-action-container, var(--md-sys-color-primary-container)); color: var(--md-module-on-action-container, var(--md-sys-color-on-primary-container)); font-size: 1.1rem; }
 .md-create-fab__item:hover { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
-body:has(.md-form-dialog-layer:not([style*="display: none"])) .md-fab-host,
-body:has(.md-dialog-scrim) .md-fab-host { visibility: hidden; }
+/* Solo modales visibles: algunos (x-create-modal) viven siempre en el DOM ocultos con x-show/x-cloak. */
+body:has(.md-form-dialog-layer:not([style*="display: none"]):not([x-cloak])) .md-fab-host,
+body:has(:not([style*="display: none"]):not([x-cloak]) > .md-dialog-scrim) .md-fab-host { visibility: hidden; }
 @media (max-width: 767.98px) {
   .md-fab-host { right: 16px; bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px + env(safe-area-inset-bottom)); }
   .md-create-fab__item { min-height: 44px; font-size: .84rem; }

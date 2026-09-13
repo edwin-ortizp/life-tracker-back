@@ -9,7 +9,8 @@
       "template": "pages/main.html.jinja",
       "screens": [
         "exercise-daily",
-        "exercise-weekly"
+        "exercise-weekly",
+        "exercise-types"
       ],
       "output": "exercise.html"
     }
@@ -24,6 +25,11 @@
       "template": "screens/exercise-weekly.html.jinja",
       "title": "Resumen semanal",
       "bodyClass": ""
+    },
+    "exercise-types": {
+      "template": "screens/exercise-types.html.jinja",
+      "title": "Tipos de ejercicio",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -34,6 +40,10 @@
     {
       "path": "/exercise-weekly",
       "screen": "exercise-weekly"
+    },
+    {
+      "path": "/exercise-types",
+      "screen": "exercise-types"
     }
   ],
   "datasets": {
