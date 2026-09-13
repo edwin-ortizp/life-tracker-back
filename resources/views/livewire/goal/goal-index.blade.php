@@ -14,22 +14,20 @@
         <x-module-actions :primary="['label' => 'Agregar objetivo', 'icon' => 'bi-flag', 'action' => 'openForm']" />
     </x-slot:actions>
 
-    <x-slot:controls>
-        <x-ui.filter-bar label="Estado de los objetivos">
-            <x-slot:chips>
-                @foreach ($statusLabels as $value => $label)
-                    <x-ui.chip variant="filter" :selected="$statusFilter === $value" wire:click="$set('statusFilter', '{{ $value }}')">{{ $label }}</x-ui.chip>
-                @endforeach
-            </x-slot:chips>
-        </x-ui.filter-bar>
-    </x-slot:controls>
-
     <x-ui.metric-grid label="Resumen de objetivos">
         <x-ui.metric label="Activos" icon="bi-flag-fill" tone="primary" :value="$activeCount" />
         <x-ui.metric label="Completados" icon="bi-check-circle-fill" tone="success" :value="$completedCount" />
     </x-ui.metric-grid>
 
-    <x-ui.section title="Objetivos" :level="2">
+    <x-ui.management-card id="goals" title="Objetivos" icon="bi-flag" :count="'('.$goals->total().')'"
+                          :active-filters="$statusFilter !== 'active' ? 1 : 0" :paginator="$goals" noun="objetivos">
+        <x-slot:filters>
+            <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Estado de los objetivos">
+                @foreach ($statusLabels as $value => $label)
+                    <x-ui.chip variant="filter" :selected="$statusFilter === $value" wire:click="$set('statusFilter', '{{ $value }}')">{{ $label }}</x-ui.chip>
+                @endforeach
+            </div>
+        </x-slot:filters>
         @if ($goalsState === DataState::CONTENT)
             <x-ui.list label="Objetivos">
                 @foreach ($goals as $goal)
@@ -106,13 +104,9 @@
             </x-ui.state>
         @else
             <x-ui.state variant="empty" icon="bi-flag" title="Sin objetivos todavía"
-                        message="Define un objetivo para seguir su avance y sus hitos.">
-                <x-slot:actions>
-                    <x-ui.action variant="filled" icon="bi-plus-lg" wire:click="openForm">Nuevo objetivo</x-ui.action>
-                </x-slot:actions>
-            </x-ui.state>
+                        message="Define un objetivo para seguir su avance y sus hitos." />
         @endif
-    </x-ui.section>
+    </x-ui.management-card>
 
     <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="goal-dialog"
                       :title="$editingId ? 'Editar objetivo' : 'Agregar objetivo'" icon="bi-flag"

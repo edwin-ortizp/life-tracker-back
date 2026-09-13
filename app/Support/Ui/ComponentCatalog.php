@@ -187,6 +187,12 @@ class ComponentCatalog
             'description' => 'Separa grupos de acciones; se usa antes de las destructivas.',
             'usage' => '<x-ui.menu-divider />',
         ],
+        'management-card' => [
+            'layer' => 'patterns',
+            'title' => 'Card de gestión',
+            'description' => 'Contenedor estándar de las vistas que consultan y administran varios registros: header con ícono, título, contador, búsqueda, filtros y ⋮; contenido; footer con rango, filas por página y paginación. La creación sigue en el FAB.',
+            'usage' => '<x-ui.management-card title="Cronología de salud" icon="bi-clock-history" count="(9 / 25)" search="search" search-placeholder="Buscar eventos" :active-filters="2" :paginator="$events" noun="eventos"><x-slot:filters>…</x-slot:filters><x-slot:menu>…</x-slot:menu>…</x-ui.management-card>',
+        ],
         'popover' => [
             'layer' => 'patterns',
             'title' => 'Popover',

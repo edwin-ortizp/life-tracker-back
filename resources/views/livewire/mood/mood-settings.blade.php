@@ -2,18 +2,19 @@
     <x-slot:actions>
         <x-module-actions
             :primary="['label' => 'Nueva emoción', 'icon' => 'bi-plus-lg', 'action' => 'openForm']"
-            :secondary="[
-                ['label' => 'Restaurar catálogo predeterminado', 'icon' => 'bi-arrow-counterclockwise', 'action' => 'confirmRestore'],
-                ['label' => 'Volver al registro diario', 'icon' => 'bi-emoji-smile', 'href' => route('mood')],
-            ]" />
+ />
     </x-slot:actions>
 
     @if ($message)
         <div class="md-card-filled mb-3 py-3" role="status" aria-live="polite">{{ $message }}</div>
     @endif
 
-    <x-ui.filter-bar search="search" placeholder="Buscar una emoción..." label="Filtros del catálogo">
-        <x-slot:chips>
+    @php($moodFilterCount = collect([$status, $category])->filter()->count())
+    <x-ui.management-card id="mood-catalog" title="Catálogo de emociones" icon="bi-emoji-smile" :count="'('.$states->total().' / '.$totalCount.')'"
+                          search="search" search-placeholder="Buscar una emoción" :active-filters="$moodFilterCount"
+                          :paginator="$states" noun="emociones" alpine="openMenu: null" flush>
+        <x-slot:filters>
+            <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros del catálogo" @click.outside="openMenu = null">
             <button wire:click="$set('status', '{{ $status === 'active' ? '' : 'active' }}')"
                     class="md-chip md-chip-filter {{ $status === 'active' ? 'selected' : '' }}"
                     aria-pressed="{{ $status === 'active' ? 'true' : 'false' }}">Activas</button>
@@ -38,10 +39,12 @@
                     @endforeach
                 </div>
             </div>
-        </x-slot:chips>
-    </x-ui.filter-bar>
-
-    <div class="md-card-elevated" style="padding: 0; overflow: hidden;">
+            </div>
+        </x-slot:filters>
+        <x-slot:menu>
+            <x-ui.menu-item icon="bi-arrow-counterclockwise" wire:click="confirmRestore">Restaurar catálogo predeterminado</x-ui.menu-item>
+            <x-ui.menu-item icon="bi-emoji-smile" :href="route('mood')">Volver al registro diario</x-ui.menu-item>
+        </x-slot:menu>
         @forelse ($states as $state)
             <div class="md-list-item" wire:key="mood-state-{{ $state->id }}">
                 {{-- Only the decorative emoji fades: the row's text keeps full contrast
@@ -115,7 +118,7 @@
                 @endif
             </div>
         @endforelse
-    </div>
+    </x-ui.management-card>
 
     <x-slot:rail>
         <x-context-widget title="Tu catálogo" icon="bi-emoji-smile" tone="success">

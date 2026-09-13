@@ -52,7 +52,7 @@
         </x-ui.metric-grid>
     </x-ui.section>
 
-    <x-ui.section title="Estados del día" :level="3">
+    <x-ui.management-card id="mood-day-entries" title="Estados del día" icon="bi-emoji-smile" :count="'('.$moodEntries->total().')'" :paginator="$moodEntries" noun="registros">
         @if ($moodState === DataState::CONTENT)
             <x-ui.list label="Estados del día">
                 @foreach ($moodEntries as $entry)
@@ -102,9 +102,9 @@
             <x-ui.state variant="empty" icon="bi-emoji-smile" title="Sin registros de estado"
                         message="Elige arriba cómo te sientes para empezar el día." />
         @endif
-    </x-ui.section>
+    </x-ui.management-card>
 
-    <x-ui.section title="Energía del día" :level="3">
+    <x-ui.management-card id="energy-day-entries" title="Energía del día" icon="bi-lightning-charge" :count="'('.$energyEntries->total().')'" :paginator="$energyEntries" noun="registros">
         @if ($energyState === DataState::CONTENT)
             <x-ui.list label="Energía del día">
                 @foreach ($energyEntries as $entry)
@@ -137,7 +137,7 @@
                 </x-slot:actions>
             </x-ui.state>
         @endif
-    </x-ui.section>
+    </x-ui.management-card>
 
     @include('livewire.mood.partials.progressive')
 

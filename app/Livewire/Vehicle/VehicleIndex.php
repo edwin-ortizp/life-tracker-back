@@ -8,11 +8,13 @@ use App\Models\Vehicle;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 #[Title('Vehículos')]
 class VehicleIndex extends Component
 {
+    use WithManagementCard;
     use InteractsWithVehicle;
     use ManagesVehicleForm;
 
@@ -24,7 +26,7 @@ class VehicleIndex extends Component
     public function render()
     {
         return view('livewire.vehicle.vehicle-index', [
-            'vehicles' => Vehicle::query()->orderBy('name')->get(),
+            'vehicles' => Vehicle::query()->orderBy('name')->paginate($this->perPage()),
         ]);
     }
 }

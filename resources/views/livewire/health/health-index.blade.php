@@ -8,41 +8,33 @@
 
 <x-module-shell module="health" class="health-page">
     <x-slot:actions>
-        <x-module-actions :primary="['label' => 'Registrar evento', 'icon' => 'bi-plus-lg', 'event' => 'health-editor', 'detail' => ['action' => 'openForm']]" :fab-always="true" />
+        <x-module-actions :primary="['label' => 'Registrar evento', 'icon' => 'bi-plus-lg', 'event' => 'health-editor', 'detail' => ['action' => 'openForm']]"
+                          :secondary="[['label' => 'Nuevo pendiente de salud', 'icon' => 'bi-list-check', 'event' => 'health-editor', 'detail' => ['action' => 'openTaskForm', 'id' => null], 'create' => true]]"
+                          :split="true" />
     </x-slot:actions>
 
-    <section class="health-timeline-section" aria-labelledby="health-timeline-title">
-        <div class="health-toolbar" x-data="{ filtersOpen: false, draftRange: 'all', draftStatus: 'all', draftTypes: [] }">
-            <h2 id="health-timeline-title" class="health-toolbar__title">
-                <i class="bi bi-clock-history" aria-hidden="true"></i>
-                <span>Cronología de salud</span>
-                <span class="health-count" title="Registros visibles del total">({{ $events->count() }} de {{ $totalCount }})</span>
-            </h2>
-
-            <div class="health-toolbar__filters">
-                <x-ui.action variant="outlined" icon="bi-sliders" class="health-filter-button"
-                             data-popover-trigger aria-haspopup="dialog" aria-controls="health-filters"
-                             x-on:click="if (!filtersOpen) { draftRange = $wire.range; draftStatus = $wire.status; draftTypes = [...$wire.types] } filtersOpen = !filtersOpen" x-bind:aria-expanded="filtersOpen.toString()">
-                    Filtros
-                    @if (count($activeFilters) > 0)
-                        <x-ui.badge placement="corner" :label="count($activeFilters).' '.(count($activeFilters) === 1 ? 'filtro activo' : 'filtros activos')">{{ count($activeFilters) }}</x-ui.badge>
-                    @endif
-                </x-ui.action>
-
-                <x-ui.popover state="filtersOpen" title="Filtros" id="health-filters">
-                    <x-ui.select name="range" label="Rango de tiempo" :options="$ranges" :selected="$range" icon="bi-calendar-range" x-model="draftRange" />
-                    <x-ui.select name="status" label="Estado" :options="$statuses" :selected="$status" icon="bi-activity" x-model="draftStatus" />
-                    <x-ui.multi-select name="types" model-expression="draftTypes" :live="false" label="Tipo" :options="$typeLabels" all-label="Todos los tipos" icon="bi-tag" />
-                    <x-slot:actions>
-                        <x-ui.action variant="text" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
-                        <x-ui.action variant="filled" x-on:click="$wire.applyFilters(draftRange, draftStatus, draftTypes); filtersOpen = false">Aplicar</x-ui.action>
-                    </x-slot:actions>
-                </x-ui.popover>
-            </div>
-        </div>
+    <x-ui.management-card id="health-timeline" title="Cronología de salud" icon="bi-clock-history" class="health-timeline-section"
+                          :count="'('.$events->total().' / '.$totalCount.')'" search="search" search-placeholder="Buscar eventos"
+                          :active-filters="count($activeFilters)" :paginator="$events" noun="eventos"
+                          alpine="draftRange: 'all', draftStatus: 'all', draftTypes: []"
+                          on-filters-open="draftRange = $wire.range; draftStatus = $wire.status; draftTypes = [...$wire.types]">
+        <x-slot:filters>
+            <x-ui.select name="range" label="Rango de tiempo" :options="$ranges" :selected="$range" icon="bi-calendar-range" x-model="draftRange" />
+            <x-ui.select name="status" label="Estado" :options="$statuses" :selected="$status" icon="bi-activity" x-model="draftStatus" />
+            <x-ui.multi-select name="types" model-expression="draftTypes" :live="false" label="Tipo" :options="$typeLabels" all-label="Todos los tipos" icon="bi-tag" />
+        </x-slot:filters>
+        <x-slot:filterActions>
+            <x-ui.action variant="text" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+            <x-ui.action variant="filled" x-on:click="$wire.applyFilters(draftRange, draftStatus, draftTypes); filtersOpen = false">Aplicar</x-ui.action>
+        </x-slot:filterActions>
+        @if ($statisticsRoute)
+            <x-slot:menu>
+                <x-ui.menu-item icon="bi-bar-chart-line" :href="route($statisticsRoute)">Ver estadísticas</x-ui.menu-item>
+            </x-slot:menu>
+        @endif
 
         @if (count($activeFilters) > 0)
-            <div class="health-applied-filters" role="group" aria-label="Filtros aplicados">
+            <x-slot:strip>
                 @foreach ($activeFilters as $filter)
                     <span class="md-chip md-chip-input health-applied-chip" wire:key="health-filter-{{ $filter['key'] }}-{{ $filter['value'] }}">
                         <i class="bi {{ $filter['icon'] }}" aria-hidden="true"></i>
@@ -55,7 +47,7 @@
                     </span>
                 @endforeach
                 <button type="button" class="md-btn-text md-btn--sm health-clear-filters" wire:click="clearFilters">Limpiar filtros</button>
-            </div>
+            </x-slot:strip>
         @endif
 
         <div class="health-timeline">
@@ -209,7 +201,6 @@
                         <i class="bi bi-heart-pulse" aria-hidden="true"></i>
                         <h3 class="md-title-large">Aún no hay registros</h3>
                         <p>Registra una cita, un síntoma, una vacuna o un próximo control.</p>
-                        <x-ui.action variant="tonal" x-on:click="$dispatch('health-editor', {action: 'openForm', id: null})">Crear primer registro</x-ui.action>
                     @else
                         <i class="bi bi-funnel" aria-hidden="true"></i>
                         <h3 class="md-title-large">Ningún evento coincide con los filtros</h3>
@@ -219,8 +210,7 @@
                 </div>
             @endforelse
         </div>
-        {{ $events->links() }}
-    </section>
+    </x-ui.management-card>
 
     <x-slot:rail>
         <section class="health-card" aria-labelledby="health-moments-title">
@@ -309,7 +299,6 @@
                     </ul>
                 @endif
                 <div>
-                    <x-ui.action variant="tonal" icon="bi-plus-lg" x-on:click="$dispatch('health-editor', {action: 'openTaskForm', id: null})">Nuevo pendiente</x-ui.action>
                 </div>
             </div>
         </section>

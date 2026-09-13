@@ -9,13 +9,13 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 #[Title('Recetas')]
 class MealRecipes extends Component
 {
-    use WithPagination;
+    use WithManagementCard;
 
     #[Url(as: 'q', history: true, keep: true)]
     public string $search = '';
@@ -245,7 +245,7 @@ class MealRecipes extends Component
             ->when($this->favoriteFilter, fn($q) => $q->where('favorite', true))
             ->withCount('recipeIngredients')
             ->orderByDesc('updated_at')
-            ->paginate(18);
+            ->paginate($this->perPage());
 
         $shoppingItems = ShoppingItem::orderBy('name')->get(['id', 'name']);
 

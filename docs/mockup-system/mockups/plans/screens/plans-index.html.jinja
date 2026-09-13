@@ -1,4 +1,4 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, dialog, fab, manage_card %}
 {% from '@project/components/catalog/plan-row.html.jinja' import plan_row, plan_dialogs %}
 {% call shell('plans', 'Planes', 'bi-map') %}
 {{ module_tabs([('Todos','/plans-index','bi-grid'),('Programados',None,'bi-calendar-event',true),('Historial',None,'bi-clock-history',true)], '/plans-index') }}
@@ -16,14 +16,10 @@
 ] %}
 <section class="lt-grid-main">
   <div class="lt-stack">
-    <div class="lt-section-head lt-plans__head lt-filter-anchor">
-      <div class="lt-chip-row" aria-label="Grupos de planes">{% for label, n, icon, sel in [('Todos',28,'bi-grid',true),('Lugares',12,'bi-geo-alt',false),('Actividades',6,'bi-stars',false),('Eventos',4,'bi-calendar-event',false),('Viajes',4,'bi-airplane',false),('Otros',2,'bi-three-dots',false)] %}<button class="lt-chip lt-chip--filter{% if sel %} is-selected{% endif %}" type="button" data-lt-static-nav{% if sel %} aria-pressed="true"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i> {{ label }} ({{ n }})</button>{% endfor %}</div>
-      <div class="lt-plans__actions">
-        <button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-shuffle"></i> Sorpréndeme</button>
-        <button class="lt-button lt-button--text lt-filter-button" type="button" data-lt-toggle="plans-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="plans-filters"><i class="bi bi-sliders"></i> Filtros<span class="lt-badge lt-badge--corner" data-lt-filter-count hidden>0</span></button>
-      </div>
+    {% call(zone) manage_card('plans', 'Planes', 'bi-map', count='(10 / 28)', total=28, search='Buscar planes', menu=[('Sorpréndeme', 'bi-shuffle'), ('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':10,'total':28,'noun':'planes','page':1,'pages':2,'per_page':25}) %}{% if zone == 'filters' %}
       <div class="lt-popover" id="plans-filters" role="dialog" aria-labelledby="plans-filters-title" hidden>
         <div class="lt-popover__head"><h4 id="plans-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="plans-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+        <div class="lt-field"><span>Grupo</span><div class="lt-chip-row" aria-label="Grupos de planes">{% for label, n, icon, sel in [('Todos',28,'bi-grid',true),('Lugares',12,'bi-geo-alt',false),('Actividades',6,'bi-stars',false),('Eventos',4,'bi-calendar-event',false),('Viajes',4,'bi-airplane',false),('Otros',2,'bi-three-dots',false)] %}<button class="lt-chip lt-chip--filter{% if sel %} is-selected{% endif %}" type="button" data-lt-static-nav{% if sel %} aria-pressed="true"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i> {{ label }} ({{ n }})</button>{% endfor %}</div></div>
         <label class="lt-field"><span>Ciudad</span><select>{% for r in ['Todas','Popayán','Bogotá','Cartagena','Coconuco'] %}<option>{{ r }}</option>{% endfor %}</select></label>
         <div class="lt-field"><span id="plans-type-label">Tipo de plan</span>
           <div class="lt-multiselect"><button class="lt-multiselect__trigger" type="button" data-lt-toggle="plans-type-options" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="plans-type-label"><span>Todos los tipos</span><i class="bi bi-chevron-down"></i></button>
@@ -43,14 +39,12 @@
             <div class="lt-multiselect__panel" id="plans-people-options" role="listbox" aria-multiselectable="true" hidden>{% for r in ['Camila Rojas','María Ortiz','Julián Ortiz','Daniel Pérez','Laura Gómez'] %}<label class="lt-multiselect__option"><input type="checkbox"> {{ r }}</label>{% endfor %}</div>
           </div>
         </div>
+        <label class="lt-field"><span>Ordenar por</span><select>{% for r in ['Más recientes','Hace más tiempo sin ir','Más visitados','Fecha próxima','Nombre'] %}<option>{{ r }}</option>{% endfor %}</select></label>
         <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="plans-filters">Aplicar</button></div>
       </div>
-    </div>
-    <section class="lt-toolbar" aria-label="Buscar y ordenar planes">
-      <label class="lt-field lt-field--icon lt-plans__search"><span class="lt-sr-only">Buscar planes</span><i class="bi bi-search" aria-hidden="true"></i><input type="search" placeholder="Buscar planes…"></label>
-      <label class="lt-field lt-plans__sort"><span>Ordenar por</span><select>{% for r in ['Más recientes','Hace más tiempo sin ir','Más visitados','Fecha próxima','Nombre'] %}<option>{{ r }}</option>{% endfor %}</select></label>
-    </section>
+    {% else %}
     <div class="lt-plan-list">{% for p in plans %}{{ plan_row(p, 'plans-menu-' ~ loop.index, true) }}{% endfor %}</div>
+    {% endif %}{% endcall %}
   </div>
   <aside class="lt-stack">
     <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-bar-chart-line"></i><h3>Resumen de planes</h3></div><div class="lt-panel__body">

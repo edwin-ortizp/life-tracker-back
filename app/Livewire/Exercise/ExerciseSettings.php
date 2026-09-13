@@ -11,6 +11,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 
 /**
  * Catálogo personal de tipos de ejercicio. Un tipo con registros no se borra a ciegas:
@@ -20,6 +21,7 @@ use Livewire\Component;
 #[Title('Ajustes de ejercicio')]
 class ExerciseSettings extends Component
 {
+    use WithManagementCard;
     #[Url(as: 'q', history: true, keep: true)]
     public string $search = '';
 
@@ -189,6 +191,16 @@ class ExerciseSettings extends Component
             : "Se agregaron {$created} tipos predeterminados. Tus tipos y registros siguen intactos.";
     }
 
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCategory(): void
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         $term = trim($this->search);
@@ -200,16 +212,17 @@ class ExerciseSettings extends Component
             ->when($this->category === 'none', fn ($query) => $query->whereNull('category'))
             ->when(! in_array($this->category, ['', 'none'], true), fn ($query) => $query->where('category', $this->category))
             ->orderBy('name')
-            ->get();
+            ->paginate($this->perPage());
 
         $order = array_flip(array_keys(DefaultExerciseTypes::CATEGORIES));
-        $groups = $types->groupBy(fn (ExerciseType $type) => $type->category ?? '')
+        $groups = $types->getCollection()->groupBy(fn (ExerciseType $type) => $type->category ?? '')
             ->sortBy(fn ($group, $key) => $order[$key] ?? PHP_INT_MAX);
 
         $deleting = $this->deletingId ? ExerciseType::withCount('logs')->find($this->deletingId) : null;
 
         return view('livewire.exercise.exercise-settings', [
             'groups' => $groups,
+            'types' => $types,
             'categories' => DefaultExerciseTypes::CATEGORIES,
             'totalCount' => ExerciseType::count(),
             'usedCount' => ExerciseType::has('logs')->count(),

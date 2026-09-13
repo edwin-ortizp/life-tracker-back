@@ -41,7 +41,7 @@
         </x-ui.filter-bar>
     </x-ui.section>
 
-    <x-ui.section title="Registro del día" :level="3">
+    <x-ui.management-card id="water-day-logs" title="Registro del día" icon="bi-clock-history" :count="'('.$logs->total().')'" :paginator="$logs" noun="registros">
         @if ($logsState === DataState::CONTENT)
             <x-ui.list label="Registros del día">
                 @foreach ($logs as $log)
@@ -64,13 +64,9 @@
             </x-ui.list>
         @else
             <x-ui.state variant="empty" icon="bi-droplet" title="Sin registros para este día"
-                        message="Registra tu primera bebida para ver aquí el detalle del día.">
-                <x-slot:actions>
-                    <x-ui.action variant="filled" icon="bi-plus-lg" wire:click="openForm">Registrar</x-ui.action>
-                </x-slot:actions>
-            </x-ui.state>
+                        message="Registra tu primera bebida para ver aquí el detalle del día." />
         @endif
-    </x-ui.section>
+    </x-ui.management-card>
 
     <x-slot:rail>
         <x-context-widget title="{{ $monthData['label'] }}" icon="bi-calendar3">

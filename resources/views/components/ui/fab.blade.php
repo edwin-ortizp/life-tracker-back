@@ -7,6 +7,7 @@
     'detail' => null,
     'actions' => [],
     'module' => null,
+    'split' => false,
 ])
 
 @php
@@ -14,6 +15,7 @@
      * FAB canónico de creación (Material Design 3).
      * - Escritorio: extendido (ícono + texto). Móvil: solo ícono.
      * - Con `actions`: menú FAB (speed dial) con la acción principal y las secundarias.
+     * - Con `actions` y `split`: FAB dividido; el segmento principal ejecuta la acción y el chevron despliega las demás.
      * - Se teletransporta a <body> para quedar sobre acordeones, menús y paneles.
      */
     $actions = collect($actions)->filter()->values();
@@ -43,6 +45,25 @@
                 class="md-fab md-fab-extended md-create-fab md-module-primary-fab" aria-label="{{ $label }}" title="{{ $label }}">
                 <i class="bi {{ $icon }}" aria-hidden="true"></i><span>{{ $label }}</span>
             </{{ $tag($primary) }}>
+        @elseif ($split)
+            <div class="md-create-fab__menu" x-show="fabOpen" x-cloak x-transition.origin.bottom.right role="menu" aria-label="Más acciones de creación">
+                @foreach ($actions as $item)
+                    <{{ $tag($item) }} @if ($tag($item) === 'button') type="button" @endif {!! $binding($item) !!}
+                        class="md-create-fab__item" role="menuitem" @click="fabOpen = false">
+                        <span>{{ $item['label'] }}</span><i class="bi {{ $item['icon'] ?? 'bi-plus-lg' }}" aria-hidden="true"></i>
+                    </{{ $tag($item) }}>
+                @endforeach
+            </div>
+            <div class="md-fab-split">
+                <{{ $tag($primary) }} @if ($tag($primary) === 'button') type="button" @endif {!! $binding($primary) !!}
+                    class="md-fab md-fab-extended md-create-fab md-fab-split__main" aria-label="{{ $label }}" title="{{ $label }}">
+                    <i class="bi {{ $icon }}" aria-hidden="true"></i><span>{{ $label }}</span>
+                </{{ $tag($primary) }}>
+                <button type="button" class="md-fab md-create-fab md-fab-split__toggle" @click="fabOpen = !fabOpen"
+                        :aria-expanded="fabOpen.toString()" aria-haspopup="menu" aria-label="Más acciones de creación" title="Más acciones de creación">
+                    <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+            </div>
         @else
             <div class="md-create-fab__menu" x-show="fabOpen" x-cloak x-transition.origin.bottom.right role="menu" aria-label="{{ $label }}">
                 @foreach ($actions->prepend($primary) as $item)

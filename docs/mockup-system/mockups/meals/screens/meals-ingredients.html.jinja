@@ -1,13 +1,16 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab, manage_card %}
 {% call shell('meals', 'Ingredientes', 'bi-basket') %}
 {{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-ingredients') }}
-<section class="lt-toolbar" aria-label="Filtros de ingredientes">
-  <label class="lt-field"><span class="lt-sr-only">Buscar ingredientes</span><input type="search" placeholder="Buscar ingredientes..."></label>
-  {% for c, sel in [('Todos',true),('En stock',false),('Por agotarse',false),('Sin stock',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}
-  <button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-magic"></i> Agregar en bloque</button>
-</section>
 <section class="lt-grid-main">
-  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-basket"></i><h3>Catálogo</h3><small>86 ingredientes</small></div><div class="lt-panel__body">
+  {% call(zone) manage_card('ingredients', 'Catálogo de ingredientes', 'bi-basket', count='(9 / 86)', total=86, search='Buscar ingredientes', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':9,'total':86,'noun':'ingredientes','page':1,'pages':4,'per_page':25}) %}{% if zone == 'filters' %}
+      <div class="lt-popover" id="ingredients-filters" role="dialog" aria-labelledby="ingredients-filters-title" hidden>
+        <div class="lt-popover__head"><h4 id="ingredients-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="ingredients-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+        <div class="lt-field"><span>Inventario</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Todos</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>En stock</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Por agotarse</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Sin stock</button></div></div>
+        <label class="lt-field"><span>Categoría</span><select><option>Todas</option><option>Verduras y frutas</option><option>Proteínas</option><option>Lácteos</option><option>Despensa</option><option>Especias</option></select></label>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="ingredients-filters">Aplicar</button></div>
+      </div>
+    {% else %}
+
     {% for cat, items in [
       ('Verduras y frutas', [('Banano','6 unidades','En stock','success','Alias: guineo'),('Ahuyama','0,5 kg','Por agotarse','warning',''),('Cilantro','—','Sin stock','danger','Usado en 7 recetas')]),
       ('Proteínas', [('Pechuga de pollo','1,2 kg','En stock','success','Variantes: filete, molida'),('Lentejas','250 g','Por agotarse','warning',''),('Tilapia','—','Sin stock','danger','Necesario por una receta')]),
@@ -16,7 +19,7 @@
     <p class="lt-section-label">{{ cat }}</p>
     <div class="lt-list">{% for name, qty, chip, tone, note in items %}<button class="lt-list-item" type="button" data-lt-static-nav><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ qty }}{% if note %} · {{ note }}{% endif %}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></button>{% endfor %}</div>
     {% endfor %}
-  </div></article>
+  {% endif %}{% endcall %}
   <aside class="lt-stack">
     <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-pie-chart"></i><h3>Resumen</h3></div><div class="lt-panel__body">
       <div class="lt-stack-bar" role="img" aria-label="62 en stock, 14 por agotarse, 10 sin stock"><span style="--value:72%"></span><span style="--value:16%"></span><span style="--value:12%"></span></div>
@@ -27,7 +30,7 @@
     </div><div class="lt-route-links"><a class="lt-button lt-button--tonal" href="#/meals-shopping"><i class="bi bi-cart3"></i> Ir a compras</a></div></div></article>
   </aside>
 </section>
-{{ fab('Agregar ingrediente', 'bi-basket', 'ingredient-new') }}
+{{ fab('Agregar ingrediente', 'bi-basket', 'ingredient-new', actions=[('Agregar en bloque', 'bi-magic', None)], split=True) }}
 {% call dialog('ingredient-new', 'Agregar ingrediente', icon='bi-basket', sections=[('basic','Información básica','bi-basket'),('inventory','Inventario','bi-box-seam'),('variants','Variantes por tienda','bi-shop'),('aliases','Alias y equivalencias','bi-tags')]) %}
 <section class="lt-dialog__section" data-section="basic">
   <header class="lt-dialog__section-head"><h3>Información básica</h3></header>

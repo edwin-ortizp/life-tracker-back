@@ -129,6 +129,14 @@ body:has(:not([style*="display: none"]):not([x-cloak]) > .md-dialog-scrim) .md-f
   .md-fab-host { right: 16px; bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px + env(safe-area-inset-bottom)); }
   .md-create-fab__item { min-height: 44px; font-size: .84rem; }
 }
+/* FAB dividido (M3 split button): acción principal + chevron que despliega las demás creaciones. */
+.md-fab-split { display: flex; gap: 2px; }
+.md-fab-split > .md-fab-split__main { border-radius: 16px 4px 4px 16px; }
+.md-fab-split > .md-fab-split__toggle { justify-content: center; width: 48px; min-width: 48px; padding: 0; border-radius: 4px 16px 16px 4px; }
+.md-fab-host.is-open .md-fab-split__toggle i { transform: rotate(180deg); }
+@media (max-width: 767.98px) {
+  .md-fab-split > .md-fab-split__toggle { width: 40px; min-width: 40px; }
+}
 .md-catalog-fab-preview { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
 .md-catalog-fab-preview .md-fab { position: static; }
 .md-catalog-fab-preview__menu { justify-items: start; }

@@ -1,0 +1,74 @@
+/*
+ * Card de gestión (x-ui.management-card).
+ * Estándar transversal para vistas que consultan y administran varios registros:
+ * header (ícono, título, contador | búsqueda, filtros | ⋮), contenido y footer con paginación.
+ * El color del módulo llega por --md-module-accent. Se compacta por el ancho de la propia card.
+ */
+/* Un container de tamaño en línea no toma ancho de su contenido: se fija al 100 % para no colapsar en contenedores flex o grid ajustados al contenido. */
+.md-mcard { container: md-mcard / inline-size; width: 100%; min-width: 0;border: 1px solid var(--md-sys-color-outline-variant); border-radius: 20px; background: var(--md-sys-color-surface-container-lowest); box-shadow: 0 8px 22px rgba(27, 27, 33, .045); }
+.md-mcard__head { position: relative; display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 12px 12px 12px 18px; border-bottom: 1px solid var(--md-sys-color-outline-variant); }
+.md-mcard__title { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.md-mcard__icon { display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: color-mix(in srgb, var(--md-module-accent) 12%, transparent); color: var(--md-module-accent); font-size: 1.15rem; }
+.md-mcard__heading { margin: 0; overflow: hidden; color: var(--md-sys-color-on-surface); font-size: 1rem; font-weight: 700; line-height: 1.3; white-space: nowrap; text-overflow: ellipsis; }
+.md-mcard__count { flex: none; color: var(--md-sys-color-on-surface-variant); font-size: .82rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.md-mcard__divider { flex: none; align-self: center; width: 1px; height: 28px; background: var(--md-sys-color-outline-variant); }
+.md-mcard__head > .md-mcard__divider { margin-left: auto; }
+.md-mcard__tools { display: flex; align-items: center; gap: 8px; }
+.md-mcard__tools .md-popover { top: calc(100% + 4px); right: 12px; left: auto; }
+
+.md-mcard__search { display: flex; flex: 0 1 260px; align-items: center; gap: 8px; min-width: 140px; height: 40px; padding: 0 6px 0 14px; border: 1px solid transparent; border-radius: 999px; background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); }
+.md-mcard__search:focus-within { border-color: var(--md-module-accent); background: var(--md-sys-color-surface-container-lowest); }
+.md-mcard__search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--md-sys-color-on-surface); font: inherit; font-size: .86rem; }
+.md-mcard__search input::-webkit-search-cancel-button { cursor: pointer; }
+.md-mcard__search-close, .md-mcard__search-toggle { display: none; }
+.md-mcard__filter-chips { flex-wrap: wrap; gap: 6px; overflow: visible; }
+.md-mcard__filter { position: relative; display: inline-flex; align-items: center; gap: 8px; overflow: visible; }
+
+.md-mcard__strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 18px; border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 55%, transparent); background: color-mix(in srgb, var(--md-module-accent) 4%, var(--md-sys-color-surface-container-lowest)); }
+.md-mcard__body { min-width: 0; padding: 4px 18px 8px; }
+.md-mcard__body--flush { padding: 0; }
+.md-mcard__section-label { margin: 14px 0 4px; color: var(--md-sys-color-on-surface-variant); font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.md-mcard__section-label:first-child { margin-top: 10px; }
+.md-mcard__scroll { overflow-x: auto; }
+
+.md-mcard__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; min-height: 60px; padding: 10px 14px 10px 18px; border-top: 1px solid var(--md-sys-color-outline-variant); color: var(--md-sys-color-on-surface-variant); font-size: .8rem; }
+.md-mcard__range { margin: 0; }
+.md-mcard__range strong { color: var(--md-sys-color-on-surface); font-weight: 600; font-variant-numeric: tabular-nums; }
+.md-mcard__rows { display: flex; align-items: center; gap: 8px; margin: 0 0 0 auto; }
+.md-mcard__rows select { height: 34px; padding: 0 8px; border: 1px solid var(--md-sys-color-outline-variant); border-radius: 8px; background: var(--md-sys-color-surface-container-lowest); color: var(--md-sys-color-on-surface); font: inherit; }
+
+.md-pager { display: flex; align-items: center; gap: 4px; }
+.md-pager button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 36px; height: 36px; padding: 0 10px; border: 0; border-radius: 999px; background: transparent; color: var(--md-sys-color-on-surface); font: inherit; font-weight: 600; cursor: pointer; }
+.md-pager button:hover:not([disabled]):not(.is-active) { background: var(--md-sys-color-surface-container); }
+.md-pager .md-pager__step { border: 1px solid var(--md-sys-color-outline-variant); }
+.md-pager button.is-active { background: var(--md-module-accent); color: #fff; cursor: default; }
+.md-pager button[disabled] { opacity: .38; cursor: not-allowed; }
+.md-pager__gap { padding: 0 4px; }
+.md-pager__compact { display: none; padding: 0 8px; font-variant-numeric: tabular-nums; }
+
+@container md-mcard (max-width: 640px) {
+  .md-mcard__head { gap: 4px; padding: 8px 4px 8px 12px; }
+  .md-mcard__icon { width: 36px; height: 36px; }
+  .md-mcard__head > .md-mcard__divider { display: none; }
+  .md-mcard__tools { gap: 0; margin-left: auto; }
+  .md-mcard__tools .md-mcard__divider { height: 20px; margin: 0 2px; }
+  .md-mcard__search { display: none; }
+  .md-mcard__search-toggle { display: inline-grid; }
+  .md-mcard__filter-label { display: none; }
+  .md-mcard__filter { min-width: 40px; padding: 0 8px; }
+  .md-mcard__head.is-searching .md-mcard__search { position: absolute; inset: 8px; z-index: 2; display: flex; width: auto; height: auto; }
+  .md-mcard__head.is-searching .md-mcard__search-close { display: inline-grid; }
+  .md-mcard__body { padding: 4px 12px 8px; }
+  .md-mcard__strip { padding: 8px 12px; }
+  .md-mcard__foot { gap: 8px; padding: 10px 12px; }
+  .md-mcard__rows { display: none; }
+  .md-pager { margin-left: auto; }
+  .md-pager .md-pager__page, .md-pager__gap { display: none; }
+  .md-pager__compact { display: inline; }
+  .md-pager__step span { display: none; }
+  .md-pager button { padding: 0; }
+}
+
+@media (max-width: 767.98px) {
+  .md-mcard { border-radius: 16px; }
+}

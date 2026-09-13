@@ -3,10 +3,12 @@
         <x-module-actions :primary="['label' => 'Crear receta', 'icon' => 'bi-book', 'action' => 'openForm']" />
     </x-slot:actions>
 
-    {{-- Search + Filters --}}
-    <x-ui.filter-bar search="search" placeholder="Buscar recetas..." label="Filtros de recetas">
-        <x-slot:chips>
-
+    @php($recipeFilterCount = collect([$favoriteFilter, $mealTypeFilter, $difficultyFilter])->filter()->count())
+    <x-ui.management-card id="meal-recipes" title="Recetas" icon="bi-book" :count="'('.$recipes->total().')'"
+                          search="search" search-placeholder="Buscar recetas" :active-filters="$recipeFilterCount"
+                          :paginator="$recipes" noun="recetas" alpine="openMenu: null">
+        <x-slot:filters>
+            <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros de recetas" @click.outside="openMenu = null">
         
             <button wire:click="$toggle('favoriteFilter')"
                     class="md-chip md-chip-filter {{ $favoriteFilter ? 'selected' : '' }}">
@@ -48,10 +50,8 @@
                     @endforeach
                 </div>
             </div>
-        </x-slot:chips>
-    </x-ui.filter-bar>
-
-    {{-- Recipe Grid --}}
+            </div>
+        </x-slot:filters>
     @if ($recipes->isEmpty())
         <div class="md-card-elevated p-4 text-center">
             <i class="bi bi-book" style="font-size: 2rem; color: var(--md-sys-color-outline);"></i>
@@ -95,11 +95,8 @@
                 </div>
             @endforeach
         </div>
-
-        <div class="mt-3">
-            {{ $recipes->links() }}
-        </div>
     @endif
+    </x-ui.management-card>
 
     {{-- Dialog --}}
     <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="recipe-dialog"

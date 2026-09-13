@@ -10,13 +10,11 @@
     </div>
 
     {{-- Habits grouped by category --}}
-    @php $grouped = $habits->groupBy('category'); @endphp
+    @php $grouped = $habits->getCollection()->groupBy('category'); @endphp
 
+    <x-ui.management-card id="negative-habits" title="Hábitos a evitar" icon="bi-shield-check" :count="'('.$habits->total().')'" :paginator="$habits" noun="hábitos">
     @foreach ($grouped as $category => $categoryHabits)
-        <div class="md-card-elevated mb-3" style="padding: 0; overflow: hidden;">
-            <div style="padding: 16px 16px 8px 16px;">
-                <span class="md-title-small text-capitalize" style="color: var(--md-sys-color-on-surface);">{{ $category }}</span>
-            </div>
+            <p class="md-mcard__section-label text-capitalize">{{ $category }}</p>
             @foreach ($categoryHabits as $habit)
                 @php
                     $habitLogs = $logs->get($habit->id, collect());
@@ -39,8 +37,8 @@
                     </div>
                 </div>
             @endforeach
-        </div>
     @endforeach
+    </x-ui.management-card>
 
     {{-- Log Dialog --}}
     <template x-if="showLogDialog">

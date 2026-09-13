@@ -1,31 +1,17 @@
 <div data-module="tasks" class="lt-page" x-data="{ showDialog: $wire.entangle('showForm'), showRecurringDialog: $wire.entangle('showRecurringCompletion') }">
     <x-page-header subtitle="Decide, ordena y completa el trabajo con claridad." :tabs="config('modules.tasks.tabs')" :preserve="config('modules.tasks.preserve')">
-        <x-slot:controls>
-            @php
-                $activeFilterCount = collect([$dateFilter, $categoryFilter, $priorityFilter, $sizeFilter, $filter !== 'pending' ? $filter : ''])->filter()->count();
-            @endphp
-            <x-ui.filter-bar search="search" placeholder="Buscar tareas..." label="Filtros de tareas" class="tf-bar">
-                <div class="tf-filters" x-data="{ panel: false }" @click.outside="panel = false" @keydown.escape="panel = false">
-                    <button type="button" class="md-btn-outlined tf-btn {{ $activeFilterCount ? 'is-on' : '' }}"
-                            :aria-expanded="panel" @click="panel = !panel">
-                        <i class="bi bi-funnel" aria-hidden="true"></i> <span>Filtros</span>
-                        @if ($activeFilterCount)
-                            <span class="md-count-badge">{{ $activeFilterCount }}</span>
-                        @endif
-                    </button>
-                    <template x-if="panel">
-                        <div>
-                            <button type="button" class="md-tf-scrim" aria-label="Cerrar los filtros" @click="panel = false"></button>
-                            <div class="tf-pop">
-                                <div class="tf-pop__head">
-                                    <h3>Filtros</h3>
-                                    @if ($activeFilterCount)
-                                        <x-ui.action variant="text" size="sm" icon="bi-x-lg" wire:click="clearFilters">Limpiar</x-ui.action>
-                                    @endif
-                                    <span style="flex: 1;"></span>
-                                    <x-ui.icon-action icon="bi-x-lg" label="Cerrar los filtros" size="sm" @click="panel = false" />
-                                </div>
-                                <div class="ltm-section">
+    </x-page-header>
+
+    <div class="lt-cols">
+    <div class="lt-stack">
+    @php
+        $activeFilterCount = collect([$dateFilter, $categoryFilter, $priorityFilter, $sizeFilter, $filter !== 'pending' ? $filter : ''])->filter()->count();
+    @endphp
+    <x-ui.management-card id="task-list" title="Tareas" icon="bi-list-task" :count="'('.$tasks->total().')'"
+                          search="search" search-placeholder="Buscar tareas" :active-filters="$activeFilterCount"
+                          :paginator="$tasks" noun="tareas" flush>
+        <x-slot:filters>
+            <div class="ltm-section">
                                     <span class="ltm-section__label">Cuándo</span>
                                     <div class="ltm-chips">
                                         @foreach (['hoy' => 'Hoy', 'vencidas' => 'Vencidas', 'proximas' => 'Próximas', 'sin-fecha' => 'Sin fecha'] as $value => $label)
@@ -68,19 +54,16 @@
                                                        wire:click="$set('sizeFilter', '{{ $sizeFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
                                         @endforeach
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </x-ui.filter-bar>
-        </x-slot:controls>
-    </x-page-header>
-
-    <div class="lt-cols">
-    <div class="lt-stack">
-    {{-- Task List --}}
-    <x-panel flush>
+        </x-slot:filters>
+        @if ($activeFilterCount)
+            <x-slot:filterActions>
+                <x-ui.action variant="text" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+            </x-slot:filterActions>
+        @endif
+        <x-slot:menu>
+            <x-ui.menu-item icon="bi-calendar-week" :href="route('tasks.planning')">Planificación</x-ui.menu-item>
+            <x-ui.menu-item icon="bi-trophy" :href="route('tasks.progress')">Progreso</x-ui.menu-item>
+        </x-slot:menu>
         {{-- Mientras se resuelve un filtro, una busqueda o un cambio de pagina
              se muestra la silueta de la lista en lugar de dejar la pantalla quieta. --}}
         <x-ui.skeleton variant="list" :lines="6" label="Cargando tareas"
@@ -212,11 +195,7 @@
             </div>
         @endforelse
         </div>
-    </x-panel>
-
-    <div>
-        {{ $tasks->links() }}
-    </div>
+    </x-ui.management-card>
     </div>
 
     <div class="lt-stack">

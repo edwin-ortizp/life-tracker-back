@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 
@@ -19,6 +20,7 @@ use Livewire\Attributes\Title;
 class WaterDaily extends Component
 {
     use HasUrlDate;
+    use WithManagementCard;
     public int $dailyGoal = 2500;
 
     // Form fields
@@ -264,12 +266,14 @@ class WaterDaily extends Component
 
     public function render()
     {
-        $logs = DrinkLog::where('date', $this->selectedDate)
+        $dayLogs = DrinkLog::where('date', $this->selectedDate);
+        $logs = (clone $dayLogs)
             ->orderByDesc('timestamp')
-            ->get();
+            ->paginate($this->perPage());
 
-        $totalHydration = $logs->sum('hydration_value');
-        $totalAmount = $logs->sum('amount');
+        // El progreso del día se calcula sobre todos los registros, no solo la página visible.
+        $totalHydration = (clone $dayLogs)->sum('hydration_value');
+        $totalAmount = (clone $dayLogs)->sum('amount');
         $drinkTypes = DrinkType::orderBy('name')->get();
         $percentage = $this->dailyGoal > 0 ? min(($totalHydration / $this->dailyGoal) * 100, 100) : 0;
 

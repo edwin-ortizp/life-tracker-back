@@ -21,7 +21,8 @@ use Livewire\Component;
 #[Title('Salud')]
 class HealthIndex extends Component
 {
-    use \Livewire\WithPagination;
+    use \App\Livewire\Concerns\WithManagementCard;
+
     public const RANGES = [
         'all' => 'Todo el historial',
         '30d' => 'Últimos 30 días',
@@ -55,6 +56,9 @@ class HealthIndex extends Component
 
     #[Url(as: 'zone', history: true, keep: true)]
     public string $zone = '';
+
+    #[Url(as: 'q', history: true, except: '')]
+    public string $search = '';
 
     public string $illnessPeriod = 'this_year';
 
@@ -146,6 +150,12 @@ class HealthIndex extends Component
 
     public function updated(string $property): void
     {
+        if ($property === 'search') {
+            $this->resetPage();
+
+            return;
+        }
+
         if (in_array($property, ['range', 'status', 'types', 'zone', 'illnessPeriod'], true) || str_starts_with($property, 'types.')) {
             $this->normalizeFilters();
             if ($property !== 'illnessPeriod') $this->resetPage();
@@ -454,7 +464,7 @@ class HealthIndex extends Component
     public function render()
     {
         $nextEvent = HealthEvent::query()->whereDate('event_date', '>', today())->orderBy('event_date')->first();
-        $events = $this->filteredEvents()->with(['tasks', 'logs'])->orderByDesc('event_date')->orderByDesc('created_at')->orderBy('id')->paginate(25);
+        $events = $this->filteredEvents()->with(['tasks', 'logs'])->orderByDesc('event_date')->orderByDesc('created_at')->orderBy('id')->paginate($this->perPage());
 
         return view('livewire.health.health-index', [
             'events' => $events,
@@ -539,6 +549,12 @@ class HealthIndex extends Component
     private function filteredEvents(): Builder
     {
         $query = HealthEvent::query();
+
+        if (($term = trim($this->search)) !== '') {
+            $query->where(fn (Builder $search) => $search
+                ->where('title', 'like', "%{$term}%")
+                ->orWhere('notes', 'like', "%{$term}%"));
+        }
 
         if ($this->types !== []) {
             $query->whereIn('type', $this->types);

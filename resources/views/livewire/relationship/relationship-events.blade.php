@@ -6,8 +6,12 @@
         @endif
     </div>
 
-    <x-ui.filter-bar search="search" placeholder="Buscar acontecimientos..." label="Filtros de acontecimientos">
-        <x-slot:chips>
+    @php($eventFilterCount = collect([$showArchived, $includeSensitive, $relationFilter, $categoryFilter])->filter()->count())
+    <x-ui.management-card id="relationship-events" title="Acontecimientos" icon="bi-calendar-event" :count="'('.$events->total().')'"
+                          search="search" search-placeholder="Buscar acontecimientos" :active-filters="$eventFilterCount"
+                          :paginator="$events" noun="acontecimientos" alpine="openMenu: null">
+        <x-slot:filters>
+            <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros de acontecimientos" @click.outside="openMenu = null">
             @foreach ($periods as $key => $label)
                 <button wire:click="$set('periodFilter', '{{ $key }}')"
                         class="md-chip md-chip-filter {{ $periodFilter === $key ? 'selected' : '' }}">{{ $label }}</button>
@@ -59,8 +63,8 @@
                     @endforeach
                 </div>
             </div>
-        </x-slot:chips>
-    </x-ui.filter-bar>
+            </div>
+        </x-slot:filters>
 
     @forelse ($events as $event)
         <div class="md-card-outlined md-relationship-event mb-2" wire:key="global-event-{{ $event->id }}">
@@ -88,10 +92,7 @@
         <x-empty-state icon="bi-calendar-event" title="Sin acontecimientos"
                        message="Registra acontecimientos desde el detalle de cada relación." />
     @endforelse
-
-    @if ($events->hasPages())
-        <div class="mt-3">{{ $events->links() }}</div>
-    @endif
+    </x-ui.management-card>
 
     <x-slot:rail>
         <x-context-widget title="Resumen" icon="bi-calendar-event" tone="success">

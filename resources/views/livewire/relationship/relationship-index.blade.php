@@ -5,7 +5,8 @@
             :secondary="[
                 ['label' => 'Agregar círculo', 'icon' => 'bi-plus-circle', 'action' => 'openCircleForm', 'create' => true],
                 ['label' => 'Agregar etiqueta', 'icon' => 'bi-tag', 'action' => 'openTagForm', 'create' => true],
-            ]" />
+            ]"
+            :split="true" />
     </x-slot:actions>
 
     <div class="md-summary-strip mb-3" aria-label="Resumen de relaciones">
@@ -18,10 +19,12 @@
         @endif
     </div>
 
-    {{-- Search and filters --}}
-    <x-ui.filter-bar search="search" placeholder="Buscar por nombre, apodo, teléfono o correo..." label="Filtros de relaciones">
-        <x-slot:chips>
-
+    @php($activeFilterCount = collect([$showArchived, $circleFilter, $tagFilter])->filter()->count())
+    <x-ui.management-card id="relationship-people" title="Personas" icon="bi-people" :count="'('.$relationships->total().' / '.($activeCount + $archivedCount).')'"
+                          search="search" search-placeholder="Buscar por nombre, apodo, teléfono o correo" :active-filters="$activeFilterCount"
+                          :paginator="$relationships" noun="personas" alpine="openMenu: null">
+        <x-slot:filters>
+            <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros de relaciones" @click.outside="openMenu = null">
         
             <button wire:click="$toggle('showArchived')"
                     class="md-chip md-chip-filter {{ $showArchived ? 'selected' : '' }}">
@@ -61,10 +64,8 @@
                     @endforeach
                 </div>
             </div>
-        </x-slot:chips>
-    </x-ui.filter-bar>
-
-    {{-- Relationships list --}}
+            </div>
+        </x-slot:filters>
     @forelse ($relationships as $rel)
         @php($birthday = $rel->birthday())
         <div class="md-card-outlined md-relationship-card mb-2 {{ $rel->is_archived ? 'md-relationship-card--archived' : '' }}">
@@ -129,9 +130,7 @@
                        message="Agrega a las personas que quieres recordar y cuidar." />
     @endforelse
 
-    @if ($relationships->hasPages())
-        <div class="mt-3">{{ $relationships->links() }}</div>
-    @endif
+    </x-ui.management-card>
 
     <x-slot:rail>
         <x-context-widget title="Resumen" icon="bi-people" tone="success">

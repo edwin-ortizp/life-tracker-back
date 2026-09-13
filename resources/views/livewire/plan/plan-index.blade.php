@@ -3,53 +3,32 @@
         <x-module-actions :primary="['label' => 'Agregar plan', 'icon' => 'bi-plus-lg', 'action' => 'openPlanForm']" :fab-always="true" />
     </x-slot:actions>
 
-    <section class="plans-section" aria-labelledby="plans-title">
-        <div class="plans-toolbar" x-data="{ filtersOpen: false }">
-            <h2 id="plans-title" class="plans-toolbar__title">
-                <i class="bi bi-map" aria-hidden="true"></i>
-                <span>Tus planes</span>
-                <span class="plans-count" title="Planes visibles del total">({{ $plans->count() }} de {{ $total }})</span>
-            </h2>
-
-            <div class="plans-toolbar__actions">
-                <x-ui.action variant="tonal" icon="bi-shuffle" wire:click="surprise">Sorpréndeme</x-ui.action>
-                <x-ui.action variant="outlined" icon="bi-sliders" class="plans-filter-button"
-                             data-popover-trigger aria-haspopup="dialog" aria-controls="plans-filters"
-                             x-on:click="filtersOpen = !filtersOpen" x-bind:aria-expanded="filtersOpen.toString()">
-                    Filtros
-                    @if (count($activeFilters) > 0)
-                        <x-ui.badge placement="corner" :label="count($activeFilters).' '.(count($activeFilters) === 1 ? 'filtro activo' : 'filtros activos')">{{ count($activeFilters) }}</x-ui.badge>
-                    @endif
-                </x-ui.action>
-
-                <x-ui.popover state="filtersOpen" title="Filtros" id="plans-filters">
+    <x-ui.management-card id="plans" title="Tus planes" icon="bi-map" :count="'('.$plans->total().' / '.$total.')'"
+                          search="q" search-placeholder="Buscar planes" :active-filters="count($activeFilters)"
+                          :paginator="$plans" noun="planes" class="plans-section">
+        <x-slot:filters>
+            <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Grupos de planes">
+            <x-ui.chip variant="filter" icon="bi-grid" :selected="$group === ''" wire:click="setGroup('')">Todos ({{ $total }})</x-ui.chip>
+            @foreach ($groups as $key => $item)
+                <x-ui.chip variant="filter" :icon="$item['icon']" :selected="$group === $key" wire:click="setGroup('{{ $key }}')" wire:key="plans-group-{{ $key }}">{{ $item['label'] }} ({{ $item['count'] }})</x-ui.chip>
+            @endforeach
+            </div>
                     <x-ui.select name="status" label="Estado" :options="$statusOptions" :selected="$status" placeholder="Todos menos archivados" icon="bi-flag" wire:model.live="status" />
                     <x-ui.select name="city" label="Ciudad" :options="$cityOptions" :selected="$city" placeholder="Todas las ciudades" icon="bi-geo-alt" wire:model.live="city" />
                     <x-ui.multi-select name="types" label="Tipo de plan" :options="$typeOptions" all-label="Todos los tipos" icon="bi-tag" />
                     <x-ui.multi-select name="circles" label="Círculo" :options="$circleOptions" all-label="Todos los círculos" icon="bi-diagram-3" />
                     <x-ui.multi-select name="people" label="Persona" :options="$peopleOptions" all-label="Todas las personas" icon="bi-people" />
-                    <x-slot:actions>
-                        <x-ui.action variant="text" wire:click="clearFilters">Limpiar</x-ui.action>
-                        <x-ui.action variant="filled" x-on:click="filtersOpen = false">Aplicar</x-ui.action>
-                    </x-slot:actions>
-                </x-ui.popover>
-            </div>
-        </div>
-
-        <div class="plans-groups" role="group" aria-label="Grupos de planes">
-            <x-ui.chip variant="filter" icon="bi-grid" :selected="$group === ''" wire:click="setGroup('')">Todos ({{ $total }})</x-ui.chip>
-            @foreach ($groups as $key => $item)
-                <x-ui.chip variant="filter" :icon="$item['icon']" :selected="$group === $key" wire:click="setGroup('{{ $key }}')" wire:key="plans-group-{{ $key }}">{{ $item['label'] }} ({{ $item['count'] }})</x-ui.chip>
-            @endforeach
-        </div>
-
-        <div class="plans-search">
-            <x-ui.field name="q" type="search" label="Buscar planes" icon="bi-search" wire:model.live.debounce.300ms="q" />
             <x-ui.select name="sort" label="Ordenar por" :options="$sorts" :selected="$sort" icon="bi-sort-down" wire:model.live="sort" />
-        </div>
-
+        </x-slot:filters>
+        <x-slot:filterActions>
+            <x-ui.action variant="text" wire:click="clearFilters">Limpiar</x-ui.action>
+            <x-ui.action variant="filled" x-on:click="filtersOpen = false">Aplicar</x-ui.action>
+        </x-slot:filterActions>
+        <x-slot:menu>
+            <x-ui.menu-item icon="bi-shuffle" wire:click="surprise">Sorpréndeme</x-ui.menu-item>
+        </x-slot:menu>
         @if (count($activeFilters) > 0)
-            <div class="plans-applied-filters" role="group" aria-label="Filtros aplicados">
+            <x-slot:strip>
                 @foreach ($activeFilters as $filter)
                     <span class="md-chip md-chip-input plans-applied-chip" wire:key="plans-filter-{{ $filter['key'] }}-{{ $filter['value'] }}">
                         <i class="bi {{ $filter['icon'] }}" aria-hidden="true"></i>
@@ -62,7 +41,7 @@
                     </span>
                 @endforeach
                 <button type="button" class="md-btn-text md-btn--sm plans-clear-filters" wire:click="clearFilters">Limpiar filtros</button>
-            </div>
+            </x-slot:strip>
         @endif
 
         @if ($surpriseMessage)
@@ -80,7 +59,7 @@
         @else
             <x-ui.state variant="empty" icon="bi-map" title="Todavía no tienes planes" message="Guarda restaurantes, viajes o actividades que quieras hacer con tus personas." />
         @endif
-    </section>
+    </x-ui.management-card>
 
     <x-slot:rail>
         <section class="plan-card" aria-labelledby="plans-summary-title">

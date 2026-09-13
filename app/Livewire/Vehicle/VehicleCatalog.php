@@ -9,13 +9,13 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 #[Title('Catálogo de mantenimientos')]
 class VehicleCatalog extends Component
 {
-    use WithPagination;
+    use WithManagementCard;
 
     public bool $showTemplateForm = false;
 
@@ -164,7 +164,7 @@ class VehicleCatalog extends Component
         if ($this->catalogTransmissionType !== '') {
             $query->where(fn ($templates) => $templates->whereNull('transmission_types')->orWhereJsonContains('transmission_types', $this->catalogTransmissionType));
         }
-        $catalogTemplates = $query->orderBy('category')->orderBy('name')->paginate(20);
+        $catalogTemplates = $query->orderBy('category')->orderBy('name')->paginate($this->perPage());
 
         return view('livewire.vehicle.vehicle-catalog', compact('catalogTemplates', 'catalogCategories'));
     }

@@ -7,9 +7,11 @@
         @endif
     </div>
 
-    <x-slot:controls>
-        <x-ui.filter-bar label="Filtros de cumpleaños">
-            <x-slot:chips>
+
+    <x-ui.management-card id="relationship-birthdays" title="Próximos cumpleaños" icon="bi-cake2" :count="'('.$rows->total().')'"
+                          :active-filters="$monthFilter !== '' ? 1 : 0" :paginator="$rows" noun="cumpleaños" alpine="openMenu: null">
+        <x-slot:filters>
+            <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros de cumpleaños" @click.outside="openMenu = null">
             <button wire:click="$set('monthFilter', '')"
                     class="md-chip md-chip-filter {{ $monthFilter === '' ? 'selected' : '' }}">Próximos 12 meses</button>
 
@@ -19,10 +21,8 @@
                 <button wire:click="$set('monthFilter', '{{ $number }}')"
                         class="md-chip md-chip-filter {{ (int) $monthFilter === $number ? 'selected' : '' }}">{{ $name }}</button>
             @endforeach
-            </x-slot:chips>
-        </x-ui.filter-bar>
-    </x-slot:controls>
-
+            </div>
+        </x-slot:filters>
     @forelse ($rows as $row)
         <div class="md-card-outlined md-relationship-birthday mb-2" wire:key="birthday-{{ $row['relationship']->id }}">
             <div class="d-flex align-items-center gap-3">
@@ -57,6 +57,7 @@
         <x-empty-state icon="bi-cake2" title="Sin cumpleaños registrados"
                        message="Agrega el día y el mes de nacimiento desde el formulario de cada relación." />
     @endforelse
+    </x-ui.management-card>
 
     <x-slot:rail>
         <x-context-widget title="Resumen" icon="bi-cake2" tone="warning">

@@ -6,27 +6,29 @@
     <x-slot:actions>
         <x-module-actions
             :primary="['label' => 'Nuevo tipo', 'icon' => 'bi-plus-lg', 'action' => 'openForm']"
-            :secondary="[
-                ['label' => 'Restaurar tipos predeterminados', 'icon' => 'bi-arrow-counterclockwise', 'action' => 'restoreDefaults'],
-            ]" />
+ />
     </x-slot:actions>
 
     @if ($message)
         <div class="md-card-filled mb-3 py-3" role="status" aria-live="polite">{{ $message }}</div>
     @endif
 
-    <x-ui.section title="Tipos de ejercicio" :level="2"
-                  description="{{ $totalCount }} tipos · {{ $usedCount }} con registros. Las calorías y pasos por hora se usan para estimar cada registro.">
-        <x-ui.filter-bar search="search" placeholder="Buscar tipo de ejercicio..." label="Filtrar por categoría">
-            <x-slot:chips>
+    <x-ui.management-card id="exercise-types" title="Tipos de ejercicio" icon="bi-tags" :count="'('.$types->total().' / '.$totalCount.')'"
+                          search="search" search-placeholder="Buscar tipo de ejercicio" :active-filters="$category !== '' ? 1 : 0"
+                          :paginator="$types" noun="tipos">
+        <x-slot:filters>
+            <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtrar por categoría">
                 <x-ui.chip variant="filter" :selected="$category === ''" wire:click="$set('category', '')">Todas</x-ui.chip>
                 @foreach ($categories as $key => $label)
                     <x-ui.chip variant="filter" :selected="$category === $key" wire:click="$set('category', '{{ $key }}')">{{ $label }}</x-ui.chip>
                 @endforeach
                 <x-ui.chip variant="filter" :selected="$category === 'none'" wire:click="$set('category', 'none')">Sin categoría</x-ui.chip>
-            </x-slot:chips>
-        </x-ui.filter-bar>
-    </x-ui.section>
+            </div>
+        </x-slot:filters>
+        <x-slot:menu>
+            <x-ui.menu-item icon="bi-arrow-counterclockwise" wire:click="restoreDefaults">Restaurar tipos predeterminados</x-ui.menu-item>
+        </x-slot:menu>
+        <p class="md-mcard__section-label">{{ $usedCount }} con registros · las calorías y pasos por hora se usan para estimar cada registro</p>
 
     @forelse ($groups as $key => $types)
         <x-ui.section :title="DefaultExerciseTypes::categoryLabel($key ?: null)" :level="3"
@@ -75,6 +77,7 @@
                         message="Ajusta la búsqueda o la categoría para ver el resto de tu catálogo." />
         @endif
     @endforelse
+    </x-ui.management-card>
 
     <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="exercise-type-dialog"
                       :title="$editingId ? 'Editar tipo de ejercicio' : 'Nuevo tipo de ejercicio'" icon="bi-tags"

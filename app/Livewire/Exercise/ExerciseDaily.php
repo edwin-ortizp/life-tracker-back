@@ -7,6 +7,7 @@ use App\Models\ExerciseLog;
 use App\Models\ExerciseType;
 use Carbon\Carbon;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 
@@ -15,6 +16,7 @@ use Livewire\Attributes\Title;
 class ExerciseDaily extends Component
 {
     use HasUrlDate;
+    use WithManagementCard;
 
     // Form
     public bool $showForm = false;
@@ -154,16 +156,18 @@ class ExerciseDaily extends Component
 
     public function render()
     {
-        $logs = ExerciseLog::where('date', $this->selectedDate)
+        $dayLogs = ExerciseLog::where('date', $this->selectedDate);
+        $logs = (clone $dayLogs)
             ->with('exerciseType')
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($this->perPage());
 
         $exerciseTypes = ExerciseType::orderBy('name')->get();
 
-        $totalCalories = $logs->sum('calories');
-        $totalDuration = $logs->sum('duration');
-        $totalSteps = $logs->sum('steps');
+        // Los totales del día no dependen de la página visible.
+        $totalCalories = (clone $dayLogs)->sum('calories');
+        $totalDuration = (clone $dayLogs)->sum('duration');
+        $totalSteps = (clone $dayLogs)->sum('steps');
 
         return view('livewire.exercise.exercise-daily', [
             'logs' => $logs,

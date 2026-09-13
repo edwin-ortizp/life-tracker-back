@@ -15,9 +15,17 @@
 <x-module-shell module="vehicles" title="Catálogo de mantenimientos" subtitle="Plantillas base y personales para tu garaje." icon="bi-tools" archetype="list">
     <x-slot:actions><x-module-actions mobile-style="inline" :primary="['label' => 'Nueva plantilla', 'icon' => 'bi-plus-lg', 'action' => 'openTemplateForm']" :secondary="[['label' => 'Volver al garaje', 'icon' => 'bi-arrow-left', 'href' => route('vehicles')]]" /></x-slot:actions>
 
-    <x-slot:controls>
-        <x-ui.filter-bar search="catalogSearch" placeholder="Buscar nombre o descripción" label="Filtros del catálogo">
-            <x-slot:chips>
+
+    @if ($catalogMessage)
+        <x-ui.snackbar>{{ $catalogMessage }}</x-ui.snackbar>
+    @endif
+
+    @php($catalogActive = count(array_filter([$catalogCategory, $catalogSource, $catalogVehicleType, $catalogPowerSource, $catalogTransmissionType], static fn ($value) => $value !== '')))
+    <x-ui.management-card id="vehicle-catalog" title="Plantillas" icon="bi-tools" :count="'('.$catalogTemplates->total().')'"
+                          search="catalogSearch" search-placeholder="Buscar nombre o descripción" :active-filters="$catalogActive"
+                          :paginator="$catalogTemplates" noun="plantillas" alpine="openMenu: null">
+        <x-slot:filters>
+            <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros del catálogo" @click.outside="openMenu = null">
                 <x-ui.filter-menu name="catalogCategory" label="Categorías" allLabel="Todas las categorías"
                                   :options="collect($catalogCategories)->mapWithKeys(fn ($category) => [$category => $category])->all()"
                                   :selected="$catalogCategory" />
@@ -37,20 +45,14 @@
                 <x-ui.filter-menu name="catalogTransmissionType" label="Transmisión" allLabel="Todas las transmisiones"
                                   :options="['manual' => 'Manual', 'automatica' => 'Automática', 'cvt' => 'CVT', 'automatizada' => 'Automatizada', 'no_aplica' => 'No aplica']"
                                   :selected="$catalogTransmissionType" />
+            </div>
+        </x-slot:filters>
+        @if ($catalogActive)
+            <x-slot:filterActions>
+                <x-ui.action variant="text" icon="bi-x-circle" wire:click="clearCatalogFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+            </x-slot:filterActions>
+        @endif
 
-                @if ($catalogFilters !== [])
-                    <div class="md-chip-rail__divider"></div>
-                    <x-ui.action variant="text" size="sm" icon="bi-x-circle" wire:click="clearCatalogFilters">Limpiar</x-ui.action>
-                @endif
-            </x-slot:chips>
-        </x-ui.filter-bar>
-    </x-slot:controls>
-
-    @if ($catalogMessage)
-        <x-ui.snackbar>{{ $catalogMessage }}</x-ui.snackbar>
-    @endif
-
-    <x-ui.section title="Plantillas" :description="$catalogTemplates->total().' resultados'">
         @if ($catalogState === DataState::CONTENT)
             <div class="vehicle-catalog-grid">
                 @foreach ($catalogTemplates as $template)
@@ -79,8 +81,6 @@
                     </article>
                 @endforeach
             </div>
-
-            <div class="vehicle-pagination">{{ $catalogTemplates->links() }}</div>
         @elseif ($catalogState === DataState::FILTERED_EMPTY)
             <x-ui.state variant="filtered-empty" icon="bi-tools" message="Hay plantillas en el catálogo, pero ninguna coincide con los filtros activos.">
                 <x-slot:actions>
@@ -90,12 +90,9 @@
         @else
             <x-ui.state variant="empty" icon="bi-tools" title="No hay plantillas disponibles"
                         message="Crea una plantilla para reutilizarla en los cuidados de tu garaje.">
-                <x-slot:actions>
-                    <x-ui.action variant="filled" icon="bi-plus-lg" wire:click="openTemplateForm">Nueva plantilla</x-ui.action>
-                </x-slot:actions>
             </x-ui.state>
         @endif
-    </x-ui.section>
+    </x-ui.management-card>
 
     @include('livewire.vehicle.partials.template-form')
 </x-module-shell>

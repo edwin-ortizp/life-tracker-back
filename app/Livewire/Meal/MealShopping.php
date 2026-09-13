@@ -10,12 +10,15 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
+use App\Livewire\Concerns\WithManagementCard;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
 #[Title('Compras')]
 class MealShopping extends Component
 {
+    use WithManagementCard;
+
     #[Url(as: 'q', history: true, keep: true)]
     public string $search = '';
 
@@ -58,6 +61,16 @@ class MealShopping extends Component
     public string $itemStore = '';
 
     public ?float $itemPrice = null;
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPlaceFilter(): void
+    {
+        $this->resetPage();
+    }
 
     public function mount(): void
     {
@@ -168,11 +181,13 @@ class MealShopping extends Component
             ->when($this->placeFilter, fn ($q, $p) => $q->whereHas('variants', fn ($vq) => $vq->where('place', $p)))
             ->orderBy('name');
 
-        $items = $query->get();
+        // Paginación de la Card de gestión: se agrupa la página visible.
+        $items = $query->paginate($this->perPage());
+        $pageItems = $items->getCollection();
 
         if ($this->groupBy === 'place') {
             $grouped = collect();
-            foreach ($items as $item) {
+            foreach ($pageItems as $item) {
                 $places = $item->variants->pluck('place')->filter()->unique();
                 if ($places->isEmpty()) {
                     $grouped->push(['group' => null, 'item' => $item]);
@@ -184,7 +199,7 @@ class MealShopping extends Component
             }
             $grouped = $grouped->groupBy('group')->map(fn ($g) => $g->pluck('item')->unique('id'))->sortKeys();
         } else {
-            $grouped = $items->groupBy('category')->sortKeys();
+            $grouped = $pageItems->groupBy('category')->sortKeys();
         }
 
         // Items needed from this week's meal plan
@@ -231,7 +246,7 @@ class MealShopping extends Component
             'neededItems' => $neededItems,
             'neededItemIds' => $neededItemIds,
             'places' => $places,
-            'totalItems' => $items->count(),
+            'totalItems' => $items->total(),
             'neededCount' => $neededCount,
             'catalogNames' => auth()->user()->shoppingItems()->orderBy('name')->pluck('name'),
         ]);

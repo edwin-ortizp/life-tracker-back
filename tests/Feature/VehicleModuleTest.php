@@ -406,7 +406,7 @@ class VehicleModuleTest extends TestCase
         $this->get(route('vehicles.maintenance', $vehicle))->assertNotFound();
     }
 
-    public function test_histories_and_catalog_are_paginated_twenty_at_a_time(): void
+    public function test_histories_and_catalog_use_the_management_card_pagination(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user);
@@ -420,13 +420,20 @@ class VehicleModuleTest extends TestCase
             MaintenanceTemplate::create(['user_id' => $user->id, 'name' => "Plantilla $day", 'category' => 'personalizado']);
         }
 
+        // Card de gestión: 25 filas por defecto y selector 10/25/50/100.
         Livewire::test(VehicleFuel::class, ['vehicle' => $vehicle->id])
-            ->assertViewHas('energyLogs', fn ($logs) => $logs->count() === 20 && $logs->total() === 25);
+            ->assertViewHas('energyLogs', fn ($logs) => $logs->count() === 25 && $logs->total() === 25)
+            ->set('perPage', 10)
+            ->assertViewHas('energyLogs', fn ($logs) => $logs->count() === 10 && $logs->total() === 25)
+            ->set('perPage', 7)
+            ->assertSet('perPage', 25);
         Livewire::test(VehicleMaintenance::class, ['vehicle' => $vehicle->id])
-            ->assertViewHas('maintenanceLogs', fn ($logs) => $logs->count() === 20 && $logs->total() === 25);
+            ->set('perPage', 10)
+            ->assertViewHas('maintenanceLogs', fn ($logs) => $logs->count() === 10 && $logs->total() === 25);
         Livewire::test(VehicleCatalog::class)
             ->set('catalogSource', 'personal')
-            ->assertViewHas('catalogTemplates', fn ($templates) => $templates->count() === 20 && $templates->total() === 25);
+            ->set('perPage', 10)
+            ->assertViewHas('catalogTemplates', fn ($templates) => $templates->count() === 10 && $templates->total() === 25);
     }
 
     public function test_each_vehicle_page_avoids_queries_from_unrelated_tabs(): void

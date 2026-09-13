@@ -9,12 +9,15 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
+use App\Livewire\Concerns\WithManagementCard;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
 #[Title('Ingredientes')]
 class MealIngredients extends Component
 {
+    use WithManagementCard;
+
     #[Url(as: 'q', history: true, keep: true)]
     public string $search = '';
 
@@ -56,6 +59,16 @@ class MealIngredients extends Component
         'mascotas' => 'Mascotas',
         'otros' => 'Otros',
     ];
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCategoryFilter(): void
+    {
+        $this->resetPage();
+    }
 
     public function openForm(?string $id = null)
     {
@@ -221,15 +234,16 @@ class MealIngredients extends Component
 
     public function render()
     {
-        $items = ShoppingItem::query()
-            ->with('variants')
-            ->withCount('variants')
+        $base = ShoppingItem::query()
             ->when($this->search, fn($q, $s) => $q->where('name', 'like', "%{$s}%"))
-            ->when($this->categoryFilter, fn($q, $c) => $q->where('category', $c))
-            ->orderBy('name')
-            ->get();
+            ->when($this->categoryFilter, fn($q, $c) => $q->where('category', $c));
 
-        $grouped = $items->groupBy('category')->sortKeys();
+        // La página se agrupa por categoría; los totales del resumen siguen calculándose sobre todo el resultado.
+        $ingredients = (clone $base)->with('variants')->withCount('variants')
+            ->orderBy('category')->orderBy('name')
+            ->paginate($this->perPage());
+        $grouped = $ingredients->getCollection()->groupBy('category')->sortKeys();
+        $items = (clone $base)->get(['id', 'category', 'next_purchase', 'stock']);
 
         $byCategory = $items->groupBy('category')->map->count()->sortKeys();
         $nextPurchaseCount = $items->where('next_purchase', true)->count();
@@ -237,6 +251,8 @@ class MealIngredients extends Component
 
         return view('livewire.meal.meal-ingredients', [
             'grouped' => $grouped,
+            'ingredients' => $ingredients,
+            'catalogTotal' => ShoppingItem::query()->count(),
             'totalItems' => $items->count(),
             'byCategory' => $byCategory,
             'nextPurchaseCount' => $nextPurchaseCount,

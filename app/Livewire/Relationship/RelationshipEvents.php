@@ -9,13 +9,13 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 #[Title('Acontecimientos')]
 class RelationshipEvents extends Component
 {
-    use WithPagination;
+    use WithManagementCard;
 
     #[Url(as: 'q', history: true, keep: true)]
     public string $search = '';
@@ -65,7 +65,7 @@ class RelationshipEvents extends Component
         $events = $this->filteredQuery()
             ->with('relationship:id,full_name,nickname')
             ->chronological($this->periodFilter === 'past' ? 'desc' : 'asc')
-            ->paginate(20);
+            ->paginate($this->perPage());
 
         return view('livewire.relationship.relationship-events', [
             'relationships' => $relationships,

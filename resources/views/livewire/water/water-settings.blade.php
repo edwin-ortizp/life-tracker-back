@@ -1,4 +1,7 @@
 <x-module-shell module="water">
+    <x-slot:actions>
+        <x-module-actions :primary="['label' => 'Nueva bebida', 'icon' => 'bi-plus-lg', 'action' => 'edit']" />
+    </x-slot:actions>
     @if ($message)<div class="md-card-filled mb-3 py-3">{{ $message }}</div>@endif
     <div class="md-module-workspace">
         <div class="md-module-primary">
@@ -7,10 +10,9 @@
                 <form wire:submit="saveGoal" class="d-flex align-items-start gap-2 flex-wrap"><div class="md-text-field" style="min-width:220px"><input wire:model="dailyWaterGoal" type="number" min="500" max="10000" id="water-goal" placeholder=" "><label for="water-goal">Meta personalizada (ml)</label></div><button class="md-btn-filled">Guardar meta</button></form>
                 @error('dailyWaterGoal')<small style="color:var(--md-sys-color-error)">{{ $message }}</small>@enderror
             </section>
-            <section class="md-card-elevated p-0 overflow-hidden">
-                <div class="p-3 d-flex align-items-center justify-content-between"><h2 class="md-title-medium mb-0">Catálogo de bebidas</h2><button wire:click="edit" class="md-btn-tonal"><i class="bi bi-plus-lg"></i> Nueva</button></div>
+            <x-ui.management-card id="water-drink-types" title="Catálogo de bebidas" icon="bi-cup-straw" :count="'('.$drinkTypes->total().')'" :paginator="$drinkTypes" noun="bebidas" flush>
                 @foreach ($drinkTypes as $type)<div class="md-list-item"><div class="md-list-item-leading" style="font-size:1.4rem">{{ $type->icon ?: '💧' }}</div><div class="md-list-item-content"><div class="md-list-item-headline">{{ $type->name }}</div><div class="md-list-item-supporting">Factor {{ $type->hydration_factor }}</div></div><div class="md-list-item-trailing"><button wire:click="edit('{{ $type->id }}')" class="md-btn-icon" aria-label="Editar {{ $type->name }}"><i class="bi bi-pencil"></i></button><button wire:click="deleteDrinkType('{{ $type->id }}')" wire:confirm="¿Eliminar esta bebida?" class="md-btn-icon" aria-label="Eliminar {{ $type->name }}"><i class="bi bi-trash"></i></button></div></div>@endforeach
-            </section>
+            </x-ui.management-card>
         </div>
         <aside class="md-context-rail">
             <x-context-widget title="{{ $editingId ? 'Editar bebida' : 'Nueva bebida' }}" icon="bi-cup-straw">

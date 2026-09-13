@@ -4,10 +4,11 @@
         <x-module-actions :primary="['label' => 'Agregar ingrediente', 'icon' => 'bi-basket', 'action' => 'openForm']" />
     </x-slot:actions>
 
-    {{-- Search + Filters --}}
-    <x-ui.filter-bar search="search" placeholder="Buscar ingredientes..." label="Filtros de ingredientes">
-        <x-slot:chips>
-
+    <x-ui.management-card id="meal-ingredients" title="Catálogo de ingredientes" icon="bi-basket" :count="'('.$ingredients->total().' / '.$catalogTotal.')'"
+                          search="search" search-placeholder="Buscar ingredientes" :active-filters="$categoryFilter !== '' ? 1 : 0"
+                          :paginator="$ingredients" noun="ingredientes" alpine="openMenu: null">
+        <x-slot:filters>
+            <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros de ingredientes" @click.outside="openMenu = null">
         
             {{-- Category chip-menu --}}
             <div class="md-chip-menu" :class="{ 'open': openMenu === 'category' }">
@@ -25,10 +26,8 @@
                     @endforeach
                 </div>
             </div>
-        </x-slot:chips>
-    </x-ui.filter-bar>
-
-    {{-- Items grouped by category --}}
+            </div>
+        </x-slot:filters>
     @if ($grouped->isEmpty())
         <div class="md-card-elevated p-4 text-center">
             <i class="bi bi-basket" style="font-size: 2rem; color: var(--md-sys-color-outline);"></i>
@@ -92,6 +91,7 @@
             </details>
         @endforeach
     @endif
+    </x-ui.management-card>
 
     <x-slot:rail>
         <x-context-widget title="Resumen" icon="bi-basket" tone="success">

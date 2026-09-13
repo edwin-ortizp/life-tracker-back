@@ -9,6 +9,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 
 /**
  * The personal emotion catalog. Every action here is recoverable: defaults are never
@@ -18,6 +19,7 @@ use Livewire\Component;
 #[Title('Ajustes de emociones')]
 class MoodSettings extends Component
 {
+    use WithManagementCard;
     #[Url(as: 'q', history: true, keep: true)]
     public string $search = '';
 
@@ -189,6 +191,21 @@ class MoodSettings extends Component
             );
     }
 
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCategory(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatus(): void
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         $term = trim($this->search);
@@ -199,7 +216,7 @@ class MoodSettings extends Component
             ->when($this->status !== '', fn ($query) => $query->where('is_active', $this->status === 'active'))
             ->prioritized()
             ->withCount('entries')
-            ->get();
+            ->paginate($this->perPage());
 
         return view('livewire.mood.mood-settings', [
             'states' => $states,

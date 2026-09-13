@@ -7,6 +7,7 @@ use App\Models\NegativeHabitDefinition;
 use App\Models\NegativeHabitLog;
 use Carbon\Carbon;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 
@@ -15,6 +16,7 @@ use Livewire\Attributes\Title;
 class NegativeHabitWeekly extends Component
 {
     use HasUrlDate;
+    use WithManagementCard;
     public bool $showLogForm = false;
     public int $selectedHabitId = 0;
     public string $note = '';
@@ -80,7 +82,7 @@ class NegativeHabitWeekly extends Component
             $weekDates[] = $d->copy();
         }
 
-        $habits = NegativeHabitDefinition::orderBy('category')->orderBy('name')->get();
+        $habits = NegativeHabitDefinition::orderBy('category')->orderBy('name')->paginate($this->perPage());
 
         $startTimestamp = $weekStart->startOfDay()->timestamp;
         $endTimestamp = $weekEnd->endOfDay()->timestamp;

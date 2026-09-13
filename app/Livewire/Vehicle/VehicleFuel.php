@@ -8,14 +8,14 @@ use App\Models\VehicleEnergyLog;
 use App\Support\VehicleEnergyAnalytics;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Livewire\WithPagination;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 class VehicleFuel extends Component
 {
     use InteractsWithVehicle;
     use ManagesEnergyLogs;
-    use WithPagination;
+    use WithManagementCard;
 
     public function mount(string $vehicle): void
     {
@@ -32,7 +32,7 @@ class VehicleFuel extends Component
         $energyLogs = VehicleEnergyLog::query()
             ->where('vehicle_id', $vehicle->id)
             ->orderByDesc('recorded_on')->orderByDesc('created_at')
-            ->paginate(20);
+            ->paginate($this->perPage());
         VehicleEnergyAnalytics::annotate($energyLogs->getCollection(), $vehicle);
 
         return view('livewire.vehicle.vehicle-fuel', compact('vehicle', 'energyUi', 'energySources', 'energyAnalytics', 'energyLogs'));

@@ -4,9 +4,11 @@
         <x-module-actions :primary="['label' => 'Agregar a compras', 'icon' => 'bi-cart-plus', 'action' => 'openForm']" />
     </x-slot:actions>
 
-    {{-- Search + Filters --}}
-    <x-ui.filter-bar search="search" placeholder="Buscar en lista de compras..." label="Filtros de la compra">
-        <x-slot:chips>
+    <x-ui.management-card id="meal-shopping" title="Por comprar" icon="bi-cart3" :count="'('.$totalItems.')'"
+                          search="search" search-placeholder="Buscar en lista de compras" :active-filters="$placeFilter !== '' ? 1 : 0"
+                          :paginator="$items" noun="artículos" alpine="openMenu: null">
+        <x-slot:filters>
+            <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros de la compra" @click.outside="openMenu = null">
             <button wire:click="setViewMode('compact')"
                     class="md-chip md-chip-filter {{ $viewMode === 'compact' ? 'selected' : '' }}">
                 <i class="bi bi-list"></i> Compacta
@@ -44,8 +46,8 @@
                     </div>
                 </div>
             @endif
-        </x-slot:chips>
-    </x-ui.filter-bar>
+            </div>
+        </x-slot:filters>
 
     {{-- Needed from meal plan --}}
     @if ($neededItems->isNotEmpty())
@@ -86,10 +88,6 @@
             </p>
         </div>
     @else
-        <p class="shopping-list-count">
-            {{ $totalItems }} {{ $totalItems === 1 ? 'artículo' : 'artículos' }} por comprar
-        </p>
-
         <div class="shopping-list shopping-list--{{ $viewMode }}">
             @if ($viewMode === 'compact')
                 @foreach ($items as $item)
@@ -117,6 +115,7 @@
             @endif
         </div>
     @endif
+    </x-ui.management-card>
 
     <x-slot:rail>
         <x-context-widget title="Resumen" icon="bi-cart3" tone="success">

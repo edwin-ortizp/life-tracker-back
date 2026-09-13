@@ -9,25 +9,21 @@
 
     @include('livewire.relationship.partials.person-tabs', ['relationship' => $relationship])
 
-    <section class="plans-section" aria-labelledby="relationship-plans-title">
-        <div class="plans-toolbar">
-            <h2 id="relationship-plans-title" class="plans-toolbar__title">
-                <i class="bi bi-map" aria-hidden="true"></i>
-                <span>Planes con {{ $firstName }}</span>
-            </h2>
-            <div class="plans-toolbar__actions">
-                <x-ui.action variant="tonal" icon="bi-shuffle" wire:click="surprise">Sorpréndeme</x-ui.action>
-                <x-ui.action variant="outlined" icon="bi-sliders" :href="route('plans', ['people' => [$relationship->id]])">Filtros</x-ui.action>
-            </div>
-        </div>
-
-        <div class="plans-groups" role="group" aria-label="Estado de los planes">
+    <x-ui.management-card id="relationship-plans" :title="'Planes con '.$firstName" icon="bi-map" :count="'('.$plans->total().' / '.$total.')'"
+                          :active-filters="$status !== '' ? 1 : 0" :paginator="$plans" noun="planes" class="plans-section">
+        <x-slot:filters>
+            <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Estado de los planes">
             @foreach ($statusFilters as $key => $filter)
                 <x-ui.chip variant="filter" :icon="$filter['icon']" :selected="$status === $key" wire:click="setStatus('{{ $key }}')" wire:key="relationship-plans-status-{{ $key ?: 'all' }}">
                     {{ $filter['label'] }} ({{ $key === '' ? $total : ($counts[$key] ?? 0) }})
                 </x-ui.chip>
             @endforeach
-        </div>
+            </div>
+        </x-slot:filters>
+        <x-slot:menu>
+            <x-ui.menu-item icon="bi-shuffle" wire:click="surprise">Sorpréndeme</x-ui.menu-item>
+            <x-ui.menu-item icon="bi-sliders" :href="route('plans', ['people' => [$relationship->id]])">Filtros avanzados en Planes</x-ui.menu-item>
+        </x-slot:menu>
 
         @if ($surpriseMessage)
             <p class="plans-notice" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i> {{ $surpriseMessage }}</p>
@@ -44,7 +40,7 @@
         @else
             <x-ui.state variant="empty" icon="bi-map" title="Aún no tienen planes" message="Agrega un lugar o actividad para hacer juntos, o asocia uno que ya tengas." />
         @endif
-    </section>
+    </x-ui.management-card>
 
     <x-slot:rail>
         <section class="plan-card" aria-labelledby="relationship-plans-summary">

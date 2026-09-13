@@ -21,7 +21,7 @@
         </x-ui.metric-grid>
     </x-ui.section>
 
-    <x-ui.section title="Actividades del día" :level="3">
+    <x-ui.management-card id="exercise-day-logs" title="Actividades del día" icon="bi-list-ul" :count="'('.$logs->total().')'" :paginator="$logs" noun="registros">
         @if ($logsState === DataState::CONTENT)
             <x-ui.list label="Actividades del día">
                 @foreach ($logs as $log)
@@ -60,13 +60,9 @@
             </x-ui.list>
         @else
             <x-ui.state variant="empty" icon="bi-activity" title="Sin ejercicios registrados"
-                        message="Registra tu primera actividad para ver aquí el detalle del día.">
-                <x-slot:actions>
-                    <x-ui.action variant="filled" icon="bi-plus-lg" wire:click="openForm">Registrar ejercicio</x-ui.action>
-                </x-slot:actions>
-            </x-ui.state>
+                        message="Registra tu primera actividad para ver aquí el detalle del día." />
         @endif
-    </x-ui.section>
+    </x-ui.management-card>
 
     <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="exercise-dialog"
                       :title="$editingId ? 'Editar ejercicio' : 'Registrar ejercicio'" icon="bi-activity"

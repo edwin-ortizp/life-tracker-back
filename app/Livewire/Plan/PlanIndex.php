@@ -13,12 +13,14 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 #[Title('Planes')]
 class PlanIndex extends Component
 {
     use ManagesPlanDialogs;
+    use WithManagementCard;
 
     public const SORTS = [
         'recent' => 'Más recientes',
@@ -65,6 +67,9 @@ class PlanIndex extends Component
 
     public function updated(string $property): void
     {
+        if ($property !== 'perPage') {
+            $this->resetPage();
+        }
         $this->surpriseMessage = null;
         $this->normalizeFilters();
     }
@@ -72,6 +77,7 @@ class PlanIndex extends Component
     public function setGroup(string $group): void
     {
         $this->group = array_key_exists($group, Plan::GROUPS) ? $group : '';
+        $this->resetPage();
         $this->surpriseMessage = null;
     }
 
@@ -105,6 +111,7 @@ class PlanIndex extends Component
             $this->filteredQuery()->withVisitStats()->with(['circles', 'relationships', 'images'])->get(),
             $this->sort,
         );
+        $plans = $this->paginateCollection($plans);
 
         $stale = $this->sortPlans(
             (clone $active)->has('visits')->withVisitStats()->get(),

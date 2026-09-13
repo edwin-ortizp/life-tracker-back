@@ -8,11 +8,13 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 #[Title('Ajustes de hidratación')]
 class WaterSettings extends Component
 {
+    use WithManagementCard;
     public ?int $dailyWaterGoal = null;
     public ?string $editingId = null;
     public string $name = '';
@@ -60,5 +62,5 @@ class WaterSettings extends Component
         $type->delete(); $this->message = 'Bebida eliminada.';
     }
 
-    public function render() { return view('livewire.water.water-settings', ['drinkTypes' => DrinkType::orderBy('name')->get()]); }
+    public function render() { return view('livewire.water.water-settings', ['drinkTypes' => DrinkType::orderBy('name')->paginate($this->perPage())]); }
 }

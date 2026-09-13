@@ -1,12 +1,16 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab, manage_card %}
 {% call shell('meals', 'Lista de compras', 'bi-cart3') %}
 {{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-shopping') }}
-<section class="lt-toolbar" aria-label="Filtros de la compra">
-  <label class="lt-field"><span class="lt-sr-only">Buscar</span><input type="search" placeholder="Buscar en lista de compras..."></label>
-  {% for c, sel in [('Pendientes',true),('Comprados',false),('Por receta',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}
-</section>
 <section class="lt-grid-main">
-  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-cart3"></i><h3>Por comprar</h3><small>14 pendientes · 4 comprados</small></div><div class="lt-panel__body">
+  {% call(zone) manage_card('shopping', 'Por comprar', 'bi-cart3', count='(10 / 18)', total=18, search='Buscar en lista de compras', menu=[('Exportar CSV', 'bi-filetype-csv'), ('Imprimir lista', 'bi-printer')], footer={'from':1,'to':10,'total':18,'noun':'productos','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
+      <div class="lt-popover" id="shopping-filters" role="dialog" aria-labelledby="shopping-filters-title" hidden>
+        <div class="lt-popover__head"><h4 id="shopping-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="shopping-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+        <div class="lt-field"><span>Estado</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Pendientes</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Comprados</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Por receta</button></div></div>
+        <label class="lt-field"><span>Pasillo</span><select><option>Todos</option><option>Verduras y frutas</option><option>Proteínas</option><option>Despensa</option></select></label>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="shopping-filters">Aplicar</button></div>
+      </div>
+    {% else %}
+
     {% for cat, items in [
       ('Verduras y frutas', [('Cilantro','1 atado','Tacos de pescado',false),('Ahuyama','1 kg','Crema de ahuyama',false),('Repollo morado','1/2 unidad','Tacos de pescado',false),('Limones','6 unidades','',true)]),
       ('Proteínas', [('Tilapia','500 g','Tacos de pescado',false),('Salmón','400 g','Salmón al horno',false),('Huevos','30 unidades','',true)]),
@@ -15,7 +19,7 @@
     <p class="lt-section-label">{{ cat }}</p>
     <div class="lt-list">{% for name, qty, recipe, done in items %}<div class="lt-list-item"><span class="lt-check{% if done %} is-done{% endif %}" title="Marcar como comprado">{% if done %}✓{% endif %}</span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ qty }}{% if done %} · comprado{% endif %}</span></div>{% if recipe %}<span class="lt-chip lt-chip--neutral" title="Necesario por una receta"><i class="bi bi-book"></i>&nbsp;{{ recipe }}</span>{% endif %}<button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Ver tiendas y precios de {{ name }}"><i class="bi bi-shop"></i></button></div>{% endfor %}</div>
     {% endfor %}
-  </div></article>
+  {% endif %}{% endcall %}
   <aside class="lt-stack">
     <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-receipt"></i><h3>Resumen</h3></div><div class="lt-panel__body">
       <div class="lt-progress"><span style="width:22%"></span></div>

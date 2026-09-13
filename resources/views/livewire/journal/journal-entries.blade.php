@@ -40,12 +40,7 @@
     </div>
 
     {{-- Recent Entries --}}
-    <div class="md-card-elevated" style="padding: 0; overflow: hidden;">
-        <div style="padding: 16px 16px 8px 16px;">
-            <h3 class="md-title-small mb-0" style="color: var(--md-sys-color-on-surface);">
-                <i class="bi bi-clock-history" style="color: var(--md-sys-color-on-surface-variant);"></i> Entradas recientes
-            </h3>
-        </div>
+    <x-ui.management-card id="journal-recent" title="Entradas recientes" icon="bi-clock-history" :count="'('.$recentEntries->total().')'" :paginator="$recentEntries" noun="entradas" flush>
         @forelse ($recentEntries as $entry)
             <div wire:click="$set('selectedDate', '{{ $entry->date->format('Y-m-d') }}'); loadEntry()"
                  class="md-list-item"
@@ -68,7 +63,7 @@
                 <p class="md-body-medium mb-0">Sin entradas recientes</p>
             </div>
         @endforelse
-    </div>
+    </x-ui.management-card>
         </div>
 
         <livewire:journal.journal-mood-rail :selected-date="$selectedDate" :key="'journal-context-'.$selectedDate" />

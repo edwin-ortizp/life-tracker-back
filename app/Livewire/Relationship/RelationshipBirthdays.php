@@ -11,11 +11,13 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 #[Title('Cumpleaños')]
 class RelationshipBirthdays extends Component
 {
+    use WithManagementCard;
     /** Empty means the rolling twelve-month view instead of a single month. */
     #[Url(as: 'month', history: true, keep: true)]
     public string $monthFilter = '';
@@ -40,6 +42,7 @@ class RelationshipBirthdays extends Component
 
     public function updatedMonthFilter(): void
     {
+        $this->resetPage();
         $this->normalizeFilters();
     }
 
@@ -87,7 +90,7 @@ class RelationshipBirthdays extends Component
         $rows = $this->birthdayRows();
 
         return view('livewire.relationship.relationship-birthdays', [
-            'rows' => $this->monthFilter === '' ? $rows : $this->monthRows($rows),
+            'rows' => $this->paginateCollection($this->monthFilter === '' ? $rows : $this->monthRows($rows)),
             'todayCount' => $rows->where('is_today', true)->count(),
             'totalWithBirthday' => $rows->count(),
         ]);

@@ -13,13 +13,13 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 #[Title('Relaciones')]
 class RelationshipIndex extends Component
 {
-    use WithPagination;
+    use WithManagementCard;
 
     #[Url(as: 'q', history: true, keep: true)]
     public string $search = '';
@@ -339,7 +339,7 @@ class RelationshipIndex extends Component
         $relationships = $this->filteredQuery()
             ->with(['circle', 'tags', 'contactMethods'])
             ->orderBy('full_name')
-            ->paginate(20);
+            ->paginate($this->perPage());
 
         return view('livewire.relationship.relationship-index', [
             'circles' => $circles,

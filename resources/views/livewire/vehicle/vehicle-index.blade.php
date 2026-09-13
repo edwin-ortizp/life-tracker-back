@@ -1,12 +1,15 @@
 <div data-module="vehicles" class="lt-page">
     <x-page-header subtitle="Mantenimiento, consumo y próximos cuidados." />
 
+    <x-ui.management-card id="vehicle-garage" title="Garaje" icon="bi-car-front" :count="'('.$vehicles->total().')'" :paginator="$vehicles" noun="vehículos">
+        <x-slot:menu>
+            <x-ui.menu-item icon="bi-tools" :href="route('vehicles.catalog')">Catálogo de mantenimientos</x-ui.menu-item>
+        </x-slot:menu>
     @if($vehicles->isEmpty())
         <div class="md-empty-state md-card-outlined">
             <div class="md-empty-state__icon"><i class="bi bi-car-front"></i></div>
             <h2>Tu garaje está vacío</h2>
             <p>Añade tu automóvil, moto, bicicleta o patineta para programar sus cuidados.</p>
-            <button wire:click="openVehicleForm" class="md-btn-filled mt-2">Crear mi primer vehículo</button>
         </div>
     @else
         <div class="vehicle-garage-grid">
@@ -27,6 +30,8 @@
             @endforeach
         </div>
     @endif
+
+    </x-ui.management-card>
 
     @include('livewire.vehicle.partials.vehicle-form')
 

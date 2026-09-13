@@ -194,7 +194,7 @@ class HealthModuleTest extends TestCase
             ->assertSee('Influenza')
             ->assertDontSee('Control antiguo')
             ->assertDontSee('No visible')
-            ->assertSee('(1 de 2)');
+            ->assertSee('(1 / 2)');
 
         Carbon::setTestNow();
     }

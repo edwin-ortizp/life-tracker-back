@@ -13,12 +13,14 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 #[Title('Planes de la relación')]
 class RelationshipPlans extends Component
 {
     use ManagesPlanDialogs;
+    use WithManagementCard;
 
     public const STATUS_FILTERS = [
         '' => ['label' => 'Todos', 'icon' => 'bi-grid'],
@@ -47,6 +49,7 @@ class RelationshipPlans extends Component
 
     public function setStatus(string $status): void
     {
+        $this->resetPage();
         $this->status = array_key_exists($status, self::STATUS_FILTERS) ? $status : '';
         $this->surpriseMessage = null;
     }
@@ -70,6 +73,7 @@ class RelationshipPlans extends Component
                 ->get(),
             'recent',
         );
+        $plans = $this->paginateCollection($plans);
 
         return view('livewire.relationship.relationship-plans', [
             'relationship' => $relationship,

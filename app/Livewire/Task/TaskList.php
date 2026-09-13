@@ -12,13 +12,13 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 #[Title('Tareas')]
 class TaskList extends Component
 {
-    use HandlesRecurringTaskCompletion, InteractsWithTaskSchedule, WithPagination;
+    use HandlesRecurringTaskCompletion, InteractsWithTaskSchedule, WithManagementCard;
 
     #[Url(as: 'status', history: true, keep: true)]
     public string $filter = 'pending'; // pending, completed, all
@@ -441,7 +441,7 @@ class TaskList extends Component
         }
 
         $tasks = $query->chronological()
-            ->paginate(25);
+            ->paginate($this->perPage());
 
         // `CURDATE()` y `NOW()` no existen en SQLite: se pasan como parámetros.
         $today = today()->toDateString();

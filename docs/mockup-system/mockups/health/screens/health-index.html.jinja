@@ -1,12 +1,13 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog, fab, manage_card %}
 {% call shell('health', 'Salud', 'bi-heart-pulse') %}
 {{ module_tabs([('Registro','/health-index','bi-clock-history'),('Vista del cuerpo','/health-body','bi-person-standing')], '/health-index') }}
 <section class="lt-grid-main">
   <div class="lt-stack">
-    <div class="lt-section-head lt-filter-anchor"><h3><i class="bi bi-clock-history"></i> Cronología de salud <span class="lt-count" data-lt-visible-count title="Registros visibles de los existentes">(4 de 28)</span></h3>
-      <button class="lt-button lt-button--text lt-filter-button" type="button" data-lt-toggle="health-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="health-filters"><i class="bi bi-sliders"></i> Filtros<span class="lt-badge lt-badge--corner" data-lt-filter-count aria-label="2 filtros activos">2</span></button>
-      <div class="lt-popover" id="health-filters" role="dialog" aria-labelledby="health-filters-title" hidden>
-        <div class="lt-popover__head"><h4 id="health-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="health-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+    {% call(zone) manage_card('health-timeline', 'Cronología de salud', 'bi-clock-history', count='(25 / 58)', total=58, search='Buscar eventos', filters=2,
+      menu=[('Exportar CSV','bi-filetype-csv'),('Descargar PDF','bi-file-earmark-pdf'),('Imprimir historial','bi-printer'),('Ver estadísticas','bi-bar-chart-line')],
+      footer={'from':1,'to':25,'total':58,'noun':'eventos','page':1,'pages':3,'per_page':25}) %}{% if zone == 'filters' %}
+      <div class="lt-popover" id="health-timeline-filters" role="dialog" aria-labelledby="health-filters-title" hidden>
+        <div class="lt-popover__head"><h4 id="health-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="health-timeline-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <label class="lt-field"><span>Rango de tiempo</span><select>{% for r in ['Últimos 30 días','Últimos 60 días','Últimos 6 meses','Último año','Todo el historial'] %}<option{% if r == 'Últimos 60 días' %} selected{% endif %}>{{ r }}</option>{% endfor %}</select></label>
         <label class="lt-field"><span>Estado</span><select>{% for r in ['Todos','En seguimiento','Recuperados'] %}<option{% if r == 'En seguimiento' %} selected{% endif %}>{{ r }}</option>{% endfor %}</select></label>
         <div class="lt-field"><span id="health-type-label">Tipo</span>
@@ -14,9 +15,9 @@
             <div class="lt-multiselect__panel" id="health-type-options" role="listbox" aria-multiselectable="true" hidden>{% for r in ['Síntoma','Enfermedad','Cita','Control','Procedimiento','Vacuna'] %}<label class="lt-multiselect__option"><input type="checkbox"> {{ r }}</label>{% endfor %}</div>
           </div>
         </div>
-        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="health-filters">Aplicar</button></div>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="health-timeline-filters">Aplicar</button></div>
       </div>
-    </div>
+    {% else %}
     <div class="lt-chip-row lt-applied-filters" aria-label="Filtros aplicados">
       <span class="lt-chip lt-chip--input" data-filter="range"><i class="bi bi-calendar-range"></i> <span data-filter-label>Últimos 60 días</span><button class="lt-chip__remove" type="button" data-lt-remove-filter aria-label="Quitar filtro Últimos 60 días"><i class="bi bi-x"></i></button></span>
       <span class="lt-chip lt-chip--input"><i class="bi bi-activity"></i> En seguimiento<button class="lt-chip__remove" type="button" data-lt-remove-filter aria-label="Quitar filtro En seguimiento"><i class="bi bi-x"></i></button></span>
@@ -35,6 +36,18 @@
       {'title':'Gripe','d':'18','m':'AGO','y':'2026','icon':'bi-thermometer-half','meta':'Gripe · Cabeza, Boca y garganta, Pecho · 18–24 ago. · 7 días','note':'Fiebre dos días, reposo completo.','chip':'Recuperado','tone':'success','now':0,'open':false,
        'days':[('18',6),('19',8),('20',7),('21',5),('22',3),('23',2),('24',1)],
        'log':[('24 ago.','Recuperado','Sin síntomas.'),('19 ago.','8/10','Fiebre de 38,6 °C.')]},
+      {'title':'Control de dermatología','d':'26','m':'AGO','y':'2026','icon':'bi-hospital','meta':'Dra. Salazar · Piel · 26 ago.','note':'Revisión de lunares, sin cambios. Próximo control en un año.','chip':'Completado','tone':'success','now':0,'open':false,
+       'days':[('26',1)],
+       'log':[('26 ago.','Control','Dermatoscopia normal.')]},
+      {'title':'Vacuna de influenza','d':'05','m':'SEP','y':'2026','icon':'bi-shield-plus','meta':'Brazo izquierdo · 5 sep. · Dosis anual','note':'Leve dolor en el brazo el primer día.','chip':'Completado','tone':'success','now':0,'open':false,
+       'days':[('5',3),('6',1)],
+       'log':[('6 sep.','1/10','Sin molestias.'),('5 sep.','3/10','Aplicada en EPS Sura.')]},
+      {'title':'Limpieza dental','d':'14','m':'AGO','y':'2026','icon':'bi-emoji-smile','meta':'Dr. Mejía · Boca y garganta · 14 ago.','note':'Sin caries. Usar hilo dental a diario.','chip':'Completado','tone':'success','now':0,'open':false,
+       'days':[('14',2)],
+       'log':[('14 ago.','Control','Profilaxis y fluorización.')]},
+      {'title':'Examen de sangre','d':'30','m':'JUL','y':'2026','icon':'bi-droplet','meta':'Laboratorio Clínico Central · 30 jul.','note':'Colesterol LDL levemente alto. Repetir en 6 meses.','chip':'Completado','tone':'success','now':0,'open':false,
+       'days':[('30',1)],
+       'log':[('30 jul.','Resultado','Hemograma normal, LDL 138 mg/dL.')]},
       {'title':'Esguince de tobillo','d':'01','m':'JUL','y':'2026','icon':'bi-bandaid','meta':'Tobillo derecho · 1–15 jul. · 15 días','note':'Fisioterapia 4 sesiones.','chip':'Recuperado','tone':'success','now':0,'open':false,
        'days':[('1',9),('3',7),('5',6),('7',5),('9',4),('11',3),('13',2),('15',1)],
        'log':[('15 jul.','Recuperado','Alta de fisioterapia.'),('1 jul.','9/10','Torcedura jugando fútbol.')]}
@@ -71,6 +84,7 @@
       </div>
     </details></div>
     {% endfor %}
+    {% endif %}{% endcall %}
   </div>
   <aside class="lt-stack">
     <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-bar-chart-line"></i><h3>Momentos de enfermedad</h3><button class="lt-icon-button lt-panel__more" type="button" data-lt-static-nav aria-label="Ver estadísticas de salud"><i class="bi bi-chevron-right"></i></button></div><div class="lt-panel__body">
@@ -95,7 +109,7 @@
     </div><div class="lt-route-links"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Nuevo pendiente</button></div></div></article>
   </aside>
 </section>
-{{ fab('Registrar evento', 'bi-plus-lg', 'health-event-new') }}
+{{ fab('Registrar evento', 'bi-plus-lg', 'health-event-new', actions=[('Nuevo pendiente de salud', 'bi-list-check', None)], split=True) }}
 {% set event_sections = [('basic','Información básica','bi-file-earmark-text'),('details','Detalles adicionales','bi-card-text'),('files','Archivos y adjuntos','bi-paperclip'),('summary','Resumen','bi-check2-circle')] %}
 {% macro event_form(v) -%}
 <section class="lt-dialog__section" data-section="basic">

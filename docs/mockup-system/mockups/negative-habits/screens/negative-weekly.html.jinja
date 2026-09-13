@@ -1,10 +1,19 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab, manage_card %}
 {% call shell('negative-habits', 'Hábitos a evitar', 'bi-shield-check') %}
 {{ module_tabs([('Semana','/negative-weekly','bi-calendar-week'),('Tendencia','/negative-trend','bi-graph-down')], '/negative-weekly') }}
-<section class="lt-toolbar"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><p class="lt-toolbar__label">Esta semana · 8 – 14 sep.</p><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Registrar incidencia</button></section>
+<section class="lt-toolbar"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><p class="lt-toolbar__label">Esta semana · 8 – 14 sep.</p><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button></section>
 <section class="lt-metrics">{{ metric('Incidencias esta semana','6','warning') }}{{ metric('Días limpios','8 de 12','success') }}{{ metric('Frente a la semana pasada','−40 %','success') }}</section>
 <section class="lt-stack">
-  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-calendar-week"></i><h3>Registro semanal</h3><small>Toca un día para registrar</small></div><div class="lt-panel__body">
+  {% call(zone) manage_card('negative-week', 'Registro semanal', 'bi-calendar-week', search='Buscar hábito', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':4,'total':4,'noun':'hábitos','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
+      <div class="lt-popover" id="negative-week-filters" role="dialog" aria-labelledby="negative-week-filters-title" hidden>
+        <div class="lt-popover__head"><h4 id="negative-week-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="negative-week-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+        <div class="lt-field"><span>Hábito</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Todos</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Redes sociales de noche</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Gaseosa</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Compras impulsivas</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Picar entre comidas</button></div></div>
+        <label class="lt-field"><span>Estado</span><select><option>Todos</option><option>Dentro del límite</option><option>Fuera del límite</option></select></label>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="negative-week-filters">Aplicar</button></div>
+      </div>
+    {% else %}
+    <p class="lt-section-label">Toca un día para registrar</p>
+
     <div class="lt-habit-week" role="table" aria-label="Incidencias por hábito y día">
       <div class="lt-habit-week__row lt-habit-week__row--head" role="row"><span role="columnheader">Hábito</span>{% for d, today in [('L 8',false),('M 9',false),('X 10',true),('J 11',false),('V 12',false),('S 13',false),('D 14',false)] %}<span role="columnheader"{% if today %} class="is-today"{% endif %}>{{ d }}</span>{% endfor %}<span role="columnheader">Total</span></div>
       {% for icon, name, limit, days, total, delta in [
@@ -25,7 +34,7 @@
       {% endfor %}
     </div>
     <div class="lt-legend"><span><i class="bi bi-check-lg"></i> Día limpio</span><span>1 Una incidencia</span><span>2+ Varias</span></div>
-  </div></article>
+  {% endif %}{% endcall %}
   <div>
     <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-lightbulb"></i><h3>Plan de reemplazo</h3></div><div class="lt-panel__body"><div class="lt-list">
       <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-book"></i></span><div class="lt-list-item__body"><strong>Leer 10 páginas en vez de redes</strong><span>Funcionó 4 de 6 noches</span></div></div>

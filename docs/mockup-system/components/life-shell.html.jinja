@@ -63,9 +63,46 @@
 
 {#- FAB canónico de creación: extendido en escritorio, solo ícono en móvil.
     `target` es el id del diálogo que abre; `actions` = [(label, icon, target), ...] despliega un menú FAB. -#}
-{% macro fab(label, icon='bi-plus-lg', target=None, actions=None, id='lt-fab-menu') -%}
-{% if actions %}<div class="lt-fab-dial">
+{#- Con `split=True` el FAB es dividido (M3 split button): el segmento principal ejecuta la acción y el chevron despliega `actions`. -#}
+{% macro fab(label, icon='bi-plus-lg', target=None, actions=None, id='lt-fab-menu', split=False) -%}
+{% if actions and split %}<div class="lt-fab-dial lt-fab-split">
+  <div class="lt-fab-dial__menu" id="{{ id }}" role="menu" hidden>{% for alabel, aicon, atarget in actions %}<button class="lt-fab-dial__item" type="button" role="menuitem"{% if atarget %} data-lt-toggle="{{ atarget }}" aria-haspopup="dialog"{% else %} data-lt-static-nav{% endif %}><span>{{ alabel }}</span><i class="bi {{ aicon }}" aria-hidden="true"></i></button>{% endfor %}</div>
+  <div class="lt-fab-split__group"><button class="lt-fab lt-fab-split__main" type="button"{% if target %} data-lt-toggle="{{ target }}" aria-haspopup="dialog"{% else %} data-lt-static-nav{% endif %} aria-label="{{ label }}"><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></button><button class="lt-fab lt-fab-split__toggle" type="button" data-lt-toggle="{{ id }}" aria-haspopup="menu" aria-expanded="false" aria-label="Más acciones de creación"><i class="bi bi-chevron-up" aria-hidden="true"></i></button></div>
+</div>{% elif actions %}<div class="lt-fab-dial">
   <div class="lt-fab-dial__menu" id="{{ id }}" role="menu" hidden>{% for alabel, aicon, atarget in [(label, icon, target)] + actions %}<button class="lt-fab-dial__item" type="button" role="menuitem"{% if atarget %} data-lt-toggle="{{ atarget }}" aria-haspopup="dialog"{% else %} data-lt-static-nav{% endif %}><span>{{ alabel }}</span><i class="bi {{ aicon }}" aria-hidden="true"></i></button>{% endfor %}</div>
   <button class="lt-fab" type="button" data-lt-toggle="{{ id }}" aria-haspopup="menu" aria-expanded="false" aria-label="{{ label }}"><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></button>
 </div>{% else %}<button class="lt-fab" type="button"{% if target %} data-lt-toggle="{{ target }}" aria-haspopup="dialog"{% else %} data-lt-static-nav{% endif %} aria-label="{{ label }}"><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></button>{% endif %}
+{%- endmacro %}
+
+{#- Card de gestión estándar: header (ícono, título, contador | buscador, filtros | ⋮), contenido y footer con paginación.
+    `caller(zone)` recibe 'filters' (popover de filtros) y 'content' (chips aplicados + listado).
+    `menu` = [(label, icon[, dialog_id]), ...]; `footer` = {from, to, total, noun, page, pages, per_page}. -#}
+{% macro manage_card(id, title, icon, count=None, search='Buscar', filters=0, menu=None, footer=None, total=None) -%}
+<article class="lt-mcard" id="{{ id }}" aria-labelledby="{{ id }}-title">
+  <header class="lt-mcard__head">
+    <div class="lt-mcard__title"><span class="lt-mcard__icon" aria-hidden="true"><i class="bi {{ icon }}"></i></span><h3 id="{{ id }}-title">{{ title }}</h3>{% if count %}<span class="lt-count" data-lt-visible-count data-total="{{ total or '' }}" title="Registros visibles de los existentes">{{ count }}</span>{% endif %}</div>
+    <span class="lt-mcard__divider" aria-hidden="true"></span>
+    <div class="lt-mcard__tools lt-filter-anchor">
+      <label class="lt-mcard__search"><i class="bi bi-search" aria-hidden="true"></i><span class="lt-sr-only">{{ search }}</span><input type="search" placeholder="{{ search }}"><button class="lt-icon-button lt-mcard__search-close" type="button" data-lt-mcard-search aria-label="Cerrar búsqueda"><i class="bi bi-x-lg"></i></button></label>
+      <button class="lt-icon-button lt-mcard__search-toggle" type="button" data-lt-mcard-search aria-expanded="false" aria-label="{{ search }}"><i class="bi bi-search"></i></button>
+      <button class="lt-button lt-button--text lt-filter-button" type="button" data-lt-toggle="{{ id }}-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="{{ id }}-filters" aria-label="Filtros"><i class="bi bi-sliders"></i><span class="lt-filter-button__label">Filtros</span><span class="lt-badge lt-badge--corner" data-lt-filter-count aria-label="{{ filters }} filtros activos"{% if not filters %} hidden{% endif %}>{{ filters }}</span></button>
+      {{ caller('filters') }}
+      {% if menu %}<span class="lt-mcard__divider" aria-hidden="true"></span>
+      <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="{{ id }}-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Más acciones de {{ title }}"><i class="bi bi-three-dots-vertical"></i></button>
+        <div class="lt-menu lt-menu--down" id="{{ id }}-menu" role="menu" hidden>{% for m in menu %}<button class="lt-menu__item" role="menuitem" type="button"{% if m|length > 2 and m[2] %} data-lt-toggle="{{ m[2] }}" aria-haspopup="dialog"{% else %} data-lt-static-nav{% endif %}><i class="bi {{ m[1] }}"></i> {{ m[0] }}</button>{% endfor %}</div>
+      </div>{% endif %}
+    </div>
+  </header>
+  <div class="lt-mcard__body">{{ caller('content') }}</div>
+  {% if footer %}{% set f = footer %}<footer class="lt-mcard__foot">
+    <p class="lt-mcard__range">Mostrando <strong>{{ f.from }}–{{ f.to }}</strong> de <strong>{{ f.total }}</strong> {{ f.noun }}</p>
+    <label class="lt-mcard__rows"><span>Filas por página</span><select>{% for n in [10, 25, 50, 100] %}<option{% if n == f.per_page %} selected{% endif %}>{{ n }}</option>{% endfor %}</select></label>
+    <nav class="lt-pager" aria-label="Paginación de {{ title }}">
+      <button class="lt-pager__step" type="button" data-lt-static-nav aria-label="Página anterior"{% if f.page == 1 %} disabled{% endif %}><i class="bi bi-chevron-left"></i><span>Anterior</span></button>
+      {% for p in range(1, f.pages + 1) %}<button class="lt-pager__page{% if p == f.page %} is-active{% endif %}" type="button"{% if p == f.page %} aria-current="page"{% else %} data-lt-static-nav{% endif %} aria-label="Página {{ p }}">{{ p }}</button>{% endfor %}
+      <span class="lt-pager__compact">{{ f.page }} / {{ f.pages }}</span>
+      <button class="lt-pager__step" type="button" data-lt-static-nav aria-label="Página siguiente"{% if f.page == f.pages %} disabled{% endif %}><span>Siguiente</span><i class="bi bi-chevron-right"></i></button>
+    </nav>
+  </footer>{% endif %}
+</article>
 {%- endmacro %}

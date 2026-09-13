@@ -5,6 +5,7 @@ namespace App\Livewire\Goal;
 use App\Models\Goal;
 use App\Support\GoalProgress;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -13,6 +14,7 @@ use Livewire\Attributes\Url;
 #[Title('Objetivos')]
 class GoalIndex extends Component
 {
+    use WithManagementCard;
     #[Url(as: 'status', history: true, keep: true)]
     public string $statusFilter = 'active'; // active, completed, abandoned, all
     public bool $showForm = false;
@@ -38,6 +40,7 @@ class GoalIndex extends Component
 
     public function updatedStatusFilter(): void
     {
+        $this->resetPage();
         $this->normalizeStatusFilter();
     }
 
@@ -174,7 +177,7 @@ class GoalIndex extends Component
             $query->where('status', $this->statusFilter);
         }
 
-        $goals = $query->orderByDesc('created_at')->get();
+        $goals = $query->orderByDesc('created_at')->paginate($this->perPage());
         $activeCount = Goal::where('status', 'active')->count();
         $completedCount = Goal::where('status', 'completed')->count();
 

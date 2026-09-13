@@ -4,6 +4,8 @@
     // Obsoletos: la acción principal siempre es el FAB canónico (x-ui.fab).
     'mobileStyle' => 'fab',
     'fabAlways' => true,
+    // FAB dividido cuando hay varias acciones de creación.
+    'split' => false,
 ])
 
 @php
@@ -60,4 +62,4 @@
 <x-ui.fab :label="$primary['label']" :icon="$primary['icon'] ?? 'bi-plus-lg'"
           :action="$primary['action'] ?? null" :href="$primary['href'] ?? null"
           :event="$primary['event'] ?? null" :detail="$primary['detail'] ?? null"
-          :actions="$createActions" />
+          :actions="$createActions" :split="$split" />

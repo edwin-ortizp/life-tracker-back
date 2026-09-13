@@ -12,12 +12,14 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 #[Title('Estado de Ánimo')]
 class MoodTracker extends Component
 {
     use HasUrlDate, LogsMoodProgressively;
+    use WithManagementCard;
 
     // Editing an entry's primary emotion from the history
     public bool $showEditForm = false;
@@ -150,13 +152,14 @@ class MoodTracker extends Component
         $moodEntries = MoodEntry::whereDate('date', $this->selectedDate)
             ->with(['reflection', 'relationships'])
             ->orderByDesc('timestamp')
-            ->get();
+            ->paginate($this->perPage(), ['*'], 'moodPage');
 
         $energyEntries = EnergyEntry::whereDate('date', $this->selectedDate)
             ->orderByDesc('timestamp')
-            ->get();
+            ->paginate($this->perPage(), ['*'], 'energyPage');
 
-        $avgEnergy = $energyEntries->avg('level');
+        // El promedio del día usa todos los registros, no solo la página visible.
+        $avgEnergy = EnergyEntry::whereDate('date', $this->selectedDate)->avg('level');
 
         return view('livewire.mood.mood-tracker', [
             'moodEntries' => $moodEntries,

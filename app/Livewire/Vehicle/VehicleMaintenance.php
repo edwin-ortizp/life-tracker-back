@@ -10,14 +10,14 @@ use App\Support\VehicleMaintenanceStatus;
 use App\Support\VehicleUsageProjection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Livewire\WithPagination;
+use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 class VehicleMaintenance extends Component
 {
     use InteractsWithVehicle;
     use ManagesMaintenance;
-    use WithPagination;
+    use WithManagementCard;
 
     public function mount(string $vehicle): void
     {
@@ -34,7 +34,7 @@ class VehicleMaintenance extends Component
             ->where('vehicle_id', $vehicle->id)
             ->with('plan.template')
             ->orderByDesc('performed_on')->orderByDesc('created_at')
-            ->paginate(20);
+            ->paginate($this->perPage());
         $templates = $this->showPlanForm ? $this->availableTemplates($vehicle) : collect();
         $energyUi = $this->energyUi($vehicle);
 

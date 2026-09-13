@@ -1,10 +1,18 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog, fab, manage_card %}
 {% call shell('exercise', 'Ejercicio', 'bi-activity') %}
 {{ header('Ejercicio', 'Actividad, esfuerzo y progreso físico · Miércoles 10 sep.', 'bi-activity') }}
 {{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Estadísticas','/exercise-statistics','bi-bar-chart-line'),('Ajustes','/exercise-settings','bi-sliders')], '/exercise-daily') }}
 <section class="lt-metrics">{{ metric('Duración','75 min','success') }}{{ metric('Calorías','612 kcal','warning') }}{{ metric('Pasos','8.420') }}</section>
 <section class="lt-grid-main">
-  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-list-ul"></i><h3>Actividades del día</h3><small>3 registros</small></div><div class="lt-panel__body"><div class="lt-list">
+  {% call(zone) manage_card('exercise-log', 'Actividades del día', 'bi-list-ul', count='(3)', search='Buscar actividades', menu=[('Exportar CSV', 'bi-filetype-csv'), ('Ver estadísticas', 'bi-bar-chart-line')], footer={'from':1,'to':3,'total':3,'noun':'registros','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
+      <div class="lt-popover" id="exercise-log-filters" role="dialog" aria-labelledby="exercise-log-filters-title" hidden>
+        <div class="lt-popover__head"><h4 id="exercise-log-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="exercise-log-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+        <div class="lt-field"><span>Tipo</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Todos</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Cardio</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Fuerza</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Deportes</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Flexibilidad</button></div></div>
+        <label class="lt-field"><span>Momento del día</span><select><option>Todo el día</option><option>Mañana</option><option>Tarde</option><option>Noche</option></select></label>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="exercise-log-filters">Aplicar</button></div>
+      </div>
+    {% else %}
+<div class="lt-list">
     {% for icon, name, detail, time, kcal in [('bi-person-walking','Correr','5,2 km · 32 min · ritmo 6:09/km','06:40','348 kcal'),('bi-universal-access','Sentadilla con barra','4 series × 8 reps · 60 kg','18:10','140 kcal'),('bi-universal-access','Press de banca','4 series × 10 reps · 45 kg','18:35','124 kcal')] %}
     <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ detail }}</span></div><div class="lt-list-item__meta"><span class="lt-chip">{{ kcal }}</span><small>{{ time }}</small></div><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Eliminar registro"><i class="bi bi-trash"></i></button></div>
     {% endfor %}
@@ -12,7 +20,7 @@
   <p class="lt-section-label">Meta diaria</p>
   <div class="lt-progress"><span style="width:83%"></span></div>
   <p class="lt-page-head__subtitle">75 de 90 minutos activos. Una caminata de 15 min completa la meta.</p>
-  </div></article>
+  {% endif %}{% endcall %}
 </section>
 {{ fab('Registrar ejercicio', 'bi-activity', 'exercise-new') }}
 {% call dialog('exercise-new', 'Registrar ejercicio', icon='bi-activity', sections=[('basic','Información básica','bi-activity'),('metrics','Series y distancia','bi-bar-chart'),('details','Detalles adicionales','bi-card-text')]) %}

@@ -6,6 +6,7 @@ use App\Livewire\Concerns\HasUrlDate;
 use App\Models\JournalEntry;
 use Carbon\Carbon;
 use Livewire\Component;
+use App\Livewire\Concerns\WithManagementCard;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 
@@ -14,6 +15,7 @@ use Livewire\Attributes\Title;
 class JournalEntries extends Component
 {
     use HasUrlDate;
+    use WithManagementCard;
     public string $text = '';
     public bool $isEditing = false;
     public string $viewMode = 'write'; // write, preview
@@ -99,8 +101,7 @@ class JournalEntries extends Component
     public function render()
     {
         $recentEntries = JournalEntry::orderByDesc('date')
-            ->limit(7)
-            ->get();
+            ->paginate($this->perPage());
 
         $hasEntry = !empty(trim($this->text));
 

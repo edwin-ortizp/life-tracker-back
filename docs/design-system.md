@@ -186,3 +186,43 @@ CI ejecuta ese orden de fallo rápido en `.github/workflows/ui-quality.yml`.
 - No se crea una segunda fuente de verdad por conveniencia visual.
 - La meta manual de hidratación permanece en `users.daily_water_goal`; su interfaz principal vive en `/water/settings`.
 - `module_settings` se reserva para preferencias que no tienen una columna o entidad propia, como metas de Pomodoro.
+
+## Card de gestión (vistas de gestión de registros)
+
+Toda pantalla cuyo propósito principal sea consultar y administrar varios registros (tablas, historiales, catálogos, listados) usa **un único contenedor**: `x-ui.management-card` (`resources/views/components/ui/management-card.blade.php`), con el estado de paginación del trait `App\Livewire\Concerns\WithManagementCard`. Es el mismo arquetipo aprobado en el mockup de Salud (`manage_card` en `docs/mockup-system/components/life-shell.html.jinja`); no se crean variantes por módulo.
+
+- **Header**: ícono en contenedor tonal con `--md-module-accent`, título, contador `(visibles / total)`, divisor, búsqueda (`search`), botón Filtros con badge (slot `filters` + `filterActions`, abre `x-ui.popover`), divisor y ⋮ (slot `menu`). División horizontal inferior.
+- **Franja de filtros aplicados** (slot `strip`): chips removibles y «Limpiar filtros».
+- **Contenido** (slot por defecto; `flush` para listas de borde a borde): columnas, filas, acciones por fila y estados vacío / filtrado vacío propios del módulo.
+- **Footer** (automático con `paginator`): «Mostrando a–b de N», filas por página 10/25/50/100 (25 por defecto, `?per_page=`) y paginación con página activa en el color del módulo; anterior/siguiente se deshabilitan en los extremos.
+- **Responsive**: se compacta por el ancho de la propia card (container query de 640 px): búsqueda y Filtros pasan a ícono, la búsqueda se expande sobre el header al tocarla y se cierra con ✕ o Escape; el footer muestra «1 / 3».
+- **Creación**: fuera de la card, con `x-module-actions` / `x-ui.fab`. Con varias creaciones relacionadas, FAB dividido (`:split="true"` y secundarias con `'create' => true`). No se duplican botones de crear en estados vacíos ni en barras.
+- **No usar** en dashboards, calendarios, Kanban/Gantt, formularios, detalle de un registro ni checklists diarios.
+
+### Inventario de pantallas migradas
+
+| Módulo | Pantalla (Livewire) | Mockup | Particularidades conservadas |
+|---|---|---|---|
+| Salud | `Health/HealthIndex` | Estándar | Acordeones con evolución, filtros por rango/estado/tipo/zona con chips, FAB dividido (evento + pendiente); se añade búsqueda por título y notas |
+| Ejercicio | `Exercise/ExerciseDaily` | Estándar | Totales del día sobre todos los registros; editar/eliminar |
+| Ejercicio | `Exercise/ExerciseSettings` | Estándar | Búsqueda, categoría, agrupación por categoría por página, reasignar antes de eliminar, restaurar predeterminados en ⋮ |
+| Comidas | `Meal/MealShopping` | Estándar | Vista compacta/agrupada, agrupar por categoría o tienda, tienda, necesarios de la semana |
+| Comidas | `Meal/MealIngredients` | Estándar | Categoría, acordeones por categoría, resumen del rail sobre todo el catálogo |
+| Comidas | `Meal/MealRecipes` | Pendiente | Grid de tarjetas, favoritos, tipo y dificultad |
+| Tareas | `Task/TaskList` | Estándar | Cuándo/categoría/estado/prioridad/tamaño, swipe, recurrencia, editor por evento; Planificación y Progreso en ⋮ |
+| Relaciones | `Relationship/RelationshipIndex` | Estándar | Archivadas, círculo, etiqueta, acciones por fila, FAB dividido (persona, círculo, etiqueta) |
+| Relaciones | `Relationship/RelationshipEvents` | Pendiente | Periodo, archivados, sensibles, relación, categoría |
+| Relaciones | `Relationship/RelationshipBirthdays` | Pendiente | Filtro por mes, orden por próxima fecha, crear tarea |
+| Relaciones | `Relationship/RelationshipPlans` | Pendiente | Estados con conteo, Sorpréndeme y filtros avanzados en ⋮ |
+| Planes | `Plan/PlanIndex` | Estándar | Grupos, estado, ciudad, tipos, círculos, personas y orden en Filtros; chips aplicados; Sorpréndeme en ⋮ |
+| Objetivos | `Goal/GoalIndex` | Estándar | Estado, menú completar/abandonar/reactivar/eliminar |
+| Hidratación | `Water/WaterDaily` | Estándar | Progreso del día sobre todos los registros, agregar rápido fuera de la card |
+| Hidratación | `Water/WaterSettings` | Pendiente | Formulario del rail; «Nueva bebida» pasa al FAB |
+| Hábitos a evitar | `NegativeHabit/NegativeHabitWeekly` | Estándar | Navegador de semana, agrupación por categoría, registrar incidencia por fila |
+| Vehículos | `Vehicle/VehicleIndex` | Pendiente | Grid del garaje; catálogo en ⋮ |
+| Vehículos | `Vehicle/VehicleFuel` | Estándar | Tabla en escritorio y tarjetas en móvil |
+| Vehículos | `Vehicle/VehicleMaintenance` | Pendiente | Card de planes de cuidado + card de historial; «Activar plan» pasa al FAB |
+| Vehículos | `Vehicle/VehicleCatalog` | Pendiente | Cinco filtros del catálogo y estados vacío / filtrado vacío |
+| Ánimo | `Mood/MoodSettings` | Pendiente | Estado, categoría, fijar/reordenar/activar; restaurar en ⋮ |
+| Ánimo | `Mood/MoodTracker` | Pendiente | Dos cards (estados y energía) con paginación independiente; promedio sobre todo el día |
+| Diario | `Journal/JournalEntries` | Pendiente | Entradas recientes junto al editor |
