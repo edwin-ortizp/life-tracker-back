@@ -1,3 +1,4 @@
+{% from '@project/components/vehicle-dialogs.html.jinja' import maintenance_dialog %}
 {% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs, tabs as module_tabs, header, metric %}
 {% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
 {{ vehicle_tabs('/vehicles-maintenance') }}
@@ -5,7 +6,7 @@
 <section class="lt-grid-2">
   <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-calendar2-check"></i><h3>Plan de cuidados</h3><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Añadir plan</button></div><div class="lt-panel__body"><div class="lt-list">
     {% for task, rule, remaining, pct, tone in [('Cambio de aceite y filtro','Cada 5.000 km','Faltan 400 km',92,'warning'),('Revisión técnico-mecánica','Cada 12 meses','25 sep.',85,'warning'),('Rotación de llantas','Cada 10.000 km','Faltan 3.380 km',66,'neutral'),('Pastillas de freno','Cada 30.000 km','Faltan 11.400 km',62,'neutral'),('Seguro todo riesgo','Cada 12 meses','14 feb. 2027',42,'neutral')] %}
-    <div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ rule }} · {{ remaining }}</span><div class="lt-progress"><span style="width:{{ pct }}%"></span></div></div><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>Registrar</button></div>
+    <div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ rule }} · {{ remaining }}</span><div class="lt-progress"><span style="width:{{ pct }}%"></span></div></div><button class="lt-button lt-button--tonal" type="button" data-lt-toggle="vehicle-maintenance-new" aria-haspopup="dialog">Registrar</button></div>
     {% endfor %}
   </div></div></article>
   <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-clock-history"></i><h3>Historial de servicios</h3></div><div class="lt-panel__body">
@@ -16,4 +17,6 @@
     </div>
   </div></article>
 </section>
+<button class="lt-fab" type="button" data-lt-toggle="vehicle-maintenance-new" aria-haspopup="dialog" aria-label="Registrar mantenimiento"><i class="bi bi-plus-lg"></i><span>Registrar mantenimiento</span></button>
+{{ maintenance_dialog() }}
 {% endcall %}

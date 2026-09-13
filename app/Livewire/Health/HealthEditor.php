@@ -7,6 +7,22 @@ use App\Models\HealthEvent;
 /** Reuses the existing validated operations, with an independent render boundary. */
 class HealthEditor extends HealthIndex
 {
+    public string $range = 'all';
+    public string $status = 'all';
+    public array $types = [];
+    public string $zone = '';
+
+    public function mount(bool $initialOpen = false, array $initialAreas = []): void
+    {
+        if ($initialOpen) {
+            $this->openForm();
+            if ($initialAreas !== []) {
+                $this->type = 'symptom';
+                $this->bodyAreas = $initialAreas;
+            }
+        }
+    }
+
     public function openForm(?string $id = null): void
     {
         if ($id) HealthEvent::findOrFail($id);

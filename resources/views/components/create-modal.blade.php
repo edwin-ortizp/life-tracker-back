@@ -1,5 +1,7 @@
 @props([
     'state',
+    'clientClose' => false,
+    'titleExpression' => null,
     'title',
     'icon' => null,
     'module' => null,
@@ -14,10 +16,8 @@
 
 @php
     $multi = count($steps) > 1;
-    // Cerrar siempre debe pasar por el servidor: si solo se apagara el booleano
-    // entrelazado (`{{ $state }} = false`), `editingId` y el resto del formulario
-    // se quedarían con los datos de la última edición para la próxima apertura.
-    $close = $closeAction ? '$wire.call(\''.$closeAction.'\')' : "{$state} = false";
+    // Legacy callers retain server cleanup; isolated editors reset drafts locally.
+    $close = $clientClose ? 'closeEditor()' : ($closeAction ? '$wire.call(\''.$closeAction.'\')' : "{$state} = false");
 @endphp
 
 {{-- x-show (no <template x-if>): un `x-if` de Alpine clona el contenido del
@@ -31,14 +31,14 @@
      x-effect="if ({{ $state }}) { step = 0; bulk = false }">
         <div class="md-dialog-scrim" @click="{{ $close }}"></div>
         <div {{ $attributes->class(['md-dialog', 'md-dialog--large', $wide ? 'lt-cm-modal--wide' : '']) }}
-             role="dialog" aria-modal="true" @if($module) data-module="{{ $module }}" @endif @click.stop>
+             role="dialog" aria-modal="true" @if($clientClose) x-md-surface="{{ $state }}" @md-surface-close="closeEditor()" @endif @if($module) data-module="{{ $module }}" @endif @click.stop>
             <div class="md-dialog-header">
                 <div class="lt-cm-head">
                     @if ($icon)
                         <span class="lt-cm-icon" aria-hidden="true"><i class="bi {{ $icon }}"></i></span>
                     @endif
                     <div class="lt-cm-head-body">
-                        <h2>{{ $title }}</h2>
+                        <h2 @if($titleExpression) x-text="{{ $titleExpression }}" @endif>{{ $title }}</h2>
                         @if ($multi)
                             <p x-text="'Paso ' + (step + 1) + ' de {{ count($steps) }} · ' + [{{ collect($steps)->pluck('label')->map(fn ($l) => "'".addslashes($l)."'")->implode(', ') }}][step]"></p>
                         @endif
@@ -61,7 +61,13 @@
                 @endif
 
                 <div class="md-dialog-content">
-                    {{ $slot }}
+                    @if($clientClose)
+                        <p x-show="loading" x-cloak role="status">Cargando…</p>
+                        <p x-show="loadError" x-text="loadError" role="alert" x-cloak></p>
+                        <div :inert="loading || !!loadError">{{ $slot }}</div>
+                    @else
+                        {{ $slot }}
+                    @endif
                 </div>
             </div>
 
@@ -80,7 +86,7 @@
                     </button>
                 @endif
                 @if ($bulkAction)
-                    <button type="button" class="md-btn-filled" @click="$wire.call(bulk ? '{{ $bulkAction }}' : '{{ $saveAction }}')">
+                    <button type="button" class="md-btn-filled" @if($clientClose) :disabled="loading || !!loadError" @endif @click="{{ $clientClose ? 'submitted = true;' : '' }} $wire.call(bulk ? '{{ $bulkAction }}' : '{{ $saveAction }}')">
                         <i class="bi bi-check-lg" aria-hidden="true"></i>
                         <span x-text="bulk ? '{{ addslashes($bulkSaveLabel ?? $saveLabel) }}' : '{{ addslashes($saveLabel) }}'"></span>
                     </button>

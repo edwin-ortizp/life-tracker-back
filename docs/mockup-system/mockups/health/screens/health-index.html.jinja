@@ -29,7 +29,10 @@
       {'title':'Migraña','d':'07','m':'SEP','y':'2026','icon':'bi-lightning','meta':'Cabeza · 7 sep. · 5 horas','note':'Duró 5 h, asociada a poco sueño.','chip':'En seguimiento','tone':'warning','now':7,'open':false,
        'days':[('7',7),('8',3),('9',1)],
        'log':[('9 sep.','1/10','Sin dolor, algo de sensibilidad a la luz.'),('7 sep.','7/10','Ibuprofeno 400 mg, oscuridad y descanso.')]},
-      {'title':'Gripe','d':'18','m':'AGO','y':'2026','icon':'bi-thermometer-half','meta':'General · 18–24 ago. · 7 días','note':'Fiebre dos días, reposo completo.','chip':'Recuperado','tone':'success','now':0,'open':false,
+      {'title':'Cirugía de menisco','d':'28','m':'AGO','y':'2026','icon':'bi-bandaid','meta':'Dr. Ruiz · Rodilla derecha · desde 28 ago. · 15 días','note':'Artroscopia en Clínica Central. Muletas 2 semanas.','chip':'En seguimiento','tone':'warning','now':3,'open':false,'procedure':true,
+       'days':[('28',9),('30',7),('2',6),('5',5),('8',4),('11',3)],
+       'log':[('11 sep.','3/10','Camina sin muletas en casa.'),('2 sep.','6/10','Primera sesión de fisioterapia.'),('28 ago.','9/10','Cirugía ambulatoria sin complicaciones.')]},
+      {'title':'Gripe','d':'18','m':'AGO','y':'2026','icon':'bi-thermometer-half','meta':'Gripe · Cabeza, Boca y garganta, Pecho · 18–24 ago. · 7 días','note':'Fiebre dos días, reposo completo.','chip':'Recuperado','tone':'success','now':0,'open':false,
        'days':[('18',6),('19',8),('20',7),('21',5),('22',3),('23',2),('24',1)],
        'log':[('24 ago.','Recuperado','Sin síntomas.'),('19 ago.','8/10','Fiebre de 38,6 °C.')]},
       {'title':'Esguince de tobillo','d':'01','m':'JUL','y':'2026','icon':'bi-bandaid','meta':'Tobillo derecho · 1–15 jul. · 15 días','note':'Fisioterapia 4 sesiones.','chip':'Recuperado','tone':'success','now':0,'open':false,
@@ -55,7 +58,7 @@
           <p class="lt-page-head__subtitle">{{ ev.note }}</p>
         </div>
         <div class="lt-actions lt-accordion__actions">
-          {% if ev.now %}<button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Registrar día</button><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-check2-circle"></i> Marcar recuperación</button>{% else %}<button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-arrow-counterclockwise"></i> Aún continúa</button>{% endif %}
+          {% if ev.now %}<button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> {{ 'Registrar día de recuperación' if ev.get('procedure') else 'Registrar día' }}</button><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-check2-circle"></i> Marcar recuperación</button>{% else %}<button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-arrow-counterclockwise"></i> Aún continúa</button>{% endif %}
           <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="health-menu-{{ loop.index }}" aria-haspopup="menu" aria-expanded="false" aria-label="Más opciones de {{ ev.title }}"><i class="bi bi-three-dots-vertical"></i></button>
             <div class="lt-menu" id="health-menu-{{ loop.index }}" role="menu" hidden>
               <button class="lt-menu__item" role="menuitem" type="button" data-lt-toggle="health-event-edit"><i class="bi bi-pencil"></i> Editar evento</button>
@@ -99,10 +102,22 @@
   <header class="lt-dialog__section-head"><h3>Información básica</h3><p>Registra los datos principales de tu evento de salud.</p></header>
   <div class="lt-form">
     <label class="lt-field lt-field--icon"><span>Tipo de evento <b>*</b></span><i class="bi bi-lightning" aria-hidden="true"></i><select>{% for t in ['Síntoma','Enfermedad','Cita médica','Control','Procedimiento','Vacuna'] %}<option{% if t == v.type %} selected{% endif %}>{{ t }}</option>{% endfor %}</select></label>
-    <label class="lt-field lt-field--icon"><span>Zona del cuerpo <b>*</b></span><i class="bi bi-person" aria-hidden="true"></i><select>{% for t in ['Sin zona','Cabeza','Espalda baja','Tobillo derecho','General'] %}<option{% if t == v.zone %} selected{% endif %}>{{ t }}</option>{% endfor %}</select></label>
-    <label class="lt-field lt-form--full"><span>Título <b>*</b></span><input type="text" value="{{ v.title }}" placeholder="Ej. Dolor lumbar"></label>
     <label class="lt-field"><span>Fecha <b>*</b></span><input type="date" value="{{ v.date }}"></label>
+    <label class="lt-field lt-form--full"><span>Título <b>*</b></span><input type="text" value="{{ v.title }}" placeholder="Ej. Dolor lumbar"></label>
     <label class="lt-field lt-field--icon"><span>Intensidad (1–10) <b>*</b></span><i class="bi bi-bar-chart" aria-hidden="true"></i><select><option value=""{% if not v.intensity %} selected{% endif %}>Selecciona…</option>{% for n in range(1, 11) %}<option{% if n|string == v.intensity %} selected{% endif %}>{{ n }}</option>{% endfor %}</select></label>
+    {# Síntoma: al menos una zona. Enfermedad y procedimiento: zonas opcionales. #}
+    <div class="lt-field lt-form--full"><span id="{{ v.id }}-zones-label">Zonas del cuerpo <b>*</b></span>
+      <div class="lt-multiselect"><button class="lt-multiselect__trigger" type="button" data-lt-toggle="{{ v.id }}-zones" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="{{ v.id }}-zones-label"><span>{{ v.zones or 'Selecciona una o varias zonas' }}</span><i class="bi bi-chevron-down"></i></button>
+        <div class="lt-multiselect__panel" id="{{ v.id }}-zones" role="listbox" aria-multiselectable="true" hidden>
+          {% for group, items in [
+            ('Cabeza y tronco', ['Cabeza','Cuello','Pecho','Abdomen','Espalda alta','Espalda baja','Glúteos','Zona genital']),
+            ('Brazos', ['Hombro derecho','Hombro izquierdo','Brazo derecho','Brazo izquierdo','Antebrazo derecho','Antebrazo izquierdo','Mano derecha','Mano izquierda']),
+            ('Piernas', ['Muslo derecho','Muslo izquierdo','Isquiotibial derecho','Isquiotibial izquierdo','Rodilla derecha','Rodilla izquierda','Pierna derecha','Pierna izquierda','Pantorrilla derecha','Pantorrilla izquierda','Tobillo derecho','Tobillo izquierdo','Pie derecho','Pie izquierdo']),
+            ('Otras', ['Ojos y cara','Boca y garganta','Piel','Todo el cuerpo','Otra zona'])
+          ] %}<span class="lt-multiselect__group" role="presentation">{{ group }}</span>{% for z in items %}<label class="lt-multiselect__option"><input type="checkbox"{% if z in (v.zones or '') %} checked{% endif %}> {{ z }}</label>{% endfor %}{% endfor %}
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 <section class="lt-dialog__section" data-section="details" hidden>
@@ -110,7 +125,8 @@
   <div class="lt-form">
     <label class="lt-field lt-form--full"><span>Notas</span><textarea placeholder="¿Qué pasó? ¿Qué hiciste?">{{ v.notes }}</textarea></label>
     <label class="lt-field lt-field--icon"><span>Tratamiento o medicación</span><i class="bi bi-capsule" aria-hidden="true"></i><input type="text" value="{{ v.treatment }}" placeholder="Ej. Ibuprofeno 400 mg"></label>
-    <label class="lt-field lt-field--icon"><span>Profesional que atendió</span><i class="bi bi-person-badge" aria-hidden="true"></i><input type="text" value="{{ v.provider }}" placeholder="Opcional"></label>
+    <label class="lt-field lt-field--icon"><span>Profesional o cirujano</span><i class="bi bi-person-badge" aria-hidden="true"></i><input type="text" value="{{ v.provider }}" placeholder="Opcional"></label>
+    <label class="lt-field lt-field--icon"><span>Centro o clínica</span><i class="bi bi-building" aria-hidden="true"></i><input type="text" value="{{ v.facility }}" placeholder="Opcional"></label>
   </div>
 </section>
 <section class="lt-dialog__section" data-section="files" hidden>
@@ -119,9 +135,9 @@
 </section>
 <section class="lt-dialog__section" data-section="summary" hidden>
   <header class="lt-dialog__section-head"><h3>Resumen</h3><p>Revisa la información antes de guardar.</p></header>
-  <dl class="lt-dl">{% for k, val in [('Tipo', v.type), ('Zona', v.zone), ('Título', v.title or '—'), ('Fecha', v.date), ('Intensidad', (v.intensity ~ '/10') if v.intensity else '—'), ('Adjuntos', 'Ninguno')] %}<div><dt>{{ k }}</dt><dd>{{ val }}</dd></div>{% endfor %}</dl>
+  <dl class="lt-dl">{% for k, val in [('Tipo', v.type), ('Zonas', v.zones or '—'), ('Título', v.title or '—'), ('Fecha', v.date), ('Intensidad', (v.intensity ~ '/10') if v.intensity else '—'), ('Adjuntos', 'Ninguno')] %}<div><dt>{{ k }}</dt><dd>{{ val }}</dd></div>{% endfor %}</dl>
 </section>
 {%- endmacro %}
-{% call dialog('health-event-new', 'Registrar evento de salud', 'Guardar', 'bi-heart-pulse', event_sections) %}{{ event_form({'type':'Síntoma','zone':'Sin zona','title':'','date':'2026-09-12','intensity':'','notes':'','treatment':'','provider':''}) }}{% endcall %}
-{% call dialog('health-event-edit', 'Editar evento de salud', 'Guardar', 'bi-heart-pulse', event_sections) %}{{ event_form({'type':'Síntoma','zone':'Espalda baja','title':'Dolor lumbar','date':'2026-09-02','intensity':'8','notes':'Mejora tras estiramientos. Evitar cargar peso.','treatment':'Estiramientos 15 min','provider':''}) }}{% endcall %}
+{% call dialog('health-event-new', 'Registrar evento de salud', 'Guardar', 'bi-heart-pulse', event_sections) %}{{ event_form({'id':'event-new','type':'Síntoma','zones':'','title':'','date':'2026-09-12','intensity':'','notes':'','treatment':'','provider':'','facility':''}) }}{% endcall %}
+{% call dialog('health-event-edit', 'Editar evento de salud', 'Guardar', 'bi-heart-pulse', event_sections) %}{{ event_form({'id':'event-edit','type':'Síntoma','zones':'Espalda baja','title':'Dolor lumbar','date':'2026-09-02','intensity':'8','notes':'Mejora tras estiramientos. Evitar cargar peso.','treatment':'Estiramientos 15 min','provider':'','facility':''}) }}{% endcall %}
 {% endcall %}

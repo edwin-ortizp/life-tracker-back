@@ -8,11 +8,11 @@
 
 <x-module-shell module="health" class="health-page">
     <x-slot:actions>
-        <x-module-actions :primary="['label' => 'Registrar evento', 'icon' => 'bi-plus-lg', 'action' => 'openForm']" :fab-always="true" />
+        <x-module-actions :primary="['label' => 'Registrar evento', 'icon' => 'bi-plus-lg', 'event' => 'health-editor', 'detail' => ['action' => 'openForm']]" :fab-always="true" />
     </x-slot:actions>
 
     <section class="health-timeline-section" aria-labelledby="health-timeline-title">
-        <div class="health-toolbar" x-data="{ filtersOpen: false }">
+        <div class="health-toolbar" x-data="{ filtersOpen: false, draftRange: 'all', draftStatus: 'all', draftTypes: [] }">
             <h2 id="health-timeline-title" class="health-toolbar__title">
                 <i class="bi bi-clock-history" aria-hidden="true"></i>
                 <span>Cronología de salud</span>
@@ -22,7 +22,7 @@
             <div class="health-toolbar__filters">
                 <x-ui.action variant="outlined" icon="bi-sliders" class="health-filter-button"
                              data-popover-trigger aria-haspopup="dialog" aria-controls="health-filters"
-                             x-on:click="filtersOpen = !filtersOpen" x-bind:aria-expanded="filtersOpen.toString()">
+                             x-on:click="if (!filtersOpen) { draftRange = $wire.range; draftStatus = $wire.status; draftTypes = [...$wire.types] } filtersOpen = !filtersOpen" x-bind:aria-expanded="filtersOpen.toString()">
                     Filtros
                     @if (count($activeFilters) > 0)
                         <x-ui.badge placement="corner" :label="count($activeFilters).' '.(count($activeFilters) === 1 ? 'filtro activo' : 'filtros activos')">{{ count($activeFilters) }}</x-ui.badge>
@@ -30,12 +30,12 @@
                 </x-ui.action>
 
                 <x-ui.popover state="filtersOpen" title="Filtros" id="health-filters">
-                    <x-ui.select name="range" label="Rango de tiempo" :options="$ranges" :selected="$range" icon="bi-calendar-range" wire:model.live="range" />
-                    <x-ui.select name="status" label="Estado" :options="$statuses" :selected="$status" icon="bi-activity" wire:model.live="status" />
-                    <x-ui.multi-select name="types" label="Tipo" :options="$typeLabels" all-label="Todos los tipos" icon="bi-tag" />
+                    <x-ui.select name="range" label="Rango de tiempo" :options="$ranges" :selected="$range" icon="bi-calendar-range" x-model="draftRange" />
+                    <x-ui.select name="status" label="Estado" :options="$statuses" :selected="$status" icon="bi-activity" x-model="draftStatus" />
+                    <x-ui.multi-select name="types" model-expression="draftTypes" :live="false" label="Tipo" :options="$typeLabels" all-label="Todos los tipos" icon="bi-tag" />
                     <x-slot:actions>
-                        <x-ui.action variant="text" wire:click="clearFilters">Limpiar</x-ui.action>
-                        <x-ui.action variant="filled" x-on:click="filtersOpen = false">Aplicar</x-ui.action>
+                        <x-ui.action variant="text" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+                        <x-ui.action variant="filled" x-on:click="$wire.applyFilters(draftRange, draftStatus, draftTypes); filtersOpen = false">Aplicar</x-ui.action>
                     </x-slot:actions>
                 </x-ui.popover>
             </div>
@@ -160,7 +160,7 @@
                                                             @if ($log->notes)<span>{{ $log->notes }}</span>@endif
                                                         </div>
                                                         <x-ui.menu size="sm" :label="'Opciones del '.$log->date->translatedFormat('j M')">
-                                                            <x-ui.menu-item icon="bi-pencil" wire:click="editLog('{{ $log->id }}')">Editar día</x-ui.menu-item>
+                                                            <x-ui.menu-item icon="bi-pencil" x-on:click="$dispatch('health-editor', {action: 'editLog', id: '{{ $log->id }}'})">Editar día</x-ui.menu-item>
                                                             <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="deleteLog('{{ $log->id }}')" wire:confirm="¿Eliminar este registro diario?">Eliminar día</x-ui.menu-item>
                                                         </x-ui.menu>
                                                     </li>
@@ -186,13 +186,13 @@
 
                             <div class="health-event-actions">
                                 @if ($tracks && ! $event->end_date)
-                                    <x-ui.action variant="tonal" icon="bi-plus-lg" wire:click="openLogForm('{{ $event->id }}')">{{ $event->type === 'procedure' ? 'Registrar día de recuperación' : 'Registrar día' }}</x-ui.action>
-                                    <x-ui.action variant="text" icon="bi-check2-circle" wire:click="openRecoveryForm('{{ $event->id }}')">Marcar recuperación</x-ui.action>
+                                    <x-ui.action variant="tonal" icon="bi-plus-lg" x-on:click="$dispatch('health-editor', {action: 'openLogForm', id: '{{ $event->id }}'})">{{ $event->type === 'procedure' ? 'Registrar día de recuperación' : 'Registrar día' }}</x-ui.action>
+                                    <x-ui.action variant="text" icon="bi-check2-circle" x-on:click="$dispatch('health-editor', {action: 'openRecoveryForm', id: '{{ $event->id }}'})">Marcar recuperación</x-ui.action>
                                 @elseif ($tracks)
                                     <x-ui.action variant="text" icon="bi-arrow-counterclockwise" wire:click="reopenEvolution('{{ $event->id }}')">Aún continúa</x-ui.action>
                                 @endif
                                 <x-ui.menu :label="'Más opciones de '.$event->title" class="health-event-actions__more">
-                                    <x-ui.menu-item icon="bi-pencil" wire:click="openForm('{{ $event->id }}')">Editar evento</x-ui.menu-item>
+                                    <x-ui.menu-item icon="bi-pencil" x-on:click="$dispatch('health-editor', {action: 'openForm', id: '{{ $event->id }}'})">Editar evento</x-ui.menu-item>
                                     @if ($task)
                                         <x-ui.menu-item icon="bi-calendar-check" :href="route('tasks.planning')">Ver en planificación</x-ui.menu-item>
                                     @endif
@@ -209,7 +209,7 @@
                         <i class="bi bi-heart-pulse" aria-hidden="true"></i>
                         <h3 class="md-title-large">Aún no hay registros</h3>
                         <p>Registra una cita, un síntoma, una vacuna o un próximo control.</p>
-                        <x-ui.action variant="tonal" wire:click="openForm">Crear primer registro</x-ui.action>
+                        <x-ui.action variant="tonal" x-on:click="$dispatch('health-editor', {action: 'openForm', id: null})">Crear primer registro</x-ui.action>
                     @else
                         <i class="bi bi-funnel" aria-hidden="true"></i>
                         <h3 class="md-title-large">Ningún evento coincide con los filtros</h3>
@@ -219,6 +219,7 @@
                 </div>
             @endforelse
         </div>
+        {{ $events->links() }}
     </section>
 
     <x-slot:rail>
@@ -252,7 +253,7 @@
             <div class="health-card__body">
                 @if ($nextEvent)
                     @php $nextDay = $nextEvent->event_date->isToday() ? 'Hoy' : ($nextEvent->event_date->isTomorrow() ? 'Mañana' : \Illuminate\Support\Str::ucfirst($nextEvent->event_date->translatedFormat('l'))); @endphp
-                    <button type="button" class="md-list-item-link health-next" wire:click="openForm('{{ $nextEvent->id }}')">
+                    <button type="button" class="md-list-item-link health-next" x-on:click="$dispatch('health-editor', {action: 'openForm', id: '{{ $nextEvent->id }}'})">
                         <span class="health-event-icon"><i class="bi {{ $eventIcons[$nextEvent->type] ?? 'bi-heart-pulse' }}" aria-hidden="true"></i></span>
                         <span class="health-next__body">
                             <strong>{{ $nextEvent->title }}</strong>
@@ -298,7 +299,7 @@
                                         <x-ui.menu-item icon="bi-arrow-counterclockwise" wire:click="reopenTask('{{ $pending->id }}')">Marcar como pendiente</x-ui.menu-item>
                                     @else
                                         <x-ui.menu-item icon="bi-check2-circle" wire:click="completeTask('{{ $pending->id }}')">Marcar como completado</x-ui.menu-item>
-                                        <x-ui.menu-item icon="bi-calendar-event" wire:click="openRescheduleTask('{{ $pending->id }}')">Reprogramar</x-ui.menu-item>
+                                        <x-ui.menu-item icon="bi-calendar-event" x-on:click="$dispatch('health-editor', {action: 'openRescheduleTask', id: '{{ $pending->id }}'})">Reprogramar</x-ui.menu-item>
                                     @endif
                                     <x-ui.menu-divider />
                                     <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="deleteTask('{{ $pending->id }}')" wire:confirm="¿Eliminar este pendiente de salud?">Eliminar</x-ui.menu-item>
@@ -308,151 +309,11 @@
                     </ul>
                 @endif
                 <div>
-                    <x-ui.action variant="tonal" icon="bi-plus-lg" wire:click="openTaskForm">Nuevo pendiente</x-ui.action>
+                    <x-ui.action variant="tonal" icon="bi-plus-lg" x-on:click="$dispatch('health-editor', {action: 'openTaskForm', id: null})">Nuevo pendiente</x-ui.action>
                 </div>
             </div>
         </section>
     </x-slot:rail>
 
-    @php
-        $basicErrors = $errors->hasAny(['type', 'title', 'eventDate', 'bodyAreas', 'bodyAreas.*', 'customBodyArea', 'initialIntensity', 'illness', 'customIllness']);
-        $detailErrors = $errors->hasAny(['endDate', 'notes', 'provider', 'specialty', 'vaccineName', 'vaccineDose']);
-        $tracksForm = in_array($type, \App\Models\HealthEvent::EVOLUTION_TYPES, true);
-        $zonesForm = in_array($type, \App\Models\HealthEvent::BODY_AREA_TYPES, true);
-        $careForm = in_array($type, \App\Models\HealthEvent::SCHEDULED_TYPES, true);
-    @endphp
-
-    <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="health-event-dialog"
-                      :title="$editingId ? 'Editar evento de salud' : 'Registrar evento de salud'" icon="bi-heart-pulse"
-                      :sections="[
-                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-file-earmark-text', 'error' => $basicErrors],
-                          'details' => ['label' => 'Detalles adicionales', 'icon' => 'bi-card-text', 'error' => $detailErrors],
-                          'summary' => ['label' => 'Resumen', 'icon' => 'bi-check2-circle'],
-                      ]">
-        <x-ui.form-dialog-section name="basic" title="Información básica" description="Registra los datos principales de tu evento de salud.">
-            <div class="md-form-dialog__grid">
-                <x-ui.select name="type" label="Tipo de evento" :options="$typeLabels" :selected="$type" icon="bi-lightning" :required="true" wire:model.live="type" />
-
-                @if ($type === 'symptom')
-                    <x-ui.field name="eventDate" type="date" label="Fecha" :required="true" wire:model.blur="eventDate" />
-                @elseif ($type === 'illness')
-                    <x-ui.select name="illness" label="Enfermedad" :options="$commonIllnesses" :selected="$illness" placeholder="Selecciona una enfermedad" icon="bi-thermometer-half" :required="true" wire:model.live="illness" />
-                @elseif ($careForm)
-                    <x-ui.field name="provider" :label="$type === 'procedure' ? 'Profesional o cirujano' : 'Profesional'" icon="bi-person-badge" wire:model.blur="provider" />
-                @elseif ($type === 'vaccination')
-                    <x-ui.field name="vaccineName" label="Vacuna" icon="bi-shield-plus" wire:model.blur="vaccineName" />
-                @else
-                    <x-ui.field name="endDate" type="date" label="Hasta (opcional)" wire:model.blur="endDate" />
-                @endif
-
-                <div class="md-form-dialog__full">
-                    <x-ui.field name="title" label="Título" :required="true" wire:model.blur="title" />
-                </div>
-
-                @if ($type !== 'symptom')
-                    <x-ui.field name="eventDate" type="date" label="Fecha" :required="true" wire:model.blur="eventDate" />
-                @endif
-
-                @if ($tracksForm && ! $editingId)
-                    <x-ui.select name="initialIntensity" :label="$type === 'procedure' ? 'Molestia inicial (opcional)' : 'Intensidad (1–10)'" :options="$intensityOptions" :selected="$initialIntensity" placeholder="Selecciona…" icon="bi-bar-chart" :required="$type !== 'procedure'" wire:model.live="initialIntensity" />
-                @elseif (in_array($type, ['appointment', 'checkup'], true))
-                    <x-ui.field name="specialty" label="Especialidad" icon="bi-heart-pulse" wire:model.blur="specialty" />
-                @elseif ($type === 'vaccination')
-                    <x-ui.field name="vaccineDose" label="Dosis" wire:model.blur="vaccineDose" />
-                @endif
-
-                @if ($careForm)
-                    <x-ui.field name="facility" label="Centro o clínica" icon="bi-building" wire:model.blur="facility" />
-                @endif
-
-                @if ($zonesForm)
-                    <div class="md-form-dialog__full">
-                        <x-ui.multi-select name="bodyAreas" :label="$type === 'symptom' ? 'Zonas del cuerpo *' : 'Zonas del cuerpo (opcional)'"
-                                           :options="$bodyAreaOptions" :all-label="$type === 'symptom' ? 'Selecciona una o varias zonas' : 'Sin zonas relacionadas'" icon="bi-person" />
-                    </div>
-                @endif
-
-                @if ($zonesForm && in_array('other', $bodyAreas, true))
-                    <div class="md-form-dialog__full"><x-ui.field name="customBodyArea" label="Describe la zona" :required="true" wire:model.blur="customBodyArea" /></div>
-                @endif
-                @if ($type === 'illness' && $illness === 'other')
-                    <div class="md-form-dialog__full"><x-ui.field name="customIllness" label="¿Cuál enfermedad?" :required="true" wire:model.blur="customIllness" /></div>
-                @endif
-            </div>
-        </x-ui.form-dialog-section>
-
-        <x-ui.form-dialog-section name="details" title="Detalles adicionales" description="Contexto que ayuda a entender el evento y su evolución.">
-            <div class="md-form-dialog__grid">
-                <div class="md-form-dialog__full">
-                    <x-ui.textarea name="notes" label="Notas" rows="5" wire:model.blur="notes" />
-                </div>
-                @if (in_array($type, ['appointment', 'checkup', 'vaccination'], true))
-                    <x-ui.field name="endDate" type="date" label="Hasta (opcional)" wire:model.blur="endDate" />
-                @endif
-            </div>
-            @if (in_array($type, ['appointment', 'checkup', 'procedure'], true))
-                <p class="md-form-dialog__hint"><i class="bi bi-calendar-plus" aria-hidden="true"></i> Si la fecha es futura, se creará y enlazará automáticamente una tarea en tu agenda.</p>
-            @endif
-        </x-ui.form-dialog-section>
-
-        <x-ui.form-dialog-section name="summary" title="Resumen" description="Revisa la información antes de guardar.">
-            <dl class="md-form-dialog__summary">
-                <div><dt>Tipo</dt><dd>{{ $typeLabels[$type] ?? '—' }}</dd></div>
-                <div><dt>Título</dt><dd>{{ filled($title) ? $title : '—' }}</dd></div>
-                <div><dt>Fecha</dt><dd>{{ filled($eventDate) ? \Illuminate\Support\Carbon::parse($eventDate)->translatedFormat('j \d\e F \d\e Y') : '—' }}</dd></div>
-                @if ($type === 'illness')
-                    <div><dt>Enfermedad</dt><dd>{{ filled($illness) ? \App\Models\HealthEvent::illnessLabel($illness, $customIllness ?: null) : '—' }}</dd></div>
-                @endif
-                @if ($careForm)
-                    <div><dt>Profesional</dt><dd>{{ filled($provider) ? $provider : '—' }}</dd></div>
-                    <div><dt>Centro</dt><dd>{{ filled($facility) ? $facility : '—' }}</dd></div>
-                @endif
-                @if ($zonesForm)
-                    <div><dt>Zonas del cuerpo</dt><dd>{{ \App\Models\HealthEvent::bodyAreasLabel($bodyAreas, $customBodyArea ?: null) ?? '—' }}</dd></div>
-                @endif
-                @if ($tracksForm && ! $editingId)
-                    <div><dt>Intensidad</dt><dd>{{ $initialIntensity ? $initialIntensity.'/10' : '—' }}</dd></div>
-                @endif
-                <div><dt>Notas</dt><dd>{{ filled($notes) ? $notes : '—' }}</dd></div>
-            </dl>
-        </x-ui.form-dialog-section>
-    </x-ui.form-dialog>
-
-    <x-ui.form-dialog :open="$showLogForm" close="closeLogForm" :submit-action="$editingLogId ? 'updateLog' : 'saveLog'" id="health-log-dialog"
-                      :title="$editingLogId ? 'Editar día' : 'Registrar cómo te sentiste'" icon="bi-activity">
-        <div class="md-form-dialog__grid">
-            <x-ui.field name="logDate" type="date" label="Fecha" :required="true" :readonly="(bool) $editingLogId" wire:model="logDate" />
-            <x-ui.select name="logIntensity" label="Intensidad (1–10)" :options="$intensityOptions" :selected="$logIntensity" placeholder="Selecciona…" icon="bi-bar-chart" :required="true" wire:model="logIntensity" />
-            <div class="md-form-dialog__full">
-                <x-ui.textarea name="logNotes" label="Nota (opcional)" rows="3" wire:model="logNotes" />
-            </div>
-        </div>
-    </x-ui.form-dialog>
-
-    <x-ui.form-dialog :open="$showRecoveryForm" close="closeRecoveryForm" submit-action="saveRecovery" id="health-recovery-dialog"
-                      title="Marcar recuperación" icon="bi-check2-circle">
-        <div class="md-form-dialog__grid">
-            <x-ui.field name="recoveryDate" type="date" label="Día de recuperación" :required="true" wire:model.live="recoveryDate" />
-            <x-ui.select name="recoveryIntensity" label="Intensidad ese día (1–10)" :options="$intensityOptions" :selected="$recoveryIntensity" placeholder="Selecciona…" icon="bi-bar-chart" wire:model="recoveryIntensity" />
-        </div>
-        <p class="md-form-dialog__hint"><i class="bi bi-info-circle" aria-hidden="true"></i> Si ya registraste este día, se conserva su intensidad.</p>
-    </x-ui.form-dialog>
-
-    <x-ui.form-dialog :open="$showTaskForm" close="closeTaskForm" submit-action="savePendingTask" id="health-task-dialog"
-                      title="Nuevo pendiente de salud" icon="bi-list-check">
-        <div class="md-form-dialog__grid">
-            <div class="md-form-dialog__full">
-                <x-ui.field name="pendingTitle" label="¿Qué necesitas hacer?" :required="true" wire:model="pendingTitle" />
-            </div>
-            <x-ui.field name="pendingDate" type="date" label="Fecha prevista" wire:model="pendingDate" />
-        </div>
-        <p class="md-form-dialog__hint"><i class="bi bi-info-circle" aria-hidden="true"></i> Se crea como tarea de Salud; úsala para pedir una cita o investigar una vacuna.</p>
-    </x-ui.form-dialog>
-
-    <x-ui.form-dialog :open="$showRescheduleForm" close="closeRescheduleForm" submit-action="saveRescheduleTask" id="health-reschedule-dialog"
-                      title="Reprogramar pendiente" icon="bi-calendar-event">
-        <div class="md-form-dialog__grid">
-            <x-ui.field name="rescheduleDate" type="date" label="Nueva fecha" :required="true" wire:model="rescheduleDate" />
-        </div>
-    </x-ui.form-dialog>
+    <livewire:health.health-editor :initial-open="$showForm" :initial-areas="$bodyAreas" />
 </x-module-shell>

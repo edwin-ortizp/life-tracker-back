@@ -1,6 +1,7 @@
 @props([
     'name' => null,
     'label',
+    'labelExpression' => null,
     'type' => 'text',
     'id' => null,
     'value' => null,
@@ -32,7 +33,7 @@
            @disabled($disabled)
            @if ($message) aria-invalid="true" @endif
            @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif>
-    <label for="{{ $fieldId }}">{{ $label }}@if ($required)<span aria-hidden="true"> *</span>@endif</label>
+    <label for="{{ $fieldId }}" @if($labelExpression) x-text="{{ $labelExpression }}" @endif>{{ $label }}@if ($required)<span aria-hidden="true"> *</span>@endif</label>
     @if ($help)
         <p id="{{ $fieldId }}-help" class="md-supporting-text">{{ $help }}</p>
     @endif

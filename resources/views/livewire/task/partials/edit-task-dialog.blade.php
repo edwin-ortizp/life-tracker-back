@@ -1,17 +1,18 @@
 <x-create-modal :state="'showDialog'" :title="$dialogTitle ?? 'Editar tarea'" icon="bi-list-task" module="tasks"
-    :wide="true"
+    :wide="true" :client-close="$localEditor ?? false" :title-expression="($localEditor ?? false) ? '$wire.editingId ? \'Editar tarea\' : \'Nueva tarea\'' : null"
     :steps="[
         ['label' => 'Lo básico'],
         ['label' => 'Clasificación'],
         ['label' => 'Programación'],
     ]"
     save-action="save" save-label="{{ $saveLabel ?? 'Actualizar' }}"
-    :bulk-action="$editingId ? null : 'saveBulk'" bulk-save-label="Crear tareas"
+    :bulk-action="($localEditor ?? false) || !$editingId ? 'saveBulk' : null" bulk-save-label="Crear tareas"
     close-action="closeForm">
 
     <div x-show="step === 0" class="lt-cm-form">
         <div x-show="!bulk">
             <div class="md-text-field"><input type="text" wire:model="title" placeholder=" " id="{{ $dialogId }}-title"><label for="{{ $dialogId }}-title">Título</label></div>
+            @error('title')<p class="md-error" role="alert">{{ $message }}</p>@enderror
         </div>
         <div x-show="bulk" x-cloak>
             <div class="md-text-field">
@@ -29,11 +30,12 @@
             'modeValue' => $descriptionMode,
             'content' => $description,
             'id' => $dialogId.'-description',
+            'deferred' => $localEditor ?? false,
             'placeholder' => 'Detalles de la tarea. Admite Markdown.',
         ])
 
-        @if (! $editingId)
-            <label class="lt-cm-switch">
+        @if (($localEditor ?? false) || ! $editingId)
+            <label class="lt-cm-switch" @if($localEditor ?? false) x-show="!$wire.editingId" @endif>
                 <input type="checkbox" x-model="bulk">
                 <span class="lt-cm-switch__track" aria-hidden="true"><span class="lt-cm-switch__thumb"></span></span>
                 <span class="lt-cm-switch__text">

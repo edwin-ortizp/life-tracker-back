@@ -1,23 +1,15 @@
+{% from '@project/components/vehicle-dialogs.html.jinja' import fuel_dialog %}
 {% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs, tabs as module_tabs, header, metric %}
 {% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
 {{ vehicle_tabs('/vehicles-fuel') }}
-<section class="lt-metrics">{{ metric('Rendimiento último tanque','14,8 km/l','success') }}{{ metric('Gasto del mes','$ 412.000') }}{{ metric('Precio promedio','$ 15.980 / gal','warning') }}</section>
-<section class="lt-grid-main">
+<section class="lt-metrics">{{ metric('Rendimiento último tanque','14,8 km/gal','success') }}{{ metric('Gasto del mes','$ 412.000') }}{{ metric('Precio promedio','$ 15.980 / gal','warning') }}</section>
+<section>
   <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-clock-history"></i><h3>Historial</h3><small>Últimos repostajes</small></div><div class="lt-panel__body"><div class="lt-list">
-    {% for date, place, liters, cost, km, perf, full in [('6 sep.','Terpel Av. 68','38,2 L','$ 161.400','142.410 km','14,8 km/l',true),('27 ago.','Esso Calle 80','35,0 L','$ 147.900','141.845 km','14,1 km/l',true),('19 ago.','Terpel Av. 68','18,5 L','$ 78.200','141.350 km','—',false),('9 ago.','Primax Autopista','40,1 L','$ 169.400','140.990 km','13,9 km/l',true)] %}
+    {% for date, place, liters, cost, km, perf, full in [('6 sep.','Terpel Av. 68','10,1 gal','$ 161.400','142.410 km','14,8 km/gal',true),('27 ago.','Esso Calle 80','9,2 gal','$ 147.900','141.845 km','14,1 km/gal',true),('19 ago.','Terpel Av. 68','4,9 gal','$ 78.200','141.350 km','—',false),('9 ago.','Primax Autopista','10,6 gal','$ 169.400','140.990 km','13,9 km/gal',true)] %}
     <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-fuel-pump"></i></span><div class="lt-list-item__body"><strong>{{ date }} · {{ liters }} · {{ cost }}</strong><span>{{ place }} · {{ km }}{% if not full %} · tanque parcial{% endif %}</span></div><div class="lt-list-item__meta"><span class="lt-chip{% if full %} lt-chip--success{% else %} lt-chip--neutral{% endif %}">{{ perf }}</span></div></div>
     {% endfor %}
   </div></div></article>
-  <aside class="lt-panel"><div class="lt-panel__head"><i class="bi bi-plus-circle"></i><h3>Registrar repostaje</h3></div><div class="lt-panel__body">
-    <div class="lt-form">
-      <label class="lt-field"><span>Fecha</span><input type="date" value="2026-09-10"></label>
-      <label class="lt-field"><span>Odómetro (km)</span><input type="number" value="142620"></label>
-      <label class="lt-field"><span>Litros</span><input type="number" value="31.4" step="0.1"></label>
-      <label class="lt-field"><span>Total pagado</span><input type="text" value="$ 132.600"></label>
-      <label class="lt-field lt-form--full"><span>Estación</span><input type="text" placeholder="Opcional"></label>
-      <label class="lt-field lt-form--full"><span>Tipo de carga</span><select><option>Tanque lleno</option><option>Carga parcial</option></select><small>El rendimiento se calcula entre tanques llenos.</small></label>
-    </div>
-    <div class="lt-actions"><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-check2"></i> Guardar</button></div>
-  </div></aside>
 </section>
+<button class="lt-fab" type="button" data-lt-toggle="vehicle-fuel-new" aria-haspopup="dialog" aria-label="Registrar repostaje"><i class="bi bi-plus-lg"></i><span>Registrar repostaje</span></button>
+{{ fuel_dialog() }}
 {% endcall %}

@@ -1,3 +1,4 @@
+{% from '@project/components/vehicle-dialogs.html.jinja' import expense_dialog %}
 {% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs %}
 {% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
 {{ vehicle_tabs('/vehicles-expenses') }}
@@ -39,7 +40,7 @@
         <span class="lt-expense-cat"><i class="lt-dot {{ cls }}"></i>{{ cat }}</span>
         <b>{{ cost }}</b>
         <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="expense-{{ loop.index }}" aria-haspopup="menu" aria-expanded="false" aria-label="Opciones del gasto"><i class="bi bi-three-dots-vertical"></i></button>
-          <div class="lt-menu" id="expense-{{ loop.index }}" role="menu" hidden><button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-pencil"></i> Editar gasto</button><button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-paperclip"></i> Ver soporte</button><hr class="lt-menu__divider"><button class="lt-menu__item lt-menu__item--danger" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-trash"></i> Eliminar</button></div>
+          <div class="lt-menu" id="expense-{{ loop.index }}" role="menu" hidden><button class="lt-menu__item" role="menuitem" type="button" data-lt-toggle="vehicle-expense-edit"><i class="bi bi-pencil"></i> Editar gasto</button><hr class="lt-menu__divider"><button class="lt-menu__item lt-menu__item--danger" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-trash"></i> Eliminar</button></div>
         </div>
       </div>
       {% endfor %}
@@ -60,5 +61,7 @@
   </aside>
 </section>
 
-<button class="lt-fab" type="button" data-lt-static-nav aria-label="Registrar gasto"><i class="bi bi-plus-lg"></i><span>Registrar gasto</span></button>
+<button class="lt-fab" type="button" data-lt-toggle="vehicle-expense-new" aria-haspopup="dialog" aria-label="Registrar gasto"><i class="bi bi-plus-lg"></i><span>Registrar gasto</span></button>
+{{ expense_dialog() }}
+{{ expense_dialog('vehicle-expense-edit', 'Editar gasto', {'concept':'Seguros','amount':'$ 77.300','description':'Cuota seguro todo riesgo · Sura','date':'2026-09-01','recurring':true,'installments':12,'provider':'Sura'}) }}
 {% endcall %}

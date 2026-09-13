@@ -92,12 +92,14 @@ export function registerUiSurfaces(Alpine) {
             }
         };
 
-        el.addEventListener('keydown', onKeydown);
+        // A submit disables its button and a server morph can remove the focused
+        // node. Keyboard dismissal must still work when focus falls to body.
+        document.addEventListener('keydown', onKeydown);
         document.addEventListener('focusin', onFocusIn);
 
         return () => {
             timers.forEach(clearTimeout);
-            el.removeEventListener('keydown', onKeydown);
+            document.removeEventListener('keydown', onKeydown);
             document.removeEventListener('focusin', onFocusIn);
 
             if (locksScroll) {

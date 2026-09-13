@@ -358,3 +358,7 @@
   .md-form-dialog__grid { grid-template-columns: minmax(0, 1fr); }
   .md-form-dialog__summary > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }
+
+/* Conditional fields keep their positions in the form grid. */
+.lt-field-condition { display: contents; }
+.lt-editor-pristine .md-error [role="alert"] { display: none; }

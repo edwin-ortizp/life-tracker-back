@@ -101,7 +101,7 @@
                 </div>
                 <div class="swipe-row__bg swipe-row__bg--actions" aria-hidden="true">
                     <button type="button" class="swipe-row__action swipe-row__action--edit"
-                            wire:click.stop="openForm('{{ $task->id }}')" @click="close()">
+                            x-on:click.stop="$dispatch('task-editor', {action: 'openForm', id: '{{ $task->id }}'})" @click="close()">
                         <i class="bi bi-pencil" aria-hidden="true"></i><span>Editar</span>
                     </button>
                     <button type="button" class="swipe-row__action swipe-row__action--delete"
@@ -115,7 +115,7 @@
                      :style="`transform: translateX(${dx}px)`" :class="{ 'swipe-row__card--dragging': dragging }"
                      @touchstart="onStart($event)" @touchmove="onMove($event)" @touchend="onEnd($event)" @touchcancel="onEnd($event)"
                      @click.capture="if (revealed) { close(); $event.stopPropagation(); }">
-                <button wire:click="openForm('{{ $task->id }}')" class="md-list-item-content md-task-open-button" aria-label="Abrir tarea: {{ $task->title }}">
+                <button x-on:click.stop="$dispatch('task-editor', {action: 'openForm', id: '{{ $task->id }}'})" class="md-list-item-content md-task-open-button" aria-label="Abrir tarea: {{ $task->title }}">
                     <div class="d-flex align-items-center gap-2">
                         <span class="md-list-item-headline {{ $task->completed ? '' : 'fw-medium' }}">
                             {{ $task->title }}
@@ -190,7 +190,7 @@
                             <div>
                                 <button type="button" class="md-tf-scrim" aria-label="Cerrar el menú" @click="open = false"></button>
                                 <div class="ta-menu" role="menu">
-                                    <button type="button" role="menuitem" wire:click.stop="openForm('{{ $task->id }}')" @click="open = false">
+                                    <button type="button" role="menuitem" x-on:click.stop="$dispatch('task-editor', {action: 'openForm', id: '{{ $task->id }}'})" @click="open = false">
                                         <i class="bi bi-pencil" aria-hidden="true"></i> Editar
                                     </button>
                                     <button type="button" role="menuitem" class="md-ta-menu__danger"
@@ -254,15 +254,10 @@
 
     <div class="lt-fab-zone">
         <x-module-actions fab-always
-            :primary="['label' => 'Nueva tarea', 'icon' => 'bi-plus-lg', 'action' => 'openForm']" />
+            :primary="['label' => 'Nueva tarea', 'icon' => 'bi-plus-lg', 'event' => 'task-editor', 'detail' => ['action' => 'openForm']]" />
     </div>
 
-    @include('livewire.task.partials.edit-task-dialog', [
-        'dialogId' => 'task',
-        'dialogTitle' => $editingId ? 'Editar tarea' : 'Nueva tarea',
-        'saveLabel' => $editingId ? 'Actualizar' : 'Crear',
-        'showRecurrenceFields' => true,
-    ])
+    <livewire:task.task-editor :edit-task="$editTask" />
 
     @include('livewire.task.partials.recurring-completion-dialog')
 </div>

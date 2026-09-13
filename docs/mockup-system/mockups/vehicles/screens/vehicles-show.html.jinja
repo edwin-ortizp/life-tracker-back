@@ -1,3 +1,4 @@
+{% from '@project/components/vehicle-dialogs.html.jinja' import fuel_dialog, maintenance_dialog, expense_dialog %}
 {% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs %}
 {% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
 {{ vehicle_tabs('/vehicles-show') }}
@@ -108,12 +109,15 @@
 
 <div class="lt-fab-anchor">
   <div class="lt-menu" id="vehicle-fab-menu" role="menu" hidden>
-    <a class="lt-menu__item" role="menuitem" href="#/vehicles-fuel"><i class="bi bi-fuel-pump"></i> Combustible</a>
-    <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-wrench-adjustable"></i> Mantenimiento</button>
-    <a class="lt-menu__item" role="menuitem" href="#/vehicles-expenses"><i class="bi bi-wallet2"></i> Gasto</a>
+    <button class="lt-menu__item" role="menuitem" type="button" data-lt-toggle="vehicle-fuel-new"><i class="bi bi-fuel-pump"></i> Combustible</button>
+    <button class="lt-menu__item" role="menuitem" type="button" data-lt-toggle="vehicle-maintenance-new"><i class="bi bi-wrench-adjustable"></i> Mantenimiento</button>
+    <button class="lt-menu__item" role="menuitem" type="button" data-lt-toggle="vehicle-expense-new"><i class="bi bi-wallet2"></i> Gasto</button>
     <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-journal-plus"></i> Nota</button>
     <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-calendar-event"></i> Otro evento</button>
   </div>
   <button class="lt-fab" type="button" data-lt-toggle="vehicle-fab-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Registrar en el vehículo"><i class="bi bi-plus-lg"></i></button>
 </div>
+{{ fuel_dialog() }}
+{{ maintenance_dialog() }}
+{{ expense_dialog() }}
 {% endcall %}

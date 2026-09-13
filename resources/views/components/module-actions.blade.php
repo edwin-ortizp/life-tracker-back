@@ -19,7 +19,12 @@
             return '<a href="'.e($action['href']).'" class="'.$class.'"'.$role.'>'.$content.'</a>';
         }
 
-        return '<button type="button" wire:click="'.e($action['action']).'" class="'.$class.'"'.$role.'>'.$content.'</button>';
+        $binding = 'wire:click="'.e($action['action'] ?? '').'"';
+        if (! empty($action['event'])) {
+            $expression = '$dispatch('.json_encode($action['event']).', '.json_encode($action['detail'] ?? new \stdClass).')';
+            $binding = 'x-on:click="'.e($expression).'"';
+        }
+        return '<button type="button" '.$binding.' class="'.$class.'"'.$role.'>'.$content.'</button>';
     };
 @endphp
 

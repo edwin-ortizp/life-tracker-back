@@ -57,7 +57,37 @@ class EditorPerformanceTest extends TestCase
         $event = HealthEvent::create(['title' => 'Private', 'type' => 'appointment', 'event_date' => today()]);
         $task = Task::create(['title' => 'Private', 'task_code' => 12345]);
         $this->actingAs(User::factory()->create());
-        Livewire::test(HealthEditor::class)->call('openForm', $event->id)->assertStatus(404);
-        Livewire::test(TaskEditor::class)->call('openForm', $task->id)->assertStatus(404);
+        foreach ([[HealthEditor::class, $event->id], [TaskEditor::class, $task->id]] as [$class, $id]) {
+            try {
+                Livewire::test($class)->call('openForm', $id);
+                $this->fail('An editor must not load another user\'s record.');
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+                $this->assertTrue(true);
+            }
+        }
+    }
+
+    public function test_health_paginates_without_losing_access_to_older_events(): void
+    {
+        $this->actingAs(User::factory()->create());
+        foreach (range(1, 30) as $day) {
+            HealthEvent::create(['title' => 'Day '.$day, 'type' => 'appointment', 'event_date' => sprintf('2026-01-%02d', $day)]);
+        }
+        Livewire::test(\App\Livewire\Health\HealthIndex::class)
+            ->assertViewHas('events', fn ($events) => $events->count() === 25 && $events->total() === 30)
+            ->call('setPage', 2)
+            ->assertViewHas('events', fn ($events) => $events->count() === 5 && $events->first()->title === 'Day 5')
+            ->call('applyFilters', 'all', 'all', ['appointment'])
+            ->assertViewHas('events', fn ($events) => $events->currentPage() === 1);
+    }
+
+    public function test_task_editor_validates_and_notifies_after_saving(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Livewire::test(TaskEditor::class)->call('save')->assertHasErrors('title')
+            ->assertNotDispatched('task-records-changed')
+            ->set('title', 'Synthetic task')->call('save')->assertHasNoErrors()
+            ->assertDispatched('task-records-changed');
+        $this->assertSame(1, Task::count());
     }
 }

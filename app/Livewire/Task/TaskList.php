@@ -114,9 +114,6 @@ class TaskList extends Component
     {
         $this->normalizeFilters();
 
-        if ($this->editTask) {
-            $this->openForm($this->editTask);
-        }
     }
 
     public function updatedFilter(): void
@@ -390,6 +387,9 @@ class TaskList extends Component
             $this->sizeFilter = '';
         }
     }
+
+    #[\Livewire\Attributes\On('task-records-changed')]
+    public function refreshRecords(): void {}
 
     public function render()
     {

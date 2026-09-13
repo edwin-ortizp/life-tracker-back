@@ -18,10 +18,13 @@
         </div>
     </div>
 
-    @if ($modeValue === 'write')
-        <textarea wire:model.live.debounce.250ms="{{ $model }}" class="md-markdown-editor-input" id="{{ $id }}" rows="{{ $rows ?? 5 }}" placeholder="{{ $placeholder }}"></textarea>
-    @else
-        <div class="md-markdown-preview">
+    @if (($deferred ?? false) || $modeValue === 'write')
+        <div @if($deferred ?? false) x-show="$wire.{{ $mode }} === 'write'" @endif>
+        <textarea @if($deferred ?? false) wire:model="{{ $model }}" @else wire:model.live.debounce.250ms="{{ $model }}" @endif class="md-markdown-editor-input" id="{{ $id }}" rows="{{ $rows ?? 5 }}" placeholder="{{ $placeholder }}"></textarea>
+        </div>
+    @endif
+    @if (($deferred ?? false) || $modeValue !== 'write')
+        <div class="md-markdown-preview" @if($deferred ?? false) x-show="$wire.{{ $mode }} === 'preview'" @endif>
             @if (blank(trim($content)))
                 <p class="md-markdown-empty">Sin contenido para previsualizar.</p>
             @else

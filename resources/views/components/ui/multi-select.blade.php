@@ -1,6 +1,9 @@
 @props([
     'name',
+    'live' => true,
     'label',
+    'labelExpression' => null,
+    'modelExpression' => null,
     'options' => [],
     'allLabel' => 'Todos',
     'id' => null,
@@ -18,7 +21,7 @@
 
 {{-- Selección múltiple con checkboxes, enlazada a una propiedad array de Livewire. --}}
 <div {{ $attributes->class(['md-text-field', 'md-field', 'md-multi-select', 'md-field--icon' => $icon, 'md-error' => $message]) }}
-     x-data="{ open: false, selected: $wire.entangle('{{ $name }}').live, labels: @js($labels) }"
+     x-data="{ open: false, @if($modelExpression) get selected() { return {{ $modelExpression }} }, set selected(value) { {{ $modelExpression }} = value }, @else selected: $wire.entangle('{{ $name }}'){{ $live ? '.live' : '' }}, @endif labels: @js($labels) }"
      @click.outside="open = false"
      @keydown.escape.stop="if (open) { open = false; $refs.trigger.focus() }">
     @if ($icon)<i class="bi {{ $icon }} md-field__icon" aria-hidden="true"></i>@endif
@@ -33,7 +36,7 @@
         <span class="md-multi-select__value"
               x-text="selected.length ? selected.slice(0, 2).map((value) => labels[value] ?? value).join(', ') + (selected.length > 2 ? ' +' + (selected.length - 2) : '') : @js($allLabel)">{{ $allLabel }}</span>
     </button>
-    <label for="{{ $fieldId }}">{{ $label }}</label>
+    <label for="{{ $fieldId }}" @if($labelExpression) x-text="{{ $labelExpression }}" @endif>{{ $label }}</label>
     <div class="md-multi-select__panel" role="listbox" aria-multiselectable="true" aria-label="{{ $label }}" x-cloak x-show="open">
         @foreach ($groups as $groupLabel => $groupOptions)
             @if ($groupLabel !== '')

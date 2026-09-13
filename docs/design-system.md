@@ -108,6 +108,8 @@ Los valores calculados que no pueden expresarse con variantes discretas se trans
 
 Componente: `x-ui.form-dialog` con `x-ui.form-dialog-section`. Campos: `x-ui.field`, `x-ui.select`, `x-ui.textarea` y `x-ui.multi-select`, todos con prop `icon` opcional.
 
+En los editores aislados de Salud y Tareas, la visibilidad y los borradores se controlan en Alpine (`ltFormEditor`): abrir o cerrar no requiere una petición. `x-ui.form-dialog` admite `state` y `title-expression`; el modo existente con `open` sigue disponible para los demás módulos. La edición muestra primero la superficie con carga/error y obtiene el registro en el componente hijo; guardar valida en el servidor y notifica a la lista. Usa `wire:model` para campos sin dependencias de servidor. `x-ui.multi-select` admite `live="false"` para diferir sincronización y `model-expression` para un borrador Alpine que solo se envía al aplicar filtros. Los campos admiten `label-expression` cuando su etiqueta depende de ese estado local. Consulta [el diagnóstico y las mediciones](performance.md) antes de extender este patrón a otro módulo.
+
 Patrón común para todo modal que crea o edita información.
 
 - **Cabecera** separada del contenido por una línea divisoria. En orden: control del panel de secciones (solo si hay secciones), ícono de contexto, título, acción expandir/restaurar y cerrar. El título nunca se oculta.

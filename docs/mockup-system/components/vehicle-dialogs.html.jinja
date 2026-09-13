@@ -1,0 +1,83 @@
+{% from '@project/components/life-shell.html.jinja' import dialog %}
+
+{% macro fuel_dialog(id='vehicle-fuel-new') -%}
+{% call dialog(id, 'Registrar repostaje', 'Guardar', 'bi-fuel-pump', [('fill','Repostaje','bi-fuel-pump'),('details','Detalles','bi-card-text')]) %}
+<section class="lt-dialog__section" data-section="fill">
+  <header class="lt-dialog__section-head"><h3>Repostaje</h3><p>Los datos del tanqueo. El total se calcula con galones y precio.</p></header>
+  <div class="lt-form">
+    <label class="lt-field"><span>Fecha <b>*</b></span><input type="date" value="2026-09-12"></label>
+    <label class="lt-field lt-field--icon"><span>Odómetro (km) <b>*</b></span><i class="bi bi-speedometer2" aria-hidden="true"></i><input type="number" value="142620"></label>
+    <label class="lt-field lt-field--icon"><span>Galones <b>*</b></span><i class="bi bi-droplet-half" aria-hidden="true"></i><input type="number" value="10.2" step="0.01"></label>
+    <label class="lt-field lt-field--icon"><span>Precio por galón <b>*</b></span><i class="bi bi-cash" aria-hidden="true"></i><input type="text" value="$ 15.980"></label>
+    <label class="lt-field lt-form--full"><span>Total pagado</span><input type="text" value="$ 163.000" readonly></label>
+    <div class="lt-field lt-form--full"><span>Tipo de carga</span><div class="lt-segmented" role="group" aria-label="Tipo de carga"><button class="is-active" type="button" data-lt-static-nav>Tanque lleno</button><button type="button" data-lt-static-nav>Carga parcial</button></div><small>El rendimiento se calcula entre tanques llenos.</small></div>
+  </div>
+</section>
+<section class="lt-dialog__section" data-section="details" hidden>
+  <header class="lt-dialog__section-head"><h3>Detalles</h3><p>Opcional. Útil para comparar estaciones y precios.</p></header>
+  <div class="lt-form">
+    <label class="lt-field lt-field--icon"><span>Estación</span><i class="bi bi-geo-alt" aria-hidden="true"></i><input type="text" value="Terpel Av. 68"></label>
+    <label class="lt-field lt-field--icon"><span>Combustible</span><i class="bi bi-fuel-pump" aria-hidden="true"></i><select><option selected>Gasolina corriente</option><option>Gasolina extra</option></select></label>
+    <label class="lt-field lt-field--icon"><span>Método de pago</span><i class="bi bi-credit-card" aria-hidden="true"></i><select><option>Efectivo</option><option selected>Tarjeta débito</option><option>Tarjeta crédito</option></select></label>
+    <label class="lt-field lt-form--full"><span>Notas</span><textarea placeholder="Ej. Viaje a Popayán, tráfico pesado"></textarea></label>
+  </div>
+</section>
+{% endcall %}
+{%- endmacro %}
+
+{% macro maintenance_dialog(id='vehicle-maintenance-new', service='Cambio de aceite y filtro') -%}
+{% call dialog(id, 'Registrar mantenimiento', 'Guardar', 'bi-wrench-adjustable', [('service','Servicio','bi-wrench-adjustable'),('work','Detalle','bi-card-text'),('next','Próximo cuidado','bi-calendar2-check')]) %}
+<section class="lt-dialog__section" data-section="service">
+  <header class="lt-dialog__section-head"><h3>Servicio</h3><p>Qué se hizo, cuándo y cuánto costó.</p></header>
+  <div class="lt-form">
+    <label class="lt-field lt-field--icon lt-form--full"><span>Tipo de servicio <b>*</b></span><i class="bi bi-tools" aria-hidden="true"></i><select>{% for t in ['Cambio de aceite y filtro','Rotación de llantas','Pastillas de freno','Revisión técnico-mecánica','Alineación y balanceo','Batería','Otro'] %}<option{% if t == service %} selected{% endif %}>{{ t }}</option>{% endfor %}</select></label>
+    <label class="lt-field"><span>Fecha <b>*</b></span><input type="date" value="2026-09-12"></label>
+    <label class="lt-field lt-field--icon"><span>Odómetro (km) <b>*</b></span><i class="bi bi-speedometer2" aria-hidden="true"></i><input type="number" value="142620"></label>
+    <label class="lt-field lt-field--icon"><span>Taller</span><i class="bi bi-shop" aria-hidden="true"></i><input type="text" value="Taller Autolab"></label>
+    <label class="lt-field lt-field--icon"><span>Costo total <b>*</b></span><i class="bi bi-cash" aria-hidden="true"></i><input type="text" value="$ 252.000"></label>
+  </div>
+</section>
+<section class="lt-dialog__section" data-section="work" hidden>
+  <header class="lt-dialog__section-head"><h3>Detalle</h3><p>Trabajos y repuestos, para tener el historial completo.</p></header>
+  <div class="lt-form">
+    <label class="lt-field lt-form--full"><span>Trabajos realizados</span><textarea>Cambio de aceite 5W-30 sintético y filtro de aceite. Revisión de niveles.</textarea></label>
+    <label class="lt-field lt-field--icon lt-form--full"><span>Repuestos</span><i class="bi bi-box-seam" aria-hidden="true"></i><input type="text" value="Aceite Mobil 5W-30 (4,5 L), filtro ACDelco"></label>
+    <label class="lt-field lt-form--full"><span>Notas</span><textarea placeholder="Ej. El mecánico recomienda revisar la suspensión delantera"></textarea></label>
+  </div>
+</section>
+<section class="lt-dialog__section" data-section="next" hidden>
+  <header class="lt-dialog__section-head"><h3>Próximo cuidado</h3><p>Así aparece en «Próximos cuidados» del Resumen.</p></header>
+  <div class="lt-form">
+    <div class="lt-field lt-form--full"><span>¿Programar el siguiente?</span><div class="lt-segmented" role="group" aria-label="Programar el siguiente"><button class="is-active" type="button" data-lt-static-nav>Sí</button><button type="button" data-lt-static-nav>No</button></div></div>
+    <label class="lt-field lt-field--icon"><span>Cada (km)</span><i class="bi bi-signpost-split" aria-hidden="true"></i><input type="number" value="5000"></label>
+    <label class="lt-field lt-field--icon"><span>O cada (meses)</span><i class="bi bi-calendar3" aria-hidden="true"></i><input type="number" value="6"></label>
+    <div class="lt-field lt-form--full"><small>Lo que ocurra primero: 147.620 km o 12 mar. 2027.</small></div>
+  </div>
+</section>
+{% endcall %}
+{%- endmacro %}
+
+{% macro expense_dialog(id='vehicle-expense-new', title='Registrar gasto', v={}) -%}
+{% set concept = v.get('concept') or 'Seguros' %}
+{% call dialog(id, title, 'Guardar', 'bi-wallet2', [('expense','Gasto','bi-wallet2'),('repeat','Recurrencia','bi-arrow-repeat')]) %}
+<section class="lt-dialog__section" data-section="expense">
+  <header class="lt-dialog__section-head"><h3>Gasto</h3><p>Seguros, llantas, pintura y lo que no sea combustible ni mantenimiento.</p></header>
+  <div class="lt-form">
+    <label class="lt-field lt-field--icon"><span>Concepto <b>*</b></span><i class="bi bi-tag" aria-hidden="true"></i><select>{% for t in ['Seguros','Llantas','Pintura y latonería','Accesorios y lujos','Trámites y peajes','Otro'] %}<option{% if t == concept %} selected{% endif %}>{{ t }}</option>{% endfor %}</select></label>
+    <label class="lt-field lt-field--icon"><span>Valor <b>*</b></span><i class="bi bi-cash" aria-hidden="true"></i><input type="text" value="{{ v.get('amount') or '' }}" placeholder="$ 0"></label>
+    <label class="lt-field lt-form--full"><span>Descripción <b>*</b></span><input type="text" value="{{ v.get('description') or '' }}" placeholder="Ej. Cuota seguro todo riesgo"></label>
+    <label class="lt-field"><span>Fecha <b>*</b></span><input type="date" value="{{ v.get('date') or '2026-09-12' }}"></label>
+    <label class="lt-field lt-field--icon"><span>Odómetro (km)</span><i class="bi bi-speedometer2" aria-hidden="true"></i><input type="number" placeholder="Opcional"></label>
+  </div>
+</section>
+<section class="lt-dialog__section" data-section="repeat" hidden>
+  <header class="lt-dialog__section-head"><h3>Recurrencia</h3><p>Para cuotas de seguro, parqueadero mensual o impuestos anuales.</p></header>
+  <div class="lt-form">
+    <div class="lt-field lt-form--full"><span>Tipo</span><div class="lt-segmented" role="group" aria-label="Recurrencia"><button{% if not v.get('recurring') %} class="is-active"{% endif %} type="button" data-lt-static-nav>Único</button><button{% if v.get('recurring') %} class="is-active"{% endif %} type="button" data-lt-static-nav>Mensual</button><button type="button" data-lt-static-nav>Anual</button></div></div>
+    <label class="lt-field lt-field--icon"><span>Número de cuotas</span><i class="bi bi-list-ol" aria-hidden="true"></i><input type="number" value="{{ v.get('installments') or '' }}" placeholder="Sin límite"></label>
+    <label class="lt-field lt-field--icon"><span>Proveedor</span><i class="bi bi-building" aria-hidden="true"></i><input type="text" value="{{ v.get('provider') or '' }}" placeholder="Ej. Sura"></label>
+    <div class="lt-field lt-form--full"><small>Los pagos recurrentes aparecen como «Próximo pago» en Gastos.</small></div>
+  </div>
+</section>
+{% endcall %}
+{%- endmacro %}

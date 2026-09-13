@@ -51,6 +51,7 @@ for (const dataset of ['small', 'large']) {
             if (/open|close|edit/.test(action)) requestAnimationFrame(observe);
         }, {action});
         await run(); await ready();
+        if (/open|close|edit/.test(action)) await page.waitForFunction(() => window.__perf.result !== null);
         const stats = await page.evaluate(() => ({uiMs:window.__perf.result, observedMs:performance.now()-(window.__perf.started??0), longTasks:window.__perf.longTasks, nodes:document.querySelectorAll('*').length}));
         report.samples.push({dataset,action,...stats,requests:[...requests]});
     }

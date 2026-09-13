@@ -4,6 +4,19 @@ namespace App\Livewire\Task;
 
 class TaskEditor extends TaskList
 {
+    public string $filter = 'pending';
+    public string $categoryFilter = '';
+    public string $priorityFilter = '';
+    public string $dateFilter = '';
+    public string $sizeFilter = '';
+    public string $search = '';
+    public ?string $editTask = null;
+
+    public function mount(): void
+    {
+        if ($this->editTask) $this->openForm($this->editTask);
+    }
+
     public function openForm(?string $id = null)
     {
         if ($id) \App\Models\Task::findOrFail($id);

@@ -57,9 +57,13 @@
           compact: window.matchMedia('(max-width: 767.98px)').matches,
           search: '',
           searchOpen: false,
+          removeMediaListener: null,
+          destroy() { this.removeMediaListener?.(); },
           init() {
               const mq = window.matchMedia('(max-width: 767.98px)');
-              mq.addEventListener('change', (e) => { this.compact = e.matches; if (!this.compact) { this.sidebarOpen = false; this.searchOpen = false; } });
+              const handler = (e) => { this.compact = e.matches; if (!this.compact) { this.sidebarOpen = false; this.searchOpen = false; } };
+              mq.addEventListener('change', handler);
+              this.removeMediaListener = () => mq.removeEventListener('change', handler);
               this.$watch('sidebarRail', (v) => localStorage.setItem('lt-sidebar-rail', v ? '1' : '0'));
           },
           toggleNav() {

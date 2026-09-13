@@ -39,6 +39,7 @@ class HealthEvent extends Model
         'upper_back' => 'Espalda alta',
         'lower_back' => 'Espalda baja',
         'glutes' => 'Glúteos',
+        'genitals' => 'Zona genital',
         'shoulder_right' => 'Hombro derecho',
         'shoulder_left' => 'Hombro izquierdo',
         'arm_right' => 'Brazo derecho',
@@ -69,7 +70,7 @@ class HealthEvent extends Model
     ];
 
     public const BODY_AREA_GROUPS = [
-        'Cabeza y tronco' => ['head', 'neck', 'chest', 'abdomen', 'upper_back', 'lower_back', 'glutes'],
+        'Cabeza y tronco' => ['head', 'neck', 'chest', 'abdomen', 'upper_back', 'lower_back', 'glutes', 'genitals'],
         'Brazos' => ['shoulder_right', 'shoulder_left', 'arm_right', 'arm_left', 'forearm_right', 'forearm_left', 'hand_right', 'hand_left'],
         'Piernas' => ['thigh_right', 'thigh_left', 'hamstring_right', 'hamstring_left', 'knee_right', 'knee_left', 'leg_right', 'leg_left', 'calf_right', 'calf_left', 'ankle_right', 'ankle_left', 'foot_right', 'foot_left'],
         'Otras' => ['eyes_face', 'mouth_throat', 'skin', 'whole_body', 'other'],
@@ -141,6 +142,7 @@ class HealthEvent extends Model
             $area === 'chest' => 'bi-lungs',
             in_array($area, ['upper_back', 'lower_back', 'whole_body'], true) => 'bi-person-standing',
             $area === 'skin' => 'bi-droplet',
+            $area === 'genitals' => 'bi-gender-ambiguous',
             str_starts_with($area, 'hand_') || str_starts_with($area, 'arm_') || str_starts_with($area, 'forearm_') => 'bi-hand-index',
             str_starts_with($area, 'knee_') || str_starts_with($area, 'leg_') => 'bi-activity',
             default => 'bi-bandaid',

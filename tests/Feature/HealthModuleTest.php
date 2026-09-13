@@ -462,6 +462,29 @@ class HealthModuleTest extends TestCase
         Carbon::setTestNow();
     }
 
+    public function test_genital_area_can_be_registered_and_is_drawn_on_the_body_map(): void
+    {
+        Carbon::setTestNow('2026-07-12 10:00:00');
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(HealthIndex::class)
+            ->call('openForm')
+            ->set('type', 'symptom')
+            ->set('title', 'Irritación')
+            ->set('eventDate', '2026-07-10')
+            ->set('bodyAreas', ['genitals'])
+            ->set('initialIntensity', 4)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(['genitals'], HealthEvent::firstOrFail()->bodyAreas());
+        $this->get('/health/body')->assertOk()->assertSee('data-zone="genitals"', false);
+        Livewire::test(HealthBodyMap::class)
+            ->assertViewHas('mapZones', fn ($zones) => $zones['genitals']['count'] === 1 && $zones['genitals']['label'] === 'Zona genital');
+
+        Carbon::setTestNow();
+    }
+
     public function test_multiple_body_areas_migration_and_legacy_rows(): void
     {
         $user = User::factory()->create();

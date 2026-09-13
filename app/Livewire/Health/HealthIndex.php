@@ -21,6 +21,7 @@ use Livewire\Component;
 #[Title('Salud')]
 class HealthIndex extends Component
 {
+    use \Livewire\WithPagination;
     public const RANGES = [
         'all' => 'Todo el historial',
         '30d' => 'Últimos 30 días',
@@ -147,11 +148,13 @@ class HealthIndex extends Component
     {
         if (in_array($property, ['range', 'status', 'types', 'zone', 'illnessPeriod'], true) || str_starts_with($property, 'types.')) {
             $this->normalizeFilters();
+            if ($property !== 'illnessPeriod') $this->resetPage();
         }
     }
 
     public function removeFilter(string $key, ?string $value = null): void
     {
+        $this->resetPage();
         match ($key) {
             'range' => $this->range = 'all',
             'status' => $this->status = 'all',
@@ -161,8 +164,18 @@ class HealthIndex extends Component
         };
     }
 
+    public function applyFilters(string $range, string $status, array $types): void
+    {
+        $this->range = $range;
+        $this->status = $status;
+        $this->types = $types;
+        $this->normalizeFilters();
+        $this->resetPage();
+    }
+
     public function clearFilters(): void
     {
+        $this->resetPage();
         $this->range = 'all';
         $this->status = 'all';
         $this->types = [];
@@ -435,10 +448,13 @@ class HealthIndex extends Component
         $this->healthTask($id)->delete();
     }
 
+    #[\Livewire\Attributes\On('health-records-changed')]
+    public function refreshRecords(): void {}
+
     public function render()
     {
         $nextEvent = HealthEvent::query()->whereDate('event_date', '>', today())->orderBy('event_date')->first();
-        $events = $this->filteredEvents()->with(['tasks', 'logs'])->orderByDesc('event_date')->orderByDesc('created_at')->get();
+        $events = $this->filteredEvents()->with(['tasks', 'logs'])->orderByDesc('event_date')->orderByDesc('created_at')->orderBy('id')->paginate(25);
 
         return view('livewire.health.health-index', [
             'events' => $events,
