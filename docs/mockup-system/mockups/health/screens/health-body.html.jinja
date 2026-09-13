@@ -5,7 +5,7 @@
   (0 sin eventos → 4 con 6 o más). Los ids coinciden entre vista frontal y posterior,
   y con las filas del panel "Zonas registradas", para sincronizar el resaltado.
 #}
-{% set counts = {'espalda-baja': 5, 'cabeza': 4, 'hombro-derecho': 2, 'rodilla-derecha': 2, 'pecho': 1, 'tobillo-derecho': 1} %}
+{% set counts = {'espalda-baja': 5, 'cabeza': 4, 'hombro-derecho': 2, 'rodilla-derecha': 2, 'pecho': 1, 'tobillo-derecho': 1, 'garganta': 2} %}
 
 {% call shell('health', 'Salud', 'bi-heart-pulse') %}
 {{ module_tabs([('Registro','/health-index','bi-clock-history'),('Vista del cuerpo','/health-body','bi-person-standing')], '/health-body') }}
@@ -13,7 +13,7 @@
 <section class="lt-grid-main lt-body-page">
   <div class="lt-stack">
     <div class="lt-section-head lt-filter-anchor">
-      <h3><i class="bi bi-person-standing"></i> Mapa corporal <span class="lt-count" title="Eventos con zona del cuerpo en el periodo">(15 eventos)</span></h3>
+      <h3><i class="bi bi-person-standing"></i> Mapa corporal <span class="lt-count" title="Eventos con zona del cuerpo en el periodo">(17 eventos)</span></h3>
       <button class="lt-button lt-button--text lt-filter-button" type="button" data-lt-toggle="body-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="body-filters"><i class="bi bi-sliders"></i> Filtros<span class="lt-badge lt-badge--corner" data-lt-filter-count aria-label="1 filtro activo">1</span></button>
       <div class="lt-popover" id="body-filters" role="dialog" aria-labelledby="body-filters-title" hidden>
         <div class="lt-popover__head"><h4 id="body-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="body-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
@@ -83,6 +83,7 @@
           ('cabeza','Cabeza','Migraña · hace 1 semana','front back','bi-emoji-dizzy'),
           ('hombro-derecho','Hombro derecho','Contractura · hace 1 mes','front back','bi-bandaid'),
           ('rodilla-derecha','Rodilla derecha','Molestia al correr · hace 2 meses','front back','bi-activity'),
+          ('garganta','Boca y garganta','Dolor de garganta · hace 2 semanas','front','bi-chat-square'),
           ('pecho','Pecho','Gripe · hace 3 meses','front','bi-lungs'),
           ('tobillo-derecho','Tobillo derecho','Esguince · hace 3 meses','front back','bi-bandaid')
         ] %}

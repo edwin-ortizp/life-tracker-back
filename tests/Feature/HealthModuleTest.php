@@ -485,6 +485,23 @@ class HealthModuleTest extends TestCase
         Carbon::setTestNow();
     }
 
+    public function test_throat_and_face_are_drawn_on_the_body_map(): void
+    {
+        Carbon::setTestNow('2026-07-12 10:00:00');
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $user->healthEvents()->create(['type' => 'symptom', 'title' => 'Dolor de garganta', 'event_date' => '2026-07-10', 'details' => ['body_areas' => ['mouth_throat']]]);
+
+        $this->get('/health/body')->assertOk()
+            ->assertSee('data-zone="mouth_throat"', false)
+            ->assertSee('data-zone="eyes_face"', false);
+        Livewire::test(HealthBodyMap::class)
+            ->assertViewHas('mapZones', fn ($zones) => $zones['mouth_throat']['count'] === 1 && $zones['eyes_face']['count'] === 0)
+            ->assertViewHas('zones', fn ($zones) => $zones['mouth_throat']['onMap'] === true);
+
+        Carbon::setTestNow();
+    }
+
     public function test_multiple_body_areas_migration_and_legacy_rows(): void
     {
         $user = User::factory()->create();

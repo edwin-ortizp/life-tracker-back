@@ -77,7 +77,7 @@ class HealthEvent extends Model
     ];
 
     /** Zonas sin trazado en el mapa corporal: solo aparecen en la lista. */
-    public const OFF_MAP_BODY_AREAS = ['eyes_face', 'mouth_throat', 'skin', 'whole_body', 'other'];
+    public const OFF_MAP_BODY_AREAS = ['skin', 'whole_body', 'other'];
 
     public const COMMON_ILLNESSES = [
         'common_cold' => 'Resfriado común',
