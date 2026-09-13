@@ -457,6 +457,7 @@
  * y panel en paralelo desde 1200 px; debajo del contenido por debajo de ese ancho. */
 .md-module-workspace--rail { grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; }
 .md-module-workspace--rail > .md-context-rail { display: grid; gap: 16px; align-content: start; position: sticky; top: 72px; }
+.md-module-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 12px; }
 .md-module-actions:empty { display: none; }
 @media (max-width: 1199.98px) {
   .md-module-workspace--rail { grid-template-columns: minmax(0, 1fr); }

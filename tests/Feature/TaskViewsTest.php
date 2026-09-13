@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\Task\TaskFlow;
+use App\Livewire\Task\TaskEditor;
 use App\Livewire\Task\TaskGantt;
 use App\Livewire\Task\TaskList;
 use App\Livewire\Task\TaskPlanning;
@@ -31,7 +32,7 @@ class TaskViewsTest extends TestCase
         foreach (['gantt' => 'Gantt', 'flow' => 'Flujo', 'kanban' => 'Kanban', 'planning' => 'Planificación', 'progress' => 'Progreso'] as $view => $tab) {
             $this->actingAs($user)->get("/tasks/{$view}")
                 ->assertOk()
-                ->assertSee('<h1 class="md-module-title">Tareas</h1>', false)
+                ->assertSee('<h1 class="visually-hidden" data-region="identity">Tareas</h1>', false)
                 ->assertSee($tab)
                 ->assertSee('aria-current="page"', false);
         }
@@ -42,18 +43,18 @@ class TaskViewsTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        Livewire::test(TaskList::class)
-            ->call('openBulkForm')
+        Livewire::test(TaskEditor::class)
+            ->call('openForm')
             ->set('bulkTitles', "Preparar informe\n\nLlamar al cliente\n  ")
-            ->set('bulkDescription', 'Seguimiento semanal')
-            ->set('bulkCategory', 'trabajo')
-            ->set('bulkPriority', 'urgent-important')
-            ->set('bulkSize', 'M')
-            ->set('bulkStartDate', '2026-07-12')
-            ->set('bulkEndDate', '2026-07-15')
-            ->set('bulkIsPrivate', true)
+            ->set('description', 'Seguimiento semanal')
+            ->set('category', 'trabajo')
+            ->set('priority', 'urgent-important')
+            ->set('size', 'M')
+            ->set('startDate', '2026-07-12')
+            ->set('endDate', '2026-07-15')
+            ->set('isPrivate', true)
             ->call('saveBulk')
-            ->assertSet('showBulkForm', false);
+            ->assertSet('showForm', false);
 
         $this->assertDatabaseCount('tasks', 2);
         $this->assertDatabaseHas('tasks', ['user_id' => $user->id, 'title' => 'Preparar informe', 'category' => 'trabajo', 'is_private' => true]);
@@ -199,12 +200,12 @@ class TaskViewsTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        Livewire::test(TaskList::class)
-            ->call('openBulkForm')
+        Livewire::test(TaskEditor::class)
+            ->call('openForm')
             ->set('bulkTitles', "Primera\nSegunda")
-            ->set('bulkStartDate', '2026-07-13')
-            ->set('bulkStartTime', '14:00')
-            ->call('applyBulkDuration', 120)
+            ->set('startDate', '2026-07-13')
+            ->set('startTime', '14:00')
+            ->call('applyDuration', 120)
             ->call('saveBulk');
 
         $this->assertDatabaseCount('tasks', 2);
@@ -354,7 +355,7 @@ class TaskViewsTest extends TestCase
             'recurrence' => ['pattern' => 'custom', 'frequency' => 1, 'customDays' => 15],
         ]);
 
-        Livewire::test(TaskList::class)
+        Livewire::test(TaskEditor::class)
             ->call('openForm', $task->id)
             ->assertSet('isRecurrent', true)
             ->assertSet('recurrenceIntervalDays', 15)

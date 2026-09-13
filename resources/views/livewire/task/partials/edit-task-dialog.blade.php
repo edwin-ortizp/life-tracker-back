@@ -12,7 +12,7 @@
     <div x-show="step === 0" class="lt-cm-form">
         <div x-show="!bulk">
             <div class="md-text-field"><input type="text" wire:model="title" placeholder=" " id="{{ $dialogId }}-title"><label for="{{ $dialogId }}-title">Título</label></div>
-            @error('title')<p class="md-error" role="alert">{{ $message }}</p>@enderror
+            @error('title')<p class="md-error" role="alert" @if($localEditor ?? false) x-show="submitted" @endif>{{ $message }}</p>@enderror
         </div>
         <div x-show="bulk" x-cloak>
             <div class="md-text-field">
@@ -60,6 +60,13 @@
         @include('livewire.task.partials.schedule-fields', ['idPrefix' => $dialogId, 'startModel' => 'startDate', 'startTimeModel' => 'startTime', 'endModel' => 'endDate', 'endTimeModel' => 'endTime', 'durationAction' => 'applyDuration'])
         @if ($showRecurrenceFields ?? false)
             <div class="d-flex flex-wrap align-items-center gap-3">
+                @if ($localEditor ?? false)
+                    <label class="md-checkbox"><input type="checkbox" wire:model="isRecurrent"><i class="bi bi-arrow-repeat"></i> Tarea recurrente</label>
+                    <div x-show="$wire.isRecurrent">
+                        <span class="md-chip-tonal" x-show="$wire.nativeRecurrenceRule" x-text="$wire.nativeRecurrenceRule" title="Esta regla CalDAV se conserva sin cambios"></span>
+                        <div class="md-text-field lt-cm-field--sm" x-show="!$wire.nativeRecurrenceRule"><input type="number" min="1" wire:model="recurrenceIntervalDays" placeholder=" " id="{{ $dialogId }}-recurrence-days"><label for="{{ $dialogId }}-recurrence-days">Repetir cada (días)</label></div>
+                    </div>
+                @else
                 <label class="md-checkbox"><input type="checkbox" wire:model.live="isRecurrent"><i class="bi bi-arrow-repeat"></i> Tarea recurrente</label>
                 @if ($isRecurrent)
                     @if (($nativeRecurrenceRule ?? '') !== '')
@@ -67,6 +74,7 @@
                     @else
                         <div class="md-text-field lt-cm-field--sm"><input type="number" min="1" wire:model="recurrenceIntervalDays" placeholder=" " id="{{ $dialogId }}-recurrence-days"><label for="{{ $dialogId }}-recurrence-days">Repetir cada (días)</label></div>
                     @endif
+                @endif
                 @endif
             </div>
         @endif

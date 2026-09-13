@@ -1,4 +1,5 @@
-{% from '@project/components/vehicle-dialogs.html.jinja' import fuel_dialog %}
+{% from '@project/components/vehicle-dialogs.html.jinja' import fuel_dialog, dialog %}
+{% from '@project/components/life-shell.html.jinja' import fab %}
 {% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs, tabs as module_tabs, header, metric %}
 {% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
 {{ vehicle_tabs('/vehicles-fuel') }}
@@ -10,6 +11,6 @@
     {% endfor %}
   </div></div></article>
 </section>
-<button class="lt-fab" type="button" data-lt-toggle="vehicle-fuel-new" aria-haspopup="dialog" aria-label="Registrar repostaje"><i class="bi bi-plus-lg"></i><span>Registrar repostaje</span></button>
+{{ fab('Registrar repostaje', 'bi-plus-lg', 'vehicle-fuel-new') }}
 {{ fuel_dialog() }}
 {% endcall %}

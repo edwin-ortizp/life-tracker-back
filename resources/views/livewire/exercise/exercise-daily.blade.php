@@ -4,7 +4,7 @@
     $logsState = DataState::resolve(visible: $logs->count(), total: $logs->count());
 @endphp
 
-<x-module-shell module="exercise" x-data="{ showDialog: $wire.entangle('showForm') }">
+<x-module-shell module="exercise">
     <x-slot:actions>
         <x-module-actions :primary="['label' => 'Registrar ejercicio', 'icon' => 'bi-plus-lg', 'action' => 'openForm']" />
     </x-slot:actions>
@@ -68,32 +68,42 @@
         @endif
     </x-ui.section>
 
-    <x-ui.dialog state="showDialog" title="{{ $editingId ? 'Editar ejercicio' : 'Nuevo ejercicio' }}">
-        <x-ui.select name="exerciseTypeId" label="Tipo de ejercicio" placeholder="Seleccionar..."
-                     :options="$exerciseTypes->mapWithKeys(fn ($type) => [$type->id => ($type->icon ?? '🏃').' '.$type->name])->all()"
-                     wire:model.live="exerciseTypeId" />
+    <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="exercise-dialog"
+                      :title="$editingId ? 'Editar ejercicio' : 'Registrar ejercicio'" icon="bi-activity"
+                      :submit="$editingId ? 'Actualizar' : 'Guardar'"
+                      :sections="[
+                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-activity', 'error' => $errors->hasAny(['exerciseTypeId', 'duration', 'calories'])],
+                          'metrics' => ['label' => 'Series y distancia', 'icon' => 'bi-bar-chart', 'error' => $errors->hasAny(['sets', 'reps', 'weight', 'distance', 'steps'])],
+                          'details' => ['label' => 'Detalles adicionales', 'icon' => 'bi-card-text'],
+                      ]">
+        <x-ui.form-dialog-section name="basic" title="Información básica">
+            <div class="d-flex flex-column gap-3">
+                <x-ui.select name="exerciseTypeId" label="Tipo de ejercicio" placeholder="Seleccionar..." :required="true" :selected="$exerciseTypeId"
+                             :options="$exerciseTypes->mapWithKeys(fn ($type) => [$type->id => ($type->icon ?? '🏃').' '.$type->name])->all()"
+                             wire:model.live="exerciseTypeId" />
+                <div class="md-field-pair">
+                    <x-ui.field name="duration" label="Duración (min)" type="number" min="0" wire:model.live="duration" />
+                    <x-ui.field name="calories" label="Calorías" type="number" min="0" wire:model="calories" />
+                </div>
+            </div>
+        </x-ui.form-dialog-section>
 
-        <div class="md-field-pair">
-            <x-ui.field name="duration" label="Duración (min)" type="number" min="0" wire:model.live="duration" />
-            <x-ui.field name="calories" label="Calorías" type="number" min="0" wire:model="calories" />
-        </div>
+        <x-ui.form-dialog-section name="metrics" title="Series y distancia">
+            <div class="d-flex flex-column gap-3">
+                <div class="md-field-trio">
+                    <x-ui.field name="sets" label="Series" type="number" min="0" wire:model="sets" />
+                    <x-ui.field name="reps" label="Reps" type="number" min="0" wire:model="reps" />
+                    <x-ui.field name="weight" label="Peso (kg)" type="number" min="0" step="0.5" wire:model="weight" />
+                </div>
+                <div class="md-field-pair">
+                    <x-ui.field name="distance" label="Distancia (km)" type="number" min="0" step="0.1" wire:model="distance" />
+                    <x-ui.field name="steps" label="Pasos" type="number" min="0" wire:model="steps" />
+                </div>
+            </div>
+        </x-ui.form-dialog-section>
 
-        <div class="md-field-trio">
-            <x-ui.field name="sets" label="Series" type="number" min="0" wire:model="sets" />
-            <x-ui.field name="reps" label="Reps" type="number" min="0" wire:model="reps" />
-            <x-ui.field name="weight" label="Peso (kg)" type="number" min="0" step="0.5" wire:model="weight" />
-        </div>
-
-        <div class="md-field-pair">
-            <x-ui.field name="distance" label="Distancia (km)" type="number" min="0" step="0.1" wire:model="distance" />
-            <x-ui.field name="steps" label="Pasos" type="number" min="0" wire:model="steps" />
-        </div>
-
-        <x-ui.field name="notes" label="Notas (opcional)" wire:model="notes" />
-
-        <x-slot:actions>
-            <x-ui.action variant="text" x-on:click="showDialog = false">Cancelar</x-ui.action>
-            <x-ui.action variant="filled" icon="bi-check-lg" wire:click="save">{{ $editingId ? 'Actualizar' : 'Guardar' }}</x-ui.action>
-        </x-slot:actions>
-    </x-ui.dialog>
+        <x-ui.form-dialog-section name="details" title="Detalles adicionales">
+            <x-ui.textarea name="notes" label="Notas (opcional)" rows="3" wire:model="notes" />
+        </x-ui.form-dialog-section>
+    </x-ui.form-dialog>
 </x-module-shell>

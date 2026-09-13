@@ -1,14 +1,10 @@
-<x-module-shell module="relationships" x-data="{
-    showPersonDialog: $wire.entangle('showForm'),
-    showCircleDialog: $wire.entangle('showCircleForm'),
-    showTagDialog: $wire.entangle('showTagForm'),
-}">
+<x-module-shell module="relationships">
     <x-slot:actions>
         <x-module-actions
-            :primary="['label' => 'Nueva persona', 'icon' => 'bi-person-plus', 'action' => 'openForm']"
+            :primary="['label' => 'Agregar persona', 'icon' => 'bi-person-plus', 'action' => 'openForm']"
             :secondary="[
-                ['label' => 'Nuevo círculo', 'icon' => 'bi-plus-circle', 'action' => 'openCircleForm'],
-                ['label' => 'Nueva etiqueta', 'icon' => 'bi-tag', 'action' => 'openTagForm'],
+                ['label' => 'Agregar círculo', 'icon' => 'bi-plus-circle', 'action' => 'openCircleForm', 'create' => true],
+                ['label' => 'Agregar etiqueta', 'icon' => 'bi-tag', 'action' => 'openTagForm', 'create' => true],
             ]" />
     </x-slot:actions>
 
@@ -207,250 +203,108 @@
     </x-slot:rail>
 
     {{-- Circle dialog --}}
-    <template x-if="showCircleDialog">
-        <div>
-            <div class="md-dialog-scrim" @click="showCircleDialog = false"></div>
-            <div class="md-dialog" @click.stop>
-                <h2 class="md-dialog-headline md-headline-small">{{ $editingCircleId ? 'Editar' : 'Nuevo' }} círculo</h2>
-                <div class="md-dialog-content">
-                    <div class="d-flex flex-column gap-3">
-                        <div class="md-text-field">
-                            <input type="text" wire:model="circleName" placeholder=" " id="circle-name">
-                            <label for="circle-name">Nombre del círculo</label>
-                        </div>
-                        @error('circleName') <p class="md-body-small" style="color: var(--md-sys-color-error);">{{ $message }}</p> @enderror
-                        <div class="md-text-field">
-                            <input type="number" wire:model="circleFrequencyDays" placeholder=" " id="circle-freq" min="1">
-                            <label for="circle-freq">Frecuencia de contacto (días)</label>
-                        </div>
-                        @error('circleFrequencyDays') <p class="md-body-small" style="color: var(--md-sys-color-error);">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-                <div class="md-dialog-actions">
-                    <button @click="showCircleDialog = false" class="md-btn-text">Cancelar</button>
-                    <button wire:click="saveCircle" class="md-btn-filled"><i class="bi bi-check-lg"></i> Guardar</button>
-                </div>
-            </div>
+    <x-ui.form-dialog :open="$showCircleForm" close="$set('showCircleForm', false)" submit-action="saveCircle"
+                      :title="($editingCircleId ? 'Editar' : 'Agregar').' círculo'" icon="bi-plus-circle" id="relationship-circle-dialog">
+        <div class="d-flex flex-column gap-3">
+            <x-ui.field name="circleName" label="Nombre del círculo" :required="true" wire:model="circleName" />
+            <x-ui.field name="circleFrequencyDays" label="Frecuencia de contacto (días)" type="number" min="1" wire:model="circleFrequencyDays" />
         </div>
-    </template>
+    </x-ui.form-dialog>
 
     {{-- Tag dialog --}}
-    <template x-if="showTagDialog">
-        <div>
-            <div class="md-dialog-scrim" @click="showTagDialog = false"></div>
-            <div class="md-dialog" @click.stop>
-                <h2 class="md-dialog-headline md-headline-small">{{ $editingTagId ? 'Editar' : 'Nueva' }} etiqueta</h2>
-                <div class="md-dialog-content">
-                    <div class="md-text-field">
-                        <input type="text" wire:model="tagName" placeholder=" " id="tag-name">
-                        <label for="tag-name">Nombre de la etiqueta</label>
-                    </div>
-                    @error('tagName') <p class="md-body-small" style="color: var(--md-sys-color-error);">{{ $message }}</p> @enderror
-                </div>
-                <div class="md-dialog-actions">
-                    <button @click="showTagDialog = false" class="md-btn-text">Cancelar</button>
-                    <button wire:click="saveTag" class="md-btn-filled"><i class="bi bi-check-lg"></i> Guardar</button>
-                </div>
-            </div>
-        </div>
-    </template>
+    <x-ui.form-dialog :open="$showTagForm" close="$set('showTagForm', false)" submit-action="saveTag"
+                      :title="($editingTagId ? 'Editar' : 'Agregar').' etiqueta'" icon="bi-tag" id="relationship-tag-dialog">
+        <x-ui.field name="tagName" label="Nombre de la etiqueta" :required="true" wire:model="tagName" />
+    </x-ui.form-dialog>
 
     {{-- Person dialog --}}
-    <template x-if="showPersonDialog">
-        <div>
-            <div class="md-dialog-scrim" @click="showPersonDialog = false"></div>
-            <div class="md-dialog md-dialog--wide" @click.stop>
-                <h2 class="md-dialog-headline md-headline-small">{{ $editingId ? 'Editar' : 'Nueva' }} persona</h2>
-                <div class="md-dialog-content">
-                    <div class="d-flex flex-column gap-3">
-                        <div class="row g-3">
-                            <div class="col-12 col-sm-7">
-                                <div class="md-text-field">
-                                    <input type="text" wire:model="fullName" placeholder=" " id="rel-name">
-                                    <label for="rel-name">Nombre completo</label>
-                                </div>
-                                @error('fullName') <p class="md-body-small" style="color: var(--md-sys-color-error);">{{ $message }}</p> @enderror
-                            </div>
-                            <div class="col-12 col-sm-5">
-                                <div class="md-text-field">
-                                    <input type="text" wire:model="nickname" placeholder=" " id="rel-nick">
-                                    <label for="rel-nick">Apodo</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-12 col-sm-4">
-                                <div class="md-text-field">
-                                    <input type="text" wire:model="pronouns" placeholder=" " id="rel-pronouns">
-                                    <label for="rel-pronouns">Pronombres</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-4">
-                                <div class="md-text-field">
-                                    <input type="text" wire:model="occupation" placeholder=" " id="rel-occupation">
-                                    <label for="rel-occupation">Ocupación</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-4">
-                                <div class="md-text-field">
-                                    <input type="text" wire:model="organization" placeholder=" " id="rel-organization">
-                                    <label for="rel-organization">Organización</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-12 col-sm-8">
-                                <div class="md-text-field">
-                                    <input type="text" wire:model="address" placeholder=" " id="rel-address">
-                                    <label for="rel-address">Dirección</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-4">
-                                <div class="md-text-field">
-                                    <input type="text" wire:model="city" placeholder=" " id="rel-city">
-                                    <label for="rel-city">Ciudad</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-12 col-sm-5">
-                                <x-ui.select name="documentType" label="Tipo de documento" :options="\App\Models\Relationship::DOCUMENT_TYPES" :selected="$documentType" placeholder="Sin documento" icon="bi-person-vcard" wire:model="documentType" />
-                            </div>
-                            <div class="col-12 col-sm-7">
-                                <div class="md-text-field @error('documentNumber') md-error @enderror">
-                                    <input type="text" wire:model="documentNumber" placeholder=" " id="rel-document-number" autocomplete="off">
-                                    <label for="rel-document-number">Número de documento</label>
-                                    @error('documentNumber')<p class="md-supporting-text" role="alert">{{ $message }}</p>@enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="md-text-field">
-                                    <select wire:model="circleId" id="rel-circle-sel">
-                                        <option value="">Sin círculo</option>
-                                        @foreach ($circles as $circle)
-                                            <option value="{{ $circle->id }}">{{ $circle->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <label for="rel-circle-sel">Círculo</label>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="md-text-field">
-                                    <select wire:model="category" id="rel-cat">
-                                        @foreach ($categories as $key => $label)
-                                            <option value="{{ $key }}">{{ $label }}</option>
-                                        @endforeach
-                                        @unless (array_key_exists($category, $categories))
-                                            <option value="{{ $category }}">{{ ucfirst($category) }}</option>
-                                        @endunless
-                                    </select>
-                                    <label for="rel-cat">Categoría</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-4">
-                                <div class="md-text-field">
-                                    <select wire:model="birthdayMonth" id="rel-bm">
-                                        <option value="">-</option>
-                                        @foreach (['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'] as $index => $monthName)
-                                            <option value="{{ $index + 1 }}">{{ ucfirst($monthName) }}</option>
-                                        @endforeach
-                                    </select>
-                                    <label for="rel-bm">Mes de cumpleaños</label>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="md-text-field">
-                                    <input type="number" wire:model="birthdayDay" placeholder=" " id="rel-bd" min="1" max="31">
-                                    <label for="rel-bd">Día</label>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="md-text-field">
-                                    <input type="number" wire:model="birthdayYear" placeholder=" " id="rel-by" min="1900" max="{{ now()->year }}">
-                                    <label for="rel-by">Año (opcional)</label>
-                                </div>
-                            </div>
-                        </div>
-                        @error('birthdayDay') <p class="md-body-small" style="color: var(--md-sys-color-error);">{{ $message }}</p> @enderror
-                        @error('birthdayMonth') <p class="md-body-small" style="color: var(--md-sys-color-error);">{{ $message }}</p> @enderror
-                        @error('birthdayYear') <p class="md-body-small" style="color: var(--md-sys-color-error);">{{ $message }}</p> @enderror
-
-                        <div class="md-text-field">
-                            <input type="number" wire:model="contactFrequencyDays" placeholder=" " id="rel-freq" min="1">
-                            <label for="rel-freq">Frecuencia de contacto propia (días)</label>
-                        </div>
-
-                        @if ($tags->isNotEmpty())
-                            <fieldset class="md-relationship-tagset">
-                                <legend class="md-label-medium">Etiquetas</legend>
-                                <div class="d-flex flex-wrap gap-2">
-                                    @foreach ($tags as $tag)
-                                        <label class="md-chip md-chip-filter {{ in_array($tag->id, $selectedTags, true) ? 'selected' : '' }}">
-                                            <input type="checkbox" class="md-visually-hidden" value="{{ $tag->id }}" wire:model.live="selectedTags">
-                                            {{ $tag->name }}
-                                        </label>
-                                    @endforeach
-                                </div>
-                            </fieldset>
-                        @endif
-
-                        <fieldset class="md-relationship-contacts">
-                            <legend class="md-label-medium">Medios de contacto</legend>
-                            @foreach ($contactMethods as $index => $method)
-                                <div class="md-relationship-contacts__row" wire:key="contact-{{ $index }}">
-                                    <div class="md-text-field">
-                                        <select wire:model="contactMethods.{{ $index }}.type" id="contact-type-{{ $index }}">
-                                            @foreach (\App\Models\RelationshipContactMethod::TYPES as $key => $label)
-                                                <option value="{{ $key }}">{{ $label }}</option>
-                                            @endforeach
-                                        </select>
-                                        <label for="contact-type-{{ $index }}">Tipo</label>
-                                    </div>
-                                    <div class="md-text-field">
-                                        <input type="text" wire:model="contactMethods.{{ $index }}.label" placeholder=" " id="contact-label-{{ $index }}">
-                                        <label for="contact-label-{{ $index }}">Etiqueta</label>
-                                    </div>
-                                    <div class="md-text-field">
-                                        <input type="text" wire:model="contactMethods.{{ $index }}.value" placeholder=" " id="contact-value-{{ $index }}">
-                                        <label for="contact-value-{{ $index }}">Valor</label>
-                                    </div>
-                                    <label class="md-relationship-contacts__primary">
-                                        <input type="checkbox" wire:model="contactMethods.{{ $index }}.is_primary">
-                                        <span class="md-label-small">Principal</span>
-                                    </label>
-                                    <button type="button" wire:click="removeContactMethod({{ $index }})" class="md-btn-icon"
-                                            title="Quitar medio" style="color: var(--md-sys-color-error);">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                </div>
-                            @endforeach
-                            <button type="button" wire:click="addContactMethod" class="md-btn-text mt-1">
-                                <i class="bi bi-plus-lg"></i> Agregar medio de contacto
-                            </button>
-                        </fieldset>
-
-                        <div class="md-text-field">
-                            <textarea wire:model="generalNotes" placeholder=" " id="rel-notes" rows="3"></textarea>
-                            <label for="rel-notes">Notas generales</label>
-                        </div>
-                    </div>
+    <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save"
+                      :title="($editingId ? 'Editar' : 'Agregar').' persona'" icon="bi-person-plus" id="relationship-person-dialog"
+                      :sections="[
+                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-person', 'error' => $errors->hasAny(['fullName', 'birthdayDay', 'birthdayMonth', 'birthdayYear'])],
+                          'contact' => ['label' => 'Contacto', 'icon' => 'bi-telephone', 'error' => $errors->has('documentNumber')],
+                          'details' => ['label' => 'Detalles adicionales', 'icon' => 'bi-card-text'],
+                      ]">
+        <x-ui.form-dialog-section name="basic" title="Información básica">
+            <div class="d-flex flex-column gap-3">
+                <div class="md-field-pair">
+                    <x-ui.field name="fullName" label="Nombre completo" :required="true" wire:model="fullName" />
+                    <x-ui.field name="nickname" label="Apodo" wire:model="nickname" />
                 </div>
-                <div class="md-dialog-actions">
-                    <button wire:click="closeForm" class="md-btn-text">Cancelar</button>
-                    <button wire:click="save" class="md-btn-filled">
-                        <i class="bi bi-check-lg"></i> {{ $editingId ? 'Actualizar' : 'Guardar' }}
-                    </button>
+                <div class="md-field-pair">
+                    <x-ui.select name="circleId" label="Círculo" placeholder="Sin círculo" :options="$circles->pluck('name', 'id')->all()" :selected="$circleId" wire:model="circleId" />
+                    <x-ui.select name="category" label="Categoría"
+                                 :options="array_key_exists($category, $categories) ? $categories : $categories + [$category => ucfirst($category)]"
+                                 :selected="$category" wire:model="category" />
+                </div>
+                <div class="md-field-trio">
+                    <x-ui.select name="birthdayMonth" label="Mes de cumpleaños" placeholder="-" :selected="$birthdayMonth" wire:model="birthdayMonth"
+                                 :options="collect(['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'])->mapWithKeys(fn ($month, $index) => [$index + 1 => ucfirst($month)])->all()" />
+                    <x-ui.field name="birthdayDay" label="Día" type="number" min="1" max="31" wire:model="birthdayDay" />
+                    <x-ui.field name="birthdayYear" label="Año (opcional)" type="number" min="1900" max="{{ now()->year }}" wire:model="birthdayYear" />
+                </div>
+                <div class="md-field-trio">
+                    <x-ui.field name="pronouns" label="Pronombres" wire:model="pronouns" />
+                    <x-ui.field name="occupation" label="Ocupación" wire:model="occupation" />
+                    <x-ui.field name="organization" label="Organización" wire:model="organization" />
                 </div>
             </div>
-        </div>
-    </template>
+        </x-ui.form-dialog-section>
+
+        <x-ui.form-dialog-section name="contact" title="Contacto" description="Medios de contacto, ubicación y documento.">
+            <div class="d-flex flex-column gap-3">
+                <fieldset class="md-relationship-contacts">
+                    <legend class="md-label-medium">Medios de contacto</legend>
+                    @foreach ($contactMethods as $index => $method)
+                        <div class="md-relationship-contacts__row" wire:key="contact-{{ $index }}">
+                            <x-ui.select name="contactMethods.{{ $index }}.type" label="Tipo" id="contact-type-{{ $index }}"
+                                         :options="\App\Models\RelationshipContactMethod::TYPES" :selected="$method['type'] ?? null"
+                                         wire:model="contactMethods.{{ $index }}.type" />
+                            <x-ui.field name="contactMethods.{{ $index }}.label" label="Etiqueta" id="contact-label-{{ $index }}" wire:model="contactMethods.{{ $index }}.label" />
+                            <x-ui.field name="contactMethods.{{ $index }}.value" label="Valor" id="contact-value-{{ $index }}" wire:model="contactMethods.{{ $index }}.value" />
+                            <label class="md-relationship-contacts__primary">
+                                <input type="checkbox" wire:model="contactMethods.{{ $index }}.is_primary">
+                                <span class="md-label-small">Principal</span>
+                            </label>
+                            <button type="button" wire:click="removeContactMethod({{ $index }})" class="md-btn-icon md-btn-danger"
+                                    aria-label="Quitar medio" title="Quitar medio">
+                                <i class="bi bi-x-lg" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    @endforeach
+                    <button type="button" wire:click="addContactMethod" class="md-btn-text mt-1">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar medio de contacto
+                    </button>
+                </fieldset>
+                <div class="md-field-pair">
+                    <x-ui.field name="address" label="Dirección" wire:model="address" />
+                    <x-ui.field name="city" label="Ciudad" wire:model="city" />
+                </div>
+                <div class="md-field-pair">
+                    <x-ui.select name="documentType" label="Tipo de documento" :options="\App\Models\Relationship::DOCUMENT_TYPES" :selected="$documentType" placeholder="Sin documento" icon="bi-person-vcard" wire:model="documentType" />
+                    <x-ui.field name="documentNumber" label="Número de documento" autocomplete="off" wire:model="documentNumber" />
+                </div>
+                <x-ui.field name="contactFrequencyDays" label="Frecuencia de contacto propia (días)" type="number" min="1" wire:model="contactFrequencyDays" />
+            </div>
+        </x-ui.form-dialog-section>
+
+        <x-ui.form-dialog-section name="details" title="Detalles adicionales">
+            <div class="d-flex flex-column gap-3">
+                @if ($tags->isNotEmpty())
+                    <fieldset class="md-relationship-tagset">
+                        <legend class="md-label-medium">Etiquetas</legend>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach ($tags as $tag)
+                                <label class="md-chip md-chip-filter {{ in_array($tag->id, $selectedTags, true) ? 'selected' : '' }}">
+                                    <input type="checkbox" class="md-visually-hidden" value="{{ $tag->id }}" wire:model.live="selectedTags">
+                                    {{ $tag->name }}
+                                </label>
+                            @endforeach
+                        </div>
+                    </fieldset>
+                @endif
+                <x-ui.textarea name="generalNotes" label="Notas generales" rows="4" wire:model="generalNotes" />
+            </div>
+        </x-ui.form-dialog-section>
+    </x-ui.form-dialog>
 </x-module-shell>

@@ -1,14 +1,10 @@
 <x-module-shell module="relationships" :title="$relationship->full_name"
-                subtitle="Perfil, cronología y pendientes de esta relación."
-                x-data="{
-                    showEventDialog: $wire.entangle('showEventForm'),
-                    showTaskDialog: $wire.entangle('showTaskForm'),
-                }">
+                subtitle="Perfil, cronología y pendientes de esta relación.">
     <x-slot:actions>
         <x-module-actions
-            :primary="['label' => 'Nuevo acontecimiento', 'icon' => 'bi-calendar-plus', 'action' => 'openEventForm']"
+            :primary="['label' => 'Registrar acontecimiento', 'icon' => 'bi-calendar-plus', 'action' => 'openEventForm']"
             :secondary="[
-                ['label' => 'Nueva tarea', 'icon' => 'bi-check2-square', 'action' => 'openTaskForm'],
+                ['label' => 'Agregar tarea', 'icon' => 'bi-check2-square', 'action' => 'openTaskForm', 'create' => true],
                 ['label' => 'Marcar contacto', 'icon' => 'bi-chat-dots', 'action' => 'markContact'],
                 ['label' => $relationship->is_archived ? 'Desarchivar' : 'Archivar', 'icon' => 'bi-archive', 'action' => 'toggleArchive'],
             ]" />
@@ -332,160 +328,63 @@
     </x-slot:rail>
 
     {{-- Event dialog --}}
-    <template x-if="showEventDialog">
-        <div>
-            <div class="md-dialog-scrim" @click="showEventDialog = false"></div>
-            <div class="md-dialog md-dialog--wide" @click.stop>
-                <h2 class="md-dialog-headline md-headline-small">{{ $editingEventId ? 'Editar' : 'Nuevo' }} acontecimiento</h2>
-                <div class="md-dialog-content">
-                    <div class="d-flex flex-column gap-3">
-                        <div class="md-text-field">
-                            <input type="text" wire:model="eventTitle" placeholder=" " id="event-title">
-                            <label for="event-title">Título</label>
-                        </div>
-                        @error('eventTitle') <p class="md-body-small" style="color: var(--md-sys-color-error);">{{ $message }}</p> @enderror
-
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="md-text-field">
-                                    <select wire:model="eventCategory" id="event-category">
-                                        @foreach (\App\Models\RelationshipEvent::CATEGORIES as $key => $label)
-                                            <option value="{{ $key }}">{{ $label }}</option>
-                                        @endforeach
-                                    </select>
-                                    <label for="event-category">Categoría</label>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="md-text-field">
-                                    <select wire:model.live="eventPrecision" id="event-precision">
-                                        @foreach (\App\Support\EventDate::PRECISIONS as $key => $label)
-                                            <option value="{{ $key }}">{{ $label }}</option>
-                                        @endforeach
-                                    </select>
-                                    <label for="event-precision">Precisión de la fecha</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        @if ($eventPrecision === \App\Support\EventDate::DAY)
-                            <div class="md-text-field">
-                                <input type="date" wire:model="eventDate" placeholder=" " id="event-date">
-                                <label for="event-date">Fecha</label>
-                            </div>
-                        @elseif ($eventPrecision === \App\Support\EventDate::MONTH)
-                            <div class="row g-3">
-                                <div class="col-6">
-                                    <div class="md-text-field">
-                                        <select wire:model="eventMonth" id="event-month">
-                                            @foreach (['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'] as $index => $monthName)
-                                                <option value="{{ $index + 1 }}">{{ ucfirst($monthName) }}</option>
-                                            @endforeach
-                                        </select>
-                                        <label for="event-month">Mes</label>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="md-text-field">
-                                        <input type="number" wire:model="eventYear" placeholder=" " id="event-month-year">
-                                        <label for="event-month-year">Año</label>
-                                    </div>
-                                </div>
-                            </div>
-                        @elseif ($eventPrecision === \App\Support\EventDate::YEAR)
-                            <div class="md-text-field">
-                                <input type="number" wire:model="eventYear" placeholder=" " id="event-year">
-                                <label for="event-year">Año</label>
-                            </div>
-                        @else
-                            <div class="row g-3">
-                                <div class="col-6">
-                                    <div class="md-text-field">
-                                        <input type="date" wire:model="eventStartsOn" placeholder=" " id="event-starts-on">
-                                        <label for="event-starts-on">Desde</label>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="md-text-field">
-                                        <input type="date" wire:model="eventEndsOn" placeholder=" " id="event-ends-on">
-                                        <label for="event-ends-on">Hasta</label>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                        @error('eventPrecision') <p class="md-body-small" style="color: var(--md-sys-color-error);">{{ $message }}</p> @enderror
-
-                        <div class="md-text-field">
-                            <textarea wire:model="eventNotes" placeholder=" " id="event-notes" rows="3"></textarea>
-                            <label for="event-notes">Notas</label>
-                        </div>
-
-                        <label class="md-relationship-sensitive">
-                            <input type="checkbox" wire:model="eventIsSensitive" id="event-sensitive">
-                            <span class="md-body-small">Marcar como sensible (no aparecerá en vistas globales ni resúmenes)</span>
-                        </label>
+    <x-ui.form-dialog :open="$showEventForm" close="$set('showEventForm', false)" submit-action="saveEvent"
+                      :title="($editingEventId ? 'Editar' : 'Registrar').' acontecimiento'" icon="bi-calendar-plus" id="relationship-event-dialog"
+                      :sections="[
+                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-calendar-event', 'error' => $errors->hasAny(['eventTitle', 'eventPrecision'])],
+                          'details' => ['label' => 'Detalles adicionales', 'icon' => 'bi-card-text'],
+                      ]">
+        <x-ui.form-dialog-section name="basic" title="Información básica">
+            <div class="d-flex flex-column gap-3">
+                <x-ui.field name="eventTitle" label="Título" :required="true" wire:model="eventTitle" />
+                <div class="md-field-pair">
+                    <x-ui.select name="eventCategory" label="Categoría" :options="\App\Models\RelationshipEvent::CATEGORIES" :selected="$eventCategory" wire:model="eventCategory" />
+                    <x-ui.select name="eventPrecision" label="Precisión de la fecha" :options="\App\Support\EventDate::PRECISIONS" :selected="$eventPrecision" wire:model.live="eventPrecision" />
+                </div>
+                @if ($eventPrecision === \App\Support\EventDate::DAY)
+                    <x-ui.field name="eventDate" label="Fecha" type="date" wire:model="eventDate" />
+                @elseif ($eventPrecision === \App\Support\EventDate::MONTH)
+                    <div class="md-field-pair">
+                        <x-ui.select name="eventMonth" label="Mes" :selected="$eventMonth" wire:model="eventMonth"
+                                     :options="collect(['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'])->mapWithKeys(fn ($month, $index) => [$index + 1 => ucfirst($month)])->all()" />
+                        <x-ui.field name="eventYear" label="Año" type="number" id="event-month-year" wire:model="eventYear" />
                     </div>
-                </div>
-                <div class="md-dialog-actions">
-                    <button @click="showEventDialog = false" class="md-btn-text">Cancelar</button>
-                    <button wire:click="saveEvent" class="md-btn-filled">
-                        <i class="bi bi-check-lg"></i> {{ $editingEventId ? 'Actualizar' : 'Guardar' }}
-                    </button>
-                </div>
+                @elseif ($eventPrecision === \App\Support\EventDate::YEAR)
+                    <x-ui.field name="eventYear" label="Año" type="number" wire:model="eventYear" />
+                @else
+                    <div class="md-field-pair">
+                        <x-ui.field name="eventStartsOn" label="Desde" type="date" wire:model="eventStartsOn" />
+                        <x-ui.field name="eventEndsOn" label="Hasta" type="date" wire:model="eventEndsOn" />
+                    </div>
+                @endif
             </div>
-        </div>
-    </template>
+        </x-ui.form-dialog-section>
+
+        <x-ui.form-dialog-section name="details" title="Detalles adicionales">
+            <div class="d-flex flex-column gap-3">
+                <x-ui.textarea name="eventNotes" label="Notas" rows="4" wire:model="eventNotes" />
+                <label class="md-relationship-sensitive">
+                    <input type="checkbox" wire:model="eventIsSensitive" id="event-sensitive">
+                    <span class="md-body-small">Marcar como sensible (no aparecerá en vistas globales ni resúmenes)</span>
+                </label>
+            </div>
+        </x-ui.form-dialog-section>
+    </x-ui.form-dialog>
 
     {{-- Task dialog --}}
-    <template x-if="showTaskDialog">
-        <div>
-            <div class="md-dialog-scrim" @click="showTaskDialog = false"></div>
-            <div class="md-dialog" @click.stop>
-                <h2 class="md-dialog-headline md-headline-small">Nueva tarea asociada</h2>
-                <div class="md-dialog-content">
-                    <div class="d-flex flex-column gap-3">
-                        <div class="md-text-field">
-                            <input type="text" wire:model="taskTitle" placeholder=" " id="task-title">
-                            <label for="task-title">Título</label>
-                        </div>
-                        @error('taskTitle') <p class="md-body-small" style="color: var(--md-sys-color-error);">{{ $message }}</p> @enderror
-
-                        <div class="md-text-field">
-                            <textarea wire:model="taskDescription" placeholder=" " id="task-description" rows="3"></textarea>
-                            <label for="task-description">Descripción</label>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="md-text-field">
-                                    <select wire:model="taskPriority" id="task-priority">
-                                        <option value="">Sin prioridad</option>
-                                        @foreach ($priorities as $key => $label)
-                                            <option value="{{ $key }}">{{ $label }}</option>
-                                        @endforeach
-                                    </select>
-                                    <label for="task-priority">Prioridad</label>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="md-text-field">
-                                    <input type="date" wire:model="taskDueDate" placeholder=" " id="task-due-date">
-                                    <label for="task-due-date">Vencimiento</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <label class="md-relationship-sensitive">
-                            <input type="checkbox" wire:model="taskIsPrivate" id="task-private">
-                            <span class="md-body-small">Tarea privada</span>
-                        </label>
-                    </div>
-                </div>
-                <div class="md-dialog-actions">
-                    <button @click="showTaskDialog = false" class="md-btn-text">Cancelar</button>
-                    <button wire:click="saveTask" class="md-btn-filled"><i class="bi bi-check-lg"></i> Crear tarea</button>
-                </div>
+    <x-ui.form-dialog :open="$showTaskForm" close="$set('showTaskForm', false)" submit-action="saveTask"
+                      title="Agregar tarea asociada" icon="bi-check2-square" id="relationship-task-dialog">
+        <div class="d-flex flex-column gap-3">
+            <x-ui.field name="taskTitle" label="Título" :required="true" wire:model="taskTitle" />
+            <x-ui.textarea name="taskDescription" label="Descripción" rows="3" wire:model="taskDescription" />
+            <div class="md-field-pair">
+                <x-ui.select name="taskPriority" label="Prioridad" placeholder="Sin prioridad" :options="$priorities" :selected="$taskPriority" wire:model="taskPriority" />
+                <x-ui.field name="taskDueDate" label="Vencimiento" type="date" wire:model="taskDueDate" />
             </div>
+            <label class="md-relationship-sensitive">
+                <input type="checkbox" wire:model="taskIsPrivate" id="task-private">
+                <span class="md-body-small">Tarea privada</span>
+            </label>
         </div>
-    </template>
+    </x-ui.form-dialog>
 </x-module-shell>

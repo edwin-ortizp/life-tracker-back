@@ -1,4 +1,5 @@
-{% from '@project/components/vehicle-dialogs.html.jinja' import maintenance_dialog %}
+{% from '@project/components/vehicle-dialogs.html.jinja' import maintenance_dialog, dialog %}
+{% from '@project/components/life-shell.html.jinja' import fab %}
 {% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs, tabs as module_tabs, header, metric %}
 {% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
 {{ vehicle_tabs('/vehicles-maintenance') }}
@@ -17,6 +18,6 @@
     </div>
   </div></article>
 </section>
-<button class="lt-fab" type="button" data-lt-toggle="vehicle-maintenance-new" aria-haspopup="dialog" aria-label="Registrar mantenimiento"><i class="bi bi-plus-lg"></i><span>Registrar mantenimiento</span></button>
+{{ fab('Registrar mantenimiento', 'bi-plus-lg', 'vehicle-maintenance-new') }}
 {{ maintenance_dialog() }}
 {% endcall %}

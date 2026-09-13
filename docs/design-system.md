@@ -104,13 +104,30 @@ Los valores calculados que no pueden expresarse con variantes discretas se trans
 - `php artisan ui:conformance --update-baseline` regenera el inventario; solo debe reducirlo.
 - Las excepciones duraderas se declaran en `config/ui-conformance.php` con motivo y alcance, nunca como comentarios dispersos.
 
+## Sin banner de módulo
+
+Las pantallas no llevan banner (`md-module-header`). La identidad vive en la barra superior (`x-module-shell` envía el `title` de detalle, como el nombre de una persona, a esa barra) y el `<h1>` queda oculto para lectores de pantalla. Las acciones de crear son el FAB, las secundarias van al menú ⋮ y la navegación temporal o los filtros de período van en el slot `controls`, nunca en `actions`.
+
+## Acciones de creación
+
+Regla transversal y obligatoria para producción y mockups: **toda acción cuyo fin principal sea crear, registrar o agregar un elemento es un FAB, y el FAB abre el modal de formulario estándar sobre la pantalla actual.**
+
+- **Componente único**: `x-ui.fab` (o `x-module-actions`, que lo renderiza como acción `primary`). En mockups, la macro `fab()` de `life-shell.html.jinja`. Posición, espaciado, tamaño, estados y responsive viven solo ahí; ningún módulo los redefine.
+- **Escritorio**: FAB extendido, rectángulo redondeado con ícono y texto de la acción en infinitivo + objeto: «Registrar evento», «Agregar objetivo», «Crear receta».
+- **Móvil (< 768 px)**: solo ícono, con `aria-label` igual al texto; se sitúa por encima de la barra inferior.
+- **Varias opciones**: las creaciones alternativas del mismo contexto se despliegan desde el FAB (menú FAB) con el mismo patrón visual. En `x-module-actions`, marca la secundaria con `'create' => true`; en `x-ui.fab`, pásalas en `actions`. Las acciones que no crean (archivar, navegar, configurar) van al menú ⋮.
+- **Jerarquía**: se teletransporta a `<body>` con `--md-sys-z-fab-floating`; queda sobre acordeones, menús, ⋮ y paneles, bajo los diálogos, y se oculta mientras hay un modal abierto.
+- **Estados**: hover, foco visible, presionado y deshabilitado vienen del componente.
+- **Destino**: al activarse abre `x-ui.form-dialog` (ver abajo) sin navegar a otra vista. Editar un elemento reutiliza el mismo modal.
+- **No permitido**: botones `filled`/`tonal`/`outlined` sueltos en el encabezado o en secciones para crear, `x-ui.dialog` o `md-dialog` artesanales para formularios de alta, y páginas dedicadas de creación. Los estados vacíos pueden repetir la acción como recuperación. `php artisan ui:conformance` lo vigila con la regla `create-action-pattern`.
+
 ## Modales con formulario
 
 Componente: `x-ui.form-dialog` con `x-ui.form-dialog-section`. Campos: `x-ui.field`, `x-ui.select`, `x-ui.textarea` y `x-ui.multi-select`, todos con prop `icon` opcional.
 
-En los editores aislados de Salud y Tareas, la visibilidad y los borradores se controlan en Alpine (`ltFormEditor`): abrir o cerrar no requiere una petición. `x-ui.form-dialog` admite `state` y `title-expression`; el modo existente con `open` sigue disponible para los demás módulos. La edición muestra primero la superficie con carga/error y obtiene el registro en el componente hijo; guardar valida en el servidor y notifica a la lista. Usa `wire:model` para campos sin dependencias de servidor. `x-ui.multi-select` admite `live="false"` para diferir sincronización y `model-expression` para un borrador Alpine que solo se envía al aplicar filtros. Los campos admiten `label-expression` cuando su etiqueta depende de ese estado local. Consulta [el diagnóstico y las mediciones](performance.md) antes de extender este patrón a otro módulo.
+En los editores aislados de Salud y Tareas, la visibilidad y los borradores se controlan en Alpine (`ltFormEditor`): abrir o cerrar no requiere una petición. `x-ui.form-dialog` admite `state` y `title-expression`; el modo existente con `open` sigue disponible para los demás módulos. La edición muestra primero la superficie con carga/error y obtiene el registro en el componente hijo; guardar valida en el servidor y notifica a la lista. Usa `wire:model` para campos sin dependencias de servidor. `x-ui.multi-select` admite `:live="false"` para diferir sincronización y `model-expression` para un borrador Alpine que solo se envía al aplicar filtros. El formulario admite `validation-state="submitted"` para reiniciar visualmente los errores de un borrador sin otra petición. Los campos admiten `label-expression` cuando su etiqueta depende de ese estado local. Consulta [el diagnóstico y las mediciones](performance.md) antes de extender este patrón a otro módulo.
 
-Patrón común para todo modal que crea o edita información.
+Patrón común y obligatorio para todo modal que crea o edita información, y destino de todo FAB de creación. Usa secciones cuando el formulario tiene más de un grupo de campos.
 
 - **Cabecera** separada del contenido por una línea divisoria. En orden: control del panel de secciones (solo si hay secciones), ícono de contexto, título, acción expandir/restaurar y cerrar. El título nunca se oculta.
 - **Panel de secciones** a la izquierda para formularios largos (por ejemplo: Información básica, Detalles adicionales, Archivos y adjuntos, Resumen). Es un menú, no un wizard: se entra a cualquier sección sin completar la anterior, sin números, progreso ni subtítulos. Es colapsable; al contraerlo solo desaparece la navegación y el formulario gana ancho. En móvil arranca contraído y se superpone.
@@ -134,7 +151,7 @@ Base visual de **todos** los formularios, no solo de los modales:
 - **Más opciones (⋮)**: `x-ui.menu` con `x-ui.menu-item` y `x-ui.menu-divider`. La acción principal queda visible (tonal o filled) y las secundarias van al menú, con las destructivas al final tras un divisor y `tone="danger"`. Nunca un grupo de botones grandes sueltos.
 - **Filtros**: un único botón "Filtros" (outlined) que abre `x-ui.popover` con todas las opciones, incluido el rango de tiempo; no se duplica el concepto con un selector aparte. Con filtros activos el botón lleva `x-ui.badge placement="corner"` con el número. Debajo se listan como chips removibles y, si hay al menos uno, el enlace "Limpiar filtros".
 - **Opciones simples y múltiples**: `x-ui.select` para una opción, `x-ui.multi-select` (checkboxes) para varias.
-- **Botón flotante**: la acción de crear del módulo es un FAB extendido (`x-module-actions` con `fab-always`), solo icono en móvil y por encima de la barra inferior.
+- **Botón flotante**: ver [Acciones de creación](#acciones-de-creación).
 - **Pestañas de módulo**: sin fondo ni pastilla; el estado activo es el color de acento con un indicador inferior de 3 px.
 
 ## Definición de terminado para una superficie nueva

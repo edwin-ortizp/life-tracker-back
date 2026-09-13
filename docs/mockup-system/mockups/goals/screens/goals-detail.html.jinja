@@ -1,7 +1,20 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog, fab %}
 {% call shell('goals', 'Detalle de objetivo', 'bi-bullseye') %}
 {{ header('Detalle de objetivo', 'Progreso, hitos y acciones de seguimiento.', 'bi-bullseye', '/goals-index') }}
 {{ module_tabs([('Objetivos','/goals-index','bi-flag'),('Detalle','/goals-detail','bi-bullseye')], '/goals-detail') }}
 <section class="lt-metrics">{{ metric('Avance','68 %','success') }}{{ metric('Próximo hito','8 km') }}{{ metric('Fecha objetivo','12 oct') }}</section>
-<section class="lt-grid-2"><article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-bullseye"></i><h3>Correr 10K</h3><small>En progreso</small></div><div class="lt-panel__body"><div class="lt-progress"><span style="width:68%"></span></div><p class="lt-page-head__subtitle">Construir resistencia para completar una carrera de 10 kilómetros.</p><div class="lt-route-links"><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Registrar avance</button></div></div></article><article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-signpost-split"></i><h3>Hitos</h3></div><div class="lt-panel__body"><div class="lt-list"><div class="lt-list-item"><span class="lt-check is-done">✓</span><div class="lt-list-item__body"><strong>Completar 5 km</strong><span>Alcanzado el 2 sep.</span></div></div><div class="lt-list-item"><span class="lt-check"></span><div class="lt-list-item__body"><strong>Completar 8 km</strong><span>Próximo hito</span></div></div></div></div></article></section>
+<section class="lt-grid-2"><article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-bullseye"></i><h3>Correr 10K</h3><small>En progreso</small></div><div class="lt-panel__body"><div class="lt-progress"><span style="width:68%"></span></div><p class="lt-page-head__subtitle">Construir resistencia para completar una carrera de 10 kilómetros.</p></div></article><article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-signpost-split"></i><h3>Hitos</h3></div><div class="lt-panel__body"><div class="lt-list"><div class="lt-list-item"><span class="lt-check is-done">✓</span><div class="lt-list-item__body"><strong>Completar 5 km</strong><span>Alcanzado el 2 sep.</span></div></div><div class="lt-list-item"><span class="lt-check"></span><div class="lt-list-item__body"><strong>Completar 8 km</strong><span>Próximo hito</span></div></div></div></div></article></section>
+{{ fab('Agregar tarea', 'bi-check2-square', 'goal-task-new', [('Registrar avance', 'bi-journal-plus', 'goal-entry-new'), ('Registrar medición', 'bi-graph-up-arrow', 'goal-numeric-new')]) }}
+{% call dialog('goal-task-new', 'Agregar tarea relacionada', submit='Crear y vincular', icon='bi-check2-square', sections=[('basic','Información básica','bi-check2-square'),('details','Detalles adicionales','bi-sliders')]) %}
+<section class="lt-dialog__section" data-section="basic">
+  <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Título *</span><input type="text" placeholder=""></label><label class="lt-field lt-form--full"><span>Descripción</span><textarea></textarea></label><label class="lt-field "><span>Fecha límite</span><input type="date"></label></div>
+</section>
+<section class="lt-dialog__section" data-section="details" hidden>
+  <header class="lt-dialog__section-head"><h3>Detalles adicionales</h3></header>
+  <div class="lt-form"><label class="lt-field "><span>Prioridad</span><select><option>Media</option><option>Alta</option></select></label><label class="lt-field "><span>Tamaño</span><select><option>M</option><option>S</option><option>L</option></select></label></div>
+</section>
+{% endcall %}
+{% call dialog('goal-entry-new', 'Registrar avance', icon='bi-journal-plus') %}<div class="lt-form"><label class="lt-field lt-form--full"><span>¿Qué avanzaste? *</span><textarea></textarea></label><label class="lt-field "><span>Fecha</span><input type="date"></label></div>{% endcall %}
+{% call dialog('goal-numeric-new', 'Registrar medición', icon='bi-graph-up-arrow') %}<div class="lt-form"><label class="lt-field "><span>Valor (km) *</span><input type="number" value="8"></label><label class="lt-field "><span>Fecha</span><input type="date"></label></div>{% endcall %}
 {% endcall %}

@@ -67,6 +67,10 @@ class ProtectedScreenContractTest extends TestCase
                 $problems[] = "{$url}: no usa el shell compartido";
             }
 
+            if (str_contains($html, 'md-module-header')) {
+                $problems[] = "{$url}: no debe renderizar el banner del módulo";
+            }
+
             if (substr_count($html, '<h1') !== 1) {
                 $problems[] = "{$url}: debe renderizar exactamente un encabezado de módulo";
             }
@@ -103,12 +107,14 @@ class ProtectedScreenContractTest extends TestCase
 
             $html = $response->getContent();
 
-            if (! preg_match('/data-region="actions"(.*?)<\/header>/s', $html, $matches)) {
+            if (! preg_match('/data-region="actions"(.*?)data-region="(?:navigation|controls|content)"/s', $html, $matches)) {
                 continue;
             }
 
             // El espejo móvil repite la acción principal; solo una es visible a la vez.
-            $desktop = explode('md-responsive-actions__mobile', $matches[1])[0];
+            // Los diálogos teletransportados se renderizan en su sitio como <template>; no son acciones de la pantalla.
+            $region = preg_replace('/<template x-teleport.*?<\/template>/s', '', $matches[1]);
+            $desktop = explode('md-responsive-actions__mobile', $region)[0];
             $dominant = substr_count($desktop, 'md-btn-filled');
 
             if ($dominant > 1) {

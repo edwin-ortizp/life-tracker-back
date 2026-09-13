@@ -1,7 +1,7 @@
 <x-module-shell module="negative-habits" x-data="{ showLogDialog: $wire.entangle('showLogForm') }">
-    <x-slot:actions>
+    <x-slot:controls>
         <div class="md-date-navigator"><button wire:click="previousWeek" class="md-btn-icon" aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><button wire:click="thisWeek" class="md-date-navigator__today">Esta semana</button><span class="md-date-navigator__label">{{ $weekStart->format('d M') }} – {{ $weekEnd->format('d M') }}</span><button wire:click="nextWeek" class="md-btn-icon" aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button></div>
-    </x-slot:actions>
+    </x-slot:controls>
 
     {{-- Weekly Summary --}}
     <div class="md-card-filled text-center mb-3" style="padding: 20px;">

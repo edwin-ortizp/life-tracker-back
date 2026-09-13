@@ -1,6 +1,7 @@
 @props([
     'open' => false,
     'state' => null,
+    'validationState' => null,
     'titleExpression' => null,
     'close',
     'title',
@@ -34,7 +35,7 @@
     @teleport('body')
         <div class="md-form-dialog-layer" data-module="{{ $moduleKey }}"
              @if($state) x-show="{{ $state }}" x-cloak :class="{'lt-editor-pristine': !submitted}" @endif
-             x-data="{ section: @js($firstSection), navCollapsed: window.matchMedia('(max-width: 767.98px)').matches, expanded: false }" @if($state) x-effect="if ({{ $state }}) { section = @js($firstSection); expanded = false }" @endif>
+             x-data="{ section: @js($firstSection), navCollapsed: window.matchMedia('(max-width: 767.98px)').matches, expanded: false }" @if($state) x-effect="if ({{ $state }}) { section = @js($firstSection); expanded = false; navCollapsed = window.matchMedia('(max-width: 767.98px)').matches }" @endif>
             <div class="md-dialog-scrim" @if($state) x-on:click="closeEditor()" @else wire:click="{{ $close }}" @endif></div>
             <section {{ $attributes->class(['md-form-dialog', 'md-form-dialog--sections' => $sections !== []]) }}
                      :class="{ 'is-expanded': expanded, 'is-nav-collapsed': navCollapsed }"

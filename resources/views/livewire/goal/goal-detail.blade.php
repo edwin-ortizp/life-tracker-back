@@ -1,10 +1,11 @@
 <x-module-shell module="goals">
     <x-slot:actions>
-        <x-module-actions :primary="['label' => 'Nueva tarea', 'icon' => 'bi-plus-lg', 'action' => 'openTaskForm']" :secondary="[
-            ['label' => 'Registrar avance', 'icon' => 'bi-journal-plus', 'action' => 'openEntryForm'],
+        <x-module-actions :primary="['label' => 'Agregar tarea', 'icon' => 'bi-check2-square', 'action' => 'openTaskForm']" :secondary="array_values(array_filter([
+            ['label' => 'Registrar avance', 'icon' => 'bi-journal-plus', 'action' => 'openEntryForm', 'create' => true],
+            $kpi ? ['label' => 'Registrar medición', 'icon' => 'bi-graph-up-arrow', 'action' => 'openNumericForm', 'create' => true] : null,
             ['label' => 'Editar objetivo', 'icon' => 'bi-pencil', 'action' => 'openGoalForm'],
             ['label' => 'Volver a objetivos', 'icon' => 'bi-arrow-left', 'href' => route('goals')],
-        ]" />
+        ]))" />
     </x-slot:actions>
 
     <div class="goal-detail">
@@ -38,7 +39,7 @@
                     <section class="goal-kpi-card md-card-outlined">
                         <div class="goal-section-heading">
                             <div><span class="goal-section-heading__eyebrow">KPI principal</span><h2>{{ $kpi['name'] }}</h2></div>
-                            <button wire:click="openNumericForm" class="md-btn-outlined"><i class="bi bi-plus-lg"></i> Registrar medición</button>
+                            
                         </div>
 
                         <div class="goal-kpi-values">
@@ -72,7 +73,7 @@
                 @endif
 
                 <section class="md-card-outlined goal-section-card">
-                    <div class="goal-section-heading"><div><span class="goal-section-heading__eyebrow">Bitácora</span><h2>Avances e hitos</h2></div><button wire:click="openEntryForm" class="md-btn-outlined"><i class="bi bi-plus-lg"></i> Registrar avance</button></div>
+                    <div class="goal-section-heading"><div><span class="goal-section-heading__eyebrow">Bitácora</span><h2>Avances e hitos</h2></div></div>
                     <div class="goal-timeline">
                         @forelse ($goal->goalEntries as $entry)
                             <article class="goal-timeline__item {{ $entry->is_milestone ? 'is-milestone' : '' }}" wire:key="entry-{{ $entry->id }}">
@@ -85,7 +86,7 @@
                 </section>
 
                 <section class="md-card-outlined goal-section-card">
-                    <div class="goal-section-heading"><div><span class="goal-section-heading__eyebrow">Ejecución</span><h2>Tareas relacionadas</h2></div><button wire:click="openTaskForm" class="md-btn-outlined"><i class="bi bi-plus-lg"></i> Nueva tarea</button></div>
+                    <div class="goal-section-heading"><div><span class="goal-section-heading__eyebrow">Ejecución</span><h2>Tareas relacionadas</h2></div></div>
                     <div class="goal-task-list">
                         @forelse ($goal->tasks as $task)
                             <a href="{{ route('tasks.list', ['edit' => $task->id]) }}" class="goal-task-row" wire:navigate wire:key="task-{{ $task->id }}"><i class="bi {{ $task->completed ? 'bi-check-circle-fill' : 'bi-circle' }}"></i><span>{{ $task->title }}</span>@if ($task->end_date)<time>{{ $task->end_date->format('d M') }}</time>@endif<i class="bi bi-arrow-up-right"></i></a>
@@ -103,19 +104,80 @@
         </div>
     </div>
 
-    @if ($showGoalForm)
-        <div class="md-dialog-scrim" wire:click="$set('showGoalForm', false)"></div><div class="md-dialog goal-dialog-wide"><h2 class="md-dialog-headline">Editar objetivo</h2><form wire:submit="saveGoal"><div class="md-dialog-content goal-form-grid"><div class="md-text-field goal-form-grid__full"><input wire:model="title" id="goal-title" placeholder=" "><label for="goal-title">Título</label>@error('title')<small>{{ $message }}</small>@enderror</div><div class="md-text-field goal-form-grid__full"><textarea wire:model="description" id="goal-description" placeholder=" " rows="3"></textarea><label for="goal-description">Descripción</label></div><div class="md-text-field"><select wire:model="status" id="goal-status"><option value="active">Activo</option><option value="completed">Completado</option><option value="abandoned">Abandonado</option></select><label for="goal-status">Estado</label></div><div class="md-text-field"><input wire:model="startDate" id="goal-start" type="date" placeholder=" "><label for="goal-start">Fecha inicio</label>@error('startDate')<small>{{ $message }}</small>@enderror</div><div class="md-text-field"><input wire:model="dueDate" id="goal-due" type="date" placeholder=" "><label for="goal-due">Fecha límite</label>@error('dueDate')<small>{{ $message }}</small>@enderror</div><label class="goal-kpi-toggle goal-form-grid__full"><input wire:model.live="kpiEnabled" type="checkbox"><span><i class="bi bi-graph-up-arrow"></i> Activar KPI único</span></label>@if($kpiEnabled)<div class="goal-kpi-form goal-form-grid__full"><div class="md-text-field"><input wire:model="kpiName" id="kpi-name" placeholder=" "><label for="kpi-name">Nombre del KPI</label>@error('kpiName')<small>{{ $message }}</small>@enderror</div><div class="md-text-field"><input wire:model="kpiUnit" id="kpi-unit" placeholder=" "><label for="kpi-unit">Unidad</label>@error('kpiUnit')<small>{{ $message }}</small>@enderror</div><div class="md-text-field"><select wire:model="kpiDirection" id="kpi-direction"><option value="increase">Aumentar hasta la meta</option><option value="decrease">Reducir hasta la meta</option></select><label for="kpi-direction">Dirección</label></div><div class="md-text-field"><input wire:model="kpiStartValue" id="kpi-start" type="number" step="0.01" placeholder=" "><label for="kpi-start">Valor inicial</label>@error('kpiStartValue')<small>{{ $message }}</small>@enderror</div><div class="md-text-field"><input wire:model="kpiTargetValue" id="kpi-target" type="number" step="0.01" placeholder=" "><label for="kpi-target">Valor objetivo</label>@error('kpiTargetValue')<small>{{ $message }}</small>@enderror</div></div>@endif</div><div class="md-dialog-actions"><button type="button" wire:click="$set('showGoalForm', false)" class="md-btn-text">Cancelar</button><button class="md-btn-filled" type="submit">Guardar cambios</button></div></form></div>
-    @endif
+    <x-ui.form-dialog :open="$showGoalForm" close="$set('showGoalForm', false)" submit-action="saveGoal" id="goal-edit-dialog"
+                      title="Editar objetivo" icon="bi-flag" submit="Guardar cambios"
+                      :sections="[
+                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-flag', 'error' => $errors->hasAny(['title', 'startDate', 'dueDate'])],
+                          'kpi' => ['label' => 'Indicador (KPI)', 'icon' => 'bi-graph-up-arrow', 'error' => $errors->hasAny(['kpiName', 'kpiUnit', 'kpiStartValue', 'kpiTargetValue'])],
+                      ]">
+        <x-ui.form-dialog-section name="basic" title="Información básica">
+            <div class="d-flex flex-column gap-3">
+                <x-ui.field name="title" label="Título" :required="true" wire:model="title" />
+                <x-ui.textarea name="description" label="Descripción" rows="3" wire:model="description" />
+                <x-ui.select name="status" label="Estado" :selected="$status"
+                             :options="['active' => 'Activo', 'completed' => 'Completado', 'abandoned' => 'Abandonado']" wire:model="status" />
+                <div class="md-field-pair">
+                    <x-ui.field name="startDate" label="Fecha inicio" type="date" wire:model="startDate" />
+                    <x-ui.field name="dueDate" label="Fecha límite" type="date" wire:model="dueDate" />
+                </div>
+            </div>
+        </x-ui.form-dialog-section>
+        <x-ui.form-dialog-section name="kpi" title="Indicador (KPI)">
+            <div class="d-flex flex-column gap-3">
+                <label class="goal-kpi-toggle"><input wire:model.live="kpiEnabled" type="checkbox"><span><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Activar KPI único</span></label>
+                @if ($kpiEnabled)
+                    <div class="goal-kpi-form">
+                        <x-ui.field name="kpiName" label="Nombre del KPI" wire:model="kpiName" />
+                        <x-ui.field name="kpiUnit" label="Unidad" wire:model="kpiUnit" />
+                        <x-ui.select name="kpiDirection" label="Dirección" :selected="$kpiDirection"
+                                     :options="['increase' => 'Aumentar hasta la meta', 'decrease' => 'Reducir hasta la meta']" wire:model="kpiDirection" />
+                        <div class="md-field-pair">
+                            <x-ui.field name="kpiStartValue" label="Valor inicial" type="number" step="0.01" wire:model="kpiStartValue" />
+                            <x-ui.field name="kpiTargetValue" label="Valor objetivo" type="number" step="0.01" wire:model="kpiTargetValue" />
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </x-ui.form-dialog-section>
+    </x-ui.form-dialog>
 
-    @if ($showEntryForm)
-        <div class="md-dialog-scrim" wire:click="$set('showEntryForm', false)"></div><div class="md-dialog"><h2 class="md-dialog-headline">{{ $editingEntryId ? 'Editar avance' : 'Registrar avance' }}</h2><form wire:submit="saveEntry"><div class="md-dialog-content d-flex flex-column gap-3"><div class="md-text-field"><textarea wire:model="entryText" id="entry-text" rows="4" placeholder=" "></textarea><label for="entry-text">¿Qué avanzaste?</label>@error('entryText')<small>{{ $message }}</small>@enderror</div><div class="md-text-field"><input wire:model="entryDate" id="entry-date" type="date" placeholder=" "><label for="entry-date">Fecha</label></div><label class="goal-kpi-toggle"><input wire:model="entryIsMilestone" type="checkbox"><span><i class="bi bi-star"></i> Marcar como hito</span></label></div><div class="md-dialog-actions"><button type="button" wire:click="$set('showEntryForm', false)" class="md-btn-text">Cancelar</button><button type="submit" class="md-btn-filled">Guardar</button></div></form></div>
-    @endif
+    <x-ui.form-dialog :open="$showEntryForm" close="$set('showEntryForm', false)" submit-action="saveEntry" id="goal-entry-dialog"
+                      :title="$editingEntryId ? 'Editar avance' : 'Registrar avance'" icon="bi-journal-plus">
+        <div class="d-flex flex-column gap-3">
+            <x-ui.textarea name="entryText" label="¿Qué avanzaste?" rows="4" :required="true" wire:model="entryText" />
+            <x-ui.field name="entryDate" label="Fecha" type="date" wire:model="entryDate" />
+            <label class="goal-kpi-toggle"><input wire:model="entryIsMilestone" type="checkbox"><span><i class="bi bi-star" aria-hidden="true"></i> Marcar como hito</span></label>
+        </div>
+    </x-ui.form-dialog>
 
-    @if ($showNumericForm)
-        <div class="md-dialog-scrim" wire:click="$set('showNumericForm', false)"></div><div class="md-dialog"><h2 class="md-dialog-headline">{{ $editingNumericId ? 'Editar medición' : 'Registrar medición' }}</h2><form wire:submit="saveNumericEntry"><div class="md-dialog-content d-flex flex-column gap-3"><div class="md-text-field"><input wire:model="numericValue" id="numeric-value" type="number" step="0.01" placeholder=" "><label for="numeric-value">Valor {{ $kpi['unit'] ?? '' }}</label>@error('numericValue')<small>{{ $message }}</small>@enderror</div><div class="md-text-field"><input wire:model="numericDate" id="numeric-date" type="date" placeholder=" "><label for="numeric-date">Fecha</label></div><div class="md-text-field"><textarea wire:model="numericNote" id="numeric-note" rows="2" placeholder=" "></textarea><label for="numeric-note">Nota opcional</label></div></div><div class="md-dialog-actions"><button type="button" wire:click="$set('showNumericForm', false)" class="md-btn-text">Cancelar</button><button type="submit" class="md-btn-filled">Guardar</button></div></form></div>
-    @endif
+    <x-ui.form-dialog :open="$showNumericForm" close="$set('showNumericForm', false)" submit-action="saveNumericEntry" id="goal-numeric-dialog"
+                      :title="$editingNumericId ? 'Editar medición' : 'Registrar medición'" icon="bi-graph-up-arrow">
+        <div class="d-flex flex-column gap-3">
+            <x-ui.field name="numericValue" :label="'Valor '.($kpi['unit'] ?? '')" type="number" step="0.01" :required="true" wire:model="numericValue" />
+            <x-ui.field name="numericDate" label="Fecha" type="date" wire:model="numericDate" />
+            <x-ui.textarea name="numericNote" label="Nota opcional" rows="2" wire:model="numericNote" />
+        </div>
+    </x-ui.form-dialog>
 
-    @if ($showTaskForm)
-        <div class="md-dialog-scrim" wire:click="$set('showTaskForm', false)"></div><div class="md-dialog goal-dialog-wide"><h2 class="md-dialog-headline">Nueva tarea relacionada</h2><form wire:submit="saveTask"><div class="md-dialog-content goal-form-grid"><div class="md-text-field goal-form-grid__full"><input wire:model="taskTitle" id="task-title" placeholder=" "><label for="task-title">Título</label>@error('taskTitle')<small>{{ $message }}</small>@enderror</div><div class="md-text-field goal-form-grid__full"><textarea wire:model="taskDescription" id="task-description" rows="3" placeholder=" "></textarea><label for="task-description">Descripción</label></div><div class="md-text-field"><select wire:model="taskCategory" id="task-category"><option value="">Sin categoría</option>@foreach($categories as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select><label for="task-category">Categoría</label></div><div class="md-text-field"><select wire:model="taskPriority" id="task-priority"><option value="">Sin prioridad</option>@foreach($priorities as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select><label for="task-priority">Prioridad</label></div><div class="md-text-field"><select wire:model="taskSize" id="task-size"><option value="">Sin tamaño</option>@foreach($sizes as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select><label for="task-size">Tamaño</label></div><div class="md-text-field"><input wire:model="taskDueDate" id="task-due" type="date" placeholder=" "><label for="task-due">Fecha límite</label></div></div><div class="md-dialog-actions"><button type="button" wire:click="$set('showTaskForm', false)" class="md-btn-text">Cancelar</button><button type="submit" class="md-btn-filled">Crear y vincular</button></div></form></div>
-    @endif
+    <x-ui.form-dialog :open="$showTaskForm" close="$set('showTaskForm', false)" submit-action="saveTask" id="goal-task-dialog"
+                      title="Agregar tarea relacionada" icon="bi-check2-square" submit="Crear y vincular"
+                      :sections="[
+                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-check2-square', 'error' => $errors->has('taskTitle')],
+                          'details' => ['label' => 'Detalles adicionales', 'icon' => 'bi-sliders'],
+                      ]">
+        <x-ui.form-dialog-section name="basic" title="Información básica">
+            <div class="d-flex flex-column gap-3">
+                <x-ui.field name="taskTitle" label="Título" :required="true" wire:model="taskTitle" />
+                <x-ui.textarea name="taskDescription" label="Descripción" rows="3" wire:model="taskDescription" />
+                <x-ui.field name="taskDueDate" label="Fecha límite" type="date" wire:model="taskDueDate" />
+            </div>
+        </x-ui.form-dialog-section>
+        <x-ui.form-dialog-section name="details" title="Detalles adicionales">
+            <div class="md-field-trio">
+                <x-ui.select name="taskCategory" label="Categoría" placeholder="Sin categoría" :options="$categories" :selected="$taskCategory" wire:model="taskCategory" />
+                <x-ui.select name="taskPriority" label="Prioridad" placeholder="Sin prioridad" :options="$priorities" :selected="$taskPriority" wire:model="taskPriority" />
+                <x-ui.select name="taskSize" label="Tamaño" placeholder="Sin tamaño" :options="$sizes" :selected="$taskSize" wire:model="taskSize" />
+            </div>
+        </x-ui.form-dialog-section>
+    </x-ui.form-dialog>
 </x-module-shell>

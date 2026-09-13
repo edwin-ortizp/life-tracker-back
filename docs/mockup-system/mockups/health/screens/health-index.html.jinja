@@ -1,4 +1,4 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog, fab %}
 {% call shell('health', 'Salud', 'bi-heart-pulse') %}
 {{ module_tabs([('Registro','/health-index','bi-clock-history'),('Vista del cuerpo','/health-body','bi-person-standing')], '/health-index') }}
 <section class="lt-grid-main">
@@ -95,7 +95,7 @@
     </div><div class="lt-route-links"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Nuevo pendiente</button></div></div></article>
   </aside>
 </section>
-<button class="lt-fab" type="button" data-lt-toggle="health-event-new" aria-haspopup="dialog" aria-label="Registrar evento de salud"><i class="bi bi-plus-lg"></i><span>Registrar evento</span></button>
+{{ fab('Registrar evento', 'bi-plus-lg', 'health-event-new') }}
 {% set event_sections = [('basic','Información básica','bi-file-earmark-text'),('details','Detalles adicionales','bi-card-text'),('files','Archivos y adjuntos','bi-paperclip'),('summary','Resumen','bi-check2-circle')] %}
 {% macro event_form(v) -%}
 <section class="lt-dialog__section" data-section="basic">

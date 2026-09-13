@@ -1,4 +1,4 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab %}
 {% call shell('meals', 'Ingredientes', 'bi-basket') %}
 {{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-ingredients') }}
 <section class="lt-toolbar" aria-label="Filtros de ingredientes">
@@ -27,4 +27,23 @@
     </div><div class="lt-route-links"><a class="lt-button lt-button--tonal" href="#/meals-shopping"><i class="bi bi-cart3"></i> Ir a compras</a></div></div></article>
   </aside>
 </section>
+{{ fab('Agregar ingrediente', 'bi-basket', 'ingredient-new') }}
+{% call dialog('ingredient-new', 'Agregar ingrediente', icon='bi-basket', sections=[('basic','Información básica','bi-basket'),('inventory','Inventario','bi-box-seam'),('variants','Variantes por tienda','bi-shop'),('aliases','Alias y equivalencias','bi-tags')]) %}
+<section class="lt-dialog__section" data-section="basic">
+  <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Nombre *</span><input type="text" placeholder="Ej. Aguacate"></label><label class="lt-field "><span>Categoría</span><select><option>Frutas y verduras</option><option>Lácteos y huevos</option></select></label><label class="lt-field "><span>Unidad base</span><input type="text" placeholder="unidades"></label></div>
+</section>
+<section class="lt-dialog__section" data-section="inventory" hidden>
+  <header class="lt-dialog__section-head"><h3>Inventario</h3></header>
+  <div class="lt-form"><label class="lt-field "><span>Stock</span><input type="number" value="0"></label><label class="lt-field "><span>Por comprar</span><input type="number" value="2"></label></div>
+</section>
+<section class="lt-dialog__section" data-section="variants" hidden>
+  <header class="lt-dialog__section-head"><h3>Variantes por tienda</h3></header>
+  <div class="lt-form"><label class="lt-field "><span>Tienda</span><input type="text" placeholder="Éxito"></label><label class="lt-field "><span>Precio</span><input type="number" value=""></label></div>
+</section>
+<section class="lt-dialog__section" data-section="aliases" hidden>
+  <header class="lt-dialog__section-head"><h3>Alias y equivalencias</h3></header>
+  <div class="lt-form"><label class="lt-field "><span>Alias 1</span><input type="text" placeholder="palta"></label></div>
+</section>
+{% endcall %}
 {% endcall %}

@@ -3,57 +3,6 @@
   width: min(100%, 1540px);
   margin-inline: auto;
 }
-
-.md-module-header {
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  min-height: 112px;
-  margin-bottom: 14px;
-  padding: 22px 26px;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 13%, var(--md-sys-color-outline-variant));
-  border-radius: var(--md-sys-shape-corner-extra-large);
-  background:
-    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--md-sys-color-tertiary-container) 72%, transparent), transparent 34%),
-    linear-gradient(135deg, var(--md-sys-color-surface-container-lowest), var(--md-sys-color-surface-container-low));
-  box-shadow: 0 18px 44px color-mix(in srgb, var(--md-sys-color-primary) 7%, transparent);
-}
-
-.md-module-header::after {
-  position: absolute;
-  right: 28px;
-  bottom: -52px;
-  z-index: -1;
-  width: 190px;
-  height: 92px;
-  border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent);
-  border-radius: 50%;
-  content: '';
-  transform: rotate(-10deg);
-}
-
-.md-module-heading { display: flex; align-items: center; gap: 16px; min-width: 0; }
-.md-module-icon {
-  display: grid;
-  place-items: center;
-  width: 50px;
-  height: 50px;
-  flex: 0 0 auto;
-  border-radius: 17px;
-  background: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
-  box-shadow: 0 9px 24px color-mix(in srgb, var(--md-sys-color-primary) 28%, transparent);
-  font-size: 1.35rem;
-}
-.md-module-eyebrow { color: var(--md-sys-color-primary); font-size: .68rem; font-weight: 760; letter-spacing: .14em; text-transform: uppercase; }
-.md-module-title { margin: 0; color: var(--md-sys-color-on-surface); font-size: clamp(1.45rem, 2vw, 2rem); font-weight: 680; letter-spacing: -.035em; line-height: 1.08; }
-.md-module-subtitle { margin: 5px 0 0; color: var(--md-sys-color-on-surface-variant); font-size: .86rem; }
-.md-module-header-tools { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
-.md-module-header-tools .md-btn-icon { width: 44px; height: 44px; }
 .md-responsive-actions__desktop { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
 .md-responsive-actions__mobile { display: none; }
 .md-mobile-action-menu { position: relative; }
@@ -120,7 +69,7 @@
 .habit-month-day.is-outside { opacity: .28; }.habit-month-day.is-complete { border-color: var(--md-custom-color-success); }.habit-month-day.is-selected { outline: 2px solid var(--md-sys-color-primary); outline-offset: 1px; }
 .habit-month-day i { position: absolute; right: 3px; bottom: 3px; width: 4px; height: 4px; border-radius: 50%; background: var(--md-sys-color-primary); }
 .md-context-links { display: grid; gap: 4px; }.md-context-links a { display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 8px; border-radius: 10px; color: var(--md-sys-color-primary); font-weight: 650; text-decoration: none; }.md-context-links a:hover, .md-context-links a:focus-visible { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
-.md-module-header-tools :is(button, a):focus-visible, .md-module-tab:focus-visible, .habit-month-day:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.md-module-tab:focus-visible, .habit-month-day:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
 .health-next-event { display: grid; gap: 4px; padding: 4px 0; }.health-next-event time { color: var(--md-sys-color-primary); font-size: .72rem; font-weight: 760; letter-spacing: .05em; text-transform: uppercase; }.health-next-event strong { color: var(--md-sys-color-on-surface); font-size: .95rem; }.health-next-event span { font-size: .75rem; }
 .water-calendar-card { padding: 22px; }.water-calendar-card .water-month-day { min-height: 54px; aspect-ratio: auto; font-size: .82rem; }
 .water-kpi { display: flex; align-items: baseline; gap: 9px; }.water-kpi strong { color: var(--md-custom-color-success); font-size: 2rem; line-height: 1; }
@@ -138,11 +87,6 @@
 }
 
 @media (max-width: 767.98px) {
-  .md-module-header { align-items: flex-start; flex-direction: column; min-height: 0; padding: 18px; border-radius: 22px; }
-  .md-module-heading { align-items: flex-start; gap: 12px; }
-  .md-module-icon { width: 42px; height: 42px; border-radius: 14px; font-size: 1.1rem; }
-  .md-module-subtitle { font-size: .8rem; line-height: 1.35; }
-  .md-module-header-tools { width: 100%; justify-content: space-between; }
   .md-responsive-actions__desktop { display: none; }
   .md-responsive-actions__mobile { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
   .md-module-primary-fab { position: fixed; right: 16px; bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px + env(safe-area-inset-bottom)); z-index: var(--md-sys-z-fab-floating, 90); }
@@ -162,3 +106,28 @@
 @media (max-width: 767.98px) {
   .md-fab-layer > .md-module-primary-fab { right: 16px; bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px + env(safe-area-inset-bottom)); }
 }
+
+/* ===== FAB canónico de creación (x-ui.fab) =====
+ * Única implementación de las acciones crear / registrar / agregar. Fijo abajo a la
+ * derecha, extendido en escritorio y solo ícono en móvil. Queda sobre acordeones,
+ * menús (z-menu), ⋮ y la barra inferior, pero bajo los diálogos (z-scrim) y se oculta
+ * mientras un modal está abierto. */
+.md-fab-host { position: fixed; right: 28px; bottom: 28px; z-index: var(--md-sys-z-fab-floating, 90); display: grid; justify-items: end; gap: 12px; }
+.md-fab-host > .md-create-fab { position: static; }
+.md-create-fab i { transition: transform var(--md-sys-motion-duration-short2, .15s) ease; }
+.md-fab-host.is-open > .md-create-fab i { transform: rotate(90deg); }
+.md-create-fab:focus-visible, .md-create-fab__item:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 3px; }
+.md-create-fab:active { box-shadow: var(--md-sys-elevation-2); }
+.md-create-fab__menu { display: grid; justify-items: end; gap: 10px; }
+.md-create-fab__item { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 8px 0 18px; border: 0; border-radius: 16px; background: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface); box-shadow: var(--md-sys-elevation-3); font-size: .9rem; font-weight: 700; text-decoration: none; cursor: pointer; }
+.md-create-fab__item i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--md-module-action-container, var(--md-sys-color-primary-container)); color: var(--md-module-on-action-container, var(--md-sys-color-on-primary-container)); font-size: 1.1rem; }
+.md-create-fab__item:hover { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
+body:has(.md-form-dialog-layer:not([style*="display: none"])) .md-fab-host,
+body:has(.md-dialog-scrim) .md-fab-host { visibility: hidden; }
+@media (max-width: 767.98px) {
+  .md-fab-host { right: 16px; bottom: calc(var(--md-sys-layout-nav-bar-height) + 16px + env(safe-area-inset-bottom)); }
+  .md-create-fab__item { min-height: 44px; font-size: .84rem; }
+}
+.md-catalog-fab-preview { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.md-catalog-fab-preview .md-fab { position: static; }
+.md-catalog-fab-preview__menu { justify-items: start; }

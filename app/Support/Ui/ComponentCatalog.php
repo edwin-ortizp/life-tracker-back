@@ -159,6 +159,12 @@ class ComponentCatalog
             'description' => 'Bloque de campos de un modal de formulario; se muestra según la sección activa sin perder los datos.',
             'usage' => '<x-ui.form-dialog-section name="details" title="Detalles adicionales" description="Contexto opcional.">…</x-ui.form-dialog-section>',
         ],
+        'fab' => [
+            'layer' => 'patterns',
+            'title' => 'FAB de creación',
+            'description' => 'Única forma de exponer crear, registrar o agregar: extendido en escritorio, solo ícono en móvil, menú de opciones cuando hay varias. Siempre abre x-ui.form-dialog.',
+            'usage' => '<x-ui.fab label="Registrar evento" icon="bi-plus-lg" action="openForm" :actions="$followUpActions" />',
+        ],
         'menu' => [
             'layer' => 'patterns',
             'title' => 'Menú de acciones',

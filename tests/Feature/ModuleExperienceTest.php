@@ -39,7 +39,7 @@ class ModuleExperienceTest extends TestCase
         $user = User::factory()->create();
 
         $water = $this->actingAs($user)->get('/water/daily')->assertOk();
-        $water->assertSee('md-module-header-tools', false)
+        $water->assertSee('data-region="actions"', false)->assertDontSee('md-module-header', false)
             ->assertSee('Registrar')
             ->assertDontSee('<a href="'.route('water.settings').'" class="md-btn-outlined">', false);
 

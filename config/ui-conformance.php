@@ -113,6 +113,16 @@ return [
             ],
         ],
 
+        'create-action-pattern' => [
+            'description' => 'Acción de creación o modal de formulario fuera del patrón FAB + x-ui.form-dialog.',
+            'detector' => 'patterns',
+            'patterns' => [
+                '/<x-ui\.dialog[^>]*title="[^"]*(?:Nuev[oa]|Crear|Agregar|Registrar)/' => 'Los formularios de creación usan `x-ui.form-dialog`, no `x-ui.dialog`.',
+                '/md-dialog--(?:large|wide)/' => 'Los formularios usan `x-ui.form-dialog` con secciones.',
+                '/<button[^>]*wire:click="open[A-Za-z]*Form"[^>]*class="[^"]*md-btn-(?:filled|filled-tonal|tonal|outlined)/' => 'La acción de crear es el FAB canónico (`x-ui.fab` / `x-module-actions`).',
+            ],
+        ],
+
         'inline-style' => [
             'description' => 'Declaración `style` no permitida en una vista.',
             'detector' => 'inline-style',

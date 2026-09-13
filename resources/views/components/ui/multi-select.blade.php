@@ -1,3 +1,4 @@
+@aware(['validationState' => null])
 @props([
     'name',
     'live' => true,
@@ -21,9 +22,10 @@
 
 {{-- Selección múltiple con checkboxes, enlazada a una propiedad array de Livewire. --}}
 <div {{ $attributes->class(['md-text-field', 'md-field', 'md-multi-select', 'md-field--icon' => $icon, 'md-error' => $message]) }}
+     @if($message && $validationState) :class="{ 'md-error': {{ $validationState }} }" @endif
      x-data="{ open: false, @if($modelExpression) get selected() { return {{ $modelExpression }} }, set selected(value) { {{ $modelExpression }} = value }, @else selected: $wire.entangle('{{ $name }}'){{ $live ? '.live' : '' }}, @endif labels: @js($labels) }"
      @click.outside="open = false"
-     @keydown.escape.stop="if (open) { open = false; $refs.trigger.focus() }">
+     @keydown.escape="if (open) { $event.stopPropagation(); open = false; $refs.trigger.focus() }">
     @if ($icon)<i class="bi {{ $icon }} md-field__icon" aria-hidden="true"></i>@endif
     <button type="button"
             id="{{ $fieldId }}"
@@ -31,7 +33,7 @@
             class="md-field__control md-multi-select__trigger"
             aria-haspopup="listbox"
             :aria-expanded="open.toString()"
-            @if ($message) aria-invalid="true" aria-describedby="{{ $fieldId }}-error" @endif
+            @if ($message) aria-invalid="true" @if($validationState) :aria-invalid="{{ $validationState }} ? 'true' : null" @endif aria-describedby="{{ $fieldId }}-error" @endif
             @click="open = !open">
         <span class="md-multi-select__value"
               x-text="selected.length ? selected.slice(0, 2).map((value) => labels[value] ?? value).join(', ') + (selected.length > 2 ? ' +' + (selected.length - 2) : '') : @js($allLabel)">{{ $allLabel }}</span>
@@ -51,6 +53,6 @@
         @endforeach
     </div>
     @if ($message)
-        <p id="{{ $fieldId }}-error" class="md-supporting-text" role="alert">{{ $message }}</p>
+        <p id="{{ $fieldId }}-error" class="md-supporting-text" role="alert" @if($validationState) x-show="{{ $validationState }}" @endif>{{ $message }}</p>
     @endif
 </div>

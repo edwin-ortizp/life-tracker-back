@@ -1,9 +1,9 @@
 {
     "description": "Inventario de deuda visual. Una contribución puede conservarla, no aumentarla.",
     "totals": {
-        "inline-style": 283,
-        "local-component-substitution": 54,
-        "retired-pattern": 67
+        "inline-style": 256,
+        "local-component-substitution": 37,
+        "retired-pattern": 52
     },
     "files": {
         "resources/views/auth/login.blade.php": {
@@ -16,8 +16,7 @@
             "local-component-substitution": 1
         },
         "resources/views/livewire/goal/goal-detail.blade.php": {
-            "inline-style": 2,
-            "local-component-substitution": 2
+            "inline-style": 2
         },
         "resources/views/livewire/habit/habit-tracker.blade.php": {
             "inline-style": 11,
@@ -32,13 +31,6 @@
         },
         "resources/views/livewire/habit/partials/month-calendar.blade.php": {
             "inline-style": 1
-        },
-        "resources/views/livewire/health/health-body-map.blade.php": {
-            "inline-style": 13
-        },
-        "resources/views/livewire/health/health-index.blade.php": {
-            "local-component-substitution": 3,
-            "retired-pattern": 13
         },
         "resources/views/livewire/home/dashboard.blade.php": {
             "inline-style": 8
@@ -74,13 +66,10 @@
             "retired-pattern": 4
         },
         "resources/views/livewire/meal/meal-ingredients.blade.php": {
-            "inline-style": 18,
-            "local-component-substitution": 1,
-            "retired-pattern": 2
+            "inline-style": 17
         },
         "resources/views/livewire/meal/meal-recipes.blade.php": {
-            "inline-style": 8,
-            "local-component-substitution": 2
+            "inline-style": 8
         },
         "resources/views/livewire/meal/meal-shopping.blade.php": {
             "inline-style": 5
@@ -121,18 +110,16 @@
             "inline-style": 3
         },
         "resources/views/livewire/relationship/relationship-index.blade.php": {
-            "inline-style": 21,
-            "local-component-substitution": 4
+            "inline-style": 13
         },
         "resources/views/livewire/relationship/relationship-show.blade.php": {
-            "inline-style": 22,
-            "local-component-substitution": 4
+            "inline-style": 19
         },
         "resources/views/livewire/task/partials/completion-celebration.blade.php": {
             "inline-style": 1
         },
         "resources/views/livewire/task/partials/edit-task-dialog.blade.php": {
-            "inline-style": 2,
+            "inline-style": 1,
             "local-component-substitution": 3
         },
         "resources/views/livewire/task/partials/recurring-completion-dialog.blade.php": {
@@ -148,8 +135,8 @@
             "inline-style": 11
         },
         "resources/views/livewire/task/task-list.blade.php": {
-            "inline-style": 14,
-            "local-component-substitution": 3
+            "inline-style": 13,
+            "local-component-substitution": 2
         },
         "resources/views/livewire/task/task-planning.blade.php": {
             "local-component-substitution": 3

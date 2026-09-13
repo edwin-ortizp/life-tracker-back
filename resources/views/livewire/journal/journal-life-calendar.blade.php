@@ -1,6 +1,6 @@
 <x-module-shell module="journal" class="life-calendar">
     @if ($isConfigured)
-        <x-slot:actions><a href="#life-year-{{ $currentYear }}" class="md-btn-tonal"><i class="bi bi-crosshair"></i> Ir a hoy</a></x-slot:actions>
+        <x-slot:controls><a href="#life-year-{{ $currentYear }}" class="md-btn-tonal"><i class="bi bi-crosshair"></i> Ir a hoy</a></x-slot:controls>
     @endif
 
     @if (! $isConfigured)

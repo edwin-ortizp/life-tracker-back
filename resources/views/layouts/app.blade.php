@@ -125,7 +125,7 @@
             @if ($activeModuleKey)
                 <span class="lt-topbar__icon" data-module="{{ $activeModuleKey }}" aria-hidden="true" x-show="!(compact && searchOpen)"><i class="bi {{ config("modules.{$activeModuleKey}.icon") ?? 'bi-grid' }}"></i></span>
             @endif
-            <h2 class="lt-topbar__title" x-show="!(compact && searchOpen)">{{ $activeModuleTitle }}</h2>
+            <h2 class="lt-topbar__title" x-show="!(compact && searchOpen)">@hasstack('module-title')@stack('module-title')@else{{ $activeModuleTitle }}@endif</h2>
 
             {{-- Escritorio: buscador siempre visible. Compacto: icono que expande
                  a buscador de ancho completo, patrón M3 de "search view". --}}

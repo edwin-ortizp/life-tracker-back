@@ -8,7 +8,7 @@
         $careForm = in_array($type, \App\Models\HealthEvent::SCHEDULED_TYPES, true);
     @endphp
 
-    <x-ui.form-dialog module="health" state="$wire.showForm" close="closeForm" submit-action="save" id="health-event-dialog" title-expression="$wire.editingId ? 'Editar evento de salud' : 'Registrar evento de salud'"
+    <x-ui.form-dialog validation-state="submitted" module="health" state="$wire.showForm" close="closeForm" submit-action="save" id="health-event-dialog" title-expression="$wire.editingId ? 'Editar evento de salud' : 'Registrar evento de salud'"
                       :title="$editingId ? 'Editar evento de salud' : 'Registrar evento de salud'" icon="bi-heart-pulse"
                       :sections="[
                           'basic' => ['label' => 'Información básica', 'icon' => 'bi-file-earmark-text', 'error' => $basicErrors],
@@ -43,7 +43,7 @@
                 </div>
 
                 <div class="lt-field-condition" x-show="['symptom','illness','procedure'].includes($wire.type) && ! $wire.editingId">
-                    <x-ui.select label-expression="$wire.type === 'procedure' ? 'Molestia inicial (opcional)' : 'Intensidad (1–10) *'" name="initialIntensity" :label="$type === 'procedure' ? 'Molestia inicial (opcional)' : 'Intensidad (1–10)'" :options="$intensityOptions" :selected="$initialIntensity" placeholder="Selecciona…" icon="bi-bar-chart" :required="$type !== 'procedure'" wire:model="initialIntensity" />
+                    <x-ui.select label-expression="$wire.type === 'procedure' ? 'Molestia inicial (opcional)' : 'Intensidad (1–10) *'" name="initialIntensity" :label="$type === 'procedure' ? 'Molestia inicial (opcional)' : 'Intensidad (1–10)'" :options="$intensityOptions" :selected="$initialIntensity" placeholder="Selecciona…" icon="bi-bar-chart" :required="$type !== 'procedure'" x-bind:required="$wire.type !== 'procedure'" wire:model="initialIntensity" />
                 </div>
                 <div class="lt-field-condition" x-show="!(['symptom','illness','procedure'].includes($wire.type) && ! $wire.editingId) && (['appointment','checkup'].includes($wire.type))">
                     <x-ui.field name="specialty" label="Especialidad" icon="bi-heart-pulse" wire:model="specialty" />
@@ -99,7 +99,7 @@
         </x-ui.form-dialog-section>
     </x-ui.form-dialog>
 
-    <x-ui.form-dialog module="health" state="$wire.showLogForm" close="closeLogForm" :submit-action="$editingLogId ? 'updateLog' : 'saveLog'" id="health-log-dialog" title-expression="$wire.editingLogId ? 'Editar día' : 'Registrar cómo te sentiste'"
+    <x-ui.form-dialog validation-state="submitted" module="health" state="$wire.showLogForm" close="closeLogForm" :submit-action="$editingLogId ? 'updateLog' : 'saveLog'" id="health-log-dialog" title-expression="$wire.editingLogId ? 'Editar día' : 'Registrar cómo te sentiste'"
                       :title="$editingLogId ? 'Editar día' : 'Registrar cómo te sentiste'" icon="bi-activity">
         <div class="md-form-dialog__grid">
             <x-ui.field name="logDate" type="date" label="Fecha" :required="true" :readonly="(bool) $editingLogId" wire:model="logDate" />
@@ -110,7 +110,7 @@
         </div>
     </x-ui.form-dialog>
 
-    <x-ui.form-dialog module="health" state="$wire.showRecoveryForm" close="closeRecoveryForm" submit-action="saveRecovery" id="health-recovery-dialog"
+    <x-ui.form-dialog validation-state="submitted" module="health" state="$wire.showRecoveryForm" close="closeRecoveryForm" submit-action="saveRecovery" id="health-recovery-dialog"
                       title="Marcar recuperación" icon="bi-check2-circle">
         <div class="md-form-dialog__grid">
             <x-ui.field name="recoveryDate" type="date" label="Día de recuperación" :required="true" wire:model.live="recoveryDate" />
@@ -119,7 +119,7 @@
         <p class="md-form-dialog__hint"><i class="bi bi-info-circle" aria-hidden="true"></i> Si ya registraste este día, se conserva su intensidad.</p>
     </x-ui.form-dialog>
 
-    <x-ui.form-dialog module="health" state="$wire.showTaskForm" close="closeTaskForm" submit-action="savePendingTask" id="health-task-dialog"
+    <x-ui.form-dialog validation-state="submitted" module="health" state="$wire.showTaskForm" close="closeTaskForm" submit-action="savePendingTask" id="health-task-dialog"
                       title="Nuevo pendiente de salud" icon="bi-list-check">
         <div class="md-form-dialog__grid">
             <div class="md-form-dialog__full">
@@ -130,7 +130,7 @@
         <p class="md-form-dialog__hint"><i class="bi bi-info-circle" aria-hidden="true"></i> Se crea como tarea de Salud; úsala para pedir una cita o investigar una vacuna.</p>
     </x-ui.form-dialog>
 
-    <x-ui.form-dialog module="health" state="$wire.showRescheduleForm" close="closeRescheduleForm" submit-action="saveRescheduleTask" id="health-reschedule-dialog"
+    <x-ui.form-dialog validation-state="submitted" module="health" state="$wire.showRescheduleForm" close="closeRescheduleForm" submit-action="saveRescheduleTask" id="health-reschedule-dialog"
                       title="Reprogramar pendiente" icon="bi-calendar-event">
         <div class="md-form-dialog__grid">
             <x-ui.field name="rescheduleDate" type="date" label="Nueva fecha" :required="true" wire:model="rescheduleDate" />

@@ -1,9 +1,7 @@
-<x-module-shell module="meals" x-data="{ showDialog: $wire.entangle('showForm') }">
+<x-module-shell module="meals">
     <x-slot:actions>
         <livewire:meal.bulk-ingredient-assistant context="ingredients" />
-        <button wire:click="openForm" class="md-btn-filled-tonal">
-            <i class="bi bi-plus-lg"></i> Nuevo ingrediente
-        </button>
+        <x-module-actions :primary="['label' => 'Agregar ingrediente', 'icon' => 'bi-basket', 'action' => 'openForm']" />
     </x-slot:actions>
 
     {{-- Search + Filters --}}
@@ -125,99 +123,79 @@
         </x-context-widget>
     </x-slot:rail>
 
-    @teleport('body')
-        <div x-show="showDialog" x-cloak>
-            <div class="md-dialog-scrim" @click="$wire.closeForm()"></div>
-            <section wire:key="ingredient-dialog-{{ $editingId ?? 'new' }}" class="md-dialog md-dialog--large" role="dialog" aria-modal="true" aria-labelledby="ingredient-dialog-title" @click.stop>
-                <header class="md-dialog-header">
-                    <div>
-                        <h2 id="ingredient-dialog-title" class="md-headline-small mb-1">{{ $editingId ? 'Editar ingrediente' : 'Nuevo ingrediente' }}</h2>
-                        <p class="md-body-medium mb-0">Información de inventario y opciones de compra por tienda</p>
-                    </div>
-                    <button type="button" wire:click="closeForm" class="md-btn-icon" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
-                </header>
-
-                <div class="md-dialog-content md-dialog-layout md-dialog-layout--equal">
-                    <div class="d-flex flex-column gap-3">
-                        <section class="md-form-section">
-                            <div class="md-form-section__header"><div><i class="bi bi-basket"></i><span>Información general</span></div></div>
-                            <div class="d-flex flex-column gap-3">
-                                <div class="md-text-field">
-                                    <input type="text" wire:model="name" placeholder=" " id="ingredient-name">
-                                    <label for="ingredient-name">Nombre *</label>
-                                    @error('name')<small class="text-danger">{{ $message }}</small>@enderror
-                                </div>
-                                <div class="row g-3">
-                                    <div class="col-12 col-sm-7"><div class="md-text-field"><select wire:model="category" id="ingredient-category"><option value="">Sin categoría</option>@foreach ($this->categoryOptions as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select><label for="ingredient-category">Categoría</label></div></div>
-                                    <div class="col-12 col-sm-5"><div class="md-text-field"><input type="text" wire:model="unit" placeholder=" " id="ingredient-unit"><label for="ingredient-unit">Unidad base</label></div></div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section class="md-form-section">
-                            <div class="md-form-section__header"><div><i class="bi bi-box-seam"></i><span>Inventario</span></div></div>
-                            <div class="row g-3">
-                                <div class="col-6"><div class="md-text-field"><input type="number" wire:model="stock" placeholder=" " id="ingredient-stock" min="0"><label for="ingredient-stock">Stock</label></div></div>
-                                <div class="col-6"><div class="md-text-field"><input type="number" wire:model="toBuy" placeholder=" " id="ingredient-to-buy" min="0"><label for="ingredient-to-buy">Por comprar</label></div></div>
-                                <div class="col-12"><div class="md-text-field"><input type="date" wire:model="consumeBy" placeholder=" " id="ingredient-consume-by"><label for="ingredient-consume-by">Consumir antes</label></div></div>
-                            </div>
-                            <label class="d-flex align-items-center gap-2 mt-3" style="cursor: pointer;"><input type="checkbox" wire:model="nextPurchase" class="md-checkbox"><span class="md-body-medium">Incluir en lista de compras</span></label>
-                        </section>
-
-                        <section class="md-form-section">
-                            <div class="md-form-section__header">
-                                <div><i class="bi bi-tags"></i><span>Alias y equivalencias</span><span class="md-chip md-chip--small">{{ count($aliases) }}</span></div>
-                                <button wire:click="addAlias" type="button" class="md-btn-text md-btn-text--small"><i class="bi bi-plus-lg"></i> Agregar</button>
-                            </div>
-                            <p class="md-body-small mb-3" style="color: var(--md-sys-color-on-surface-variant);">Nombres alternativos que reconocerá el asistente, por ejemplo «arroz» para «Arroz blanco».</p>
-                            @forelse ($aliases as $index => $alias)
-                                <div class="d-flex align-items-start gap-2 mb-2" wire:key="alias-{{ $alias['id'] ?? 'new-'.$index }}">
-                                    <div class="md-text-field flex-grow-1">
-                                        <input type="text" wire:model="aliases.{{ $index }}.alias" placeholder=" " id="ingredient-alias-{{ $index }}">
-                                        <label for="ingredient-alias-{{ $index }}">Alias {{ $index + 1 }}</label>
-                                        @error("aliases.$index.alias")<div class="md-supporting-text">{{ $message }}</div>@enderror
-                                    </div>
-                                    <button wire:click="removeAlias({{ $index }})" type="button" class="md-btn-icon md-btn-icon--small md-btn-danger mt-2" aria-label="Quitar alias"><i class="bi bi-trash"></i></button>
-                                </div>
-                            @empty
-                                <div class="md-form-empty" style="min-height: 96px;"><i class="bi bi-tags"></i><p>Este ingrediente aún no tiene nombres alternativos.</p></div>
-                            @endforelse
-                            @error('aliases')<small class="text-danger d-block mt-2">{{ $message }}</small>@enderror
-                        </section>
-                    </div>
-
-                    <section class="md-form-section">
-                        <div class="md-form-section__header">
-                            <div><i class="bi bi-shop"></i><span>Variantes por tienda</span><span class="md-chip md-chip--small">{{ count($variants) }}</span></div>
-                            <button wire:click="addVariant" type="button" class="md-btn-text md-btn-text--small"><i class="bi bi-plus-lg"></i> Agregar</button>
-                        </div>
-                        @forelse ($variants as $index => $variant)
-                            <article class="meal-variant-card" wire:key="variant-{{ $variant['id'] ?? 'new-'.$index }}">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="md-label-large">Tienda {{ $index + 1 }}</span>
-                                    <button wire:click="removeVariant({{ $index }})" type="button" class="md-btn-icon md-btn-icon--small md-btn-danger" aria-label="Quitar variante"><i class="bi bi-trash"></i></button>
-                                </div>
-                                <div class="row g-2">
-                                    <div class="col-7"><div class="md-text-field"><input type="text" wire:model="variants.{{ $index }}.place" placeholder=" " id="var-place-{{ $index }}"><label for="var-place-{{ $index }}">Tienda</label></div></div>
-                                    <div class="col-5"><div class="md-text-field"><input type="number" wire:model="variants.{{ $index }}.price" placeholder=" " id="var-price-{{ $index }}" step="0.01" min="0"><label for="var-price-{{ $index }}">Precio</label></div></div>
-                                    <div class="col-12"><div class="md-text-field"><input type="text" wire:model="variants.{{ $index }}.presentation" placeholder=" " id="var-pres-{{ $index }}"><label for="var-pres-{{ $index }}">Presentación</label></div></div>
-                                    <div class="col-12"><div class="md-text-field"><input type="text" wire:model="variants.{{ $index }}.barcode" placeholder=" " id="var-barcode-{{ $index }}"><label for="var-barcode-{{ $index }}">Código de barras</label></div></div>
-                                    <div class="col-12"><div class="md-text-field"><input type="text" wire:model="variants.{{ $index }}.notes" placeholder=" " id="var-notes-{{ $index }}"><label for="var-notes-{{ $index }}">Notas</label></div></div>
-                                </div>
-                            </article>
-                        @empty
-                            <div class="md-form-empty"><i class="bi bi-shop-window"></i><p>No hay variantes registradas. Agrega una tienda para guardar precio, presentación o código de barras.</p></div>
-                        @endforelse
-                    </section>
+    <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="ingredient-dialog"
+                      :title="$editingId ? 'Editar ingrediente' : 'Agregar ingrediente'" icon="bi-basket"
+                      :submit="$editingId ? 'Actualizar' : 'Guardar'"
+                      :sections="[
+                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-basket', 'error' => $errors->has('name')],
+                          'inventory' => ['label' => 'Inventario', 'icon' => 'bi-box-seam'],
+                          'variants' => ['label' => 'Variantes por tienda', 'icon' => 'bi-shop'],
+                          'aliases' => ['label' => 'Alias y equivalencias', 'icon' => 'bi-tags', 'error' => $errors->has('aliases') || $errors->has('aliases.*')],
+                      ]">
+        <x-ui.form-dialog-section name="basic" title="Información básica">
+            <div class="d-flex flex-column gap-3">
+                <x-ui.field name="name" label="Nombre" :required="true" wire:model="name" />
+                <div class="md-field-pair">
+                    <x-ui.select name="category" label="Categoría" placeholder="Sin categoría" :options="$this->categoryOptions" :selected="$category" wire:model="category" />
+                    <x-ui.field name="unit" label="Unidad base" wire:model="unit" />
                 </div>
+            </div>
+        </x-ui.form-dialog-section>
 
-                <footer class="md-dialog-actions">
-                    @if ($editingId)<button type="button" wire:click="delete('{{ $editingId }}')" wire:confirm="¿Eliminar este ingrediente y sus variantes?" class="md-btn-text md-btn-danger"><i class="bi bi-trash"></i> Eliminar</button>@endif
-                    <span class="md-dialog-actions__spacer"></span>
-                    <button type="button" wire:click="closeForm" class="md-btn-text">Cancelar</button>
-                    <button type="button" wire:click="save" class="md-btn-filled"><i class="bi bi-check-lg"></i> {{ $editingId ? 'Actualizar' : 'Guardar' }}</button>
-                </footer>
-            </section>
-        </div>
-    @endteleport
+        <x-ui.form-dialog-section name="inventory" title="Inventario">
+            <div class="d-flex flex-column gap-3">
+                <div class="md-field-pair">
+                    <x-ui.field name="stock" label="Stock" type="number" min="0" wire:model="stock" />
+                    <x-ui.field name="toBuy" label="Por comprar" type="number" min="0" wire:model="toBuy" />
+                </div>
+                <x-ui.field name="consumeBy" label="Consumir antes" type="date" wire:model="consumeBy" />
+                <label class="d-flex align-items-center gap-2" style="cursor: pointer;"><input type="checkbox" wire:model="nextPurchase" class="md-checkbox"><span class="md-body-medium">Incluir en lista de compras</span></label>
+            </div>
+        </x-ui.form-dialog-section>
+
+        <x-ui.form-dialog-section name="variants" title="Variantes por tienda" description="Precio, presentación o código de barras en cada tienda.">
+            @forelse ($variants as $index => $variant)
+                <article class="meal-variant-card" wire:key="variant-{{ $variant['id'] ?? 'new-'.$index }}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="md-label-large">Tienda {{ $index + 1 }}</span>
+                        <button wire:click="removeVariant({{ $index }})" type="button" class="md-btn-icon md-btn-icon--small md-btn-danger" aria-label="Quitar variante"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="md-field-pair">
+                            <x-ui.field name="variants.{{ $index }}.place" label="Tienda" id="var-place-{{ $index }}" wire:model="variants.{{ $index }}.place" />
+                            <x-ui.field name="variants.{{ $index }}.price" label="Precio" type="number" step="0.01" min="0" id="var-price-{{ $index }}" wire:model="variants.{{ $index }}.price" />
+                        </div>
+                        <x-ui.field name="variants.{{ $index }}.presentation" label="Presentación" id="var-pres-{{ $index }}" wire:model="variants.{{ $index }}.presentation" />
+                        <x-ui.field name="variants.{{ $index }}.barcode" label="Código de barras" id="var-barcode-{{ $index }}" wire:model="variants.{{ $index }}.barcode" />
+                        <x-ui.field name="variants.{{ $index }}.notes" label="Notas" id="var-notes-{{ $index }}" wire:model="variants.{{ $index }}.notes" />
+                    </div>
+                </article>
+            @empty
+                <div class="md-form-empty"><i class="bi bi-shop-window" aria-hidden="true"></i><p>No hay variantes registradas. Agrega una tienda para guardar precio, presentación o código de barras.</p></div>
+            @endforelse
+            <button wire:click="addVariant" type="button" class="md-btn-text mt-2"><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar variante</button>
+        </x-ui.form-dialog-section>
+
+        <x-ui.form-dialog-section name="aliases" title="Alias y equivalencias" description="Nombres alternativos que reconocerá el asistente, por ejemplo «arroz» para «Arroz blanco».">
+            @forelse ($aliases as $index => $alias)
+                <div class="d-flex align-items-start gap-2 mb-2" wire:key="alias-{{ $alias['id'] ?? 'new-'.$index }}">
+                    <div class="flex-grow-1">
+                        <x-ui.field name="aliases.{{ $index }}.alias" label="Alias {{ $index + 1 }}" id="ingredient-alias-{{ $index }}" wire:model="aliases.{{ $index }}.alias" />
+                    </div>
+                    <button wire:click="removeAlias({{ $index }})" type="button" class="md-btn-icon md-btn-icon--small md-btn-danger mt-2" aria-label="Quitar alias"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                </div>
+            @empty
+                <div class="md-form-empty" style="min-height: 96px;"><i class="bi bi-tags" aria-hidden="true"></i><p>Este ingrediente aún no tiene nombres alternativos.</p></div>
+            @endforelse
+            @error('aliases')<p class="md-supporting-text" role="alert">{{ $message }}</p>@enderror
+            <button wire:click="addAlias" type="button" class="md-btn-text mt-2"><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar alias</button>
+
+            @if ($editingId)
+                <div class="mt-4">
+                    <x-ui.destructive-action label="Eliminar ingrediente" action="delete('{{ $editingId }}')"
+                                             title="Eliminar ingrediente" message="El ingrediente y sus variantes se eliminan de forma permanente." />
+                </div>
+            @endif
+        </x-ui.form-dialog-section>
+    </x-ui.form-dialog>
 </x-module-shell>

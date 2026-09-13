@@ -1,11 +1,11 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, relationship_tabs, header, metric %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, relationship_tabs, header, metric, dialog, fab %}
 {% call shell('relationships', 'Camila Rojas', 'bi-person') %}
 {{ header('Camila Rojas', 'Perfil, cronología y pendientes de esta relación.', 'bi-person', '/relationships-index') }}
 {{ relationship_tabs('/relationships-show') }}
 <section class="lt-metrics">{{ metric('Último contacto','Hace 45 días','warning') }}{{ metric('Frecuencia deseada','Cada mes') }}{{ metric('Momentos este año','9','success') }}</section>
 <section class="lt-grid-main">
   <div class="lt-stack">
-    <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-clock-history"></i><h3>Cronología</h3><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Registrar momento</button></div><div class="lt-panel__body">
+    <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-clock-history"></i><h3>Cronología</h3></div><div class="lt-panel__body">
       <p class="lt-section-label">Próximos</p>
       <div class="lt-timeline"><div class="lt-timeline__item"><span class="lt-timeline__dot"></span><div><strong>Cena de reencuentro</strong><span>Sáb 20 sep. · Planeado</span></div></div></div>
       <p class="lt-section-label">Historial</p>
@@ -15,7 +15,7 @@
         {% endfor %}
       </div>
     </div></article>
-    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-list-check"></i><h3>Pendientes</h3><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Nueva tarea asociada</button></div><div class="lt-panel__body"><div class="lt-list">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-list-check"></i><h3>Pendientes</h3></div><div class="lt-panel__body"><div class="lt-list">
       {% for task, meta, done in [('Reservar restaurante para el 20','Vence 15 sep.',false),('Enviarle el libro que le recomendé','Sin fecha',false),('Felicitarla por el nuevo trabajo','Completada 27 jul.',true)] %}<div class="lt-list-item"><span class="lt-check{% if done %} is-done{% endif %}">{% if done %}✓{% endif %}</span><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ meta }}</span></div></div>{% endfor %}
     </div></div></article>
   </div>
@@ -31,4 +31,16 @@
     <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-sticky"></i><h3>Notas</h3></div><div class="lt-panel__body"><p class="lt-page-head__subtitle">Vegetariana. Le encanta el café de especialidad y los conciertos de jazz.</p></div></article>
   </aside>
 </section>
+{{ fab('Registrar acontecimiento', 'bi-calendar-plus', 'event-new', [('Agregar tarea', 'bi-check2-square', 'rel-task-new')]) }}
+{% call dialog('event-new', 'Registrar acontecimiento', icon='bi-calendar-plus', sections=[('basic','Información básica','bi-calendar-event'),('details','Detalles adicionales','bi-card-text')]) %}
+<section class="lt-dialog__section" data-section="basic">
+  <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Título *</span><input type="text" placeholder="Ej. Llamada larga"></label><label class="lt-field "><span>Categoría</span><select><option>Conversación</option><option>Encuentro</option></select></label><label class="lt-field "><span>Fecha</span><input type="date"></label></div>
+</section>
+<section class="lt-dialog__section" data-section="details" hidden>
+  <header class="lt-dialog__section-head"><h3>Detalles adicionales</h3></header>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Notas</span><textarea></textarea></label></div>
+</section>
+{% endcall %}
+{% call dialog('rel-task-new', 'Agregar tarea asociada', icon='bi-check2-square') %}<div class="lt-form"><label class="lt-field lt-form--full"><span>Título *</span><input type="text" placeholder=""></label><label class="lt-field "><span>Prioridad</span><select><option>Media</option><option>Alta</option><option>Baja</option></select></label><label class="lt-field "><span>Vencimiento</span><input type="date"></label></div>{% endcall %}
 {% endcall %}

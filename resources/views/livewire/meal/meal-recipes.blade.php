@@ -1,8 +1,6 @@
-<x-module-shell module="meals" x-data="{ showDialog: $wire.entangle('showForm') }">
+<x-module-shell module="meals">
     <x-slot:actions>
-        <button wire:click="openForm" class="md-btn-filled-tonal">
-            <i class="bi bi-plus-lg"></i> Nueva receta
-        </button>
+        <x-module-actions :primary="['label' => 'Crear receta', 'icon' => 'bi-book', 'action' => 'openForm']" />
     </x-slot:actions>
 
     {{-- Search + Filters --}}
@@ -104,174 +102,81 @@
     @endif
 
     {{-- Dialog --}}
-    <template x-if="showDialog">
-        <div>
-            <div class="md-dialog-scrim" @click="$wire.closeForm()"></div>
-            <section class="md-dialog md-dialog--large" role="dialog" aria-modal="true" aria-labelledby="recipe-dialog-title" @click.stop>
-                <header class="md-dialog-header">
-                    <div>
-                        <h2 id="recipe-dialog-title" class="md-headline-small mb-1">{{ $editingId ? 'Editar receta' : 'Nueva receta' }}</h2>
-                        <p class="md-body-medium mb-0">Organiza la preparación, sus ingredientes y la información nutricional</p>
+    <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="recipe-dialog"
+                      :title="$editingId ? 'Editar receta' : 'Crear receta'" icon="bi-book"
+                      :submit="$editingId ? 'Actualizar' : 'Guardar'"
+                      :sections="[
+                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-card-heading', 'error' => $errors->has('name')],
+                          'ingredients' => ['label' => 'Ingredientes', 'icon' => 'bi-basket', 'error' => $errors->has('ingredients.*')],
+                          'preparation' => ['label' => 'Preparación', 'icon' => 'bi-list-ol'],
+                          'nutrition' => ['label' => 'Información nutricional', 'icon' => 'bi-fire'],
+                      ]">
+        <x-ui.form-dialog-section name="basic" title="Información básica">
+            <div class="d-flex flex-column gap-3">
+                <x-ui.field name="name" label="Nombre de la receta" :required="true" wire:model="name" />
+                <div class="md-field-trio">
+                    <x-ui.select name="mealType" label="Tipo de comida" :options="$this->mealTypes" :selected="$mealType" wire:model="mealType" />
+                    <x-ui.select name="difficulty" label="Dificultad" :options="$this->difficulties" :selected="$difficulty" wire:model="difficulty" />
+                    <x-ui.field name="prepTime" label="Tiempo (min)" type="number" min="1" wire:model="prepTime" />
+                </div>
+                <x-ui.textarea name="description" label="Descripción (opcional)" rows="2" wire:model="description" />
+                <label class="d-flex align-items-center gap-2" style="cursor: pointer;">
+                    <input type="checkbox" wire:model="favorite" class="md-checkbox">
+                    <span class="md-body-medium">Marcar como favorita</span>
+                </label>
+            </div>
+        </x-ui.form-dialog-section>
+
+        <x-ui.form-dialog-section name="ingredients" title="Ingredientes">
+            @foreach ($ingredients as $index => $ingredient)
+                <div class="row g-2 mb-2 align-items-start" wire:key="ingredient-{{ $index }}">
+                    <div class="col-12 col-md-5">
+                        <x-ui.field name="ingredients.{{ $index }}.name" label="Ingrediente" :required="true" id="ing-name-{{ $index }}" list="shopping-items-list" wire:model="ingredients.{{ $index }}.name" />
                     </div>
-                    <button type="button" wire:click="closeForm" class="md-btn-icon" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
-                </header>
-                <div class="md-dialog-content md-dialog-layout md-dialog-layout--equal">
-                    <div class="d-flex flex-column gap-3">
-                    <section class="md-form-section">
-                        <div class="md-form-section__header"><div><i class="bi bi-card-heading"></i><span>Información general</span></div></div>
-                        <div class="d-flex flex-column gap-3">
-                        {{-- Basic info --}}
-                        <div class="md-text-field">
-                            <input type="text" wire:model="name" placeholder=" " id="recipe-name">
-                            <label for="recipe-name">Nombre de la receta *</label>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-6 col-md-4">
-                                <div class="md-text-field">
-                                    <select wire:model="mealType" id="recipe-meal-type">
-                                        @foreach ($this->mealTypes as $key => $label)
-                                            <option value="{{ $key }}">{{ $label }}</option>
-                                        @endforeach
-                                    </select>
-                                    <label for="recipe-meal-type">Tipo de comida</label>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="md-text-field">
-                                    <select wire:model="difficulty" id="recipe-difficulty">
-                                        @foreach ($this->difficulties as $key => $label)
-                                            <option value="{{ $key }}">{{ $label }}</option>
-                                        @endforeach
-                                    </select>
-                                    <label for="recipe-difficulty">Dificultad</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="md-text-field">
-                                    <input type="number" wire:model="prepTime" placeholder=" " id="recipe-prep-time" min="1">
-                                    <label for="recipe-prep-time">Tiempo (min)</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="md-text-field">
-                            <textarea wire:model="description" placeholder=" " id="recipe-description" rows="2"></textarea>
-                            <label for="recipe-description">Descripción (opcional)</label>
-                        </div>
-
-                        <label class="d-flex align-items-center gap-2" style="cursor: pointer;">
-                            <input type="checkbox" wire:model="favorite" class="md-checkbox">
-                            <span class="md-body-medium">Marcar como favorita</span>
-                        </label>
-                        </div>
-                    </section>
-
-                    <section class="md-form-section">
-                        <div class="md-form-section__header"><div><i class="bi bi-list-ol"></i><span>Preparación</span></div></div>
-                        <div class="md-text-field">
-                            <textarea wire:model="instructions" placeholder=" " id="recipe-instructions" rows="10"></textarea>
-                            <label for="recipe-instructions">Instrucciones (opcional)</label>
-                        </div>
-                    </section>
+                    <div class="col-6 col-md-3">
+                        <x-ui.field name="ingredients.{{ $index }}.quantity" label="Cantidad" type="number" :required="true" id="ing-qty-{{ $index }}" min="0.01" max="999999.99" step="0.01" inputmode="decimal" wire:model="ingredients.{{ $index }}.quantity" />
                     </div>
-
-                    <div class="d-flex flex-column gap-3">
-
-                        {{-- Nutrition --}}
-                        <section class="md-form-section">
-                            <div class="md-form-section__header"><div><i class="bi bi-fire"></i><span>Información nutricional</span></div></div>
-                            <div class="row g-2 mt-2">
-                                <div class="col-6 col-md-3">
-                                    <div class="md-text-field">
-                                        <input type="number" wire:model="nutritionCalories" placeholder=" " id="recipe-cal">
-                                        <label for="recipe-cal">Calorías</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="md-text-field">
-                                        <input type="number" wire:model="nutritionProtein" placeholder=" " id="recipe-prot">
-                                        <label for="recipe-prot">Proteína (g)</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="md-text-field">
-                                        <input type="number" wire:model="nutritionCarbs" placeholder=" " id="recipe-carbs">
-                                        <label for="recipe-carbs">Carbos (g)</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="md-text-field">
-                                        <input type="number" wire:model="nutritionFat" placeholder=" " id="recipe-fat">
-                                        <label for="recipe-fat">Grasa (g)</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        {{-- Ingredients --}}
-                        <section class="md-form-section">
-                            <div class="md-form-section__header">
-                                <div><i class="bi bi-basket"></i><span>Ingredientes</span><span class="md-chip md-chip--small">{{ count($ingredients) }}</span></div>
-                                <button wire:click="addIngredient" type="button" class="md-btn-text md-btn-text--small">
-                                    <i class="bi bi-plus"></i> Agregar
-                                </button>
-                            </div>
-
-                            @foreach ($ingredients as $index => $ingredient)
-                                <div class="row g-2 mb-2 align-items-start" wire:key="ingredient-{{ $index }}">
-                                    <div class="col-12 col-md-5">
-                                        <div @class(['md-text-field', 'md-error' => $errors->has("ingredients.$index.name")])>
-                                            <input type="text" wire:model="ingredients.{{ $index }}.name" placeholder=" " id="ing-name-{{ $index }}" list="shopping-items-list" required aria-invalid="{{ $errors->has("ingredients.$index.name") ? 'true' : 'false' }}">
-                                            <label for="ing-name-{{ $index }}">Ingrediente *</label>
-                                            @error("ingredients.$index.name")<div class="md-supporting-text">{{ $message }}</div>@enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-2">
-                                        <div @class(['md-text-field', 'md-error' => $errors->has("ingredients.$index.quantity")])>
-                                            <input type="number" wire:model="ingredients.{{ $index }}.quantity" placeholder=" " id="ing-qty-{{ $index }}" min="0.01" max="999999.99" step="0.01" required inputmode="decimal" aria-invalid="{{ $errors->has("ingredients.$index.quantity") ? 'true' : 'false' }}">
-                                            <label for="ing-qty-{{ $index }}">Cantidad *</label>
-                                            @error("ingredients.$index.quantity")<div class="md-supporting-text">{{ $message }}</div>@enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-5 col-md-3">
-                                        <div class="md-text-field">
-                                            <input type="text" wire:model="ingredients.{{ $index }}.unit" placeholder=" " id="ing-unit-{{ $index }}">
-                                            <label for="ing-unit-{{ $index }}">Unidad</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-1 col-md-2 text-end">
-                                        <button wire:click="removeIngredient({{ $index }})" type="button" class="md-btn-icon md-btn-icon--small">
-                                            <i class="bi bi-x-lg"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            @endforeach
-
-                            <datalist id="shopping-items-list">
-                                @foreach ($shoppingItems as $item)
-                                    <option value="{{ $item->name }}">
-                                @endforeach
-                            </datalist>
-                            @if (empty($ingredients))
-                                <div class="md-form-empty"><i class="bi bi-basket2"></i><p>Agrega los ingredientes necesarios para preparar esta receta.</p></div>
-                            @endif
-                        </section>
+                    <div class="col-5 col-md-3">
+                        <x-ui.field name="ingredients.{{ $index }}.unit" label="Unidad" id="ing-unit-{{ $index }}" wire:model="ingredients.{{ $index }}.unit" />
+                    </div>
+                    <div class="col-1 text-end">
+                        <button wire:click="removeIngredient({{ $index }})" type="button" class="md-btn-icon md-btn-icon--small" aria-label="Quitar ingrediente">
+                            <i class="bi bi-x-lg" aria-hidden="true"></i>
+                        </button>
                     </div>
                 </div>
-                <footer class="md-dialog-actions">
-                    @if ($editingId)
-                        <button type="button" wire:click="delete('{{ $editingId }}')" wire:confirm="¿Eliminar esta receta?" class="md-btn-text md-btn-danger">
-                            <i class="bi bi-trash"></i> Eliminar
-                        </button>
-                    @endif
-                    <span class="md-dialog-actions__spacer"></span>
-                    <button type="button" wire:click="closeForm" class="md-btn-text">Cancelar</button>
-                    <button type="button" wire:click="save" class="md-btn-filled">
-                        <i class="bi bi-check-lg"></i> {{ $editingId ? 'Actualizar' : 'Guardar' }}
-                    </button>
-                </footer>
-            </section>
-        </div>
-    </template>
+            @endforeach
+
+            <datalist id="shopping-items-list">
+                @foreach ($shoppingItems as $item)
+                    <option value="{{ $item->name }}">
+                @endforeach
+            </datalist>
+            @if (empty($ingredients))
+                <div class="md-form-empty"><i class="bi bi-basket2" aria-hidden="true"></i><p>Agrega los ingredientes necesarios para preparar esta receta.</p></div>
+            @endif
+            <button wire:click="addIngredient" type="button" class="md-btn-text mt-2">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar ingrediente
+            </button>
+        </x-ui.form-dialog-section>
+
+        <x-ui.form-dialog-section name="preparation" title="Preparación">
+            <x-ui.textarea name="instructions" label="Instrucciones (opcional)" rows="10" wire:model="instructions" />
+        </x-ui.form-dialog-section>
+
+        <x-ui.form-dialog-section name="nutrition" title="Información nutricional" description="Valores por porción, opcionales.">
+            <div class="md-field-pair">
+                <x-ui.field name="nutritionCalories" label="Calorías" type="number" wire:model="nutritionCalories" />
+                <x-ui.field name="nutritionProtein" label="Proteína (g)" type="number" wire:model="nutritionProtein" />
+                <x-ui.field name="nutritionCarbs" label="Carbos (g)" type="number" wire:model="nutritionCarbs" />
+                <x-ui.field name="nutritionFat" label="Grasa (g)" type="number" wire:model="nutritionFat" />
+            </div>
+            @if ($editingId)
+                <div class="mt-4">
+                    <x-ui.destructive-action label="Eliminar receta" action="delete('{{ $editingId }}')"
+                                             title="Eliminar receta" message="La receta y sus ingredientes se eliminan de forma permanente." />
+                </div>
+            @endif
+        </x-ui.form-dialog-section>
+    </x-ui.form-dialog>
 </x-module-shell>

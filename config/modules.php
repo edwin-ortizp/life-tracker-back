@@ -65,7 +65,7 @@ return [
         'title' => 'Salud', 'subtitle' => 'Historial, síntomas y seguimiento corporal.', 'icon' => 'bi-heart-pulse',
         'patterns' => ['health*'], 'preserve' => [],
         // Rediseño: sin banner de módulo (la identidad vive en la barra superior) y con panel contextual.
-        'header' => false, 'rail' => true,
+        'rail' => true,
         'tabs' => [
             ['label' => 'Registro', 'route' => 'health', 'icon' => 'bi-clock-history', 'active' => ['health']],
             ['label' => 'Vista del cuerpo', 'route' => 'health.body', 'archetype' => 'detail', 'icon' => 'bi-person-standing', 'active' => ['health.body']],
@@ -154,7 +154,7 @@ return [
         'archetype' => 'list',
         'title' => 'Planes', 'subtitle' => 'Lugares, actividades y experiencias para compartir.', 'icon' => 'bi-map',
         'patterns' => ['plans*'],
-        'header' => false, 'rail' => true,
+        'rail' => true,
         'preserve' => ['group', 'status', 'q', 'sort', 'city', 'types', 'circles', 'people'],
     ],
     'goals' => [

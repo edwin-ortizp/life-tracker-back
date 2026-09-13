@@ -1,10 +1,9 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab %}
 {% call shell('meals', 'Recetas', 'bi-book') %}
 {{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-recipes') }}
 <section class="lt-toolbar" aria-label="Filtros de recetas">
   <label class="lt-field"><span class="lt-sr-only">Buscar recetas</span><input type="search" placeholder="Buscar recetas..."></label>
   {% for c, sel in [('Todas',true),('Desayuno',false),('Almuerzo',false),('Cena',false),('Vegetarianas',false),('Rápidas',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}
-  <button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Nueva receta</button>
 </section>
 <section class="lt-recipe-grid">
   {% for emoji, name, desc, time, portions, tags, planned in [
@@ -24,4 +23,23 @@
   </div></article>
   {% endfor %}
 </section>
+{{ fab('Crear receta', 'bi-book', 'recipe-new') }}
+{% call dialog('recipe-new', 'Crear receta', icon='bi-book', sections=[('basic','Información básica','bi-card-heading'),('ingredients','Ingredientes','bi-basket'),('preparation','Preparación','bi-list-ol'),('nutrition','Información nutricional','bi-fire')]) %}
+<section class="lt-dialog__section" data-section="basic">
+  <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Nombre de la receta *</span><input type="text" placeholder="Ej. Bowl de quinoa"></label><label class="lt-field "><span>Tipo de comida</span><select><option>Almuerzo</option><option>Desayuno</option><option>Cena</option></select></label><label class="lt-field "><span>Tiempo (min)</span><input type="number" value="25"></label></div>
+</section>
+<section class="lt-dialog__section" data-section="ingredients" hidden>
+  <header class="lt-dialog__section-head"><h3>Ingredientes</h3></header>
+  <div class="lt-form"><label class="lt-field "><span>Ingrediente *</span><input type="text" placeholder="Quinoa"></label><label class="lt-field "><span>Cantidad *</span><input type="number" value="200"></label><label class="lt-field "><span>Unidad</span><input type="text" placeholder="g"></label></div>
+</section>
+<section class="lt-dialog__section" data-section="preparation" hidden>
+  <header class="lt-dialog__section-head"><h3>Preparación</h3></header>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Instrucciones</span><textarea rows="8"></textarea></label></div>
+</section>
+<section class="lt-dialog__section" data-section="nutrition" hidden>
+  <header class="lt-dialog__section-head"><h3>Información nutricional</h3></header>
+  <div class="lt-form"><label class="lt-field "><span>Calorías</span><input type="number" value=""></label><label class="lt-field "><span>Proteína (g)</span><input type="number" value=""></label></div>
+</section>
+{% endcall %}
 {% endcall %}

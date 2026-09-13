@@ -60,3 +60,12 @@
   </section>
 </div>
 {%- endmacro %}
+
+{#- FAB canónico de creación: extendido en escritorio, solo ícono en móvil.
+    `target` es el id del diálogo que abre; `actions` = [(label, icon, target), ...] despliega un menú FAB. -#}
+{% macro fab(label, icon='bi-plus-lg', target=None, actions=None, id='lt-fab-menu') -%}
+{% if actions %}<div class="lt-fab-dial">
+  <div class="lt-fab-dial__menu" id="{{ id }}" role="menu" hidden>{% for alabel, aicon, atarget in [(label, icon, target)] + actions %}<button class="lt-fab-dial__item" type="button" role="menuitem"{% if atarget %} data-lt-toggle="{{ atarget }}" aria-haspopup="dialog"{% else %} data-lt-static-nav{% endif %}><span>{{ alabel }}</span><i class="bi {{ aicon }}" aria-hidden="true"></i></button>{% endfor %}</div>
+  <button class="lt-fab" type="button" data-lt-toggle="{{ id }}" aria-haspopup="menu" aria-expanded="false" aria-label="{{ label }}"><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></button>
+</div>{% else %}<button class="lt-fab" type="button"{% if target %} data-lt-toggle="{{ target }}" aria-haspopup="dialog"{% else %} data-lt-static-nav{% endif %} aria-label="{{ label }}"><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></button>{% endif %}
+{%- endmacro %}

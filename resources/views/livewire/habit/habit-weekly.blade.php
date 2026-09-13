@@ -1,7 +1,7 @@
 <x-module-shell module="habits">
-    <x-slot:actions>
+    <x-slot:controls>
         <div class="md-date-navigator"><button wire:click="previousWeek" class="md-btn-icon" aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><button wire:click="thisWeek" class="md-date-navigator__today">Esta semana</button><span class="md-date-navigator__label">{{ $weekStart->format('d M') }} – {{ $weekStart->copy()->endOfWeek()->format('d M') }}</span><button wire:click="nextWeek" class="md-btn-icon" aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button></div>
-    </x-slot:actions>
+    </x-slot:controls>
 
     <section class="habit-weekly-hero mb-3" aria-label="Resumen de progreso semanal">
         <div class="habit-weekly-hero__lead">

@@ -1,4 +1,4 @@
-{% from '@project/components/life-shell.html.jinja' import shell, relationship_tabs, header, dialog %}
+{% from '@project/components/life-shell.html.jinja' import shell, relationship_tabs, header, dialog, fab %}
 {% from '@project/components/catalog/plan-row.html.jinja' import plan_row, plan_dialogs %}
 {% call shell('relationships', 'Camila Rojas', 'bi-person') %}
 {{ header('Camila Rojas', '', 'bi-person', '/relationships-index') }}
@@ -57,6 +57,6 @@
     </div><button class="lt-button lt-button--text lt-link-share" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Compartir enlace</button></div></article>
   </aside>
 </section>
-<button class="lt-fab" type="button" data-lt-toggle="plan-new" aria-haspopup="dialog" aria-label="Agregar plan"><i class="bi bi-plus-lg"></i><span>Agregar plan</span></button>
+{{ fab('Agregar plan', 'bi-plus-lg', 'plan-new') }}
 {{ plan_dialogs('Camila Rojas') }}
 {% endcall %}

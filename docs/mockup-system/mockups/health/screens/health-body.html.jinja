@@ -1,4 +1,4 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, dialog, fab %}
 {% from '@project/components/body-models.html.jinja' import body_models %}
 {#
   Mapa corporal interactivo. Cada zona es un <g data-zone> con un nivel de calor
@@ -107,5 +107,5 @@
     </article>
   </aside>
 </section>
-<button class="lt-fab" type="button" data-lt-static-nav aria-label="Registrar evento de salud"><i class="bi bi-plus-lg"></i><span>Registrar evento</span></button>
+{{ fab('Registrar evento', 'bi-plus-lg') }}
 {% endcall %}

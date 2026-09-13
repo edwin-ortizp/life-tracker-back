@@ -5,12 +5,12 @@
     $energyState = DataState::resolve(visible: $energyEntries->count(), total: $energyEntries->count());
 @endphp
 
-<x-module-shell module="mood" x-data="{ showEnergyDialog: $wire.entangle('showEnergyForm') }">
+<x-module-shell module="mood">
     <x-slot:actions>
         <x-module-actions
             :primary="['label' => 'Registrar estado', 'icon' => 'bi-emoji-smile', 'action' => 'openMoodCatalog']"
             :secondary="[
-                ['label' => 'Registrar energía', 'icon' => 'bi-lightning-charge', 'action' => 'openEnergyForm'],
+                ['label' => 'Registrar energía', 'icon' => 'bi-lightning-charge', 'action' => 'openEnergyForm', 'create' => true],
                 ['label' => 'Escribir en el diario', 'icon' => 'bi-journal-text', 'href' => route('journal', ['date' => $selectedDate])],
             ]" />
     </x-slot:actions>
@@ -168,25 +168,23 @@
         </div>
     @endif
 
-    <x-ui.dialog state="showEnergyDialog" title="Nivel de energía">
-        <div class="md-energy-picker" role="group" aria-label="Nivel de energía">
-            @for ($i = 1; $i <= 5; $i++)
-                <button type="button" wire:click="$set('energyLevel', {{ $i }})"
-                        class="md-btn-icon md-btn--lg md-energy-picker__step {{ $energyLevel >= $i ? 'is-filled' : '' }}"
-                        aria-pressed="{{ $energyLevel >= $i ? 'true' : 'false' }}"
-                        aria-label="Nivel {{ $i }} de 5">
-                    <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
-                </button>
-            @endfor
+    <x-ui.form-dialog :open="$showEnergyForm" close="closeEnergyForm" submit-action="saveEnergy" id="energy-dialog"
+                      title="Registrar energía" icon="bi-lightning-charge">
+        <div class="d-flex flex-column gap-3">
+            <div class="md-energy-picker" role="group" aria-label="Nivel de energía">
+                @for ($i = 1; $i <= 5; $i++)
+                    <button type="button" wire:click="$set('energyLevel', {{ $i }})"
+                            class="md-btn-icon md-btn--lg md-energy-picker__step {{ $energyLevel >= $i ? 'is-filled' : '' }}"
+                            aria-pressed="{{ $energyLevel >= $i ? 'true' : 'false' }}"
+                            aria-label="Nivel {{ $i }} de 5">
+                        <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
+                    </button>
+                @endfor
+            </div>
+
+            <p class="md-headline-small md-energy-picker__value">{{ $energyLevel }}/5</p>
+
+            <x-ui.field name="energyComment" label="Comentario (opcional)" wire:model="energyComment" />
         </div>
-
-        <p class="md-headline-small md-energy-picker__value">{{ $energyLevel }}/5</p>
-
-        <x-ui.field name="energyComment" label="Comentario (opcional)" wire:model="energyComment" />
-
-        <x-slot:actions>
-            <x-ui.action variant="text" x-on:click="showEnergyDialog = false">Cancelar</x-ui.action>
-            <x-ui.action variant="filled" tone="warning" icon="bi-check-lg" wire:click="saveEnergy">Guardar</x-ui.action>
-        </x-slot:actions>
-    </x-ui.dialog>
+    </x-ui.form-dialog>
 </x-module-shell>

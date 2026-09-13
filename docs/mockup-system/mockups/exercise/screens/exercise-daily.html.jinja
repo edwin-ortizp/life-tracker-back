@@ -1,4 +1,4 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog, fab %}
 {% call shell('exercise', 'Ejercicio', 'bi-activity') %}
 {{ header('Ejercicio', 'Actividad, esfuerzo y progreso físico · Miércoles 10 sep.', 'bi-activity') }}
 {{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Resumen semanal','/exercise-weekly','bi-bar-chart-line')], '/exercise-daily') }}
@@ -13,17 +13,20 @@
   <div class="lt-progress"><span style="width:83%"></span></div>
   <p class="lt-page-head__subtitle">75 de 90 minutos activos. Una caminata de 15 min completa la meta.</p>
   </div></article>
-  <aside class="lt-panel"><div class="lt-panel__head"><i class="bi bi-plus-circle"></i><h3>Nuevo ejercicio</h3></div><div class="lt-panel__body">
-    <div class="lt-form">
-      <label class="lt-field lt-form--full"><span>Tipo de ejercicio</span><select><option>Seleccionar...</option><option selected>Peso muerto</option><option>Correr</option><option>Bicicleta</option><option>Natación</option></select></label>
-      <label class="lt-field"><span>Series</span><input type="number" value="3"></label>
-      <label class="lt-field"><span>Reps</span><input type="number" value="6"></label>
-      <label class="lt-field"><span>Peso (kg)</span><input type="number" value="80"></label>
-      <label class="lt-field"><span>Duración (min)</span><input type="number" value="15"></label>
-      <label class="lt-field lt-form--full"><span>Notas (opcional)</span><textarea placeholder="Sensaciones, técnica, molestias…"></textarea></label>
-    </div>
-    <p class="lt-page-head__subtitle">Estimado: ~95 kcal según tu peso de 74,5 kg.</p>
-    <div class="lt-actions"><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-check2"></i> Guardar</button></div>
-  </div></aside>
 </section>
+{{ fab('Registrar ejercicio', 'bi-activity', 'exercise-new') }}
+{% call dialog('exercise-new', 'Registrar ejercicio', icon='bi-activity', sections=[('basic','Información básica','bi-activity'),('metrics','Series y distancia','bi-bar-chart'),('details','Detalles adicionales','bi-card-text')]) %}
+<section class="lt-dialog__section" data-section="basic">
+  <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Tipo de ejercicio *</span><select><option>Peso muerto</option><option>Correr</option><option>Bicicleta</option><option>Natación</option></select></label><label class="lt-field "><span>Duración (min)</span><input type="number" value="15"></label><label class="lt-field "><span>Calorías</span><input type="number" value="95"></label></div>
+</section>
+<section class="lt-dialog__section" data-section="metrics" hidden>
+  <header class="lt-dialog__section-head"><h3>Series y distancia</h3></header>
+  <div class="lt-form"><label class="lt-field "><span>Series</span><input type="number" value="3"></label><label class="lt-field "><span>Reps</span><input type="number" value="6"></label><label class="lt-field "><span>Peso (kg)</span><input type="number" value="80"></label><label class="lt-field "><span>Distancia (km)</span><input type="number" value=""></label></div>
+</section>
+<section class="lt-dialog__section" data-section="details" hidden>
+  <header class="lt-dialog__section-head"><h3>Detalles adicionales</h3></header>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Notas (opcional)</span><textarea placeholder="Sensaciones, técnica, molestias…"></textarea></label></div>
+</section>
+{% endcall %}
 {% endcall %}

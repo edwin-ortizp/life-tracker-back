@@ -98,7 +98,7 @@ class ScreenArchetypeTest extends TestCase
         BLADE);
 
         $actions = substr($html, (int) strpos($html, 'data-region="actions"'));
-        $actions = substr($actions, 0, (int) strpos($actions, '</header>'));
+        $actions = substr($actions, 0, (int) strpos($actions, 'data-region="content"'));
 
         $this->assertSame(1, substr_count($actions, 'md-btn-filled'), 'Solo una acción puede recibir énfasis dominante.');
         $this->assertSame(2, substr_count($actions, 'md-btn-outlined'));

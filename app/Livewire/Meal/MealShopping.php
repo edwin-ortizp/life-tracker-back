@@ -45,9 +45,82 @@ class MealShopping extends Component
         'otros' => 'Otros',
     ];
 
+    public bool $showForm = false;
+
+    public string $itemName = '';
+
+    public ?int $itemQuantity = 1;
+
+    public string $itemUnit = '';
+
+    public string $itemCategory = '';
+
+    public string $itemStore = '';
+
+    public ?float $itemPrice = null;
+
     public function mount(): void
     {
         $this->normalizeViewOptions();
+    }
+
+    public function openForm(): void
+    {
+        $this->reset(['itemName', 'itemQuantity', 'itemUnit', 'itemCategory', 'itemStore', 'itemPrice']);
+        $this->resetValidation();
+        $this->showForm = true;
+    }
+
+    public function closeForm(): void
+    {
+        $this->showForm = false;
+        $this->resetValidation();
+    }
+
+    /**
+     * Agrega un ítem a la lista: reutiliza el del catálogo con el mismo nombre o lo crea.
+     */
+    public function save(): void
+    {
+        $data = $this->validate([
+            'itemName' => ['required', 'string', 'max:255'],
+            'itemQuantity' => ['nullable', 'integer', 'min:1'],
+            'itemUnit' => ['nullable', 'string', 'max:60'],
+            'itemCategory' => ['nullable', 'string', 'in:'.implode(',', array_keys($this->categoryOptions))],
+            'itemStore' => ['nullable', 'string', 'max:255', 'required_with:itemPrice'],
+            'itemPrice' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $name = trim($data['itemName']);
+        $item = auth()->user()->shoppingItems()->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])->first();
+
+        $attributes = array_filter([
+            'to_buy' => $data['itemQuantity'],
+            'unit' => $data['itemUnit'] ?: null,
+            'category' => $data['itemCategory'] ?: null,
+        ], fn ($value) => $value !== null);
+
+        if ($item) {
+            $item->update(['next_purchase' => true, ...$attributes]);
+        } else {
+            $item = auth()->user()->shoppingItems()->create([
+                'name' => $name,
+                'stock' => 0,
+                'to_buy' => 1,
+                'status' => 'available',
+                ...$attributes,
+                'next_purchase' => true,
+            ]);
+        }
+
+        if ($data['itemStore']) {
+            $item->variants()->updateOrCreate(
+                ['place' => $data['itemStore']],
+                array_filter(['price' => $data['itemPrice']], fn ($value) => $value !== null),
+            );
+        }
+
+        $this->showForm = false;
     }
 
     public function setViewMode(string $mode): void
@@ -160,6 +233,7 @@ class MealShopping extends Component
             'places' => $places,
             'totalItems' => $items->count(),
             'neededCount' => $neededCount,
+            'catalogNames' => auth()->user()->shoppingItems()->orderBy('name')->pluck('name'),
         ]);
     }
 }

@@ -1,4 +1,5 @@
-{% from '@project/components/vehicle-dialogs.html.jinja' import expense_dialog %}
+{% from '@project/components/vehicle-dialogs.html.jinja' import expense_dialog, dialog %}
+{% from '@project/components/life-shell.html.jinja' import fab %}
 {% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs %}
 {% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
 {{ vehicle_tabs('/vehicles-expenses') }}
@@ -61,7 +62,7 @@
   </aside>
 </section>
 
-<button class="lt-fab" type="button" data-lt-toggle="vehicle-expense-new" aria-haspopup="dialog" aria-label="Registrar gasto"><i class="bi bi-plus-lg"></i><span>Registrar gasto</span></button>
+{{ fab('Registrar gasto', 'bi-plus-lg', 'vehicle-expense-new') }}
 {{ expense_dialog() }}
 {{ expense_dialog('vehicle-expense-edit', 'Editar gasto', {'concept':'Seguros','amount':'$ 77.300','description':'Cuota seguro todo riesgo · Sura','date':'2026-09-01','recurring':true,'installments':12,'provider':'Sura'}) }}
 {% endcall %}

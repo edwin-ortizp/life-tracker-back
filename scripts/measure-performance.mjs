@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 
 const base = process.env.PERF_URL ?? 'http://127.0.0.1:8031';
 if (!['127.0.0.1', 'localhost'].includes(new URL(base).hostname)) throw new Error('Local benchmark only');
-const label = process.argv[2] ?? 'baseline';
+const label = process.argv[2] ?? 'current';
 const repetitions = Number(process.env.PERF_REPETITIONS ?? 20);
 const browser = await chromium.launch({headless: true});
 const report = {label, repetitions, samples: []};
@@ -64,7 +64,11 @@ for (const dataset of ['small', 'large']) {
         await measure('tasks-navigate', ()=>page.getByRole('link',{name:'Tareas',exact:true}).first().click(), ()=>page.getByRole('button',{name:'Nueva tarea',exact:true}).waitFor());
         await measure('tasks-reload', ()=>page.reload(), ()=>page.getByRole('button',{name:'Nueva tarea',exact:true}).waitFor());
         await measure('task-open', ()=>page.getByRole('button',{name:'Nueva tarea',exact:true}).click(), ()=>dialog.waitFor({state:'visible'}));
+        await measure('task-field', ()=>page.locator('#task-editor-title').fill('Draft only'), async()=>{await dialog.getByRole('button',{name:'Cerrar',exact:true}).focus(); await page.waitForTimeout(700);});
         await measure('task-close', ()=>page.getByRole('button',{name:'Cerrar',exact:true}).filter({visible:true}).click(), ()=>dialog.waitFor({state:'hidden'}));
+        await measure('task-edit', ()=>page.locator('.md-task-open-button').first().click(), ()=>page.waitForFunction(()=>document.querySelector('#task-editor-title')?.value));
+        await dialog.getByRole('button',{name:'Cerrar',exact:true}).click();
+        await dialog.waitFor({state:'hidden'});
         await page.getByRole('link',{name:'Salud',exact:true}).click();
         await page.getByRole('button',{name:'Registrar evento',exact:true}).waitFor();
     }
@@ -78,7 +82,7 @@ for (const dataset of ['small', 'large']) {
     for (const s of report.samples) (groups[s.dataset+'/'+s.action] ??= []).push(s);
     report.summary = Object.fromEntries(Object.entries(groups).map(([key,rows])=>{
         const values=rows.map(r=>r.uiMs??r.observedMs).sort((a,b)=>a-b);
-        return [key,{median:values[Math.floor(values.length/2)],p95:values[Math.ceil(values.length*.95)-1],requests:rows.reduce((n,r)=>n+r.requests.length,0)/rows.length}];
+        return [key,{median:(values[Math.floor((values.length-1)/2)]+values[Math.floor(values.length/2)])/2,p95:values[Math.ceil(values.length*.95)-1],requests:rows.reduce((n,r)=>n+r.requests.length,0)/rows.length}];
     }));
     await writeFile(`storage/framework/testing/performance/${label}.json`, JSON.stringify(report,null,2));
     console.log(JSON.stringify(report.summary,null,2));

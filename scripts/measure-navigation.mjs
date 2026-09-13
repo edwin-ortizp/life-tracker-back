@@ -8,7 +8,7 @@ const report = { samples: [], lifecycle: [], errors: [] };
 const repetitions = Number(process.env.PERF_REPETITIONS ?? 20);
 const summarize = rows => {
     const values = rows.map(r => r.ms).sort((a,b) => a-b);
-    return {n:values.length, median:values[Math.floor(values.length/2)], p95:values[Math.ceil(values.length*.95)-1]};
+    return {n:values.length, median:(values[Math.floor((values.length-1)/2)]+values[Math.floor(values.length/2)])/2, p95:values[Math.ceil(values.length*.95)-1]};
 };
 try {
 for (const dataset of ['small','large']) {

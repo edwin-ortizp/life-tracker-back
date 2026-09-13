@@ -1,6 +1,7 @@
 <x-module-shell module="meals">
     <x-slot:actions>
         <livewire:meal.bulk-ingredient-assistant context="shopping" />
+        <x-module-actions :primary="['label' => 'Agregar a compras', 'icon' => 'bi-cart-plus', 'action' => 'openForm']" />
     </x-slot:actions>
 
     {{-- Search + Filters --}}
@@ -137,4 +138,39 @@
             </div>
         </x-context-widget>
     </x-slot:rail>
+
+    <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="shopping-item-dialog"
+                      title="Agregar a compras" icon="bi-cart-plus"
+                      :sections="[
+                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-cart3', 'error' => $errors->hasAny(['itemName', 'itemQuantity'])],
+                          'store' => ['label' => 'Tienda y precio', 'icon' => 'bi-shop', 'error' => $errors->hasAny(['itemStore', 'itemPrice'])],
+                      ]">
+        <x-ui.form-dialog-section name="basic" title="Información básica" description="Si el ítem ya existe en tus ingredientes se reutiliza.">
+            <div class="d-flex flex-column gap-3">
+                <x-ui.field name="itemName" label="Nombre" :required="true" list="shopping-catalog-list" autocomplete="off" wire:model="itemName" />
+                <datalist id="shopping-catalog-list">
+                    @foreach ($catalogNames as $catalogName)
+                        <option value="{{ $catalogName }}">
+                    @endforeach
+                </datalist>
+                <div class="md-field-pair">
+                    <x-ui.field name="itemQuantity" label="Cantidad" type="number" min="1" wire:model="itemQuantity" />
+                    <x-ui.field name="itemUnit" label="Unidad" wire:model="itemUnit" />
+                </div>
+                <x-ui.select name="itemCategory" label="Categoría" placeholder="Sin categoría" :options="$categoryOptions" :selected="$itemCategory" wire:model="itemCategory" />
+            </div>
+        </x-ui.form-dialog-section>
+
+        <x-ui.form-dialog-section name="store" title="Tienda y precio" description="Opcional: guarda dónde lo consigues y a qué precio.">
+            <div class="md-field-pair">
+                <x-ui.field name="itemStore" label="Tienda" list="shopping-places-list" wire:model="itemStore" />
+                <x-ui.field name="itemPrice" label="Precio" type="number" step="0.01" min="0" wire:model="itemPrice" />
+            </div>
+            <datalist id="shopping-places-list">
+                @foreach ($places as $place)
+                    <option value="{{ $place }}">
+                @endforeach
+            </datalist>
+        </x-ui.form-dialog-section>
+    </x-ui.form-dialog>
 </x-module-shell>
