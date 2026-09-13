@@ -108,7 +108,7 @@
 <div class="lt-shell__body">
 <header class="lt-topbar"><button aria-label="Mostrar módulos" class="lt-icon-button" data-lt-nav-toggle="" type="button"><i aria-hidden="true" class="bi bi-list"></i></button><span aria-hidden="true" class="lt-topbar__icon"><i class="bi bi-activity"></i></span><h1 class="lt-topbar__title">Ejercicio</h1><div class="lt-search" role="search"><i aria-hidden="true" class="bi bi-search"></i><label class="lt-sr-only" for="lt-search-exercise">Buscar en todos los módulos</label><input data-lt-search-input="" id="lt-search-exercise" placeholder="Buscar en todos los módulos…" type="search"/></div><button aria-label="Buscar" class="lt-icon-button lt-topbar__search-button" data-lt-search="" type="button"><i aria-hidden="true" class="bi bi-search"></i></button><div class="lt-topbar__tools"><button aria-label="Ajustes" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-gear"></i></button><button aria-label="Notificaciones" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bell"></i></button><button aria-haspopup="menu" aria-label="Abrir menú de perfil" class="lt-profile" data-lt-static-nav="" type="button"><img alt="" height="40" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C9B8A6'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23E8C4A2'/%3E%3Cpath d='M25 28c0-11 7-17 15-17s16 6 15 17c-3-5-8-7-15-7s-12 2-15 7z' fill='%233B2A20'/%3E%3Cpath d='M12 80c2-17 13-25 28-25s26 8 28 25z' fill='%23455A64'/%3E%3C/svg%3E" width="40"/></button></div></header>
 <main class="lt-main"><div class="lt-page">
-<nav aria-label="Vistas del módulo" class="lt-tabs"><a aria-current="page" class="lt-tab is-active" href="#/exercise-daily"><i aria-hidden="true" class="bi bi-activity"></i><span>Registro diario</span></a><a class="lt-tab" href="#/exercise-weekly"><i aria-hidden="true" class="bi bi-bar-chart-line"></i><span>Resumen semanal</span></a><a class="lt-tab" href="#/exercise-types"><i aria-hidden="true" class="bi bi-tags"></i><span>Tipos</span></a></nav>
+<nav aria-label="Vistas del módulo" class="lt-tabs"><a aria-current="page" class="lt-tab is-active" href="#/exercise-daily"><i aria-hidden="true" class="bi bi-activity"></i><span>Registro diario</span></a><a class="lt-tab" href="#/exercise-statistics"><i aria-hidden="true" class="bi bi-bar-chart-line"></i><span>Estadísticas</span></a><a class="lt-tab" href="#/exercise-settings"><i aria-hidden="true" class="bi bi-sliders"></i><span>Ajustes</span></a></nav>
 <section class="lt-metrics"><article class="lt-metric lt-metric--success"><span>Duración</span><strong>75 min</strong></article><article class="lt-metric lt-metric--warning"><span>Calorías</span><strong>612 kcal</strong></article><article class="lt-metric lt-metric--primary"><span>Pasos</span><strong>8.420</strong></article></section>
 <section class="lt-grid-main">
 <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-list-ul"></i><h3>Actividades del día</h3><small>3 registros</small></div><div class="lt-panel__body"><div class="lt-list">
@@ -137,7 +137,7 @@
 <div class="lt-dialog__body">
 <section class="lt-dialog__section" data-section="basic">
 <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
-<div class="lt-form"><label class="lt-field lt-form--full"><span>Tipo de ejercicio *</span><select><option>Peso muerto</option><option>Correr</option><option>Bicicleta</option><option>Natación</option></select></label><p class="lt-page-head__subtitle lt-form--full">¿No está en la lista? <a class="lt-link" href="#/exercise-types">Gestionar tipos</a></p><label class="lt-field"><span>Duración (min)</span><input type="number" value="15"/></label><label class="lt-field"><span>Calorías</span><input type="number" value="95"/></label></div>
+<div class="lt-form"><label class="lt-field lt-form--full"><span>Tipo de ejercicio *</span><select><option>Entrenamiento de fuerza</option><option>Correr</option><option>Bicicleta estática</option><option>Natación</option><option>Fútbol</option></select></label><p class="lt-page-head__subtitle lt-form--full">¿No está en la lista? <a class="lt-link" href="#/exercise-settings">Gestionar tipos</a></p><label class="lt-field"><span>Duración (min)</span><input type="number" value="15"/></label><label class="lt-field"><span>Calorías</span><input type="number" value="95"/></label></div>
 </section>
 <section class="lt-dialog__section" data-section="metrics" hidden="">
 <header class="lt-dialog__section-head"><h3>Series y distancia</h3></header>
@@ -156,7 +156,7 @@
 <nav aria-label="Destinos principales" class="lt-bottom"><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-house"></i><span>Inicio</span></button><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-check2-square"></i><span>Hábitos</span></button><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-list-task"></i><span>Tareas</span></button><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bar-chart"></i><span>Stats</span></button><button class="lt-bottom__item" data-lt-open-drawer="" type="button"><i aria-hidden="true" class="bi bi-grid"></i><span>Módulos</span></button></nav>
 </div>
 </div>
-</template><template id="empty--exercise-weekly" data-screen="exercise-weekly">
+</template><template id="empty--exercise-statistics" data-screen="exercise-statistics">
 <div class="lt-shell" data-module="exercise">
 <aside aria-label="Módulos de Life Tracker" class="lt-sidebar">
 <div class="lt-sidebar__brand"><span aria-hidden="true" class="lt-sidebar__mark"><i class="bi bi-activity"></i></span><span class="lt-sidebar__name">Life Tracker</span></div>
@@ -166,30 +166,36 @@
 </aside>
 <button aria-label="Cerrar módulos" class="lt-scrim" data-lt-close-drawer="" type="button"></button>
 <div class="lt-shell__body">
-<header class="lt-topbar"><button aria-label="Mostrar módulos" class="lt-icon-button" data-lt-nav-toggle="" type="button"><i aria-hidden="true" class="bi bi-list"></i></button><span aria-hidden="true" class="lt-topbar__icon"><i class="bi bi-bar-chart-line"></i></span><h1 class="lt-topbar__title">Resumen semanal</h1><div class="lt-search" role="search"><i aria-hidden="true" class="bi bi-search"></i><label class="lt-sr-only" for="lt-search-exercise">Buscar en todos los módulos</label><input data-lt-search-input="" id="lt-search-exercise" placeholder="Buscar en todos los módulos…" type="search"/></div><button aria-label="Buscar" class="lt-icon-button lt-topbar__search-button" data-lt-search="" type="button"><i aria-hidden="true" class="bi bi-search"></i></button><div class="lt-topbar__tools"><button aria-label="Ajustes" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-gear"></i></button><button aria-label="Notificaciones" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bell"></i></button><button aria-haspopup="menu" aria-label="Abrir menú de perfil" class="lt-profile" data-lt-static-nav="" type="button"><img alt="" height="40" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C9B8A6'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23E8C4A2'/%3E%3Cpath d='M25 28c0-11 7-17 15-17s16 6 15 17c-3-5-8-7-15-7s-12 2-15 7z' fill='%233B2A20'/%3E%3Cpath d='M12 80c2-17 13-25 28-25s26 8 28 25z' fill='%23455A64'/%3E%3C/svg%3E" width="40"/></button></div></header>
+<header class="lt-topbar"><button aria-label="Mostrar módulos" class="lt-icon-button" data-lt-nav-toggle="" type="button"><i aria-hidden="true" class="bi bi-list"></i></button><span aria-hidden="true" class="lt-topbar__icon"><i class="bi bi-activity"></i></span><h1 class="lt-topbar__title">Ejercicio</h1><div class="lt-search" role="search"><i aria-hidden="true" class="bi bi-search"></i><label class="lt-sr-only" for="lt-search-exercise">Buscar en todos los módulos</label><input data-lt-search-input="" id="lt-search-exercise" placeholder="Buscar en todos los módulos…" type="search"/></div><button aria-label="Buscar" class="lt-icon-button lt-topbar__search-button" data-lt-search="" type="button"><i aria-hidden="true" class="bi bi-search"></i></button><div class="lt-topbar__tools"><button aria-label="Ajustes" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-gear"></i></button><button aria-label="Notificaciones" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bell"></i></button><button aria-haspopup="menu" aria-label="Abrir menú de perfil" class="lt-profile" data-lt-static-nav="" type="button"><img alt="" height="40" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C9B8A6'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23E8C4A2'/%3E%3Cpath d='M25 28c0-11 7-17 15-17s16 6 15 17c-3-5-8-7-15-7s-12 2-15 7z' fill='%233B2A20'/%3E%3Cpath d='M12 80c2-17 13-25 28-25s26 8 28 25z' fill='%23455A64'/%3E%3C/svg%3E" width="40"/></button></div></header>
 <main class="lt-main"><div class="lt-page">
-<nav aria-label="Vistas del módulo" class="lt-tabs"><a class="lt-tab" href="#/exercise-daily"><i aria-hidden="true" class="bi bi-activity"></i><span>Registro diario</span></a><a aria-current="page" class="lt-tab is-active" href="#/exercise-weekly"><i aria-hidden="true" class="bi bi-bar-chart-line"></i><span>Resumen semanal</span></a><a class="lt-tab" href="#/exercise-types"><i aria-hidden="true" class="bi bi-tags"></i><span>Tipos</span></a></nav>
-<section class="lt-metrics"><article class="lt-metric lt-metric--warning"><span>Minutos activos</span><strong>185 de 300</strong></article><article class="lt-metric lt-metric--primary"><span>Calorías</span><strong>1.480 kcal</strong></article><article class="lt-metric lt-metric--success"><span>Días activos</span><strong>3 de 7</strong></article></section>
+<nav aria-label="Vistas del módulo" class="lt-tabs"><a class="lt-tab" href="#/exercise-daily"><i aria-hidden="true" class="bi bi-activity"></i><span>Registro diario</span></a><a aria-current="page" class="lt-tab is-active" href="#/exercise-statistics"><i aria-hidden="true" class="bi bi-bar-chart-line"></i><span>Estadísticas</span></a><a class="lt-tab" href="#/exercise-settings"><i aria-hidden="true" class="bi bi-sliders"></i><span>Ajustes</span></a></nav>
+<section aria-label="Periodo de análisis" class="lt-toolbar">
+<button class="lt-button lt-button--tonal" data-lt-static-nav="" type="button">7 días</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">30 días</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">90 días</button>
+<p class="lt-toolbar__label">7 – 13 sep. 2026</p>
+</section>
+<section class="lt-metrics"><article class="lt-metric lt-metric--primary"><span>Sesiones</span><strong>5</strong></article><article class="lt-metric lt-metric--success"><span>Días activos</span><strong>4 de 7</strong></article><article class="lt-metric lt-metric--warning"><span>Racha actual</span><strong>3 días</strong></article><article class="lt-metric lt-metric--primary"><span>Tiempo activo</span><strong>290 min</strong></article></section>
+<section class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-bar-chart-line"></i><h3>Minutos activos</h3><small>Total por día</small></div><div class="lt-panel__body">
+<div class="lt-bars"><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:55%"></span></div><span>Lun 7</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:75%"></span></div><span>Mar 8</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:0%"></span></div><span>Mié 9</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:100%"></span></div><span>Jue 10</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:0%"></span></div><span>Vie 11</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:50%"></span></div><span>Sáb 12</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:60%"></span></div><span>Dom 13</span></div></div>
+</div></section>
 <section class="lt-grid-2">
-<article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-bar-chart-line"></i><h3>Minutos por día</h3><small>Meta 45 min/día</small></div><div class="lt-panel__body">
-<div class="lt-bars"><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:100%"></span></div><span>Lun</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:55%"></span></div><span>Mar</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:100%"></span></div><span>Mié</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:0%"></span></div><span>Jue</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:0%"></span></div><span>Vie</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:0%"></span></div><span>Sáb</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:0%"></span></div><span>Dom</span></div></div>
-</div></article>
-<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-pie-chart"></i><h3>Por tipo de actividad</h3></div><div class="lt-panel__body"><div class="lt-list">
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Correr</strong><span>2 sesiones · 11,4 km</span><div class="lt-progress"><span style="width:45%"></span></div></div><span class="lt-chip">45 %</span></div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Fuerza</strong><span>2 sesiones · 14 ejercicios</span><div class="lt-progress"><span style="width:40%"></span></div></div><span class="lt-chip">40 %</span></div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-bicycle"></i></span><div class="lt-list-item__body"><strong>Bicicleta</strong><span>1 sesión · 12 km</span><div class="lt-progress"><span style="width:15%"></span></div></div><span class="lt-chip">15 %</span></div>
+<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-pie-chart"></i><h3>Por tipo de ejercicio</h3><small>Frecuencia y tiempo</small></div><div class="lt-panel__body"><div class="lt-list">
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Correr</strong><span>2 sesiones · 95 min · 1.110 kcal</span><div class="lt-progress"><span style="width:33%"></span></div></div><span class="lt-chip">33 %</span></div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Entrenamiento de fuerza</strong><span>2 sesiones · 105 min · 610 kcal</span><div class="lt-progress"><span style="width:36%"></span></div></div><span class="lt-chip">36 %</span></div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-bicycle"></i></span><div class="lt-list-item__body"><strong>Bicicleta estática</strong><span>1 sesión · 40 min · 320 kcal</span><div class="lt-progress"><span style="width:14%"></span></div></div><span class="lt-chip">14 %</span></div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-dribbble"></i></span><div class="lt-list-item__body"><strong>Fútbol</strong><span>1 sesión · 50 min · 410 kcal</span><div class="lt-progress"><span style="width:17%"></span></div></div><span class="lt-chip">17 %</span></div>
+</div></div></article>
+<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-trophy"></i><h3>Mejores marcas del periodo</h3><small>El registro más exigente de cada tipo</small></div><div class="lt-panel__body"><div class="lt-list">
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Entrenamiento de fuerza</strong><span>60 kg · 4×8 · 45 min · 10 sep.</span></div></div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Correr</strong><span>8,5 km · 52 min · 8 sep.</span></div></div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-bicycle"></i></span><div class="lt-list-item__body"><strong>Bicicleta estática</strong><span>40 min · 12 sep.</span></div></div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-dribbble"></i></span><div class="lt-list-item__body"><strong>Fútbol</strong><span>50 min · 13 sep.</span></div></div>
 </div></div></article>
 </section>
-<section class="lt-panel"><div class="lt-panel__head"><i class="bi bi-trophy"></i><h3>Récords y progreso</h3></div><div class="lt-panel__body"><div class="lt-list">
-<div class="lt-list-item"><div class="lt-list-item__body"><strong>Sentadilla con barra</strong><span>60 kg × 8 · +5 kg frente a agosto</span></div><span class="lt-chip lt-chip--success">Récord</span></div>
-<div class="lt-list-item"><div class="lt-list-item__body"><strong>Correr 5 km</strong><span>30:45 · mejor tiempo del mes</span></div><span class="lt-chip lt-chip--success">Récord</span></div>
-<div class="lt-list-item"><div class="lt-list-item__body"><strong>Press de banca</strong><span>45 kg × 10 · igual que la semana pasada</span></div><span class="lt-chip lt-chip--neutral">Estable</span></div>
-</div></div></section>
 </div></main>
 <nav aria-label="Destinos principales" class="lt-bottom"><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-house"></i><span>Inicio</span></button><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-check2-square"></i><span>Hábitos</span></button><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-list-task"></i><span>Tareas</span></button><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bar-chart"></i><span>Stats</span></button><button class="lt-bottom__item" data-lt-open-drawer="" type="button"><i aria-hidden="true" class="bi bi-grid"></i><span>Módulos</span></button></nav>
 </div>
 </div>
-</template><template id="empty--exercise-types" data-screen="exercise-types">
+</template><template id="empty--exercise-settings" data-screen="exercise-settings">
 <div class="lt-shell" data-module="exercise">
 <aside aria-label="Módulos de Life Tracker" class="lt-sidebar">
 <div class="lt-sidebar__brand"><span aria-hidden="true" class="lt-sidebar__mark"><i class="bi bi-activity"></i></span><span class="lt-sidebar__name">Life Tracker</span></div>
@@ -199,141 +205,73 @@
 </aside>
 <button aria-label="Cerrar módulos" class="lt-scrim" data-lt-close-drawer="" type="button"></button>
 <div class="lt-shell__body">
-<header class="lt-topbar"><button aria-label="Mostrar módulos" class="lt-icon-button" data-lt-nav-toggle="" type="button"><i aria-hidden="true" class="bi bi-list"></i></button><span aria-hidden="true" class="lt-topbar__icon"><i class="bi bi-tags"></i></span><h1 class="lt-topbar__title">Tipos de ejercicio</h1><div class="lt-search" role="search"><i aria-hidden="true" class="bi bi-search"></i><label class="lt-sr-only" for="lt-search-exercise">Buscar en todos los módulos</label><input data-lt-search-input="" id="lt-search-exercise" placeholder="Buscar en todos los módulos…" type="search"/></div><button aria-label="Buscar" class="lt-icon-button lt-topbar__search-button" data-lt-search="" type="button"><i aria-hidden="true" class="bi bi-search"></i></button><div class="lt-topbar__tools"><button aria-label="Ajustes" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-gear"></i></button><button aria-label="Notificaciones" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bell"></i></button><button aria-haspopup="menu" aria-label="Abrir menú de perfil" class="lt-profile" data-lt-static-nav="" type="button"><img alt="" height="40" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C9B8A6'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23E8C4A2'/%3E%3Cpath d='M25 28c0-11 7-17 15-17s16 6 15 17c-3-5-8-7-15-7s-12 2-15 7z' fill='%233B2A20'/%3E%3Cpath d='M12 80c2-17 13-25 28-25s26 8 28 25z' fill='%23455A64'/%3E%3C/svg%3E" width="40"/></button></div></header>
+<header class="lt-topbar"><button aria-label="Mostrar módulos" class="lt-icon-button" data-lt-nav-toggle="" type="button"><i aria-hidden="true" class="bi bi-list"></i></button><span aria-hidden="true" class="lt-topbar__icon"><i class="bi bi-activity"></i></span><h1 class="lt-topbar__title">Ejercicio</h1><div class="lt-search" role="search"><i aria-hidden="true" class="bi bi-search"></i><label class="lt-sr-only" for="lt-search-exercise">Buscar en todos los módulos</label><input data-lt-search-input="" id="lt-search-exercise" placeholder="Buscar en todos los módulos…" type="search"/></div><button aria-label="Buscar" class="lt-icon-button lt-topbar__search-button" data-lt-search="" type="button"><i aria-hidden="true" class="bi bi-search"></i></button><div class="lt-topbar__tools"><button aria-label="Ajustes" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-gear"></i></button><button aria-label="Notificaciones" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bell"></i></button><button aria-haspopup="menu" aria-label="Abrir menú de perfil" class="lt-profile" data-lt-static-nav="" type="button"><img alt="" height="40" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C9B8A6'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23E8C4A2'/%3E%3Cpath d='M25 28c0-11 7-17 15-17s16 6 15 17c-3-5-8-7-15-7s-12 2-15 7z' fill='%233B2A20'/%3E%3Cpath d='M12 80c2-17 13-25 28-25s26 8 28 25z' fill='%23455A64'/%3E%3C/svg%3E" width="40"/></button></div></header>
 <main class="lt-main"><div class="lt-page">
-<nav aria-label="Vistas del módulo" class="lt-tabs"><a class="lt-tab" href="#/exercise-daily"><i aria-hidden="true" class="bi bi-activity"></i><span>Registro diario</span></a><a class="lt-tab" href="#/exercise-weekly"><i aria-hidden="true" class="bi bi-bar-chart-line"></i><span>Resumen semanal</span></a><a aria-current="page" class="lt-tab is-active" href="#/exercise-types"><i aria-hidden="true" class="bi bi-tags"></i><span>Tipos</span></a></nav>
-<section class="lt-metrics"><article class="lt-metric lt-metric--primary"><span>Tipos creados</span><strong>11</strong></article><article class="lt-metric lt-metric--success"><span>Usados este mes</span><strong>7 de 11</strong></article><article class="lt-metric lt-metric--warning"><span>Sin registros</span><strong>4</strong></article></section>
+<nav aria-label="Vistas del módulo" class="lt-tabs"><a class="lt-tab" href="#/exercise-daily"><i aria-hidden="true" class="bi bi-activity"></i><span>Registro diario</span></a><a class="lt-tab" href="#/exercise-statistics"><i aria-hidden="true" class="bi bi-bar-chart-line"></i><span>Estadísticas</span></a><a aria-current="page" class="lt-tab is-active" href="#/exercise-settings"><i aria-hidden="true" class="bi bi-sliders"></i><span>Ajustes</span></a></nav>
+<section class="lt-metrics"><article class="lt-metric lt-metric--primary"><span>Tipos de ejercicio</span><strong>21</strong></article><article class="lt-metric lt-metric--success"><span>Con registros</span><strong>8 de 21</strong></article><article class="lt-metric lt-metric--warning"><span>Sin registros</span><strong>13</strong></article></section>
+<div class="lt-actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-restore" type="button"><i class="bi bi-arrow-counterclockwise"></i> Restaurar predeterminados</button></div>
 <section aria-label="Filtros de tipos" class="lt-toolbar">
 <label class="lt-field"><span class="lt-sr-only">Buscar</span><input placeholder="Buscar tipo de ejercicio..." type="search"/></label>
-<button class="lt-button lt-button--tonal" data-lt-static-nav="" type="button">Todos</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Cardio</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Fuerza</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Flexibilidad</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Sin categoría</button>
+<button class="lt-button lt-button--tonal" data-lt-static-nav="" type="button">Todas</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Cardio</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Deportes</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Fuerza</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Flexibilidad</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Sin categoría</button>
 </section>
-<article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-heart-pulse"></i><h3>Cardio</h3><small>4 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Correr</strong><span>14 registros · último hoy</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">720 kcal/h</span><small>9.000 pasos/h</small></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Correr" class="lt-icon-button" data-lt-toggle="type-menu-1-1" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-1-1" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
+<article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-heart-pulse"></i><h3>Cardio</h3><small>5 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Caminar</strong><span>250 kcal/h · 1.400 pasos/h · 4 registros · último 9 sep.</span></div>
+<button aria-label="Editar Caminar" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Caminar" class="lt-icon-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-trash"></i></button>
 </div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Correr</strong><span>700 kcal/h · 1.500 pasos/h · 7 registros · último hoy</span></div>
+<button aria-label="Editar Correr" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Correr" class="lt-icon-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-trash"></i></button>
 </div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-bicycle"></i></span><div class="lt-list-item__body"><strong>Bicicleta estática</strong><span>480 kcal/h · 3 registros · último 4 sep.</span></div>
+<button aria-label="Editar Bicicleta estática" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Bicicleta estática" class="lt-icon-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-trash"></i></button>
 </div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-bicycle"></i></span><div class="lt-list-item__body"><strong>Bicicleta</strong><span>6 registros · último 7 sep.</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">540 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Bicicleta" class="lt-icon-button" data-lt-toggle="type-menu-1-2" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-1-2" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-water"></i></span><div class="lt-list-item__body"><strong>Natación</strong><span>550 kcal/h · Sin registros</span></div>
+<button aria-label="Editar Natación" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Natación" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
-</div>
-</div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-water"></i></span><div class="lt-list-item__body"><strong>Natación</strong><span>2 registros · último 22 ago.</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">600 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Natación" class="lt-icon-button" data-lt-toggle="type-menu-1-3" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-1-3" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
-</div>
-</div>
-</div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Caminar</strong><span>Sin registros</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">280 kcal/h</span><small>6.000 pasos/h</small></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Caminar" class="lt-icon-button" data-lt-toggle="type-menu-1-4" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-1-4" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
-</div>
-</div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-signpost-split"></i></span><div class="lt-list-item__body"><strong>Senderismo</strong><span>420 kcal/h · 1.300 pasos/h · Sin registros</span></div>
+<button aria-label="Editar Senderismo" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Senderismo" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
 </div></div></article>
-<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-universal-access"></i><h3>Fuerza</h3><small>4 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Sentadilla con barra</strong><span>9 registros · último hoy</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">420 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Sentadilla con barra" class="lt-icon-button" data-lt-toggle="type-menu-2-1" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-2-1" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
+<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-trophy"></i><h3>Deportes</h3><small>3 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-dribbble"></i></span><div class="lt-list-item__body"><strong>Fútbol</strong><span>490 kcal/h · 2 registros · último 28 ago.</span></div>
+<button aria-label="Editar Fútbol" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Fútbol" class="lt-icon-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-trash"></i></button>
 </div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-circle"></i></span><div class="lt-list-item__body"><strong>Tenis</strong><span>500 kcal/h · Sin registros</span></div>
+<button aria-label="Editar Tenis" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Tenis" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-dribbble"></i></span><div class="lt-list-item__body"><strong>Baloncesto</strong><span>450 kcal/h · Sin registros</span></div>
+<button aria-label="Editar Baloncesto" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Baloncesto" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Press de banca</strong><span>9 registros · último hoy</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">360 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Press de banca" class="lt-icon-button" data-lt-toggle="type-menu-2-2" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-2-2" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
+</div></div></article>
+<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-universal-access"></i><h3>Fuerza</h3><small>3 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Entrenamiento de fuerza</strong><span>350 kcal/h · 6 registros · último 10 sep.</span></div>
+<button aria-label="Editar Entrenamiento de fuerza" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Entrenamiento de fuerza" class="lt-icon-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-trash"></i></button>
 </div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Flexiones de pecho</strong><span>350 kcal/h · Sin registros</span></div>
+<button aria-label="Editar Flexiones de pecho" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Flexiones de pecho" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
-</div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Peso muerto</strong><span>5 registros · último 8 sep.</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">450 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Peso muerto" class="lt-icon-button" data-lt-toggle="type-menu-2-3" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-2-3" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
-</div>
-</div>
-</div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Dominadas</strong><span>Sin registros</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">400 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Dominadas" class="lt-icon-button" data-lt-toggle="type-menu-2-4" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-2-4" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
-</div>
-</div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Sentadillas</strong><span>400 kcal/h · Sin registros</span></div>
+<button aria-label="Editar Sentadillas" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Sentadillas" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
 </div></div></article>
 <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-flower1"></i><h3>Flexibilidad</h3><small>2 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-flower1"></i></span><div class="lt-list-item__body"><strong>Yoga</strong><span>3 registros · último 31 ago.</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">180 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Yoga" class="lt-icon-button" data-lt-toggle="type-menu-3-1" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-3-1" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-flower1"></i></span><div class="lt-list-item__body"><strong>Yoga</strong><span>250 kcal/h · 1 registro · último 31 ago.</span></div>
+<button aria-label="Editar Yoga" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Yoga" class="lt-icon-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-trash"></i></button>
 </div>
-</div>
-</div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-flower1"></i></span><div class="lt-list-item__body"><strong>Estiramientos</strong><span>Sin registros</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">120 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Estiramientos" class="lt-icon-button" data-lt-toggle="type-menu-3-2" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-3-2" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
-</div>
-</div>
-</div>
-</div></div></article>
-<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-question-circle"></i><h3>Sin categoría</h3><small>1 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-dribbble"></i></span><div class="lt-list-item__body"><strong>Fútbol con amigos</strong><span>Sin registros</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">650 kcal/h</span><small>7.000 pasos/h</small></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Fútbol con amigos" class="lt-icon-button" data-lt-toggle="type-menu-4-1" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-4-1" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
-</div>
-</div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-flower1"></i></span><div class="lt-list-item__body"><strong>Pilates</strong><span>210 kcal/h · Sin registros</span></div>
+<button aria-label="Editar Pilates" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Pilates" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
 </div></div></article>
 <button aria-haspopup="dialog" aria-label="Nuevo tipo" class="lt-fab" data-lt-toggle="exercise-type-new" type="button"><i aria-hidden="true" class="bi bi-plus-lg"></i><span>Nuevo tipo</span></button>
@@ -349,13 +287,13 @@
 <div class="lt-dialog__main">
 <div class="lt-dialog__body">
 <div class="lt-form">
-<label class="lt-field lt-form--full"><span>Nombre *</span><input placeholder="Ej. Remo, Spinning, Boxeo" type="text" value=""/></label>
-<label class="lt-field"><span>Categoría</span><select><option selected="">Sin categoría</option><option>Cardio</option><option>Fuerza</option><option>Flexibilidad</option></select></label>
-<label class="lt-field"><span>Ícono</span><select><option selected="">Persona corriendo</option><option>Bicicleta</option><option>Agua</option><option>Fuerza</option><option>Flexibilidad</option><option>Balón</option></select></label>
-<label class="lt-field"><span>Calorías por hora</span><input type="number" value=""/></label>
-<label class="lt-field"><span>Pasos equivalentes por hora</span><input type="number" value="0"/></label>
-<p class="lt-page-head__subtitle lt-form--full">Se usan para estimar calorías y pasos cuando registras solo la duración. Puedes ajustarlos en cada registro.</p>
+<label class="lt-field"><span>Emoji</span><input type="text" value="🏃"/></label>
+<label class="lt-field"><span>Nombre *</span><input placeholder="Ej. Remo, Spinning, Boxeo" type="text" value=""/></label>
+<label class="lt-field lt-form--full"><span>Categoría</span><select><option>Sin categoría</option><option selected="">Cardio</option><option>Deportes</option><option>Fuerza</option><option>Flexibilidad</option></select></label>
+<label class="lt-field"><span>Calorías por hora *</span><input type="number" value=""/></label>
+<label class="lt-field"><span>Pasos por hora</span><input type="number" value="0"/></label>
 </div>
+<p class="lt-page-head__subtitle">Se usan para estimar calorías y pasos al registrar solo la duración.</p>
 </div>
 </div>
 <footer class="lt-dialog__actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-new" type="button">Cancelar</button><button class="lt-button" data-lt-toggle="exercise-type-new" type="button"><i class="bi bi-floppy"></i> Crear tipo</button></footer>
@@ -365,25 +303,24 @@
 <button aria-label="Cerrar" class="lt-dialog-scrim" data-lt-toggle="exercise-type-edit" tabindex="-1" type="button"></button>
 <section aria-labelledby="exercise-type-edit-title" aria-modal="true" class="lt-dialog" role="dialog">
 <header class="lt-dialog__head">
-<span class="lt-dialog__icon"><i aria-hidden="true" class="bi bi-pencil"></i></span>
-<h2 id="exercise-type-edit-title">Editar tipo · Correr</h2>
+<span class="lt-dialog__icon"><i aria-hidden="true" class="bi bi-tags"></i></span>
+<h2 id="exercise-type-edit-title">Editar tipo de ejercicio</h2>
 <button aria-label="Expandir" aria-pressed="false" class="lt-icon-button" data-lt-dialog-expand="" type="button"><i class="bi bi-arrows-fullscreen"></i></button>
 <button aria-label="Cerrar" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-x-lg"></i></button>
 </header>
 <div class="lt-dialog__main">
 <div class="lt-dialog__body">
 <div class="lt-form">
-<label class="lt-field lt-form--full"><span>Nombre *</span><input placeholder="Ej. Remo, Spinning, Boxeo" type="text" value="Correr"/></label>
-<label class="lt-field"><span>Categoría</span><select><option>Sin categoría</option><option selected="">Cardio</option><option>Fuerza</option><option>Flexibilidad</option></select></label>
-<label class="lt-field"><span>Ícono</span><select><option selected="">Persona corriendo</option><option>Bicicleta</option><option>Agua</option><option>Fuerza</option><option>Flexibilidad</option><option>Balón</option></select></label>
-<label class="lt-field"><span>Calorías por hora</span><input type="number" value="720"/></label>
-<label class="lt-field"><span>Pasos equivalentes por hora</span><input type="number" value="9000"/></label>
-<p class="lt-page-head__subtitle lt-form--full">Se usan para estimar calorías y pasos cuando registras solo la duración. Puedes ajustarlos en cada registro.</p>
+<label class="lt-field"><span>Emoji</span><input type="text" value="🏃‍♂️"/></label>
+<label class="lt-field"><span>Nombre *</span><input placeholder="Ej. Remo, Spinning, Boxeo" type="text" value="Correr"/></label>
+<label class="lt-field lt-form--full"><span>Categoría</span><select><option>Sin categoría</option><option selected="">Cardio</option><option>Deportes</option><option>Fuerza</option><option>Flexibilidad</option></select></label>
+<label class="lt-field"><span>Calorías por hora *</span><input type="number" value="700"/></label>
+<label class="lt-field"><span>Pasos por hora</span><input type="number" value="1500"/></label>
 </div>
-<p class="lt-page-head__subtitle">Cambiar las tasas no recalcula los 14 registros anteriores; aplica a los nuevos.</p>
+<p class="lt-page-head__subtitle">Cambiar estas tasas solo afecta a los registros nuevos.</p>
 </div>
 </div>
-<footer class="lt-dialog__actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-edit" type="button">Cancelar</button><button class="lt-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-floppy"></i> Guardar</button></footer>
+<footer class="lt-dialog__actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-edit" type="button">Cancelar</button><button class="lt-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-floppy"></i> Actualizar</button></footer>
 </section>
 </div>
 <div class="lt-dialog-layer" hidden="" id="exercise-type-delete">
@@ -391,13 +328,13 @@
 <section aria-labelledby="exercise-type-delete-title" aria-modal="true" class="lt-dialog" role="dialog">
 <header class="lt-dialog__head">
 <span class="lt-dialog__icon"><i aria-hidden="true" class="bi bi-trash"></i></span>
-<h2 id="exercise-type-delete-title">Eliminar «Caminar»</h2>
+<h2 id="exercise-type-delete-title">Eliminar tipo de ejercicio</h2>
 <button aria-label="Expandir" aria-pressed="false" class="lt-icon-button" data-lt-dialog-expand="" type="button"><i class="bi bi-arrows-fullscreen"></i></button>
 <button aria-label="Cerrar" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-x-lg"></i></button>
 </header>
 <div class="lt-dialog__main">
 <div class="lt-dialog__body">
-<p class="lt-page-head__subtitle">Este tipo no tiene registros. Se eliminará definitivamente.</p>
+<p class="lt-page-head__subtitle">«Natación» no tiene registros; se eliminará de tu catálogo.</p>
 </div>
 </div>
 <footer class="lt-dialog__actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-delete" type="button">Cancelar</button><button class="lt-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-floppy"></i> Eliminar</button></footer>
@@ -414,11 +351,28 @@
 </header>
 <div class="lt-dialog__main">
 <div class="lt-dialog__body">
-<p class="lt-page-head__subtitle">Hay 14 registros con este tipo. Elige a qué tipo pasarlos antes de eliminarlo; el historial y el resumen semanal se conservan.</p>
-<div class="lt-form"><label class="lt-field lt-form--full"><span>Reasignar registros a *</span><select><option>Caminar</option><option>Bicicleta</option><option>Natación</option><option>Fútbol con amigos</option></select></label></div>
+<p class="lt-page-head__subtitle">Hay 7 registros con este tipo. Elige a qué tipo pasarlos: tu historial y tus estadísticas se conservan.</p>
+<div class="lt-form"><label class="lt-field lt-form--full"><span>Reasignar registros a *</span><select><option>Seleccionar...</option><option>Caminar</option><option>Senderismo</option><option>Bicicleta estática</option></select></label></div>
 </div>
 </div>
 <footer class="lt-dialog__actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-delete-used" type="button">Cancelar</button><button class="lt-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-floppy"></i> Reasignar y eliminar</button></footer>
+</section>
+</div>
+<div class="lt-dialog-layer" hidden="" id="exercise-type-restore">
+<button aria-label="Cerrar" class="lt-dialog-scrim" data-lt-toggle="exercise-type-restore" tabindex="-1" type="button"></button>
+<section aria-labelledby="exercise-type-restore-title" aria-modal="true" class="lt-dialog" role="dialog">
+<header class="lt-dialog__head">
+<span class="lt-dialog__icon"><i aria-hidden="true" class="bi bi-arrow-counterclockwise"></i></span>
+<h2 id="exercise-type-restore-title">Restaurar tipos predeterminados</h2>
+<button aria-label="Expandir" aria-pressed="false" class="lt-icon-button" data-lt-dialog-expand="" type="button"><i class="bi bi-arrows-fullscreen"></i></button>
+<button aria-label="Cerrar" class="lt-icon-button" data-lt-toggle="exercise-type-restore" type="button"><i class="bi bi-x-lg"></i></button>
+</header>
+<div class="lt-dialog__main">
+<div class="lt-dialog__body">
+<p class="lt-page-head__subtitle">Se agregan los tipos predeterminados que falten. No se modifica ni se borra ninguno de tus tipos ni tus registros.</p>
+</div>
+</div>
+<footer class="lt-dialog__actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-restore" type="button">Cancelar</button><button class="lt-button" data-lt-toggle="exercise-type-restore" type="button"><i class="bi bi-floppy"></i> Restaurar</button></footer>
 </section>
 </div>
 </div></main>
@@ -437,7 +391,7 @@
 <div class="lt-shell__body">
 <header class="lt-topbar"><button aria-label="Mostrar módulos" class="lt-icon-button" data-lt-nav-toggle="" type="button"><i aria-hidden="true" class="bi bi-list"></i></button><span aria-hidden="true" class="lt-topbar__icon"><i class="bi bi-activity"></i></span><h1 class="lt-topbar__title">Ejercicio</h1><div class="lt-search" role="search"><i aria-hidden="true" class="bi bi-search"></i><label class="lt-sr-only" for="lt-search-exercise">Buscar en todos los módulos</label><input data-lt-search-input="" id="lt-search-exercise" placeholder="Buscar en todos los módulos…" type="search"/></div><button aria-label="Buscar" class="lt-icon-button lt-topbar__search-button" data-lt-search="" type="button"><i aria-hidden="true" class="bi bi-search"></i></button><div class="lt-topbar__tools"><button aria-label="Ajustes" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-gear"></i></button><button aria-label="Notificaciones" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bell"></i></button><button aria-haspopup="menu" aria-label="Abrir menú de perfil" class="lt-profile" data-lt-static-nav="" type="button"><img alt="" height="40" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C9B8A6'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23E8C4A2'/%3E%3Cpath d='M25 28c0-11 7-17 15-17s16 6 15 17c-3-5-8-7-15-7s-12 2-15 7z' fill='%233B2A20'/%3E%3Cpath d='M12 80c2-17 13-25 28-25s26 8 28 25z' fill='%23455A64'/%3E%3C/svg%3E" width="40"/></button></div></header>
 <main class="lt-main"><div class="lt-page">
-<nav aria-label="Vistas del módulo" class="lt-tabs"><a aria-current="page" class="lt-tab is-active" href="#/exercise-daily"><i aria-hidden="true" class="bi bi-activity"></i><span>Registro diario</span></a><a class="lt-tab" href="#/exercise-weekly"><i aria-hidden="true" class="bi bi-bar-chart-line"></i><span>Resumen semanal</span></a><a class="lt-tab" href="#/exercise-types"><i aria-hidden="true" class="bi bi-tags"></i><span>Tipos</span></a></nav>
+<nav aria-label="Vistas del módulo" class="lt-tabs"><a aria-current="page" class="lt-tab is-active" href="#/exercise-daily"><i aria-hidden="true" class="bi bi-activity"></i><span>Registro diario</span></a><a class="lt-tab" href="#/exercise-statistics"><i aria-hidden="true" class="bi bi-bar-chart-line"></i><span>Estadísticas</span></a><a class="lt-tab" href="#/exercise-settings"><i aria-hidden="true" class="bi bi-sliders"></i><span>Ajustes</span></a></nav>
 <section class="lt-metrics"><article class="lt-metric lt-metric--success"><span>Duración</span><strong>75 min</strong></article><article class="lt-metric lt-metric--warning"><span>Calorías</span><strong>612 kcal</strong></article><article class="lt-metric lt-metric--primary"><span>Pasos</span><strong>8.420</strong></article></section>
 <section class="lt-grid-main">
 <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-list-ul"></i><h3>Actividades del día</h3><small>3 registros</small></div><div class="lt-panel__body"><div class="lt-list">
@@ -466,7 +420,7 @@
 <div class="lt-dialog__body">
 <section class="lt-dialog__section" data-section="basic">
 <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
-<div class="lt-form"><label class="lt-field lt-form--full"><span>Tipo de ejercicio *</span><select><option>Peso muerto</option><option>Correr</option><option>Bicicleta</option><option>Natación</option></select></label><p class="lt-page-head__subtitle lt-form--full">¿No está en la lista? <a class="lt-link" href="#/exercise-types">Gestionar tipos</a></p><label class="lt-field"><span>Duración (min)</span><input type="number" value="15"/></label><label class="lt-field"><span>Calorías</span><input type="number" value="95"/></label></div>
+<div class="lt-form"><label class="lt-field lt-form--full"><span>Tipo de ejercicio *</span><select><option>Entrenamiento de fuerza</option><option>Correr</option><option>Bicicleta estática</option><option>Natación</option><option>Fútbol</option></select></label><p class="lt-page-head__subtitle lt-form--full">¿No está en la lista? <a class="lt-link" href="#/exercise-settings">Gestionar tipos</a></p><label class="lt-field"><span>Duración (min)</span><input type="number" value="15"/></label><label class="lt-field"><span>Calorías</span><input type="number" value="95"/></label></div>
 </section>
 <section class="lt-dialog__section" data-section="metrics" hidden="">
 <header class="lt-dialog__section-head"><h3>Series y distancia</h3></header>
@@ -485,7 +439,7 @@
 <nav aria-label="Destinos principales" class="lt-bottom"><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-house"></i><span>Inicio</span></button><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-check2-square"></i><span>Hábitos</span></button><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-list-task"></i><span>Tareas</span></button><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bar-chart"></i><span>Stats</span></button><button class="lt-bottom__item" data-lt-open-drawer="" type="button"><i aria-hidden="true" class="bi bi-grid"></i><span>Módulos</span></button></nav>
 </div>
 </div>
-</template><template id="alternate--exercise-weekly" data-screen="exercise-weekly">
+</template><template id="alternate--exercise-statistics" data-screen="exercise-statistics">
 <div class="lt-shell" data-module="exercise">
 <aside aria-label="Módulos de Life Tracker" class="lt-sidebar">
 <div class="lt-sidebar__brand"><span aria-hidden="true" class="lt-sidebar__mark"><i class="bi bi-activity"></i></span><span class="lt-sidebar__name">Life Tracker</span></div>
@@ -495,30 +449,36 @@
 </aside>
 <button aria-label="Cerrar módulos" class="lt-scrim" data-lt-close-drawer="" type="button"></button>
 <div class="lt-shell__body">
-<header class="lt-topbar"><button aria-label="Mostrar módulos" class="lt-icon-button" data-lt-nav-toggle="" type="button"><i aria-hidden="true" class="bi bi-list"></i></button><span aria-hidden="true" class="lt-topbar__icon"><i class="bi bi-bar-chart-line"></i></span><h1 class="lt-topbar__title">Resumen semanal</h1><div class="lt-search" role="search"><i aria-hidden="true" class="bi bi-search"></i><label class="lt-sr-only" for="lt-search-exercise">Buscar en todos los módulos</label><input data-lt-search-input="" id="lt-search-exercise" placeholder="Buscar en todos los módulos…" type="search"/></div><button aria-label="Buscar" class="lt-icon-button lt-topbar__search-button" data-lt-search="" type="button"><i aria-hidden="true" class="bi bi-search"></i></button><div class="lt-topbar__tools"><button aria-label="Ajustes" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-gear"></i></button><button aria-label="Notificaciones" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bell"></i></button><button aria-haspopup="menu" aria-label="Abrir menú de perfil" class="lt-profile" data-lt-static-nav="" type="button"><img alt="" height="40" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C9B8A6'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23E8C4A2'/%3E%3Cpath d='M25 28c0-11 7-17 15-17s16 6 15 17c-3-5-8-7-15-7s-12 2-15 7z' fill='%233B2A20'/%3E%3Cpath d='M12 80c2-17 13-25 28-25s26 8 28 25z' fill='%23455A64'/%3E%3C/svg%3E" width="40"/></button></div></header>
+<header class="lt-topbar"><button aria-label="Mostrar módulos" class="lt-icon-button" data-lt-nav-toggle="" type="button"><i aria-hidden="true" class="bi bi-list"></i></button><span aria-hidden="true" class="lt-topbar__icon"><i class="bi bi-activity"></i></span><h1 class="lt-topbar__title">Ejercicio</h1><div class="lt-search" role="search"><i aria-hidden="true" class="bi bi-search"></i><label class="lt-sr-only" for="lt-search-exercise">Buscar en todos los módulos</label><input data-lt-search-input="" id="lt-search-exercise" placeholder="Buscar en todos los módulos…" type="search"/></div><button aria-label="Buscar" class="lt-icon-button lt-topbar__search-button" data-lt-search="" type="button"><i aria-hidden="true" class="bi bi-search"></i></button><div class="lt-topbar__tools"><button aria-label="Ajustes" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-gear"></i></button><button aria-label="Notificaciones" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bell"></i></button><button aria-haspopup="menu" aria-label="Abrir menú de perfil" class="lt-profile" data-lt-static-nav="" type="button"><img alt="" height="40" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C9B8A6'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23E8C4A2'/%3E%3Cpath d='M25 28c0-11 7-17 15-17s16 6 15 17c-3-5-8-7-15-7s-12 2-15 7z' fill='%233B2A20'/%3E%3Cpath d='M12 80c2-17 13-25 28-25s26 8 28 25z' fill='%23455A64'/%3E%3C/svg%3E" width="40"/></button></div></header>
 <main class="lt-main"><div class="lt-page">
-<nav aria-label="Vistas del módulo" class="lt-tabs"><a class="lt-tab" href="#/exercise-daily"><i aria-hidden="true" class="bi bi-activity"></i><span>Registro diario</span></a><a aria-current="page" class="lt-tab is-active" href="#/exercise-weekly"><i aria-hidden="true" class="bi bi-bar-chart-line"></i><span>Resumen semanal</span></a><a class="lt-tab" href="#/exercise-types"><i aria-hidden="true" class="bi bi-tags"></i><span>Tipos</span></a></nav>
-<section class="lt-metrics"><article class="lt-metric lt-metric--warning"><span>Minutos activos</span><strong>185 de 300</strong></article><article class="lt-metric lt-metric--primary"><span>Calorías</span><strong>1.480 kcal</strong></article><article class="lt-metric lt-metric--success"><span>Días activos</span><strong>3 de 7</strong></article></section>
+<nav aria-label="Vistas del módulo" class="lt-tabs"><a class="lt-tab" href="#/exercise-daily"><i aria-hidden="true" class="bi bi-activity"></i><span>Registro diario</span></a><a aria-current="page" class="lt-tab is-active" href="#/exercise-statistics"><i aria-hidden="true" class="bi bi-bar-chart-line"></i><span>Estadísticas</span></a><a class="lt-tab" href="#/exercise-settings"><i aria-hidden="true" class="bi bi-sliders"></i><span>Ajustes</span></a></nav>
+<section aria-label="Periodo de análisis" class="lt-toolbar">
+<button class="lt-button lt-button--tonal" data-lt-static-nav="" type="button">7 días</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">30 días</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">90 días</button>
+<p class="lt-toolbar__label">7 – 13 sep. 2026</p>
+</section>
+<section class="lt-metrics"><article class="lt-metric lt-metric--primary"><span>Sesiones</span><strong>5</strong></article><article class="lt-metric lt-metric--success"><span>Días activos</span><strong>4 de 7</strong></article><article class="lt-metric lt-metric--warning"><span>Racha actual</span><strong>3 días</strong></article><article class="lt-metric lt-metric--primary"><span>Tiempo activo</span><strong>290 min</strong></article></section>
+<section class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-bar-chart-line"></i><h3>Minutos activos</h3><small>Total por día</small></div><div class="lt-panel__body">
+<div class="lt-bars"><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:55%"></span></div><span>Lun 7</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:75%"></span></div><span>Mar 8</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:0%"></span></div><span>Mié 9</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:100%"></span></div><span>Jue 10</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:0%"></span></div><span>Vie 11</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:50%"></span></div><span>Sáb 12</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:60%"></span></div><span>Dom 13</span></div></div>
+</div></section>
 <section class="lt-grid-2">
-<article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-bar-chart-line"></i><h3>Minutos por día</h3><small>Meta 45 min/día</small></div><div class="lt-panel__body">
-<div class="lt-bars"><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:100%"></span></div><span>Lun</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:55%"></span></div><span>Mar</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:100%"></span></div><span>Mié</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:0%"></span></div><span>Jue</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:0%"></span></div><span>Vie</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:0%"></span></div><span>Sáb</span></div><div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:0%"></span></div><span>Dom</span></div></div>
-</div></article>
-<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-pie-chart"></i><h3>Por tipo de actividad</h3></div><div class="lt-panel__body"><div class="lt-list">
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Correr</strong><span>2 sesiones · 11,4 km</span><div class="lt-progress"><span style="width:45%"></span></div></div><span class="lt-chip">45 %</span></div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Fuerza</strong><span>2 sesiones · 14 ejercicios</span><div class="lt-progress"><span style="width:40%"></span></div></div><span class="lt-chip">40 %</span></div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-bicycle"></i></span><div class="lt-list-item__body"><strong>Bicicleta</strong><span>1 sesión · 12 km</span><div class="lt-progress"><span style="width:15%"></span></div></div><span class="lt-chip">15 %</span></div>
+<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-pie-chart"></i><h3>Por tipo de ejercicio</h3><small>Frecuencia y tiempo</small></div><div class="lt-panel__body"><div class="lt-list">
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Correr</strong><span>2 sesiones · 95 min · 1.110 kcal</span><div class="lt-progress"><span style="width:33%"></span></div></div><span class="lt-chip">33 %</span></div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Entrenamiento de fuerza</strong><span>2 sesiones · 105 min · 610 kcal</span><div class="lt-progress"><span style="width:36%"></span></div></div><span class="lt-chip">36 %</span></div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-bicycle"></i></span><div class="lt-list-item__body"><strong>Bicicleta estática</strong><span>1 sesión · 40 min · 320 kcal</span><div class="lt-progress"><span style="width:14%"></span></div></div><span class="lt-chip">14 %</span></div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-dribbble"></i></span><div class="lt-list-item__body"><strong>Fútbol</strong><span>1 sesión · 50 min · 410 kcal</span><div class="lt-progress"><span style="width:17%"></span></div></div><span class="lt-chip">17 %</span></div>
+</div></div></article>
+<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-trophy"></i><h3>Mejores marcas del periodo</h3><small>El registro más exigente de cada tipo</small></div><div class="lt-panel__body"><div class="lt-list">
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Entrenamiento de fuerza</strong><span>60 kg · 4×8 · 45 min · 10 sep.</span></div></div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Correr</strong><span>8,5 km · 52 min · 8 sep.</span></div></div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-bicycle"></i></span><div class="lt-list-item__body"><strong>Bicicleta estática</strong><span>40 min · 12 sep.</span></div></div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-dribbble"></i></span><div class="lt-list-item__body"><strong>Fútbol</strong><span>50 min · 13 sep.</span></div></div>
 </div></div></article>
 </section>
-<section class="lt-panel"><div class="lt-panel__head"><i class="bi bi-trophy"></i><h3>Récords y progreso</h3></div><div class="lt-panel__body"><div class="lt-list">
-<div class="lt-list-item"><div class="lt-list-item__body"><strong>Sentadilla con barra</strong><span>60 kg × 8 · +5 kg frente a agosto</span></div><span class="lt-chip lt-chip--success">Récord</span></div>
-<div class="lt-list-item"><div class="lt-list-item__body"><strong>Correr 5 km</strong><span>30:45 · mejor tiempo del mes</span></div><span class="lt-chip lt-chip--success">Récord</span></div>
-<div class="lt-list-item"><div class="lt-list-item__body"><strong>Press de banca</strong><span>45 kg × 10 · igual que la semana pasada</span></div><span class="lt-chip lt-chip--neutral">Estable</span></div>
-</div></div></section>
 </div></main>
 <nav aria-label="Destinos principales" class="lt-bottom"><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-house"></i><span>Inicio</span></button><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-check2-square"></i><span>Hábitos</span></button><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-list-task"></i><span>Tareas</span></button><button class="lt-bottom__item" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bar-chart"></i><span>Stats</span></button><button class="lt-bottom__item" data-lt-open-drawer="" type="button"><i aria-hidden="true" class="bi bi-grid"></i><span>Módulos</span></button></nav>
 </div>
 </div>
-</template><template id="alternate--exercise-types" data-screen="exercise-types">
+</template><template id="alternate--exercise-settings" data-screen="exercise-settings">
 <div class="lt-shell" data-module="exercise">
 <aside aria-label="Módulos de Life Tracker" class="lt-sidebar">
 <div class="lt-sidebar__brand"><span aria-hidden="true" class="lt-sidebar__mark"><i class="bi bi-activity"></i></span><span class="lt-sidebar__name">Life Tracker</span></div>
@@ -528,141 +488,73 @@
 </aside>
 <button aria-label="Cerrar módulos" class="lt-scrim" data-lt-close-drawer="" type="button"></button>
 <div class="lt-shell__body">
-<header class="lt-topbar"><button aria-label="Mostrar módulos" class="lt-icon-button" data-lt-nav-toggle="" type="button"><i aria-hidden="true" class="bi bi-list"></i></button><span aria-hidden="true" class="lt-topbar__icon"><i class="bi bi-tags"></i></span><h1 class="lt-topbar__title">Tipos de ejercicio</h1><div class="lt-search" role="search"><i aria-hidden="true" class="bi bi-search"></i><label class="lt-sr-only" for="lt-search-exercise">Buscar en todos los módulos</label><input data-lt-search-input="" id="lt-search-exercise" placeholder="Buscar en todos los módulos…" type="search"/></div><button aria-label="Buscar" class="lt-icon-button lt-topbar__search-button" data-lt-search="" type="button"><i aria-hidden="true" class="bi bi-search"></i></button><div class="lt-topbar__tools"><button aria-label="Ajustes" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-gear"></i></button><button aria-label="Notificaciones" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bell"></i></button><button aria-haspopup="menu" aria-label="Abrir menú de perfil" class="lt-profile" data-lt-static-nav="" type="button"><img alt="" height="40" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C9B8A6'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23E8C4A2'/%3E%3Cpath d='M25 28c0-11 7-17 15-17s16 6 15 17c-3-5-8-7-15-7s-12 2-15 7z' fill='%233B2A20'/%3E%3Cpath d='M12 80c2-17 13-25 28-25s26 8 28 25z' fill='%23455A64'/%3E%3C/svg%3E" width="40"/></button></div></header>
+<header class="lt-topbar"><button aria-label="Mostrar módulos" class="lt-icon-button" data-lt-nav-toggle="" type="button"><i aria-hidden="true" class="bi bi-list"></i></button><span aria-hidden="true" class="lt-topbar__icon"><i class="bi bi-activity"></i></span><h1 class="lt-topbar__title">Ejercicio</h1><div class="lt-search" role="search"><i aria-hidden="true" class="bi bi-search"></i><label class="lt-sr-only" for="lt-search-exercise">Buscar en todos los módulos</label><input data-lt-search-input="" id="lt-search-exercise" placeholder="Buscar en todos los módulos…" type="search"/></div><button aria-label="Buscar" class="lt-icon-button lt-topbar__search-button" data-lt-search="" type="button"><i aria-hidden="true" class="bi bi-search"></i></button><div class="lt-topbar__tools"><button aria-label="Ajustes" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-gear"></i></button><button aria-label="Notificaciones" class="lt-icon-button" data-lt-static-nav="" type="button"><i aria-hidden="true" class="bi bi-bell"></i></button><button aria-haspopup="menu" aria-label="Abrir menú de perfil" class="lt-profile" data-lt-static-nav="" type="button"><img alt="" height="40" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C9B8A6'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23E8C4A2'/%3E%3Cpath d='M25 28c0-11 7-17 15-17s16 6 15 17c-3-5-8-7-15-7s-12 2-15 7z' fill='%233B2A20'/%3E%3Cpath d='M12 80c2-17 13-25 28-25s26 8 28 25z' fill='%23455A64'/%3E%3C/svg%3E" width="40"/></button></div></header>
 <main class="lt-main"><div class="lt-page">
-<nav aria-label="Vistas del módulo" class="lt-tabs"><a class="lt-tab" href="#/exercise-daily"><i aria-hidden="true" class="bi bi-activity"></i><span>Registro diario</span></a><a class="lt-tab" href="#/exercise-weekly"><i aria-hidden="true" class="bi bi-bar-chart-line"></i><span>Resumen semanal</span></a><a aria-current="page" class="lt-tab is-active" href="#/exercise-types"><i aria-hidden="true" class="bi bi-tags"></i><span>Tipos</span></a></nav>
-<section class="lt-metrics"><article class="lt-metric lt-metric--primary"><span>Tipos creados</span><strong>11</strong></article><article class="lt-metric lt-metric--success"><span>Usados este mes</span><strong>7 de 11</strong></article><article class="lt-metric lt-metric--warning"><span>Sin registros</span><strong>4</strong></article></section>
+<nav aria-label="Vistas del módulo" class="lt-tabs"><a class="lt-tab" href="#/exercise-daily"><i aria-hidden="true" class="bi bi-activity"></i><span>Registro diario</span></a><a class="lt-tab" href="#/exercise-statistics"><i aria-hidden="true" class="bi bi-bar-chart-line"></i><span>Estadísticas</span></a><a aria-current="page" class="lt-tab is-active" href="#/exercise-settings"><i aria-hidden="true" class="bi bi-sliders"></i><span>Ajustes</span></a></nav>
+<section class="lt-metrics"><article class="lt-metric lt-metric--primary"><span>Tipos de ejercicio</span><strong>21</strong></article><article class="lt-metric lt-metric--success"><span>Con registros</span><strong>8 de 21</strong></article><article class="lt-metric lt-metric--warning"><span>Sin registros</span><strong>13</strong></article></section>
+<div class="lt-actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-restore" type="button"><i class="bi bi-arrow-counterclockwise"></i> Restaurar predeterminados</button></div>
 <section aria-label="Filtros de tipos" class="lt-toolbar">
 <label class="lt-field"><span class="lt-sr-only">Buscar</span><input placeholder="Buscar tipo de ejercicio..." type="search"/></label>
-<button class="lt-button lt-button--tonal" data-lt-static-nav="" type="button">Todos</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Cardio</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Fuerza</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Flexibilidad</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Sin categoría</button>
+<button class="lt-button lt-button--tonal" data-lt-static-nav="" type="button">Todas</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Cardio</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Deportes</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Fuerza</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Flexibilidad</button><button class="lt-button lt-button--text" data-lt-static-nav="" type="button">Sin categoría</button>
 </section>
-<article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-heart-pulse"></i><h3>Cardio</h3><small>4 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Correr</strong><span>14 registros · último hoy</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">720 kcal/h</span><small>9.000 pasos/h</small></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Correr" class="lt-icon-button" data-lt-toggle="type-menu-1-1" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-1-1" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
+<article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-heart-pulse"></i><h3>Cardio</h3><small>5 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Caminar</strong><span>250 kcal/h · 1.400 pasos/h · 4 registros · último 9 sep.</span></div>
+<button aria-label="Editar Caminar" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Caminar" class="lt-icon-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-trash"></i></button>
 </div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Correr</strong><span>700 kcal/h · 1.500 pasos/h · 7 registros · último hoy</span></div>
+<button aria-label="Editar Correr" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Correr" class="lt-icon-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-trash"></i></button>
 </div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-bicycle"></i></span><div class="lt-list-item__body"><strong>Bicicleta estática</strong><span>480 kcal/h · 3 registros · último 4 sep.</span></div>
+<button aria-label="Editar Bicicleta estática" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Bicicleta estática" class="lt-icon-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-trash"></i></button>
 </div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-bicycle"></i></span><div class="lt-list-item__body"><strong>Bicicleta</strong><span>6 registros · último 7 sep.</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">540 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Bicicleta" class="lt-icon-button" data-lt-toggle="type-menu-1-2" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-1-2" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-water"></i></span><div class="lt-list-item__body"><strong>Natación</strong><span>550 kcal/h · Sin registros</span></div>
+<button aria-label="Editar Natación" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Natación" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
-</div>
-</div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-water"></i></span><div class="lt-list-item__body"><strong>Natación</strong><span>2 registros · último 22 ago.</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">600 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Natación" class="lt-icon-button" data-lt-toggle="type-menu-1-3" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-1-3" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
-</div>
-</div>
-</div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Caminar</strong><span>Sin registros</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">280 kcal/h</span><small>6.000 pasos/h</small></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Caminar" class="lt-icon-button" data-lt-toggle="type-menu-1-4" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-1-4" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
-</div>
-</div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-signpost-split"></i></span><div class="lt-list-item__body"><strong>Senderismo</strong><span>420 kcal/h · 1.300 pasos/h · Sin registros</span></div>
+<button aria-label="Editar Senderismo" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Senderismo" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
 </div></div></article>
-<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-universal-access"></i><h3>Fuerza</h3><small>4 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Sentadilla con barra</strong><span>9 registros · último hoy</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">420 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Sentadilla con barra" class="lt-icon-button" data-lt-toggle="type-menu-2-1" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-2-1" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
+<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-trophy"></i><h3>Deportes</h3><small>3 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-dribbble"></i></span><div class="lt-list-item__body"><strong>Fútbol</strong><span>490 kcal/h · 2 registros · último 28 ago.</span></div>
+<button aria-label="Editar Fútbol" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Fútbol" class="lt-icon-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-trash"></i></button>
 </div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-circle"></i></span><div class="lt-list-item__body"><strong>Tenis</strong><span>500 kcal/h · Sin registros</span></div>
+<button aria-label="Editar Tenis" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Tenis" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-dribbble"></i></span><div class="lt-list-item__body"><strong>Baloncesto</strong><span>450 kcal/h · Sin registros</span></div>
+<button aria-label="Editar Baloncesto" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Baloncesto" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Press de banca</strong><span>9 registros · último hoy</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">360 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Press de banca" class="lt-icon-button" data-lt-toggle="type-menu-2-2" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-2-2" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
+</div></div></article>
+<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-universal-access"></i><h3>Fuerza</h3><small>3 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Entrenamiento de fuerza</strong><span>350 kcal/h · 6 registros · último 10 sep.</span></div>
+<button aria-label="Editar Entrenamiento de fuerza" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Entrenamiento de fuerza" class="lt-icon-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-trash"></i></button>
 </div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Flexiones de pecho</strong><span>350 kcal/h · Sin registros</span></div>
+<button aria-label="Editar Flexiones de pecho" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Flexiones de pecho" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
-</div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Peso muerto</strong><span>5 registros · último 8 sep.</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">450 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Peso muerto" class="lt-icon-button" data-lt-toggle="type-menu-2-3" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-2-3" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
-</div>
-</div>
-</div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Dominadas</strong><span>Sin registros</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">400 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Dominadas" class="lt-icon-button" data-lt-toggle="type-menu-2-4" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-2-4" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
-</div>
-</div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-universal-access"></i></span><div class="lt-list-item__body"><strong>Sentadillas</strong><span>400 kcal/h · Sin registros</span></div>
+<button aria-label="Editar Sentadillas" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Sentadillas" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
 </div></div></article>
 <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-flower1"></i><h3>Flexibilidad</h3><small>2 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-flower1"></i></span><div class="lt-list-item__body"><strong>Yoga</strong><span>3 registros · último 31 ago.</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">180 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Yoga" class="lt-icon-button" data-lt-toggle="type-menu-3-1" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-3-1" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete-used" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-flower1"></i></span><div class="lt-list-item__body"><strong>Yoga</strong><span>250 kcal/h · 1 registro · último 31 ago.</span></div>
+<button aria-label="Editar Yoga" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Yoga" class="lt-icon-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-trash"></i></button>
 </div>
-</div>
-</div>
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-flower1"></i></span><div class="lt-list-item__body"><strong>Estiramientos</strong><span>Sin registros</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">120 kcal/h</span></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Estiramientos" class="lt-icon-button" data-lt-toggle="type-menu-3-2" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-3-2" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
-</div>
-</div>
-</div>
-</div></div></article>
-<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-question-circle"></i><h3>Sin categoría</h3><small>1 tipos</small></div><div class="lt-panel__body"><div class="lt-list">
-<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-dribbble"></i></span><div class="lt-list-item__body"><strong>Fútbol con amigos</strong><span>Sin registros</span></div>
-<div class="lt-list-item__meta"><span class="lt-chip">650 kcal/h</span><small>7.000 pasos/h</small></div>
-<div class="lt-menu-anchor"><button aria-expanded="false" aria-haspopup="menu" aria-label="Más opciones de Fútbol con amigos" class="lt-icon-button" data-lt-toggle="type-menu-4-1" type="button"><i class="bi bi-three-dots-vertical"></i></button>
-<div class="lt-menu" hidden="" id="type-menu-4-1" role="menu">
-<button class="lt-menu__item" data-lt-toggle="exercise-type-edit" role="menuitem" type="button"><i class="bi bi-pencil"></i> Editar tipo</button>
-<button class="lt-menu__item" data-lt-static-nav="" role="menuitem" type="button"><i class="bi bi-clock-history"></i> Ver registros</button>
-<hr class="lt-menu__divider"/>
-<button class="lt-menu__item lt-menu__item--danger" data-lt-toggle="exercise-type-delete" role="menuitem" type="button"><i class="bi bi-trash"></i> Eliminar</button>
-</div>
-</div>
+<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-flower1"></i></span><div class="lt-list-item__body"><strong>Pilates</strong><span>210 kcal/h · Sin registros</span></div>
+<button aria-label="Editar Pilates" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-pencil"></i></button>
+<button aria-label="Eliminar Pilates" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-trash"></i></button>
 </div>
 </div></div></article>
 <button aria-haspopup="dialog" aria-label="Nuevo tipo" class="lt-fab" data-lt-toggle="exercise-type-new" type="button"><i aria-hidden="true" class="bi bi-plus-lg"></i><span>Nuevo tipo</span></button>
@@ -678,13 +570,13 @@
 <div class="lt-dialog__main">
 <div class="lt-dialog__body">
 <div class="lt-form">
-<label class="lt-field lt-form--full"><span>Nombre *</span><input placeholder="Ej. Remo, Spinning, Boxeo" type="text" value=""/></label>
-<label class="lt-field"><span>Categoría</span><select><option selected="">Sin categoría</option><option>Cardio</option><option>Fuerza</option><option>Flexibilidad</option></select></label>
-<label class="lt-field"><span>Ícono</span><select><option selected="">Persona corriendo</option><option>Bicicleta</option><option>Agua</option><option>Fuerza</option><option>Flexibilidad</option><option>Balón</option></select></label>
-<label class="lt-field"><span>Calorías por hora</span><input type="number" value=""/></label>
-<label class="lt-field"><span>Pasos equivalentes por hora</span><input type="number" value="0"/></label>
-<p class="lt-page-head__subtitle lt-form--full">Se usan para estimar calorías y pasos cuando registras solo la duración. Puedes ajustarlos en cada registro.</p>
+<label class="lt-field"><span>Emoji</span><input type="text" value="🏃"/></label>
+<label class="lt-field"><span>Nombre *</span><input placeholder="Ej. Remo, Spinning, Boxeo" type="text" value=""/></label>
+<label class="lt-field lt-form--full"><span>Categoría</span><select><option>Sin categoría</option><option selected="">Cardio</option><option>Deportes</option><option>Fuerza</option><option>Flexibilidad</option></select></label>
+<label class="lt-field"><span>Calorías por hora *</span><input type="number" value=""/></label>
+<label class="lt-field"><span>Pasos por hora</span><input type="number" value="0"/></label>
 </div>
+<p class="lt-page-head__subtitle">Se usan para estimar calorías y pasos al registrar solo la duración.</p>
 </div>
 </div>
 <footer class="lt-dialog__actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-new" type="button">Cancelar</button><button class="lt-button" data-lt-toggle="exercise-type-new" type="button"><i class="bi bi-floppy"></i> Crear tipo</button></footer>
@@ -694,25 +586,24 @@
 <button aria-label="Cerrar" class="lt-dialog-scrim" data-lt-toggle="exercise-type-edit" tabindex="-1" type="button"></button>
 <section aria-labelledby="exercise-type-edit-title" aria-modal="true" class="lt-dialog" role="dialog">
 <header class="lt-dialog__head">
-<span class="lt-dialog__icon"><i aria-hidden="true" class="bi bi-pencil"></i></span>
-<h2 id="exercise-type-edit-title">Editar tipo · Correr</h2>
+<span class="lt-dialog__icon"><i aria-hidden="true" class="bi bi-tags"></i></span>
+<h2 id="exercise-type-edit-title">Editar tipo de ejercicio</h2>
 <button aria-label="Expandir" aria-pressed="false" class="lt-icon-button" data-lt-dialog-expand="" type="button"><i class="bi bi-arrows-fullscreen"></i></button>
 <button aria-label="Cerrar" class="lt-icon-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-x-lg"></i></button>
 </header>
 <div class="lt-dialog__main">
 <div class="lt-dialog__body">
 <div class="lt-form">
-<label class="lt-field lt-form--full"><span>Nombre *</span><input placeholder="Ej. Remo, Spinning, Boxeo" type="text" value="Correr"/></label>
-<label class="lt-field"><span>Categoría</span><select><option>Sin categoría</option><option selected="">Cardio</option><option>Fuerza</option><option>Flexibilidad</option></select></label>
-<label class="lt-field"><span>Ícono</span><select><option selected="">Persona corriendo</option><option>Bicicleta</option><option>Agua</option><option>Fuerza</option><option>Flexibilidad</option><option>Balón</option></select></label>
-<label class="lt-field"><span>Calorías por hora</span><input type="number" value="720"/></label>
-<label class="lt-field"><span>Pasos equivalentes por hora</span><input type="number" value="9000"/></label>
-<p class="lt-page-head__subtitle lt-form--full">Se usan para estimar calorías y pasos cuando registras solo la duración. Puedes ajustarlos en cada registro.</p>
+<label class="lt-field"><span>Emoji</span><input type="text" value="🏃‍♂️"/></label>
+<label class="lt-field"><span>Nombre *</span><input placeholder="Ej. Remo, Spinning, Boxeo" type="text" value="Correr"/></label>
+<label class="lt-field lt-form--full"><span>Categoría</span><select><option>Sin categoría</option><option selected="">Cardio</option><option>Deportes</option><option>Fuerza</option><option>Flexibilidad</option></select></label>
+<label class="lt-field"><span>Calorías por hora *</span><input type="number" value="700"/></label>
+<label class="lt-field"><span>Pasos por hora</span><input type="number" value="1500"/></label>
 </div>
-<p class="lt-page-head__subtitle">Cambiar las tasas no recalcula los 14 registros anteriores; aplica a los nuevos.</p>
+<p class="lt-page-head__subtitle">Cambiar estas tasas solo afecta a los registros nuevos.</p>
 </div>
 </div>
-<footer class="lt-dialog__actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-edit" type="button">Cancelar</button><button class="lt-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-floppy"></i> Guardar</button></footer>
+<footer class="lt-dialog__actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-edit" type="button">Cancelar</button><button class="lt-button" data-lt-toggle="exercise-type-edit" type="button"><i class="bi bi-floppy"></i> Actualizar</button></footer>
 </section>
 </div>
 <div class="lt-dialog-layer" hidden="" id="exercise-type-delete">
@@ -720,13 +611,13 @@
 <section aria-labelledby="exercise-type-delete-title" aria-modal="true" class="lt-dialog" role="dialog">
 <header class="lt-dialog__head">
 <span class="lt-dialog__icon"><i aria-hidden="true" class="bi bi-trash"></i></span>
-<h2 id="exercise-type-delete-title">Eliminar «Caminar»</h2>
+<h2 id="exercise-type-delete-title">Eliminar tipo de ejercicio</h2>
 <button aria-label="Expandir" aria-pressed="false" class="lt-icon-button" data-lt-dialog-expand="" type="button"><i class="bi bi-arrows-fullscreen"></i></button>
 <button aria-label="Cerrar" class="lt-icon-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-x-lg"></i></button>
 </header>
 <div class="lt-dialog__main">
 <div class="lt-dialog__body">
-<p class="lt-page-head__subtitle">Este tipo no tiene registros. Se eliminará definitivamente.</p>
+<p class="lt-page-head__subtitle">«Natación» no tiene registros; se eliminará de tu catálogo.</p>
 </div>
 </div>
 <footer class="lt-dialog__actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-delete" type="button">Cancelar</button><button class="lt-button" data-lt-toggle="exercise-type-delete" type="button"><i class="bi bi-floppy"></i> Eliminar</button></footer>
@@ -743,11 +634,28 @@
 </header>
 <div class="lt-dialog__main">
 <div class="lt-dialog__body">
-<p class="lt-page-head__subtitle">Hay 14 registros con este tipo. Elige a qué tipo pasarlos antes de eliminarlo; el historial y el resumen semanal se conservan.</p>
-<div class="lt-form"><label class="lt-field lt-form--full"><span>Reasignar registros a *</span><select><option>Caminar</option><option>Bicicleta</option><option>Natación</option><option>Fútbol con amigos</option></select></label></div>
+<p class="lt-page-head__subtitle">Hay 7 registros con este tipo. Elige a qué tipo pasarlos: tu historial y tus estadísticas se conservan.</p>
+<div class="lt-form"><label class="lt-field lt-form--full"><span>Reasignar registros a *</span><select><option>Seleccionar...</option><option>Caminar</option><option>Senderismo</option><option>Bicicleta estática</option></select></label></div>
 </div>
 </div>
 <footer class="lt-dialog__actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-delete-used" type="button">Cancelar</button><button class="lt-button" data-lt-toggle="exercise-type-delete-used" type="button"><i class="bi bi-floppy"></i> Reasignar y eliminar</button></footer>
+</section>
+</div>
+<div class="lt-dialog-layer" hidden="" id="exercise-type-restore">
+<button aria-label="Cerrar" class="lt-dialog-scrim" data-lt-toggle="exercise-type-restore" tabindex="-1" type="button"></button>
+<section aria-labelledby="exercise-type-restore-title" aria-modal="true" class="lt-dialog" role="dialog">
+<header class="lt-dialog__head">
+<span class="lt-dialog__icon"><i aria-hidden="true" class="bi bi-arrow-counterclockwise"></i></span>
+<h2 id="exercise-type-restore-title">Restaurar tipos predeterminados</h2>
+<button aria-label="Expandir" aria-pressed="false" class="lt-icon-button" data-lt-dialog-expand="" type="button"><i class="bi bi-arrows-fullscreen"></i></button>
+<button aria-label="Cerrar" class="lt-icon-button" data-lt-toggle="exercise-type-restore" type="button"><i class="bi bi-x-lg"></i></button>
+</header>
+<div class="lt-dialog__main">
+<div class="lt-dialog__body">
+<p class="lt-page-head__subtitle">Se agregan los tipos predeterminados que falten. No se modifica ni se borra ninguno de tus tipos ni tus registros.</p>
+</div>
+</div>
+<footer class="lt-dialog__actions"><button class="lt-button lt-button--text" data-lt-toggle="exercise-type-restore" type="button">Cancelar</button><button class="lt-button" data-lt-toggle="exercise-type-restore" type="button"><i class="bi bi-floppy"></i> Restaurar</button></footer>
 </section>
 </div>
 </div></main>
@@ -755,7 +663,7 @@
 </div>
 </div>
 </template>
-<script id="mockup-config" type="application/json">{"datasets": [{"context": {}, "entities": {}, "id": "empty", "label": "Vac\u00edo", "schemaVersion": 1}, {"context": {}, "entities": {}, "id": "alternate", "label": "Alternativo", "schemaVersion": 1}], "manifest": {"datasets": {"changePolicy": "reset", "default": "empty", "include": ["empty", "alternate"], "switcher": true}, "defaultRole": "reviewer", "entryRoute": "/exercise-daily", "id": "exercise", "roles": ["reviewer"], "routes": [{"path": "/exercise-daily", "screen": "exercise-daily"}, {"path": "/exercise-weekly", "screen": "exercise-weekly"}, {"path": "/exercise-types", "screen": "exercise-types"}], "runtime": {"persistence": "none", "resetEnabled": true}, "schemaVersion": 1, "screens": {"exercise-daily": {"title": "Registro diario"}, "exercise-types": {"title": "Tipos de ejercicio"}, "exercise-weekly": {"title": "Resumen semanal"}}, "title": "Ejercicio", "version": "1.0.0"}, "relations": []}</script>
+<script id="mockup-config" type="application/json">{"datasets": [{"context": {}, "entities": {}, "id": "empty", "label": "Vac\u00edo", "schemaVersion": 1}, {"context": {}, "entities": {}, "id": "alternate", "label": "Alternativo", "schemaVersion": 1}], "manifest": {"datasets": {"changePolicy": "reset", "default": "empty", "include": ["empty", "alternate"], "switcher": true}, "defaultRole": "reviewer", "entryRoute": "/exercise-daily", "id": "exercise", "roles": ["reviewer"], "routes": [{"path": "/exercise-daily", "screen": "exercise-daily"}, {"path": "/exercise-statistics", "screen": "exercise-statistics"}, {"path": "/exercise-settings", "screen": "exercise-settings"}], "runtime": {"persistence": "none", "resetEnabled": true}, "schemaVersion": 1, "screens": {"exercise-daily": {"title": "Registro diario"}, "exercise-settings": {"title": "Ajustes"}, "exercise-statistics": {"title": "Estad\u00edsticas"}}, "title": "Ejercicio", "version": "1.0.0"}, "relations": []}</script>
 <script>(() => {
   // runtime/relations.js
   function validateEntities(entities, relations = []) {
@@ -1090,6 +998,6 @@
   }
 
   // ../life-tracker-back/docs/mockup-system/mockups/exercise/scripts/entry.js
-  startMockup({ "exercise-daily": mountLifeShell, "exercise-weekly": mountLifeShell, "exercise-types": mountLifeShell });
+  startMockup({ "exercise-daily": mountLifeShell, "exercise-statistics": mountLifeShell, "exercise-settings": mountLifeShell });
 })();
 </script></body></html>

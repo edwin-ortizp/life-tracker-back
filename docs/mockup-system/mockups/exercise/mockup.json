@@ -9,8 +9,8 @@
       "template": "pages/main.html.jinja",
       "screens": [
         "exercise-daily",
-        "exercise-weekly",
-        "exercise-types"
+        "exercise-statistics",
+        "exercise-settings"
       ],
       "output": "exercise.html"
     }
@@ -21,14 +21,14 @@
       "title": "Registro diario",
       "bodyClass": ""
     },
-    "exercise-weekly": {
-      "template": "screens/exercise-weekly.html.jinja",
-      "title": "Resumen semanal",
+    "exercise-statistics": {
+      "template": "screens/exercise-statistics.html.jinja",
+      "title": "Estadísticas",
       "bodyClass": ""
     },
-    "exercise-types": {
-      "template": "screens/exercise-types.html.jinja",
-      "title": "Tipos de ejercicio",
+    "exercise-settings": {
+      "template": "screens/exercise-settings.html.jinja",
+      "title": "Ajustes",
       "bodyClass": ""
     }
   },
@@ -38,12 +38,12 @@
       "screen": "exercise-daily"
     },
     {
-      "path": "/exercise-weekly",
-      "screen": "exercise-weekly"
+      "path": "/exercise-statistics",
+      "screen": "exercise-statistics"
     },
     {
-      "path": "/exercise-types",
-      "screen": "exercise-types"
+      "path": "/exercise-settings",
+      "screen": "exercise-settings"
     }
   ],
   "datasets": {

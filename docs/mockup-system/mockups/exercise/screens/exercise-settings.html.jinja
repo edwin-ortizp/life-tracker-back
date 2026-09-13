@@ -1,0 +1,59 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab %}
+{% call shell('exercise', 'Ejercicio', 'bi-activity') %}
+{{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Estadísticas','/exercise-statistics','bi-bar-chart-line'),('Ajustes','/exercise-settings','bi-sliders')], '/exercise-settings') }}
+<section class="lt-metrics">{{ metric('Tipos de ejercicio','21') }}{{ metric('Con registros','8 de 21','success') }}{{ metric('Sin registros','13','warning') }}</section>
+<div class="lt-actions"><button class="lt-button lt-button--text" type="button" data-lt-toggle="exercise-type-restore"><i class="bi bi-arrow-counterclockwise"></i> Restaurar predeterminados</button></div>
+<section class="lt-toolbar" aria-label="Filtros de tipos">
+  <label class="lt-field"><span class="lt-sr-only">Buscar</span><input type="search" placeholder="Buscar tipo de ejercicio..."></label>
+  {% for c, sel in [('Todas',true),('Cardio',false),('Deportes',false),('Fuerza',false),('Flexibilidad',false),('Sin categoría',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}
+</section>
+{% for cat, cicon, items in [
+  ('Cardio', 'bi-heart-pulse', [('bi-person-walking','Caminar','250 kcal/h · 1.400 pasos/h','4 registros · último 9 sep.'),('bi-person-walking','Correr','700 kcal/h · 1.500 pasos/h','7 registros · último hoy'),('bi-bicycle','Bicicleta estática','480 kcal/h','3 registros · último 4 sep.'),('bi-water','Natación','550 kcal/h','Sin registros'),('bi-signpost-split','Senderismo','420 kcal/h · 1.300 pasos/h','Sin registros')]),
+  ('Deportes', 'bi-trophy', [('bi-dribbble','Fútbol','490 kcal/h','2 registros · último 28 ago.'),('bi-circle','Tenis','500 kcal/h','Sin registros'),('bi-dribbble','Baloncesto','450 kcal/h','Sin registros')]),
+  ('Fuerza', 'bi-universal-access', [('bi-universal-access','Entrenamiento de fuerza','350 kcal/h','6 registros · último 10 sep.'),('bi-universal-access','Flexiones de pecho','350 kcal/h','Sin registros'),('bi-universal-access','Sentadillas','400 kcal/h','Sin registros')]),
+  ('Flexibilidad', 'bi-flower1', [('bi-flower1','Yoga','250 kcal/h','1 registro · último 31 ago.'),('bi-flower1','Pilates','210 kcal/h','Sin registros')])
+] %}
+<article class="lt-panel{% if loop.first %} lt-panel--accent{% endif %}"><div class="lt-panel__head"><i class="bi {{ cicon }}"></i><h3>{{ cat }}</h3><small>{{ items|length }} tipos</small></div><div class="lt-panel__body"><div class="lt-list">
+  {% for icon, name, rates, usage in items %}
+  <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ rates }} · {{ usage }}</span></div>
+    <button class="lt-icon-button" type="button" data-lt-toggle="exercise-type-edit" aria-label="Editar {{ name }}"><i class="bi bi-pencil"></i></button>
+    <button class="lt-icon-button" type="button" data-lt-toggle="{{ 'exercise-type-delete' if usage == 'Sin registros' else 'exercise-type-delete-used' }}" aria-label="Eliminar {{ name }}"><i class="bi bi-trash"></i></button>
+  </div>
+  {% endfor %}
+</div></div></article>
+{% endfor %}
+{{ fab('Nuevo tipo', 'bi-plus-lg', 'exercise-type-new') }}
+
+{% macro type_form(name, category, emoji, kcal, steps) -%}
+<div class="lt-form">
+  <label class="lt-field"><span>Emoji</span><input type="text" value="{{ emoji }}"></label>
+  <label class="lt-field"><span>Nombre *</span><input type="text" value="{{ name }}" placeholder="Ej. Remo, Spinning, Boxeo"></label>
+  <label class="lt-field lt-form--full"><span>Categoría</span><select>{% for c in ['Sin categoría','Cardio','Deportes','Fuerza','Flexibilidad'] %}<option{% if c == category %} selected{% endif %}>{{ c }}</option>{% endfor %}</select></label>
+  <label class="lt-field"><span>Calorías por hora *</span><input type="number" value="{{ kcal }}"></label>
+  <label class="lt-field"><span>Pasos por hora</span><input type="number" value="{{ steps }}"></label>
+</div>
+{%- endmacro %}
+
+{% call dialog('exercise-type-new', 'Nuevo tipo de ejercicio', submit='Crear tipo', icon='bi-tags') %}
+{{ type_form('', 'Cardio', '🏃', '', '0') }}
+<p class="lt-page-head__subtitle">Se usan para estimar calorías y pasos al registrar solo la duración.</p>
+{% endcall %}
+
+{% call dialog('exercise-type-edit', 'Editar tipo de ejercicio', submit='Actualizar', icon='bi-tags') %}
+{{ type_form('Correr', 'Cardio', '🏃‍♂️', '700', '1500') }}
+<p class="lt-page-head__subtitle">Cambiar estas tasas solo afecta a los registros nuevos.</p>
+{% endcall %}
+
+{% call dialog('exercise-type-delete', 'Eliminar tipo de ejercicio', submit='Eliminar', icon='bi-trash') %}
+<p class="lt-page-head__subtitle">«Natación» no tiene registros; se eliminará de tu catálogo.</p>
+{% endcall %}
+
+{% call dialog('exercise-type-delete-used', 'Eliminar «Correr»', submit='Reasignar y eliminar', icon='bi-exclamation-triangle') %}
+<p class="lt-page-head__subtitle">Hay 7 registros con este tipo. Elige a qué tipo pasarlos: tu historial y tus estadísticas se conservan.</p>
+<div class="lt-form"><label class="lt-field lt-form--full"><span>Reasignar registros a *</span><select><option>Seleccionar...</option><option>Caminar</option><option>Senderismo</option><option>Bicicleta estática</option></select></label></div>
+{% endcall %}
+
+{% call dialog('exercise-type-restore', 'Restaurar tipos predeterminados', submit='Restaurar', icon='bi-arrow-counterclockwise') %}
+<p class="lt-page-head__subtitle">Se agregan los tipos predeterminados que falten. No se modifica ni se borra ninguno de tus tipos ni tus registros.</p>
+{% endcall %}
+{% endcall %}

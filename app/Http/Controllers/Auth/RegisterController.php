@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\DefaultExerciseTypes;
 use App\Support\DefaultHabitDefinitions;
 use App\Support\DefaultMoodStates;
 use Illuminate\Http\Request;
@@ -42,25 +43,7 @@ class RegisterController extends Controller
     {
         DefaultHabitDefinitions::createFor($user);
 
-        $exerciseTypes = [
-            ['name' => 'Pasos', 'calories_per_hour' => 200, 'steps_equivalent' => 1312, 'category' => 'cardio', 'icon' => '👣', 'legacy_id' => 1],
-            ['name' => 'Trotar', 'calories_per_hour' => 500, 'steps_equivalent' => 1200, 'category' => 'cardio', 'icon' => '🏃', 'legacy_id' => 2],
-            ['name' => 'Bicicleta', 'calories_per_hour' => 450, 'steps_equivalent' => 0, 'category' => 'cardio', 'icon' => '🚲', 'legacy_id' => 3],
-            ['name' => 'Caminata', 'calories_per_hour' => 250, 'steps_equivalent' => 1400, 'category' => 'cardio', 'icon' => '🚶', 'legacy_id' => 4],
-            ['name' => 'Natación', 'calories_per_hour' => 550, 'steps_equivalent' => 0, 'category' => 'cardio', 'icon' => '🏊', 'legacy_id' => 5],
-            ['name' => 'Tenis', 'calories_per_hour' => 500, 'steps_equivalent' => 0, 'category' => 'cardio', 'icon' => '🎾', 'legacy_id' => 6],
-            ['name' => 'Abdominales', 'calories_per_hour' => 300, 'steps_equivalent' => 0, 'category' => 'strength', 'icon' => '💪', 'legacy_id' => 7],
-            ['name' => 'Pesas de mano', 'calories_per_hour' => 250, 'steps_equivalent' => 0, 'category' => 'strength', 'icon' => '🏋️', 'legacy_id' => 8],
-            ['name' => 'Flexiones', 'calories_per_hour' => 350, 'steps_equivalent' => 0, 'category' => 'strength', 'icon' => '💪', 'legacy_id' => 9],
-            ['name' => 'Sentadillas', 'calories_per_hour' => 400, 'steps_equivalent' => 0, 'category' => 'strength', 'icon' => '🏋️', 'legacy_id' => 10],
-            ['name' => 'Burpees', 'calories_per_hour' => 700, 'steps_equivalent' => 0, 'category' => 'strength', 'icon' => '💥', 'legacy_id' => 11],
-            ['name' => 'Yoga', 'calories_per_hour' => 250, 'steps_equivalent' => 0, 'category' => 'flexibility', 'icon' => '🧘', 'legacy_id' => 12],
-            ['name' => 'Estiramientos', 'calories_per_hour' => 150, 'steps_equivalent' => 0, 'category' => 'flexibility', 'icon' => '🤸', 'legacy_id' => 13],
-        ];
-
-        foreach ($exerciseTypes as $type) {
-            $user->exerciseTypes()->create($type);
-        }
+        DefaultExerciseTypes::createFor($user);
 
         $drinkTypes = [
             ['name' => 'Agua', 'hydration_factor' => 1.00, 'color' => '#3b82f6', 'icon' => 'Droplet', 'category' => 'water'],

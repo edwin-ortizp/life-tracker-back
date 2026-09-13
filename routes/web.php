@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/water/range', \App\Livewire\Water\WaterRange::class)->name('water.range');
     Route::get('/water/settings', \App\Livewire\Water\WaterSettings::class)->name('water.settings');
     Route::get('/exercise', \App\Livewire\Exercise\ExerciseDaily::class)->name('exercise');
+    Route::get('/exercise/statistics', \App\Livewire\Exercise\ExerciseStatistics::class)->name('exercise.statistics');
+    Route::get('/exercise/settings', \App\Livewire\Exercise\ExerciseSettings::class)->name('exercise.settings');
     Route::get('/health', \App\Livewire\Health\HealthIndex::class)->name('health');
     Route::get('/health/body', \App\Livewire\Health\HealthBodyMap::class)->name('health.body');
     Route::get('/vehicles', \App\Livewire\Vehicle\VehicleIndex::class)->name('vehicles');

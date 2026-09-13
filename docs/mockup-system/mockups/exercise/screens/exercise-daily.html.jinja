@@ -1,7 +1,7 @@
 {% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog, fab %}
 {% call shell('exercise', 'Ejercicio', 'bi-activity') %}
 {{ header('Ejercicio', 'Actividad, esfuerzo y progreso físico · Miércoles 10 sep.', 'bi-activity') }}
-{{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Resumen semanal','/exercise-weekly','bi-bar-chart-line'),('Tipos','/exercise-types','bi-tags')], '/exercise-daily') }}
+{{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Estadísticas','/exercise-statistics','bi-bar-chart-line'),('Ajustes','/exercise-settings','bi-sliders')], '/exercise-daily') }}
 <section class="lt-metrics">{{ metric('Duración','75 min','success') }}{{ metric('Calorías','612 kcal','warning') }}{{ metric('Pasos','8.420') }}</section>
 <section class="lt-grid-main">
   <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-list-ul"></i><h3>Actividades del día</h3><small>3 registros</small></div><div class="lt-panel__body"><div class="lt-list">
@@ -18,7 +18,7 @@
 {% call dialog('exercise-new', 'Registrar ejercicio', icon='bi-activity', sections=[('basic','Información básica','bi-activity'),('metrics','Series y distancia','bi-bar-chart'),('details','Detalles adicionales','bi-card-text')]) %}
 <section class="lt-dialog__section" data-section="basic">
   <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
-  <div class="lt-form"><label class="lt-field lt-form--full"><span>Tipo de ejercicio *</span><select><option>Peso muerto</option><option>Correr</option><option>Bicicleta</option><option>Natación</option></select></label><p class="lt-page-head__subtitle lt-form--full">¿No está en la lista? <a class="lt-link" href="#/exercise-types">Gestionar tipos</a></p><label class="lt-field "><span>Duración (min)</span><input type="number" value="15"></label><label class="lt-field "><span>Calorías</span><input type="number" value="95"></label></div>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Tipo de ejercicio *</span><select><option>Entrenamiento de fuerza</option><option>Correr</option><option>Bicicleta estática</option><option>Natación</option><option>Fútbol</option></select></label><p class="lt-page-head__subtitle lt-form--full">¿No está en la lista? <a class="lt-link" href="#/exercise-settings">Gestionar tipos</a></p><label class="lt-field "><span>Duración (min)</span><input type="number" value="15"></label><label class="lt-field "><span>Calorías</span><input type="number" value="95"></label></div>
 </section>
 <section class="lt-dialog__section" data-section="metrics" hidden>
   <header class="lt-dialog__section-head"><h3>Series y distancia</h3></header>

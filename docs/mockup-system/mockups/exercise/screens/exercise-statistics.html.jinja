@@ -1,0 +1,24 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% call shell('exercise', 'Ejercicio', 'bi-activity') %}
+{{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Estadísticas','/exercise-statistics','bi-bar-chart-line'),('Ajustes','/exercise-settings','bi-sliders')], '/exercise-statistics') }}
+<section class="lt-toolbar" aria-label="Periodo de análisis">
+  {% for c, sel in [('7 días',true),('30 días',false),('90 días',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}
+  <p class="lt-toolbar__label">7 – 13 sep. 2026</p>
+</section>
+<section class="lt-metrics">{{ metric('Sesiones','5') }}{{ metric('Días activos','4 de 7','success') }}{{ metric('Racha actual','3 días','warning') }}{{ metric('Tiempo activo','290 min') }}</section>
+<section class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-bar-chart-line"></i><h3>Minutos activos</h3><small>Total por día</small></div><div class="lt-panel__body">
+  <div class="lt-bars">{% for day, v in [('Lun 7',55),('Mar 8',75),('Mié 9',0),('Jue 10',100),('Vie 11',0),('Sáb 12',50),('Dom 13',60)] %}<div class="lt-bars__col"><div class="lt-bars__track"><span class="lt-bars__fill" style="--value:{{ v }}%"></span></div><span>{{ day }}</span></div>{% endfor %}</div>
+</div></section>
+<section class="lt-grid-2">
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-pie-chart"></i><h3>Por tipo de ejercicio</h3><small>Frecuencia y tiempo</small></div><div class="lt-panel__body"><div class="lt-list">
+    {% for icon, name, detail, pct in [('bi-person-walking','Correr','2 sesiones · 95 min · 1.110 kcal',33),('bi-universal-access','Entrenamiento de fuerza','2 sesiones · 105 min · 610 kcal',36),('bi-bicycle','Bicicleta estática','1 sesión · 40 min · 320 kcal',14),('bi-dribbble','Fútbol','1 sesión · 50 min · 410 kcal',17)] %}
+    <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ detail }}</span><div class="lt-progress"><span style="width:{{ pct }}%"></span></div></div><span class="lt-chip">{{ pct }} %</span></div>
+    {% endfor %}
+  </div></div></article>
+  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-trophy"></i><h3>Mejores marcas del periodo</h3><small>El registro más exigente de cada tipo</small></div><div class="lt-panel__body"><div class="lt-list">
+    {% for icon, name, detail in [('bi-universal-access','Entrenamiento de fuerza','60 kg · 4×8 · 45 min · 10 sep.'),('bi-person-walking','Correr','8,5 km · 52 min · 8 sep.'),('bi-bicycle','Bicicleta estática','40 min · 12 sep.'),('bi-dribbble','Fútbol','50 min · 13 sep.')] %}
+    <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ detail }}</span></div></div>
+    {% endfor %}
+  </div></div></article>
+</section>
+{% endcall %}

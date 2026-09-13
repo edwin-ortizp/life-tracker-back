@@ -18,4 +18,9 @@ class ExerciseType extends Model
         'icon',
         'legacy_id',
     ];
+
+    public function logs()
+    {
+        return $this->hasMany(ExerciseLog::class);
+    }
 }

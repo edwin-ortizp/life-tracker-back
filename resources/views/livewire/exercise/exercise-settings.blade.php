@@ -1,0 +1,117 @@
+@php
+    use App\Support\DefaultExerciseTypes;
+@endphp
+
+<x-module-shell module="exercise" archetype="settings">
+    <x-slot:actions>
+        <x-module-actions
+            :primary="['label' => 'Nuevo tipo', 'icon' => 'bi-plus-lg', 'action' => 'openForm']"
+            :secondary="[
+                ['label' => 'Restaurar tipos predeterminados', 'icon' => 'bi-arrow-counterclockwise', 'action' => 'restoreDefaults'],
+            ]" />
+    </x-slot:actions>
+
+    @if ($message)
+        <div class="md-card-filled mb-3 py-3" role="status" aria-live="polite">{{ $message }}</div>
+    @endif
+
+    <x-ui.section title="Tipos de ejercicio" :level="2"
+                  description="{{ $totalCount }} tipos · {{ $usedCount }} con registros. Las calorías y pasos por hora se usan para estimar cada registro.">
+        <x-ui.filter-bar search="search" placeholder="Buscar tipo de ejercicio..." label="Filtrar por categoría">
+            <x-slot:chips>
+                <x-ui.chip variant="filter" :selected="$category === ''" wire:click="$set('category', '')">Todas</x-ui.chip>
+                @foreach ($categories as $key => $label)
+                    <x-ui.chip variant="filter" :selected="$category === $key" wire:click="$set('category', '{{ $key }}')">{{ $label }}</x-ui.chip>
+                @endforeach
+                <x-ui.chip variant="filter" :selected="$category === 'none'" wire:click="$set('category', 'none')">Sin categoría</x-ui.chip>
+            </x-slot:chips>
+        </x-ui.filter-bar>
+    </x-ui.section>
+
+    @forelse ($groups as $key => $types)
+        <x-ui.section :title="DefaultExerciseTypes::categoryLabel($key ?: null)" :level="3"
+                      description="{{ $types->count() }} {{ $types->count() === 1 ? 'tipo' : 'tipos' }}"
+                      wire:key="exercise-category-{{ $key ?: 'none' }}">
+            <x-ui.list label="Tipos de {{ DefaultExerciseTypes::categoryLabel($key ?: null) }}">
+                @foreach ($types as $type)
+                    @php
+                        $usage = $type->logs_count
+                            ? $type->logs_count.' '.($type->logs_count === 1 ? 'registro' : 'registros').' · último '.\Carbon\Carbon::parse($type->logs_max_date)->translatedFormat('d M')
+                            : 'Sin registros';
+                        $rates = collect([
+                            number_format($type->calories_per_hour, 0, ',', '.').' kcal/h',
+                            $type->steps_equivalent ? number_format($type->steps_equivalent, 0, ',', '.').' pasos/h' : null,
+                        ])->filter()->implode(' · ');
+                    @endphp
+                    <x-ui.list-item :headline="$type->name" :supporting="$rates.' · '.$usage" wire:key="exercise-type-{{ $type->id }}">
+                        <x-slot:leading>
+                            <span class="md-list-icon-circle" aria-hidden="true">{{ $type->icon ?: '🏃' }}</span>
+                        </x-slot:leading>
+                        <x-slot:trailing>
+                            <x-ui.icon-action icon="bi-pencil" label="Editar {{ $type->name }}" wire:click="openForm('{{ $type->id }}')" />
+                            @if ($type->logs_count)
+                                <x-ui.icon-action icon="bi-trash" tone="danger" label="Eliminar {{ $type->name }}" wire:click="confirmDelete('{{ $type->id }}')" />
+                            @else
+                                <x-ui.destructive-action label="Eliminar {{ $type->name }}" :iconOnly="true"
+                                                         action="delete('{{ $type->id }}')"
+                                                         title="Eliminar tipo de ejercicio"
+                                                         message="“{{ $type->name }}” no tiene registros; se eliminará de tu catálogo." />
+                            @endif
+                        </x-slot:trailing>
+                    </x-ui.list-item>
+                @endforeach
+            </x-ui.list>
+        </x-ui.section>
+    @empty
+        @if ($totalCount === 0)
+            <x-ui.state variant="empty" icon="bi-tags" title="Aún no tienes tipos de ejercicio"
+                        message="Agrega los tipos predeterminados o crea el tuyo para empezar a registrar.">
+                <x-slot:actions>
+                    <x-ui.action variant="filled" icon="bi-arrow-counterclockwise" wire:click="restoreDefaults">Agregar predeterminados</x-ui.action>
+                </x-slot:actions>
+            </x-ui.state>
+        @else
+            <x-ui.state variant="filtered-empty" title="Ningún tipo coincide"
+                        message="Ajusta la búsqueda o la categoría para ver el resto de tu catálogo." />
+        @endif
+    @endforelse
+
+    <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="exercise-type-dialog"
+                      :title="$editingId ? 'Editar tipo de ejercicio' : 'Nuevo tipo de ejercicio'" icon="bi-tags"
+                      :submit="$editingId ? 'Actualizar' : 'Crear tipo'">
+        <div class="d-flex flex-column gap-3">
+            <div class="md-field-pair">
+                <x-ui.field name="icon" label="Emoji" maxlength="16" wire:model="icon" />
+                <x-ui.field name="name" label="Nombre" :required="true" maxlength="60" wire:model="name" />
+            </div>
+            <x-ui.select name="formCategory" label="Categoría" placeholder="Sin categoría" :selected="$formCategory"
+                         :options="$categories" wire:model="formCategory" />
+            <div class="md-field-pair">
+                <x-ui.field name="caloriesPerHour" label="Calorías por hora" type="number" min="0" :required="true" wire:model="caloriesPerHour" />
+                <x-ui.field name="stepsEquivalent" label="Pasos por hora" type="number" min="0" wire:model="stepsEquivalent" />
+            </div>
+            <p class="md-body-small mb-0">
+                @if ($editingId)
+                    Cambiar estas tasas solo afecta a los registros nuevos.
+                @else
+                    Se usan para estimar calorías y pasos al registrar solo la duración.
+                @endif
+            </p>
+        </div>
+    </x-ui.form-dialog>
+
+    <x-ui.form-dialog :open="(bool) $deleting" close="cancelDelete" submit-action="reassignAndDelete" id="exercise-type-delete-dialog"
+                      :title="$deleting ? 'Eliminar «'.$deleting->name.'»' : 'Eliminar tipo'" icon="bi-exclamation-triangle"
+                      submit="Reasignar y eliminar">
+        @if ($deleting)
+            <div class="d-flex flex-column gap-3">
+                <p class="md-body-medium mb-0">
+                    Hay {{ $deleting->logs_count }} {{ $deleting->logs_count === 1 ? 'registro' : 'registros' }} con este tipo.
+                    Elige a qué tipo pasarlos: tu historial y tus estadísticas se conservan.
+                </p>
+                <x-ui.select name="reassignTo" label="Reasignar registros a" placeholder="Seleccionar..." :required="true"
+                             :selected="$reassignTo" :options="$reassignOptions" wire:model="reassignTo" />
+            </div>
+        @endif
+    </x-ui.form-dialog>
+</x-module-shell>
