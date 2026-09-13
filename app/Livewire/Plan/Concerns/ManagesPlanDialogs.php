@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Plan\Concerns;
 
+use App\Actions\SavePlan;
 use App\Models\Circle;
 use App\Models\Plan;
 use App\Models\PlanVisit;
@@ -43,6 +44,9 @@ trait ManagesPlanDialogs
 
     public array $planLinks = [];
 
+    /** Image URLs in order; the first one is the main image. */
+    public array $planImages = [];
+
     public bool $showVisitForm = false;
 
     public ?string $visitPlanId = null;
@@ -64,7 +68,7 @@ trait ManagesPlanDialogs
         $this->resetPlanForm();
 
         if ($id) {
-            $plan = Plan::query()->with(['circles', 'relationships', 'links'])->findOrFail($id);
+            $plan = Plan::query()->with(['circles', 'relationships', 'links', 'images'])->findOrFail($id);
 
             $this->editingPlanId = $plan->id;
             $this->planTitle = $plan->title;
@@ -78,12 +82,17 @@ trait ManagesPlanDialogs
             $this->planCircles = $plan->circles->pluck('id')->all();
             $this->planPeople = $plan->relationships->pluck('id')->all();
             $this->planLinks = $plan->links->map(fn ($link) => ['url' => $link->url, 'label' => $link->label ?? ''])->all();
+            $this->planImages = $plan->images->pluck('url')->all();
         } else {
             $this->planPeople = $this->defaultPlanPeople();
         }
 
         if ($this->planLinks === []) {
             $this->planLinks = [['url' => '', 'label' => '']];
+        }
+
+        if ($this->planImages === []) {
+            $this->planImages = [''];
         }
 
         $this->showPlanForm = true;
@@ -106,10 +115,37 @@ trait ManagesPlanDialogs
         $this->planLinks = array_values($this->planLinks) ?: [['url' => '', 'label' => '']];
     }
 
+    public function addPlanImage(): void
+    {
+        $this->planImages[] = '';
+    }
+
+    public function removePlanImage(int $index): void
+    {
+        unset($this->planImages[$index]);
+        $this->planImages = array_values($this->planImages) ?: [''];
+    }
+
+    /** Moving an image to the top makes it the main image. */
+    public function movePlanImageUp(int $index): void
+    {
+        if ($index < 1 || ! isset($this->planImages[$index])) {
+            return;
+        }
+
+        [$this->planImages[$index - 1], $this->planImages[$index]] = [$this->planImages[$index], $this->planImages[$index - 1]];
+    }
+
     public function savePlan(): void
     {
         $this->planLinks = collect($this->planLinks)
             ->filter(fn ($link) => trim($link['url'] ?? '') !== '' || trim($link['label'] ?? '') !== '')
+            ->values()
+            ->all();
+
+        $this->planImages = collect($this->planImages)
+            ->map(fn ($url) => trim((string) $url))
+            ->filter()
             ->values()
             ->all();
 
@@ -129,7 +165,10 @@ trait ManagesPlanDialogs
             'planLinks' => ['array', 'max:10'],
             'planLinks.*.url' => ['required', 'url:http,https', 'max:2048'],
             'planLinks.*.label' => ['nullable', 'string', 'max:120'],
+            'planImages' => ['array', 'max:12'],
+            'planImages.*' => ['url:http,https', 'max:2048'],
         ], [
+            'planImages.*.url' => 'Escribe la URL de una imagen que empiece por http:// o https://.',
             'planLinks.*.url.required' => 'Escribe el enlace o quita la fila.',
             'planLinks.*.url.url' => 'Escribe un enlace válido que empiece por http:// o https://.',
             'planEndsOn.after_or_equal' => 'La fecha final no puede ser anterior a la fecha del plan.',
@@ -139,17 +178,9 @@ trait ManagesPlanDialogs
             'planEndsOn' => 'hasta',
         ]);
 
-        DB::transaction(function (): void {
-            $plan = $this->editingPlanId ? Plan::query()->findOrFail($this->editingPlanId) : new Plan;
-
-            $status = $plan->status ?? 'pending';
-            if ($this->planScheduledOn && $status === 'pending') {
-                $status = 'scheduled';
-            } elseif (! $this->planScheduledOn && $status === 'scheduled') {
-                $status = 'pending';
-            }
-
-            $plan->fill([
+        SavePlan::handle(
+            $this->editingPlanId ? Plan::query()->findOrFail($this->editingPlanId) : new Plan,
+            [
                 'title' => trim($this->planTitle),
                 'type' => $this->planType,
                 'category' => trim($this->planCategory) ?: null,
@@ -158,18 +189,12 @@ trait ManagesPlanDialogs
                 'scheduled_on' => $this->planScheduledOn ?: null,
                 'ends_on' => $this->planEndsOn ?: null,
                 'notes' => trim($this->planNotes) ?: null,
-                'status' => $status,
-            ])->save();
-
-            // Global scopes keep only the circles and people of the signed-in user.
-            $plan->circles()->sync(Circle::query()->whereKey($this->planCircles)->pluck('id'));
-            $plan->relationships()->sync(Relationship::query()->whereKey($this->planPeople)->pluck('id'));
-
-            $plan->links()->delete();
-            foreach ($this->planLinks as $link) {
-                $plan->links()->create(['url' => trim($link['url']), 'label' => trim($link['label'] ?? '') ?: null]);
-            }
-        });
+            ],
+            $this->planCircles,
+            $this->planPeople,
+            $this->planLinks,
+            $this->planImages,
+        );
 
         $this->closePlanForm();
     }
@@ -292,7 +317,7 @@ trait ManagesPlanDialogs
 
     private function resetPlanForm(): void
     {
-        $this->reset(['editingPlanId', 'planTitle', 'planType', 'planCategory', 'planCity', 'planAddress', 'planScheduledOn', 'planEndsOn', 'planNotes', 'planCircles', 'planPeople', 'planLinks']);
+        $this->reset(['editingPlanId', 'planTitle', 'planType', 'planCategory', 'planCity', 'planAddress', 'planScheduledOn', 'planEndsOn', 'planNotes', 'planCircles', 'planPeople', 'planLinks', 'planImages']);
         $this->resetValidation();
     }
 

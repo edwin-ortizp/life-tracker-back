@@ -94,6 +94,17 @@ class Plan extends Model
         return $this->hasMany(PlanLink::class)->orderBy('created_at');
     }
 
+    /** Images by URL, main one first. */
+    public function images(): HasMany
+    {
+        return $this->hasMany(PlanImage::class)->orderBy('position');
+    }
+
+    public function mainImageUrl(): ?string
+    {
+        return $this->relationLoaded('images') ? $this->images->first()?->url : $this->images()->value('url');
+    }
+
     public function visits(): HasMany
     {
         return $this->hasMany(PlanVisit::class);

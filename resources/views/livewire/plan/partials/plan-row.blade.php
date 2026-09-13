@@ -4,7 +4,13 @@
     $people = $relationship ? collect() : $plan->relationships;
 @endphp
 <article class="plan-row" wire:key="plan-row-{{ $plan->id }}">
-    <span class="plan-row__media" aria-hidden="true"><i class="bi {{ $plan->icon() }}"></i></span>
+    <span class="plan-row__media" aria-hidden="true">
+        <i class="bi {{ $plan->icon() }}"></i>
+        @if ($image = $plan->mainImageUrl())
+            {{-- Se muestra desde su URL; si no carga, queda el ícono del tipo. --}}
+            <img src="{{ $image }}" alt="" loading="lazy" referrerpolicy="no-referrer" x-data x-on:error="$el.remove()">
+        @endif
+    </span>
 
     <div class="plan-row__body">
         <a class="plan-row__title" href="{{ route('plans.show', $plan) }}" wire:navigate>{{ $plan->title }}</a>

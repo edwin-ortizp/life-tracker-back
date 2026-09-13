@@ -1,12 +1,14 @@
 @php
     $basicErrors = $errors->hasAny(['planTitle', 'planType', 'planCategory', 'planCity', 'planAddress', 'planScheduledOn', 'planEndsOn', 'planNotes']);
     $linkErrors = $errors->hasAny(['planLinks', 'planLinks.*.url', 'planLinks.*.label']);
+    $imageErrors = $errors->hasAny(['planImages', 'planImages.*']);
 @endphp
 
 <x-ui.form-dialog :open="$showPlanForm" close="closePlanForm" submit-action="savePlan" id="plan-dialog"
                   :title="$editingPlanId ? 'Editar plan' : 'Agregar plan'" icon="bi-map"
                   :sections="[
                       'basic' => ['label' => 'Información básica', 'icon' => 'bi-file-earmark-text', 'error' => $basicErrors],
+                      'images' => ['label' => 'Imágenes', 'icon' => 'bi-images', 'error' => $imageErrors],
                       'people' => ['label' => 'Personas y círculos', 'icon' => 'bi-people'],
                       'links' => ['label' => 'Enlaces', 'icon' => 'bi-link-45deg', 'error' => $linkErrors],
                   ]">
@@ -23,6 +25,27 @@
             <x-ui.field name="planEndsOn" type="date" label="Hasta (opcional)" wire:model.blur="planEndsOn" />
             <div class="md-form-dialog__full">
                 <x-ui.textarea name="planNotes" label="Notas" rows="3" wire:model.blur="planNotes" />
+            </div>
+        </div>
+    </x-ui.form-dialog-section>
+
+    <x-ui.form-dialog-section name="images" title="Imágenes" description="Pega la URL de cada imagen; no se descarga. La primera es la principal y es la que se muestra en listados y detalle.">
+        <div class="plan-images-form">
+            @foreach ($planImages as $index => $url)
+                <div class="plan-images-form__row" wire:key="plan-image-{{ $index }}">
+                    <span class="plan-images-form__preview" aria-hidden="true">
+                        <i class="bi bi-image"></i>
+                        @if (filter_var($url, FILTER_VALIDATE_URL))
+                            <img src="{{ $url }}" alt="" referrerpolicy="no-referrer" x-data x-on:error="$el.remove()">
+                        @endif
+                    </span>
+                    <x-ui.field name="planImages.{{ $index }}" type="url" :label="$index === 0 ? 'Imagen principal' : 'Imagen '.($index + 1)" icon="bi-link-45deg" wire:model.blur="planImages.{{ $index }}" />
+                    <x-ui.icon-action icon="bi-arrow-up" :label="'Subir imagen '.($index + 1)" :disabled="$index === 0" wire:click="movePlanImageUp({{ $index }})" />
+                    <x-ui.icon-action icon="bi-trash" :label="'Quitar imagen '.($index + 1)" wire:click="removePlanImage({{ $index }})" />
+                </div>
+            @endforeach
+            <div>
+                <x-ui.action variant="tonal" icon="bi-plus-lg" wire:click="addPlanImage">Añadir imagen</x-ui.action>
             </div>
         </div>
     </x-ui.form-dialog-section>

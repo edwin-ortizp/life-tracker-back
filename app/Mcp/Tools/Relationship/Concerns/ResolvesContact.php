@@ -20,7 +20,11 @@ trait ResolvesContact
             return null;
         }
 
-        $matches = Auth::user()->circles()->where('name', 'like', "%{$circleName}%")->get();
+        // An exact name wins, so "Familia" is not confused with "Familia muy cercana".
+        $exact = Auth::user()->circles()->whereRaw('lower(name) = ?', [mb_strtolower(trim($circleName))])->get();
+        $matches = $exact->count() === 1
+            ? $exact
+            : Auth::user()->circles()->where('name', 'like', "%{$circleName}%")->get();
 
         if ($matches->isEmpty()) {
             return Response::error("No encontré ningún círculo que coincida con \"{$circleName}\".");

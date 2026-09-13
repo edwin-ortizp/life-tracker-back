@@ -2,6 +2,11 @@
 {% from '@project/components/catalog/plan-row.html.jinja' import plan_dialogs %}
 {% call shell('plans', 'Heladería Popsy', 'bi-cup-straw') %}
 {{ header('Heladería Popsy', '', 'bi-cup-straw', '/plans-index') }}
+<div class="lt-plan-gallery" role="group" aria-label="Imágenes de Heladería Popsy">
+  {% for src, alt in [('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 120 90%27%3E%3Crect width=%27120%27 height=%2790%27 fill=%27%23FCE4EC%27/%3E%3Ccircle cx=%2745%27 cy=%2734%27 r=%2716%27 fill=%27%23F48FB1%27/%3E%3Ccircle cx=%2772%27 cy=%2736%27 r=%2714%27 fill=%27%23FFF3E0%27/%3E%3Cpath d=%27M32 44h28l-14 38z%27 fill=%27%23D7A86E%27/%3E%3Cpath d=%27M60 46h24l-12 34z%27 fill=%27%23C48A55%27/%3E%3C/svg%3E','Imagen principal de Heladería Popsy'),('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 120 90%27%3E%3Crect width=%27120%27 height=%2790%27 fill=%27%23FFF8E1%27/%3E%3Crect x=%2720%27 y=%2750%27 width=%2780%27 height=%278%27 fill=%27%238D6E63%27/%3E%3Ccircle cx=%2760%27 cy=%2738%27 r=%2714%27 fill=%27%23FFFFFF%27/%3E%3Ccircle cx=%2760%27 cy=%2738%27 r=%278%27 fill=%27%23A5D6A7%27/%3E%3Crect x=%2714%27 y=%2712%27 width=%2722%27 height=%2730%27 rx=%273%27 fill=%27%23FFE0B2%27/%3E%3C/svg%3E','Imagen 2 de Heladería Popsy'),('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 120 90%27%3E%3Crect width=%27120%27 height=%2790%27 fill=%27%23E3F2FD%27/%3E%3Cpath d=%27M0 60 35 25l25 25 20-18 40 36v22H0z%27 fill=%27%2381C784%27/%3E%3Cpath d=%27M0 72h120v18H0z%27 fill=%27%234FC3F7%27/%3E%3Ccircle cx=%2795%27 cy=%2720%27 r=%279%27 fill=%27%23FFF59D%27/%3E%3C/svg%3E','Imagen 3 de Heladería Popsy')] %}
+  <button class="lt-plan-gallery__item{% if loop.first %} is-main{% endif %}" type="button" data-lt-static-nav><img src="{{ src }}" alt="{{ alt }}"></button>
+  {% endfor %}
+</div>
 <section class="lt-metrics">{{ metric('Visitas','8') }}{{ metric('Última vez','Hace 3 meses','warning') }}{{ metric('Personas','3','success') }}</section>
 <section class="lt-grid-main">
   <div class="lt-stack">

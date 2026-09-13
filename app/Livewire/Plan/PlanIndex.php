@@ -102,7 +102,7 @@ class PlanIndex extends Component
         $statusCounts = Plan::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
 
         $plans = $this->sortPlans(
-            $this->filteredQuery()->withVisitStats()->with(['circles', 'relationships'])->get(),
+            $this->filteredQuery()->withVisitStats()->with(['circles', 'relationships', 'images'])->get(),
             $this->sort,
         );
 

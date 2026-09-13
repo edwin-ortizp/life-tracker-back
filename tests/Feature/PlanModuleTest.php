@@ -60,6 +60,46 @@ class PlanModuleTest extends TestCase
         $this->assertSame('Instagram', $plan->links->first()->platform()['label']);
     }
 
+    public function test_image_urls_keep_their_order_and_the_first_is_main(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $component = Livewire::test(PlanIndex::class)
+            ->call('openPlanForm')
+            ->set('planTitle', 'Termales de Coconuco')
+            ->set('planImages', ['https://example.com/piscina.jpg', '', 'https://example.com/montana.jpg'])
+            ->call('movePlanImageUp', 2)
+            ->call('savePlan')
+            ->assertHasNoErrors();
+
+        $plan = Plan::query()->with('images')->sole();
+        $this->assertSame(['https://example.com/piscina.jpg', 'https://example.com/montana.jpg'], $plan->images->pluck('url')->all());
+        $this->assertSame('https://example.com/piscina.jpg', $plan->mainImageUrl());
+
+        $component->call('openPlanForm', $plan->id)
+            ->assertSet('planImages', ['https://example.com/piscina.jpg', 'https://example.com/montana.jpg'])
+            ->call('movePlanImageUp', 1)
+            ->call('savePlan');
+
+        $this->assertSame('https://example.com/montana.jpg', $plan->fresh()->mainImageUrl());
+        $this->get('/plans')->assertSee('https://example.com/montana.jpg', false);
+    }
+
+    public function test_invalid_image_urls_are_rejected(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(PlanIndex::class)
+            ->call('openPlanForm')
+            ->set('planTitle', 'Picnic')
+            ->set('planImages', ['no-es-una-url'])
+            ->call('savePlan')
+            ->assertHasErrors(['planImages.0']);
+
+        $this->assertSame(0, Plan::query()->count());
+    }
+
     public function test_a_dated_plan_starts_as_scheduled(): void
     {
         $this->actingAs(User::factory()->create());

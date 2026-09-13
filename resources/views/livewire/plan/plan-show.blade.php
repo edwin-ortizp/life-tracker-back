@@ -7,6 +7,17 @@
         <a href="{{ route('plans') }}" class="md-btn-text" wire:navigate><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a Planes</a>
     </div>
 
+    @if ($plan->images->isNotEmpty())
+        <div class="plan-gallery" role="group" aria-label="Imágenes de {{ $plan->title }}">
+            @foreach ($plan->images as $image)
+                <a class="plan-gallery__item {{ $loop->first ? 'is-main' : '' }}" href="{{ $image->url }}" target="_blank" rel="noopener noreferrer" wire:key="plan-image-{{ $image->id }}">
+                    <i class="bi {{ $plan->icon() }}" aria-hidden="true"></i>
+                    <img src="{{ $image->url }}" alt="{{ $loop->first ? 'Imagen principal de '.$plan->title : 'Imagen '.$loop->iteration.' de '.$plan->title }}" loading="lazy" referrerpolicy="no-referrer" x-data x-on:error="$el.remove()">
+                </a>
+            @endforeach
+        </div>
+    @endif
+
     <dl class="plan-metrics">
         <div><dt>Visitas</dt><dd>{{ (int) $plan->visits_count }}</dd></div>
         <div><dt>Última vez</dt><dd>{{ \Illuminate\Support\Str::ucfirst($plan->lastVisitLabel()) }}</dd></div>

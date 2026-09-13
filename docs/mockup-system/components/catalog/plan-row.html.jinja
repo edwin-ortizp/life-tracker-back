@@ -1,7 +1,7 @@
 {% from '@project/components/life-shell.html.jinja' import dialog %}
 {% macro plan_row(p, menu_id, module=false) -%}
 <div class="lt-plan" data-ui-component="life-tracker/data/plan-row" data-ui-variant="{{ p.variant }}">
-  <span class="lt-plan__media" aria-hidden="true"><i class="bi {{ p.icon }}"></i></span>
+  <span class="lt-plan__media" aria-hidden="true"><i class="bi {{ p.icon }}"></i>{% if p.get('image') %}<img src="{{ p.image }}" alt="">{% endif %}</span>
   <div class="lt-plan__body"><strong>{{ p.title }}</strong><span><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ p.city }} · {{ p.type }} · {{ p.category }}</span>{% if p.get('people') %}<span class="lt-plan__people"><i class="bi bi-people" aria-hidden="true"></i>{% for who in p.people %}{% if who.startswith('+') %}<span class="lt-chip lt-chip--neutral">{{ who }}</span>{% elif who in ['Pareja','Familia','Amigos cercanos','Amigos','Trabajo'] %}<span class="lt-chip">{{ who }}</span>{% else %}<span class="lt-plan__person"><span class="lt-avatar">{{ who[:1] }}</span>{{ who }}</span>{% endif %}{% endfor %}</span>{% endif %}</div>
   <div class="lt-plan__meta">
     <div class="lt-plan__line">{% if p.get('date') %}<span class="lt-plan__date"><i class="bi bi-calendar-event" aria-hidden="true"></i> {{ p.date }}</span>{% endif %}<span class="lt-chip lt-chip--{{ p.tone }}">{{ p.status }}</span></div>
@@ -21,9 +21,9 @@
   </div>
 </div>
 {%- endmacro %}
-{% macro showcase() -%}<div class="lt-page"><div class="lt-plan-list">{{ plan_row({'variant':'pending','icon':'bi-cup-straw','title':'Heladería Popsy','city':'Popayán','type':'Postres','category':'Gastronomía','status':'Pendiente','tone':'success','last':'hace 3 meses','visits':8,'people':['Camila','Familia','+1']}, 'catalog-plan-1', true) }}{{ plan_row({'variant':'scheduled','icon':'bi-music-note-beamed','title':'Concierto Morat','city':'Bogotá','type':'Concierto','category':'Música','status':'Programado','tone':'warning','date':'Dom, 15 nov. 2026','left':'Faltan 64 días','last':'nunca','visits':0}, 'catalog-plan-2') }}</div></div>{%- endmacro %}
+{% macro showcase() -%}<div class="lt-page"><div class="lt-plan-list">{{ plan_row({'variant':'pending','icon':'bi-cup-straw','title':'Heladería Popsy','city':'Popayán','type':'Postres','category':'Gastronomía','status':'Pendiente','tone':'success','last':'hace 3 meses','visits':8,'people':['Camila','Familia','+1'],'image':'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 120 90%27%3E%3Crect width=%27120%27 height=%2790%27 fill=%27%23FCE4EC%27/%3E%3Ccircle cx=%2745%27 cy=%2734%27 r=%2716%27 fill=%27%23F48FB1%27/%3E%3Ccircle cx=%2772%27 cy=%2736%27 r=%2714%27 fill=%27%23FFF3E0%27/%3E%3Cpath d=%27M32 44h28l-14 38z%27 fill=%27%23D7A86E%27/%3E%3Cpath d=%27M60 46h24l-12 34z%27 fill=%27%23C48A55%27/%3E%3C/svg%3E'}, 'catalog-plan-1', true) }}{{ plan_row({'variant':'scheduled','icon':'bi-music-note-beamed','title':'Concierto Morat','city':'Bogotá','type':'Concierto','category':'Música','status':'Programado','tone':'warning','date':'Dom, 15 nov. 2026','left':'Faltan 64 días','last':'nunca','visits':0}, 'catalog-plan-2') }}</div></div>{%- endmacro %}
 {% macro plan_dialogs(person=None) -%}
-{% call dialog('plan-new', 'Agregar plan', 'Guardar', 'bi-map', [('basic','Información básica','bi-file-earmark-text'),('people','Personas y círculos','bi-people'),('links','Enlaces','bi-link-45deg'),('summary','Resumen','bi-check2-circle')]) %}
+{% call dialog('plan-new', 'Agregar plan', 'Guardar', 'bi-map', [('basic','Información básica','bi-file-earmark-text'),('images','Imágenes','bi-images'),('people','Personas y círculos','bi-people'),('links','Enlaces','bi-link-45deg'),('summary','Resumen','bi-check2-circle')]) %}
 <section class="lt-dialog__section" data-section="basic">
   <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
   <div class="lt-form">
@@ -32,6 +32,20 @@
     <label class="lt-field lt-field--icon"><span>Categoría</span><i class="bi bi-bookmark" aria-hidden="true"></i><select>{% for t in ['Gastronomía','Música','Entretenimiento','Aire libre','Cultura'] %}<option>{{ t }}</option>{% endfor %}</select></label>
     <label class="lt-field lt-field--icon"><span>Ciudad</span><i class="bi bi-geo-alt" aria-hidden="true"></i><input type="text" value="Popayán"></label>
     <label class="lt-field"><span>Fecha (opcional)</span><input type="date"></label>
+  </div>
+</section>
+<section class="lt-dialog__section" data-section="images" hidden>
+  <header class="lt-dialog__section-head"><h3>Imágenes</h3><p>Pega la URL de cada imagen; no se descarga. La primera es la principal y es la que se muestra en listados y detalle.</p></header>
+  <div class="lt-plan-images">
+    {% for label, src in [('Imagen principal', 'https://images.ejemplo.com/popsy-fachada.jpg'), ('Imagen 2', 'https://images.ejemplo.com/popsy-conos.jpg')] %}
+    <div class="lt-plan-images__row">
+      <span class="lt-plan-images__preview{% if loop.first %} is-main{% endif %}" aria-hidden="true"><i class="bi bi-image"></i></span>
+      <label class="lt-field lt-field--icon"><span>{{ label }}</span><i class="bi bi-link-45deg" aria-hidden="true"></i><input type="url" placeholder="https://…" value="{{ src if person else '' }}"></label>
+      <button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Subir {{ label }}"{% if loop.first %} disabled{% endif %}><i class="bi bi-arrow-up"></i></button>
+      <button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Quitar {{ label }}"><i class="bi bi-trash"></i></button>
+    </div>
+    {% endfor %}
+    <div><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Añadir imagen</button></div>
   </div>
 </section>
 <section class="lt-dialog__section" data-section="people" hidden>
@@ -53,7 +67,7 @@
 </section>
 <section class="lt-dialog__section" data-section="summary" hidden>
   <header class="lt-dialog__section-head"><h3>Resumen</h3></header>
-  <dl class="lt-dl">{% for k, val in [('Nombre','—'),('Tipo','Restaurante'),('Ciudad','Popayán'),('Fecha','Sin fecha'),('Círculos','—'),('Personas',person or '—'),('Enlaces','Ninguno')] %}<div><dt>{{ k }}</dt><dd>{{ val }}</dd></div>{% endfor %}</dl>
+  <dl class="lt-dl">{% for k, val in [('Nombre','—'),('Tipo','Restaurante'),('Ciudad','Popayán'),('Fecha','Sin fecha'),('Imágenes','Ninguna'),('Círculos','—'),('Personas',person or '—'),('Enlaces','Ninguno')] %}<div><dt>{{ k }}</dt><dd>{{ val }}</dd></div>{% endfor %}</dl>
 </section>
 {% endcall %}
 {% call dialog('plan-done', 'Registrar plan realizado', 'Guardar', 'bi-check2-circle') %}

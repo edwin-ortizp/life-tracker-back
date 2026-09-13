@@ -11,8 +11,12 @@ use App\Mcp\Tools\Health\LogHealthFollowUpTool;
 use App\Mcp\Tools\Health\MarkHealthRecoveryTool;
 use App\Mcp\Tools\Mood\LogEnergyEntryTool;
 use App\Mcp\Tools\Mood\LogMoodEntryTool;
+use App\Mcp\Tools\Plan\CreatePlanTool;
+use App\Mcp\Tools\Plan\ListPlansTool;
+use App\Mcp\Tools\Plan\UpdatePlanTool;
 use App\Mcp\Tools\Relationship\AddContactAliasTool;
 use App\Mcp\Tools\Relationship\CreateContactTool;
+use App\Mcp\Tools\Relationship\ListCirclesTool;
 use App\Mcp\Tools\Relationship\ListContactsTool;
 use App\Mcp\Tools\Relationship\ListUpcomingBirthdaysTool;
 use App\Mcp\Tools\Relationship\LogRelationshipEventTool;
@@ -33,8 +37,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Version;
 
 #[Name('Life Tracker')]
-#[Version('0.3.0')]
-#[Instructions('Crea y completa tareas (incluyendo tareas recurrentes), hábitos y eventos de salud del usuario autenticado en Life Tracker, incluyendo seguimiento de evolución y recuperación. También gestiona sus contactos y relaciones -- cumpleaños, alias y eventos importantes --, la lista de compras, su ánimo y energía, el ejercicio, la hidratación, y el repostaje y rendimiento de sus vehículos. Todas las acciones quedan restringidas a los datos de ese usuario.')]
+#[Version('0.4.0')]
+#[Instructions('Crea y completa tareas (incluyendo tareas recurrentes), hábitos y eventos de salud del usuario autenticado en Life Tracker, incluyendo seguimiento de evolución y recuperación. También gestiona sus contactos y relaciones -- cumpleaños, alias, círculos y eventos importantes --, los planes y lugares que quiere hacer con sus círculos o personas, la lista de compras, su ánimo y energía, el ejercicio, la hidratación, y el repostaje y rendimiento de sus vehículos. Todas las acciones quedan restringidas a los datos de ese usuario.')]
 class LifeTrackerServer extends Server
 {
     protected array $tools = [
@@ -53,6 +57,10 @@ class LifeTrackerServer extends Server
         LogRelationshipEventTool::class,
         ListUpcomingBirthdaysTool::class,
         AddContactAliasTool::class,
+        ListCirclesTool::class,
+        CreatePlanTool::class,
+        UpdatePlanTool::class,
+        ListPlansTool::class,
         LogVehicleFillupTool::class,
         ListVehiclesTool::class,
         AddShoppingItemTool::class,
