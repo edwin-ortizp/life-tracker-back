@@ -1,6 +1,6 @@
 {% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
 {% call shell('journal', 'Diario', 'bi-journal-text') %}
-{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-entries') }}
+{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Resumen','/journal-summary','bi-card-list'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-entries') }}
 <section class="lt-toolbar">
   <label class="lt-field"><span class="lt-sr-only">Buscar en el diario</span><input type="search" placeholder="Buscar en tus entradas..."></label>
   <button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>Esta semana</button>
@@ -10,6 +10,12 @@
 </section>
 <section class="lt-grid-main">
   <div class="lt-stack">
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-pencil-square"></i><h3>Entrada de hoy</h3><small>Sábado 13 sep.</small></div><div class="lt-panel__body">
+      <label class="lt-field"><span>Resumen del día</span><input type="text" maxlength="255" value="Mañana lenta; terminé el informe de gastos y cociné con Laura."></label>
+      <p class="lt-summary-field__meta">Lo más importante del día en una línea · aparece en Resumen · 63/255</p>
+      <label class="lt-field"><span>Entrada completa</span><textarea rows="6">Me levanté tarde y me costó arrancar, pero a media mañana terminé el informe de gastos que venía aplazando. En la noche cocinamos con Laura y hablamos de las vacaciones.</textarea></label>
+      <div class="lt-actions"><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-floppy"></i> Guardar</button></div>
+    </div></article>
     {% for date, title, paras, mood, tags in [
       ('Hoy · miércoles 10 sep. · 21:40','Un día más liviano',['Terminé la propuesta antes del almuerzo y eso cambió el tono de toda la tarde. Salí a caminar sin el celular y noté que la espalda molesta menos.','Quiero proteger las mañanas para el trabajo profundo el resto de la semana.'],'🙂 Tranquilo · energía 7/10',['Trabajo','Salud']),
       ('Martes 9 sep. · 22:15','Conversación con mamá',['Llamé a mamá después de varios días. Me sentí culpable por no hacerlo antes, pero la conversación fue cálida y me recordó por qué vale la pena sostener la rutina de los domingos.'],'😌 Agradecido · energía 5/10',['Familia']),

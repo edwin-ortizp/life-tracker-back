@@ -1,0 +1,49 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, manage_card %}
+{% call shell('journal', 'Diario', 'bi-journal-text') %}
+{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Resumen','/journal-summary','bi-card-list'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-summary') }}
+<section class="lt-stack">
+  {% call(zone) manage_card('journal-summary', 'Resumen del diario', 'bi-card-list', count='(14 / 212)', total=212, search='Buscar en los resúmenes', filters=1,
+    footer={'from':1,'to':14,'total':14,'noun':'días','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
+    <div class="lt-popover" id="journal-summary-filters" role="dialog" aria-labelledby="journal-summary-filters-title" hidden>
+      <div class="lt-popover__head"><h4 id="journal-summary-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="journal-summary-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+      <label class="lt-field"><span>Periodo</span><select>{% for r in ['Último mes','Últimos 6 meses','Último año','Todo el historial','Personalizado'] %}<option{% if r == 'Último mes' %} selected{% endif %}>{{ r }}</option>{% endfor %}</select></label>
+      <div class="lt-summary-range">
+        <label class="lt-field"><span>Desde</span><input type="date" value="2026-08-13"></label>
+        <label class="lt-field"><span>Hasta</span><input type="date" value="2026-09-13"></label>
+      </div>
+      <p class="lt-page-head__subtitle">Desde y Hasta aplican al elegir «Personalizado».</p>
+      <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Restablecer</button><button class="lt-button" type="button" data-lt-toggle="journal-summary-filters">Aplicar</button></div>
+    </div>
+  {% else %}
+    <div class="lt-chip-row lt-applied-filters" aria-label="Filtros aplicados">
+      <span class="lt-chip lt-chip--input" data-filter="period"><i class="bi bi-calendar-range"></i> <span data-filter-label>Último mes</span></span>
+    </div>
+    <table class="lt-summary-table">
+      <thead class="lt-sr-only"><tr><th scope="col">Fecha</th><th scope="col">Resumen</th></tr></thead>
+      <tbody>
+      {% for d, m, wd, text in [
+        ('13','sep. 2026','sáb','Mañana lenta; terminé el informe de gastos y cociné con Laura.'),
+        ('12','sep. 2026','vie','Cierre de sprint sin sobresaltos; salí a correr 5 km.'),
+        ('10','sep. 2026','mié','Terminé la propuesta antes del almuerzo y caminé sin celular.'),
+        ('09','sep. 2026','mar','Llamé a mamá después de varios días; conversación cálida.'),
+        ('07','sep. 2026','dom','Migraña casi todo el día; necesito cortar pantallas a las 22:00.'),
+        ('06','sep. 2026','sáb','Mercado con Andrés y tarde de lectura en el parque.'),
+        ('05','sep. 2026','vie','Vacuna de influenza y reunión difícil con el cliente.'),
+        ('03','sep. 2026','mié','Primer día sin dolor de espalda; retomé el gimnasio.'),
+        ('02','sep. 2026','mar','Me lastimé la espalda moviendo cajas; día a media marcha.'),
+        ('31','ago. 2026','dom','Cumpleaños de la abuela, toda la familia reunida.'),
+        ('28','ago. 2026','jue','Cirugía de menisco de Andrés; acompañé en la clínica.'),
+        ('24','ago. 2026','dom','Terminé la gripe; primer paseo largo en una semana.'),
+        ('18','ago. 2026','lun','Empezó la gripe; cancelé todo y dormí.'),
+        ('14','ago. 2026','jue','Limpieza dental y decidí apuntarme al curso de fotografía.')
+      ] %}
+        <tr class="lt-summary-table__row">
+          <th scope="row" class="lt-summary-table__date"><a href="#/journal-entries" aria-label="Abrir la entrada del {{ d }} {{ m }}"><strong>{{ d }}</strong><span>{{ m }}</span><small>{{ wd }}</small></a></th>
+          <td class="lt-summary-table__text">{{ text }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}{% endcall %}
+</section>
+{% endcall %}

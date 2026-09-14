@@ -37,26 +37,22 @@
         </x-slot:strip>
 
         @if ($entries->isNotEmpty())
-            <table class="journal-summary__table">
-                <thead class="visually-hidden">
-                    <tr><th scope="col">Fecha</th><th scope="col">Resumen</th></tr>
-                </thead>
-                <tbody>
-                    @foreach ($entries as $entry)
-                        <tr class="journal-summary__row" wire:key="journal-summary-{{ $entry->id }}">
-                            <th scope="row" class="journal-summary__date">
-                                <a href="{{ route('journal', ['date' => $entry->date->toDateString()]) }}" wire:navigate
-                                   aria-label="Abrir la entrada del {{ $entry->date->translatedFormat('l j \d\e F \d\e Y') }}">
-                                    <strong>{{ $entry->date->format('d') }}</strong>
-                                    <span>{{ $entry->date->translatedFormat('M Y') }}</span>
-                                    <small>{{ $entry->date->translatedFormat('D') }}</small>
-                                </a>
-                            </th>
-                            <td class="journal-summary__text">{{ $entry->summary }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <div class="md-list journal-summary__list" role="list" aria-label="Resúmenes por día, del más reciente al más antiguo">
+                @foreach ($entries as $entry)
+                    <a href="{{ route('journal', ['date' => $entry->date->toDateString()]) }}" wire:navigate
+                       class="md-list-item journal-summary__row" role="listitem" wire:key="journal-summary-{{ $entry->id }}"
+                       aria-label="{{ $entry->date->translatedFormat('l j \d\e F \d\e Y') }}: {{ $entry->summary }}">
+                        <div class="md-list-item-leading journal-summary__date" aria-hidden="true">
+                            <strong>{{ $entry->date->format('d') }}</strong>
+                            <span>{{ $entry->date->translatedFormat('M Y') }}</span>
+                            <small>{{ $entry->date->translatedFormat('D') }}</small>
+                        </div>
+                        <div class="md-list-item-content">
+                            <div class="md-list-item-headline journal-summary__text">{{ $entry->summary }}</div>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
         @elseif ($totalCount === 0)
             <x-ui.state variant="empty" icon="bi-card-list" title="Aún no hay resúmenes"
                         message="Escribe un resumen de una línea al guardar tu entrada del día y aparecerá aquí." />

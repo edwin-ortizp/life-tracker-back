@@ -50,7 +50,7 @@ class JournalEntries extends Component
 
     public function loadEntry()
     {
-        $entry = JournalEntry::where('date', $this->selectedDate)->first();
+        $entry = JournalEntry::whereDate('date', $this->selectedDate)->first();
         $this->text = $entry?->text ?? '';
         $this->summary = $entry?->summary ?? '';
         $this->isEditing = false;
@@ -67,7 +67,7 @@ class JournalEntries extends Component
         $this->summary = trim($this->summary);
         $this->validate(['summary' => ['nullable', 'string', 'max:255']], [], ['summary' => 'resumen']);
 
-        $entry = JournalEntry::where('date', $this->selectedDate)->first();
+        $entry = JournalEntry::whereDate('date', $this->selectedDate)->first();
 
         if (empty(trim($this->text))) {
             if ($entry) {
@@ -97,7 +97,7 @@ class JournalEntries extends Component
 
     private function saveIfChanged()
     {
-        $entry = JournalEntry::where('date', $this->selectedDate)->first();
+        $entry = JournalEntry::whereDate('date', $this->selectedDate)->first();
         $currentText = $entry?->text ?? '';
         $currentSummary = $entry?->summary ?? '';
 

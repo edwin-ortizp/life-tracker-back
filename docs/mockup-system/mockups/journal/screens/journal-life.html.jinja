@@ -1,6 +1,6 @@
 {% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
 {% call shell('journal', 'Calendario de vida', 'bi-grid-3x3-gap') %}
-{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-life') }}
+{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Resumen','/journal-summary','bi-card-list'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-life') }}
 <section class="lt-metrics">{{ metric('Semanas vividas','1.694') }}{{ metric('Semanas por delante','2.466','success') }}{{ metric('Recorrido','41 %','warning') }}</section>
 <section class="lt-grid-main">
   <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-grid-3x3-gap"></i><h3>Tus semanas, de principio a fin</h3><small>80 años · 52 semanas por fila</small></div><div class="lt-panel__body">

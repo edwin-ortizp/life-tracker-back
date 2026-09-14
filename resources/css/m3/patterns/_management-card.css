@@ -15,7 +15,8 @@
 .md-mcard__divider { flex: none; align-self: center; width: 1px; height: 28px; background: var(--md-sys-color-outline-variant); }
 .md-mcard__head > .md-mcard__divider { margin-left: auto; }
 .md-mcard__tools { display: flex; align-items: center; gap: 8px; }
-.md-mcard__tools .md-popover { top: calc(100% + 4px); right: 12px; left: auto; }
+/* Anclado bajo Filtros solo en escritorio; en móvil el popover es la hoja inferior estándar. */
+@media (min-width: 768px) { .md-mcard__tools .md-popover { top: calc(100% + 4px); right: 12px; left: auto; } }
 
 .md-mcard__search { display: flex; flex: 0 1 260px; align-items: center; gap: 8px; min-width: 140px; height: 40px; padding: 0 6px 0 14px; border: 1px solid transparent; border-radius: 999px; background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); }
 .md-mcard__search:focus-within { border-color: var(--md-module-accent); background: var(--md-sys-color-surface-container-lowest); }

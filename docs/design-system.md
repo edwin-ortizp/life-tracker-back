@@ -226,4 +226,5 @@ Toda pantalla cuyo propósito principal sea consultar y administrar varios regis
 | Vehículos | `Vehicle/VehicleCatalog` | Pendiente | Cinco filtros del catálogo y estados vacío / filtrado vacío |
 | Ánimo | `Mood/MoodSettings` | Pendiente | Estado, categoría, fijar/reordenar/activar; restaurar en ⋮ |
 | Ánimo | `Mood/MoodTracker` | Pendiente | Dos cards (estados y energía) con paginación independiente; promedio sobre todo el día |
-| Diario | `Journal/JournalEntries` | Pendiente | Entradas recientes junto al editor |
+| Diario | `Journal/JournalEntries` | Pendiente | Entradas recientes junto al editor; campo «Resumen del día» |
+| Diario | `Journal/JournalSummary` | Estándar | Solo entradas con resumen, fecha desc; periodo 1 mes / 6 meses / 1 año / todo / personalizado; clic abre la entrada completa |

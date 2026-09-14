@@ -9,6 +9,7 @@
       "template": "pages/main.html.jinja",
       "screens": [
         "journal-entries",
+        "journal-summary",
         "journal-life",
         "journal-week"
       ],
@@ -19,6 +20,11 @@
     "journal-entries": {
       "template": "screens/journal-entries.html.jinja",
       "title": "Entradas",
+      "bodyClass": ""
+    },
+    "journal-summary": {
+      "template": "screens/journal-summary.html.jinja",
+      "title": "Resumen",
       "bodyClass": ""
     },
     "journal-life": {
@@ -36,6 +42,10 @@
     {
       "path": "/journal-entries",
       "screen": "journal-entries"
+    },
+    {
+      "path": "/journal-summary",
+      "screen": "journal-summary"
     },
     {
       "path": "/journal-life",
