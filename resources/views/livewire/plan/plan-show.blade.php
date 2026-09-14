@@ -1,11 +1,7 @@
-<x-module-shell module="plans" :title="$plan->title" class="plans-page">
+<x-module-shell module="plans" :title="$plan->title" class="plans-page" :back="['href' => route('plans'), 'label' => 'Volver a Planes']">
     <x-slot:actions>
         <x-module-actions :primary="['label' => 'Registrar visita', 'icon' => 'bi-check2-circle', 'action' => 'openVisitForm(\''.$plan->id.'\')']" :fab-always="true" />
     </x-slot:actions>
-
-    <div class="plans-back">
-        <a href="{{ route('plans') }}" class="md-btn-text" wire:navigate><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a Planes</a>
-    </div>
 
     @if ($plan->images->isNotEmpty())
         <div class="plan-gallery" role="group" aria-label="Imágenes de {{ $plan->title }}">

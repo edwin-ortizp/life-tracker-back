@@ -6,7 +6,6 @@ use App\Livewire\Home\Dashboard;
 use App\Livewire\Journal\JournalMoodRail;
 use App\Livewire\Mood\MoodReflectionWizard;
 use App\Livewire\Mood\MoodTracker;
-use App\Livewire\Relationship\RelationshipShow;
 use App\Models\MoodEntry;
 use App\Models\MoodReflection;
 use App\Models\MoodState;
@@ -14,6 +13,7 @@ use App\Models\Relationship;
 use App\Models\User;
 use App\Support\DefaultMoodStates;
 use App\Support\ReflectionSteps;
+use App\Support\RelationshipEmotionalPatterns;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
@@ -103,15 +103,8 @@ class EmotionalWalkthroughTest extends TestCase
         $this->assertSame(MoodReflection::STATUS_COMPLETED, $reflection->status);
         $this->assertSame(2, $reflection->intensity_after);
 
-        // 4. It shows up in Alison's detail, with the reflection collapsed.
-        Livewire::test(RelationshipShow::class, ['relationship' => $alison->id])
-            ->assertSee('Frustración')
-            ->assertSee('Discutí con Alison')
-            ->assertSee('Intensidad 4/5')
-            ->assertDontSee('Nunca me escucha')
-            ->call('toggleReflection', $entry->id)
-            ->assertSee('Nunca me escucha')
-            ->assertSee('Registraste Frustración en 1 interacción vinculada con Alison Restrepo');
+        // 4. The linked context counts in Alison's descriptive patterns.
+        $this->assertSame(1, RelationshipEmotionalPatterns::summarize($alison, 30)['sample_size']);
 
         // The emotional entry never became a timeline event.
         $this->assertDatabaseCount('relationship_events', 0);
@@ -138,9 +131,7 @@ class EmotionalWalkthroughTest extends TestCase
         $this->assertNull($entry->reflection);
         $this->assertDatabaseCount('mood_reflections', 0);
 
-        Livewire::test(RelationshipShow::class, ['relationship' => $dad->id])
-            ->assertSee('Mi papá me hizo un favor')
-            ->assertDontSee('Ver reflexión');
+        $this->assertSame(['Mi papá'], $entry->fresh()->relationships->pluck('full_name')->all());
     }
 
     public function test_the_fall_of_the_grandmother_can_be_reflected_on_across_two_sessions(): void
@@ -186,9 +177,7 @@ class EmotionalWalkthroughTest extends TestCase
         $this->assertSame(5, $reflection->intensity_after);
         $this->assertSame(5, $entry->fresh()->intensity);
 
-        Livewire::test(RelationshipShow::class, ['relationship' => $grandmother->id])
-            ->assertSee('Mi abuela se cayó')
-            ->assertSee('1 registro en la muestra')
-            ->assertSee('1 sin cambio');
+        $shift = RelationshipEmotionalPatterns::summarize($grandmother, 30)['reflection_shift'];
+        $this->assertSame(1, $shift['unchanged']);
     }
 }

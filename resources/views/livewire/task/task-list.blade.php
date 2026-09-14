@@ -73,32 +73,7 @@
 
         <div wire:loading.delay.remove wire:target="filter,categoryFilter,priorityFilter,dateFilter,sizeFilter,search,gotoPage,previousPage,nextPage">
         @forelse ($tasks as $task)
-            <div class="swipe-row" wire:key="swipe-row-{{ $task->id }}"
-                 x-data="swipeRow({ onComplete: () => $wire.toggleComplete('{{ $task->id }}') })">
-                {{-- Fondos revelados por el gesto: solo existen visualmente en
-                     mobile (ver CSS). Completar es reversible y se confirma con
-                     el propio deslizamiento; editar/eliminar solo se revelan,
-                     nunca se disparan por el gesto — hay que tocarlos. --}}
-                <div class="swipe-row__bg swipe-row__bg--complete" aria-hidden="true">
-                    <i class="bi {{ $task->completed ? 'bi-arrow-counterclockwise' : 'bi-check-circle-fill' }}"></i>
-                    <span>{{ $task->completed ? 'Reabrir' : 'Completar' }}</span>
-                </div>
-                <div class="swipe-row__bg swipe-row__bg--actions" aria-hidden="true">
-                    <button type="button" class="swipe-row__action swipe-row__action--edit"
-                            x-on:click.stop="$dispatch('task-editor', {action: 'openForm', id: '{{ $task->id }}'})" @click="close()">
-                        <i class="bi bi-pencil" aria-hidden="true"></i><span>Editar</span>
-                    </button>
-                    <button type="button" class="swipe-row__action swipe-row__action--delete"
-                            wire:click.stop="delete('{{ $task->id }}')" wire:confirm="La tarea «{{ $task->title }}» se elimina de forma permanente."
-                            @click="close()">
-                        <i class="bi bi-trash" aria-hidden="true"></i><span>Eliminar</span>
-                    </button>
-                </div>
-
-                <div class="md-list-item swipe-row__card {{ $task->completed ? 'md-list-item--completed' : '' }}"
-                     :style="`transform: translateX(${dx}px)`" :class="{ 'swipe-row__card--dragging': dragging }"
-                     @touchstart="onStart($event)" @touchmove="onMove($event)" @touchend="onEnd($event)" @touchcancel="onEnd($event)"
-                     @click.capture="if (revealed) { close(); $event.stopPropagation(); }">
+                <div class="md-list-item task-row {{ $task->completed ? 'md-list-item--completed' : '' }}" wire:key="task-row-{{ $task->id }}">
                 <button x-on:click.stop="$dispatch('task-editor', {action: 'openForm', id: '{{ $task->id }}'})" class="md-list-item-content md-task-open-button" aria-label="Abrir tarea: {{ $task->title }}">
                     <div class="d-flex align-items-center gap-2">
                         <span class="md-list-item-headline {{ $task->completed ? '' : 'fw-medium' }}">
@@ -160,35 +135,14 @@
                     </div>
                 </button>
                 <div class="md-list-item-trailing">
-                    <div class="ta-split" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
-                        <button type="button" wire:click.stop="toggleComplete('{{ $task->id }}')" x-optimistic-toggle
-                                class="md-btn-outlined ta-split__main">
-                            <i class="bi {{ $task->completed ? 'bi-arrow-counterclockwise' : 'bi-check-lg' }}" aria-hidden="true"></i>
-                            <span>{{ $task->completed ? 'Reabrir' : 'Completar' }}</span>
-                        </button>
-                        <button type="button" class="md-btn-outlined ta-split__more" aria-label="Más acciones de {{ $task->title }}"
-                                :aria-expanded="open" @click.stop="open = !open">
-                            <i class="bi bi-chevron-down" aria-hidden="true"></i>
-                        </button>
-                        <template x-if="open">
-                            <div>
-                                <button type="button" class="md-tf-scrim" aria-label="Cerrar el menú" @click="open = false"></button>
-                                <div class="ta-menu" role="menu">
-                                    <button type="button" role="menuitem" x-on:click.stop="$dispatch('task-editor', {action: 'openForm', id: '{{ $task->id }}'})" @click="open = false">
-                                        <i class="bi bi-pencil" aria-hidden="true"></i> Editar
-                                    </button>
-                                    <button type="button" role="menuitem" class="md-ta-menu__danger"
-                                            wire:click.stop="delete('{{ $task->id }}')" wire:confirm="La tarea «{{ $task->title }}» se elimina de forma permanente."
-                                            @click="open = false">
-                                        <i class="bi bi-trash" aria-hidden="true"></i> Eliminar
-                                    </button>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
+                    <x-ui.row-actions :label="'Más acciones de '.$task->title">
+                        <x-slot:primary wire:click.stop="toggleComplete('{{ $task->id }}')" x-optimistic-toggle>{{ $task->completed ? 'Reabrir' : 'Completar' }}</x-slot:primary>
+                        <x-ui.menu-item icon="bi-pencil" x-on:click="$dispatch('task-editor', {action: 'openForm', id: '{{ $task->id }}'})">Editar</x-ui.menu-item>
+                        <x-ui.menu-divider />
+                        <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete('{{ $task->id }}')" wire:confirm="La tarea «{{ $task->title }}» se elimina de forma permanente.">Eliminar</x-ui.menu-item>
+                    </x-ui.row-actions>
                 </div>
                 </div>
-            </div>
         @empty
             <div class="text-center py-5" style="color: var(--md-sys-color-on-surface-variant);">
                 <i class="bi bi-list-task" style="font-size: 3rem; opacity: 0.4;"></i>

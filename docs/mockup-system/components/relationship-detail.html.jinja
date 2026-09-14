@@ -1,0 +1,53 @@
+{% from '@project/components/life-shell.html.jinja' import dialog, fab %}
+
+{#- Historial compartido por Inicio (5 más recientes) y la pestaña Historial. -#}
+{% set history_rows = [
+  {'date':'27 jul.','title':'Llamada larga','type':'Acontecimiento','notes':'Me contó de su nuevo trabajo en Medellín.'},
+  {'date':'1 jul.','title':"Restaurante Storia D'Amore",'type':'Plan','notes':'Pedimos la lasaña; repetir.'},
+  {'date':'28 jun.','title':'Cine · F1 La Película','type':'Plan','notes':''},
+  {'date':'16 jun.','title':'Le envié las fotos de la boda','type':'Mensaje','notes':'WhatsApp'},
+  {'date':'14 jun.','title':'Boda de Andrés','type':'Acontecimiento','notes':'Bailamos toda la noche; quedamos en vernos más.'},
+  {'date':'9 may.','title':'Almuerzo en su casa','type':'Acontecimiento','notes':'Conocí a su perro, Toby.'},
+  {'date':'3 mar.','title':'Mensaje de cumpleaños','type':'Mensaje','notes':'WhatsApp'},
+  {'date':'20 feb.','title':'Videollamada','type':'Acontecimiento','notes':'Hablamos de su viaje a Cartagena.'},
+  {'date':'12 ene.','title':'Nos vimos en café','type':'Acontecimiento','notes':'Buen café y mucha charla.'},
+  {'date':'5 ene.','title':'Caminata al Morro de Tulcán','type':'Plan','notes':'Subimos al amanecer.'}
+] %}
+
+{% macro type_chip(kind) -%}
+{% set tones = {'Plan':('plan','bi-map'),'Cumpleaños':('warning','bi-cake2'),'Tarea':('info','bi-check2-square'),'Acontecimiento':('accent','bi-calendar-event'),'Mensaje':('success','bi-chat-dots')} %}{% set t = tones.get(kind, ('neutral','bi-dot')) %}<span class="lt-chip lt-chip--type lt-chip--{{ t[0] }}"><i class="bi {{ t[1] }}" aria-hidden="true"></i>{{ kind }}</span>
+{%- endmacro %}
+
+{#- Menú ⋮ por fila. `items` = [(label, icon, danger), ...]; las destructivas van al final tras un divisor. -#}
+{% macro row_menu(id, label, items) -%}
+<div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="{{ id }}" aria-haspopup="menu" aria-expanded="false" aria-label="{{ label }}"><i class="bi bi-three-dots-vertical"></i></button>
+<div class="lt-menu lt-menu--down" id="{{ id }}" role="menu" hidden>{% for l, i, danger in items %}{% if danger %}<hr class="lt-menu__divider">{% endif %}<button class="lt-menu__item{% if danger %} lt-menu__item--danger{% endif %}" role="menuitem" type="button" data-lt-static-nav><i class="bi {{ i }}"></i> {{ l }}</button>{% endfor %}</div></div>
+{%- endmacro %}
+
+{% macro history_table(rows, prefix) -%}
+<table class="lt-mtable lt-mtable--history">
+  <thead><tr><th scope="col">Fecha</th><th scope="col">Título</th><th scope="col">Tipo</th><th scope="col">Notas</th><th scope="col" class="lt-mtable__actions"><span class="lt-sr-only">Acciones</span></th></tr></thead>
+  <tbody>{% for r in rows %}<tr>
+    <td class="lt-mtable__date">{{ r.date }}</td>
+    <td class="lt-mtable__title">{{ r.title }}</td>
+    <td class="lt-mtable__kind">{{ type_chip(r.type) }}</td>
+    <td class="lt-mtable__notes">{{ r.notes or '—' }}</td>
+    <td class="lt-mtable__actions">{{ row_menu(prefix ~ '-menu-' ~ loop.index, 'Acciones de ' ~ r.title, [('Editar','bi-pencil',false),('Duplicar','bi-files',false),('Eliminar','bi-trash',true)]) }}</td>
+  </tr>{% endfor %}</tbody>
+</table>
+{%- endmacro %}
+
+{% macro event_actions() -%}
+{{ fab('Registrar acontecimiento', 'bi-calendar-plus', 'event-new', [('Agregar tarea', 'bi-check2-square', 'rel-task-new')]) }}
+{% call dialog('event-new', 'Registrar acontecimiento', icon='bi-calendar-plus', sections=[('basic','Información básica','bi-calendar-event'),('details','Detalles adicionales','bi-card-text')]) %}
+<section class="lt-dialog__section" data-section="basic">
+  <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Título *</span><input type="text" placeholder="Ej. Llamada larga"></label><label class="lt-field "><span>Tipo</span><select><option>Acontecimiento</option><option>Mensaje</option><option>Plan</option></select></label><label class="lt-field "><span>Fecha</span><input type="date"></label></div>
+</section>
+<section class="lt-dialog__section" data-section="details" hidden>
+  <header class="lt-dialog__section-head"><h3>Detalles adicionales</h3></header>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Notas</span><textarea></textarea></label></div>
+</section>
+{% endcall %}
+{% call dialog('rel-task-new', 'Agregar tarea asociada', icon='bi-check2-square') %}<div class="lt-form"><label class="lt-field lt-form--full"><span>Título *</span><input type="text" placeholder=""></label><label class="lt-field "><span>Prioridad</span><select><option>Media</option><option>Alta</option><option>Baja</option></select></label><label class="lt-field "><span>Vencimiento</span><input type="date"></label></div>{% endcall %}
+{%- endmacro %}

@@ -1,7 +1,6 @@
-{% from '@project/components/life-shell.html.jinja' import shell, relationship_tabs, header, dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, relationship_tabs, dialog, fab %}
 {% from '@project/components/catalog/plan-row.html.jinja' import plan_row, plan_dialogs %}
 {% call shell('relationships', 'Camila Rojas', 'bi-person') %}
-{{ header('Camila Rojas', '', 'bi-person', '/relationships-index') }}
 {{ relationship_tabs('/relationships-plans') }}
 {% set plans = [
   {'image':'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 120 90%27%3E%3Crect width=%27120%27 height=%2790%27 fill=%27%23FFF8E1%27/%3E%3Crect x=%2720%27 y=%2750%27 width=%2780%27 height=%278%27 fill=%27%238D6E63%27/%3E%3Ccircle cx=%2760%27 cy=%2738%27 r=%2714%27 fill=%27%23FFFFFF%27/%3E%3Ccircle cx=%2760%27 cy=%2738%27 r=%278%27 fill=%27%23A5D6A7%27/%3E%3Crect x=%2714%27 y=%2712%27 width=%2722%27 height=%2730%27 rx=%273%27 fill=%27%23FFE0B2%27/%3E%3C/svg%3E','variant':'pending','icon':'bi-egg-fried','title':'Restaurante La Cosecha','city':'Popayán','type':'Restaurante','category':'Gastronomía','status':'Pendiente','tone':'success','last':'hace 5 meses','visits':3},

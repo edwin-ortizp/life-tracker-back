@@ -1,0 +1,16 @@
+{% from '@project/components/life-shell.html.jinja' import shell, relationship_tabs, manage_card %}
+{% from '@project/components/relationship-detail.html.jinja' import history_rows, history_table, event_actions %}
+{% call shell('relationships', 'Camila Rojas', 'bi-person') %}
+{{ relationship_tabs('/relationships-history') }}
+{% call(zone) manage_card('rel-history-all', 'Historial', 'bi-clock-history', count='(10 / 38)', total=38, search='Buscar en el historial', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':10,'total':38,'noun':'registros','page':1,'pages':4,'per_page':10}) %}{% if zone == 'filters' %}
+  <div class="lt-popover" id="rel-history-all-filters" role="dialog" aria-labelledby="rel-history-all-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
+    <div class="lt-popover__head"><h4 id="rel-history-all-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="rel-history-all-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+    <label class="lt-field"><span>Tipo</span><select>{% for r in ['Todos','Acontecimiento','Mensaje','Plan'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+    <label class="lt-field"><span>Periodo</span><select>{% for r in ['Todo el tiempo','Este año','Últimos 3 meses','Año anterior'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+    <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="rel-history-all-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
+  </div>
+{% else %}
+  {{ history_table(history_rows, 'rel-history-all') }}
+{% endif %}{% endcall %}
+{{ event_actions() }}
+{% endcall %}

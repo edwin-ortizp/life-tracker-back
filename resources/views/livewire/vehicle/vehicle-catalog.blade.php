@@ -12,8 +12,8 @@
     );
 @endphp
 
-<x-module-shell module="vehicles" title="Catálogo de mantenimientos" subtitle="Plantillas base y personales para tu garaje." icon="bi-tools" archetype="list">
-    <x-slot:actions><x-module-actions mobile-style="inline" :primary="['label' => 'Nueva plantilla', 'icon' => 'bi-plus-lg', 'action' => 'openTemplateForm']" :secondary="[['label' => 'Volver al garaje', 'icon' => 'bi-arrow-left', 'href' => route('vehicles')]]" /></x-slot:actions>
+<x-module-shell module="vehicles" title="Catálogo de mantenimientos" subtitle="Plantillas base y personales para tu garaje." icon="bi-tools" archetype="list" :back="\App\Support\Ui\Tabs\VehicleTabs::back()">
+    <x-slot:actions><x-module-actions mobile-style="inline" :primary="['label' => 'Nueva plantilla', 'icon' => 'bi-plus-lg', 'action' => 'openTemplateForm']" /></x-slot:actions>
 
 
     @if ($catalogMessage)

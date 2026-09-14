@@ -181,6 +181,17 @@ class ComponentCatalog
             'description' => 'Acción dentro de un menú, con icono y tono destructivo opcional.',
             'usage' => '<x-ui.menu-item icon="bi-check2-circle" wire:click="complete">Marcar como completado</x-ui.menu-item>',
         ],
+        'row-actions' => [
+            'layer' => 'patterns',
+            'title' => 'Acciones por fila',
+            'description' => 'Acciones de un registro en vistas de gestión: botón dividido en escritorio y un único ⋮ en card compacta o móvil, con la acción principal incluida. Sin gestos de deslizar.',
+            'usage' => '<x-ui.row-actions label="Más acciones de Preparar propuesta">
+    <x-slot:primary wire:click="complete">Completar</x-slot:primary>
+    <x-ui.menu-item icon="bi-pencil" wire:click="edit">Editar</x-ui.menu-item>
+    <x-ui.menu-divider />
+    <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete">Eliminar</x-ui.menu-item>
+</x-ui.row-actions>',
+        ],
         'menu-divider' => [
             'layer' => 'patterns',
             'title' => 'Divisor de menú',

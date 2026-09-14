@@ -101,6 +101,13 @@ class RelationshipIndex extends Component
     public function mount(): void
     {
         $this->normalizeFilters();
+
+        // «Editar contacto» desde el detalle abre aquí el formulario de la persona.
+        $editing = request()->query('edit');
+
+        if (is_string($editing) && Relationship::query()->whereKey($editing)->exists()) {
+            $this->openForm($editing);
+        }
     }
 
     public function updatedSearch(): void

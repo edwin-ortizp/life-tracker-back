@@ -32,4 +32,5 @@ class Vehicle extends Model
     public function maintenancePlans() { return $this->hasMany(VehicleMaintenancePlan::class); }
     public function maintenanceLogs() { return $this->hasMany(VehicleMaintenanceLog::class); }
     public function energyLogs() { return $this->hasMany(VehicleEnergyLog::class); }
+    public function expenses() { return $this->hasMany(VehicleExpense::class); }
 }

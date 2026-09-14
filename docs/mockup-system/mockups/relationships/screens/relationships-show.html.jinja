@@ -1,29 +1,42 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, relationship_tabs, header, metric, dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, relationship_tabs, summary_card %}
+{% from '@project/components/relationship-detail.html.jinja' import history_rows, history_table, type_chip, row_menu, event_actions %}
 {% call shell('relationships', 'Camila Rojas', 'bi-person') %}
-{{ header('Camila Rojas', 'Perfil, cronología y pendientes de esta relación.', 'bi-person', '/relationships-index') }}
 {{ relationship_tabs('/relationships-show') }}
-<section class="lt-metrics">{{ metric('Último contacto','Hace 45 días','warning') }}{{ metric('Frecuencia deseada','Cada mes') }}{{ metric('Momentos este año','9','success') }}</section>
 <section class="lt-grid-main">
   <div class="lt-stack">
-    <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-clock-history"></i><h3>Cronología</h3></div><div class="lt-panel__body">
-      <p class="lt-section-label">Próximos</p>
-      <div class="lt-timeline"><div class="lt-timeline__item"><span class="lt-timeline__dot"></span><div><strong>Cena de reencuentro</strong><span>Sáb 20 sep. · Planeado</span></div></div></div>
-      <p class="lt-section-label">Historial</p>
-      <div class="lt-timeline">
-        {% for title, meta, note in [('Llamada larga','27 jul. · Llamada · 😊 Alegría','Me contó de su nuevo trabajo en Medellín.'),('Boda de Andrés','14 jun. · En persona','Bailamos toda la noche; quedamos en vernos más.'),('Mensaje de cumpleaños','3 mar. · WhatsApp','')] %}
-        <div class="lt-timeline__item"><span class="lt-timeline__dot"></span><div><strong>{{ title }}</strong><span>{{ meta }}</span>{% if note %}<p>{{ note }}</p>{% endif %}</div></div>
-        {% endfor %}
-      </div>
-    </div></article>
-    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-list-check"></i><h3>Pendientes</h3></div><div class="lt-panel__body"><div class="lt-list">
-      {% for task, meta, done in [('Reservar restaurante para el 20','Vence 15 sep.',false),('Enviarle el libro que le recomendé','Sin fecha',false),('Felicitarla por el nuevo trabajo','Completada 27 jul.',true)] %}<div class="lt-list-item"><span class="lt-check{% if done %} is-done{% endif %}">{% if done %}✓{% endif %}</span><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ meta }}</span></div></div>{% endfor %}
-    </div></div></article>
+    {% call summary_card('rel-upcoming', 'Pendientes y próximos', 'bi-list-check', 'Ver todas') %}
+    <table class="lt-mtable lt-mtable--upcoming">
+      <thead><tr><th scope="col" class="lt-mtable__check"><span class="lt-sr-only">Completar</span></th><th scope="col">Tarea / Acontecimiento</th><th scope="col">Fecha</th><th scope="col">Tipo</th><th scope="col">Estado</th><th scope="col" class="lt-mtable__actions"><span class="lt-sr-only">Acciones</span></th></tr></thead>
+      <tbody>{% for title, date, kind, state, tone in [
+        ('Llamar para ponernos al día','Lun 14 sep.','Tarea','Por hacer','neutral'),
+        ('Reservar restaurante para la cena','Mar 15 sep.','Tarea','Por hacer','neutral'),
+        ('Cena de reencuentro','Sáb 19 sep.','Plan','Planeado','info'),
+        ('Preparar detalle de cumpleaños','Vie 26 feb. 2027','Cumpleaños','Por hacer','neutral'),
+        ('Enviarle el libro que le recomendé','Sin fecha','Tarea','Por hacer','neutral')
+      ] %}<tr>
+        <td class="lt-mtable__check"><button class="lt-mtable__check-button" type="button" data-lt-static-nav aria-label="Marcar «{{ title }}» como hecha"><span class="lt-check" aria-hidden="true"></span></button></td>
+        <td class="lt-mtable__title">{{ title }}</td>
+        <td class="lt-mtable__date">{{ date }}</td>
+        <td class="lt-mtable__kind">{{ type_chip(kind) }}</td>
+        <td class="lt-mtable__state"><span class="lt-chip lt-chip--{{ tone }}">{{ state }}</span></td>
+        <td class="lt-mtable__actions">{{ row_menu('rel-upcoming-menu-' ~ loop.index, 'Acciones de ' ~ title, [('Editar','bi-pencil',false),('Marcar como hecha','bi-check2-circle',false),('Posponer','bi-calendar-plus',false),('Eliminar','bi-trash',true)]) }}</td>
+      </tr>{% endfor %}</tbody>
+    </table>
+    {% endcall %}
+    {% call summary_card('rel-history', 'Historial reciente', 'bi-clock-history', 'Ver historial completo', '/relationships-history') %}
+    {{ history_table(history_rows[:5], 'rel-history') }}
+    {% endcall %}
   </div>
   <aside class="lt-stack">
-    <article class="lt-panel"><div class="lt-panel__body">
+    <article class="lt-panel lt-panel--menu"><div class="lt-panel__head"><i class="bi bi-person"></i><h3>Información de contacto</h3>
+      <div class="lt-menu-anchor"><button class="lt-icon-button lt-panel__more" type="button" data-lt-toggle="rel-contact-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Acciones del contacto"><i class="bi bi-three-dots-vertical"></i></button>
+        <div class="lt-menu lt-menu--down" id="rel-contact-menu" role="menu" hidden><button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-pencil"></i> Editar contacto</button><button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-person-vcard"></i> Gestionar alias</button><button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-tags"></i> Cambiar círculo y etiquetas</button><hr class="lt-menu__divider"><button class="lt-menu__item lt-menu__item--danger" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-archive"></i> Archivar contacto</button></div>
+      </div></div><div class="lt-panel__body">
       <div class="lt-list-item"><span class="lt-avatar lt-avatar--lg">CR</span><div class="lt-list-item__body"><strong>Camila Rojas</strong><span>“Cami” · Amigos cercanos</span></div></div>
       <dl class="lt-dl"><div><dt>Cumpleaños</dt><dd>3 mar. · 31 años</dd></div><div><dt>Nos conocimos</dt><dd>2013 · Universidad</dd></div><div><dt>Ciudad</dt><dd>Medellín</dd></div><div><dt>Etiquetas</dt><dd><span class="lt-chip">Universidad</span></dd></div></dl>
-      <div class="lt-actions"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-check2-circle"></i> Marcar contacto</button><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-pencil"></i> Editar</button></div>
+    </div></article>
+    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-bar-chart"></i><h3>Estadísticas rápidas</h3></div><div class="lt-panel__body">
+      <dl class="lt-quick-stats">{% for label, value, tone in [('Último contacto','Hace 48 días','warning'),('Frecuencia deseada','Cada mes','primary'),('Momentos este año','10','success'),('Planes pendientes','8','accent')] %}<div class="lt-quick-stat lt-quick-stat--{{ tone }}"><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}</dl>
     </div></article>
     <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-telephone"></i><h3>Medios de contacto</h3></div><div class="lt-panel__body"><div class="lt-list">
       {% for icon, value, kind in [('bi-whatsapp','+57 310 555 0142','WhatsApp'),('bi-envelope','camila.rojas@correo.com','Correo'),('bi-instagram','@camirojas','Instagram')] %}<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ value }}</strong><span>{{ kind }}</span></div></div>{% endfor %}
@@ -31,16 +44,5 @@
     <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-sticky"></i><h3>Notas</h3></div><div class="lt-panel__body"><p class="lt-page-head__subtitle">Vegetariana. Le encanta el café de especialidad y los conciertos de jazz.</p></div></article>
   </aside>
 </section>
-{{ fab('Registrar acontecimiento', 'bi-calendar-plus', 'event-new', [('Agregar tarea', 'bi-check2-square', 'rel-task-new')]) }}
-{% call dialog('event-new', 'Registrar acontecimiento', icon='bi-calendar-plus', sections=[('basic','Información básica','bi-calendar-event'),('details','Detalles adicionales','bi-card-text')]) %}
-<section class="lt-dialog__section" data-section="basic">
-  <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
-  <div class="lt-form"><label class="lt-field lt-form--full"><span>Título *</span><input type="text" placeholder="Ej. Llamada larga"></label><label class="lt-field "><span>Categoría</span><select><option>Conversación</option><option>Encuentro</option></select></label><label class="lt-field "><span>Fecha</span><input type="date"></label></div>
-</section>
-<section class="lt-dialog__section" data-section="details" hidden>
-  <header class="lt-dialog__section-head"><h3>Detalles adicionales</h3></header>
-  <div class="lt-form"><label class="lt-field lt-form--full"><span>Notas</span><textarea></textarea></label></div>
-</section>
-{% endcall %}
-{% call dialog('rel-task-new', 'Agregar tarea asociada', icon='bi-check2-square') %}<div class="lt-form"><label class="lt-field lt-form--full"><span>Título *</span><input type="text" placeholder=""></label><label class="lt-field "><span>Prioridad</span><select><option>Media</option><option>Alta</option><option>Baja</option></select></label><label class="lt-field "><span>Vencimiento</span><input type="date"></label></div>{% endcall %}
+{{ event_actions() }}
 {% endcall %}

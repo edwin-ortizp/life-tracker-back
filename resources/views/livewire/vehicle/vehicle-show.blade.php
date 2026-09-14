@@ -1,11 +1,9 @@
-<x-module-shell module="vehicles" :title="$vehicle->name" :subtitle="trim($vehicle->make.' '.$vehicle->model).' · '.ucfirst($vehicle->vehicle_type)" icon="bi-car-front">
+<x-module-shell module="vehicles" :title="$vehicle->name" :subtitle="trim($vehicle->make.' '.$vehicle->model).' · '.ucfirst($vehicle->vehicle_type)" icon="bi-car-front" :tabs="\App\Support\Ui\Tabs\VehicleTabs::for($vehicle, $energyUi)" :back="\App\Support\Ui\Tabs\VehicleTabs::back()">
     <x-slot:actions>
         <x-module-actions mobile-style="inline"
             :primary="['label' => 'Editar vehículo', 'icon' => 'bi-pencil', 'action' => 'editVehicle']"
             :secondary="[['label' => 'Catálogo', 'icon' => 'bi-tools', 'href' => route('vehicles.catalog')]]" />
     </x-slot:actions>
-
-    @include('livewire.vehicle.partials.vehicle-nav')
 
     <section class="vehicle-summary-grid">
         <article class="vehicle-identity-card md-card-elevated">
@@ -20,7 +18,7 @@
     </section>
 
     <section class="md-card-outlined vehicle-care-card">
-        <div class="vehicle-section-heading"><div><h2>Próximos cuidados</h2><p>Fechas y lecturas que requieren atención.</p></div><a href="{{ route('vehicles.maintenance', $vehicle) }}" class="md-btn-text">Ver mantenimiento</a></div>
+        <div class="vehicle-section-heading"><div><h2>Próximos cuidados</h2><p>Fechas y lecturas que requieren atención.</p></div><a href="{{ route('vehicles.maintenance', $vehicle) }}" class="md-btn-text">Ver plan</a></div>
         <div class="vehicle-care-list">
             @forelse($plans->sortBy(fn ($plan) => ['vencido' => 0, 'proximo' => 1, 'al_dia' => 2][$plan->status_data['status']]) as $plan)
                 @php($status = $plan->status_data['status'])

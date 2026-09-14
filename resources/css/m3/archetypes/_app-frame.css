@@ -109,6 +109,10 @@
 
 /* ===== Barra superior ===== */
 
+/* Regreso de un detalle sin pestañas: va antes del ícono del módulo. */
+.lt-topbar__back-slot { display: flex; flex: 0 0 auto; margin-right: -6px; }
+.lt-topbar__back { color: var(--md-sys-color-on-surface-variant); text-decoration: none; }
+
 /* Identidad del módulo activo: icono en contenedor tonal con el acento del módulo. */
 .lt-topbar__icon {
   display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 auto;

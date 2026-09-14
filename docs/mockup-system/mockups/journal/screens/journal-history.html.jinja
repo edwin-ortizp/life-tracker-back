@@ -1,0 +1,43 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, manage_card, row_split %}
+{% call shell('journal', 'Diario', 'bi-journal-text') %}
+{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Resumen','/journal-summary','bi-card-list'),('Historial','/journal-history','bi-journal-bookmark'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-history') }}
+<section class="lt-stack">
+  {% call(zone) manage_card('journal-history', 'Historial de entradas', 'bi-journal-bookmark', count='(6 / 212)', total=212, search='Buscar en tus entradas', filters=1,
+    footer={'from':1,'to':6,'total':6,'noun':'entradas','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
+    <div class="lt-popover" id="journal-history-filters" role="dialog" aria-labelledby="journal-history-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
+      <div class="lt-popover__head"><h4 id="journal-history-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="journal-history-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+      <label class="lt-field"><span>Periodo</span><select>{% for r in ['Último mes','Últimos 6 meses','Último año','Todo el historial','Personalizado'] %}<option{% if r == 'Último mes' %} selected{% endif %}>{{ r }}</option>{% endfor %}</select></label>
+      <div class="lt-summary-range">
+        <label class="lt-field"><span>Desde</span><input type="date" value="2026-08-13"></label>
+        <label class="lt-field"><span>Hasta</span><input type="date" value="2026-09-13"></label>
+      </div>
+      <p class="lt-page-head__subtitle">Desde y Hasta aplican al elegir «Personalizado».</p>
+      <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="journal-history-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
+    </div>
+  {% else %}
+    <div class="lt-chip-row lt-applied-filters" aria-label="Filtros aplicados">
+      <span class="lt-chip lt-chip--input" data-filter="period"><i class="bi bi-calendar-range"></i> <span data-filter-label>Último mes</span></span>
+    </div>
+    <div class="lt-history" role="list" aria-label="Entradas del diario, de la más reciente a la más antigua">
+    {% for e in [
+      {'d':'12','m':'sep. 2026','wd':'vie','summary':'Cierre de sprint sin sobresaltos; salí a correr 5 km.','text':'La demo salió bien y nadie tuvo que quedarse tarde. Por la tarde salí a correr 5 km por el parque y volví con la cabeza despejada. Quiero repetir la rutina el domingo.','time':'22:05','words':96,'mood':'😄 Alegre','energy':8},
+      {'d':'10','m':'sep. 2026','wd':'mié','summary':'Terminé la propuesta antes del almuerzo y caminé sin celular.','text':'Terminé la propuesta antes del almuerzo y eso cambió el tono de toda la tarde. Salí a caminar sin el celular y noté que la espalda molesta menos. Quiero proteger las mañanas para el trabajo profundo el resto de la semana.','time':'21:40','words':142,'mood':'😌 Tranquilo','energy':7},
+      {'d':'09','m':'sep. 2026','wd':'mar','summary':'Llamé a mamá después de varios días; conversación cálida.','text':'Llamé a mamá después de varios días. Me sentí culpable por no hacerlo antes, pero la conversación fue cálida y me recordó por qué vale la pena sostener la rutina de los domingos.','time':'22:15','words':118,'mood':'🙏 Agradecido','energy':5},
+      {'d':'07','m':'sep. 2026','wd':'dom','summary':'Migraña casi todo el día; necesito cortar pantallas a las 22:00.','text':'La migraña me sacó del día. Dormí poco el sábado; necesito cortar pantallas a las 22:00 y no dejar el café para la tarde.','time':'20:05','words':64,'mood':'😴 Cansado','energy':3},
+      {'d':'06','m':'sep. 2026','wd':'sáb','summary':'Mercado con Andrés y tarde de lectura en el parque.','text':'Fuimos temprano al mercado con Andrés y cocinamos juntos. La tarde fue de lectura en el parque; terminé la novela que llevaba semanas empezada.','time':'19:30','words':88,'mood':'😊 Feliz','energy':7},
+      {'d':'05','m':'sep. 2026','wd':'vie','summary':'Vacuna de influenza y reunión difícil con el cliente.','text':'Me puse la vacuna de la influenza en la mañana. La reunión con el cliente fue tensa: cambiaron el alcance otra vez. Anoté los acuerdos para no perder el hilo el lunes.','time':'21:10','words':104,'mood':'😣 Estresado','energy':4}
+    ] %}
+      <div class="lt-history-row" role="listitem">
+        <a class="lt-history-row__date" href="#/journal-entries" aria-label="Abrir la entrada del {{ e.d }} {{ e.m }}"><strong>{{ e.d }}</strong><span>{{ e.m }}</span><small>{{ e.wd }}</small></a>
+        <div class="lt-history-row__body">
+          <strong class="lt-history-row__summary">{{ e.summary }}</strong>
+          <p class="lt-history-row__excerpt">{{ e.text }}</p>
+          <div class="lt-history-row__meta"><span><i class="bi bi-clock-history" aria-hidden="true"></i> Editada {{ e.time }}</span><span>{{ e.words }} palabras</span><span class="lt-mood-chip lt-mood-chip--static">{{ e.mood }}</span><span class="lt-mood-chip lt-mood-chip--static"><i class="bi bi-lightning-charge-fill lt-mtable__icon--energy" aria-hidden="true"></i> {{ e.energy }}/10</span></div>
+        </div>
+        <div class="lt-history-row__actions">{{ row_split('journal-history-menu-' ~ loop.index, 'Abrir', [('Editar','bi-pencil'),('Eliminar','bi-trash',true)], 'la entrada del ' ~ e.d ~ ' ' ~ e.m) }}</div>
+      </div>
+    {% endfor %}
+    </div>
+  {% endif %}{% endcall %}
+</section>
+{% endcall %}

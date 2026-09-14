@@ -242,6 +242,20 @@ class UiPrimitivesTest extends TestCase
         $this->assertStringContainsString('role="separator"', $html);
     }
 
+    public function test_row_actions_render_split_and_repeat_primary_inside_menu(): void
+    {
+        $html = $this->render('<x-ui.row-actions label="Más acciones de Tarea"><x-slot:primary wire:click="complete" x-optimistic-toggle>Completar</x-slot:primary><x-ui.menu-item wire:click="edit">Editar</x-ui.menu-item></x-ui.row-actions>');
+
+        $this->assertStringContainsString('md-row-actions__main', $html);
+        $this->assertStringContainsString('md-row-actions__primary-item', $html);
+        $this->assertSame(2, substr_count($html, 'wire:click="complete"'));
+        $this->assertSame(1, substr_count($html, 'x-optimistic-toggle='));
+        $this->assertStringContainsString('aria-haspopup="menu"', $html);
+        $this->assertStringContainsString('aria-label="Más acciones de Tarea"', $html);
+        $this->assertStringContainsString('role="menu"', $html);
+        $this->assertStringNotContainsString('<i class="bi bi-check', $html);
+    }
+
     public function test_form_dialog_follows_the_shared_modal_pattern(): void
     {
         $closed = $this->render('<x-ui.form-dialog :open="false" close="closeForm" title="Registrar evento">Contenido</x-ui.form-dialog>');

@@ -190,4 +190,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Vehicle::class);
     }
+
+    public function vehicleExpenseCategories()
+    {
+        return $this->hasMany(VehicleExpenseCategory::class);
+    }
 }

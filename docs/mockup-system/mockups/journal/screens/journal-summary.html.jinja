@@ -1,6 +1,6 @@
 {% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, manage_card %}
 {% call shell('journal', 'Diario', 'bi-journal-text') %}
-{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Resumen','/journal-summary','bi-card-list'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-summary') }}
+{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Resumen','/journal-summary','bi-card-list'),('Historial','/journal-history','bi-journal-bookmark'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-summary') }}
 <section class="lt-stack">
   {% call(zone) manage_card('journal-summary', 'Resumen del diario', 'bi-card-list', count='(14 / 212)', total=212, search='Buscar en los resúmenes', filters=1,
     footer={'from':1,'to':14,'total':14,'noun':'días','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}

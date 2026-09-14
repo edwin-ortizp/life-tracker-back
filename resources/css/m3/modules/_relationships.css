@@ -1,4 +1,4 @@
-/* Relationships module: list cards, timeline rows and repeatable form groups. */
+/* Relationships module: list cards, detail rail widgets and repeatable form groups. */
 
 .md-visually-hidden {
     position: absolute;
@@ -101,30 +101,6 @@
     color: var(--md-sys-color-on-surface-variant);
 }
 
-.md-relationship-followup {
-    border-color: var(--md-custom-color-warning, var(--md-sys-color-outline));
-}
-
-.md-relationship-contact-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.375rem 0;
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
-}
-
-.md-relationship-contact-row:last-child {
-    border-bottom: none;
-}
-
-.md-relationship-timeline__heading {
-    margin: 0.75rem 0 0.375rem;
-    color: var(--md-sys-color-on-surface-variant);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
 .md-relationship-event {
     display: flex;
     align-items: flex-start;
@@ -153,32 +129,14 @@
 }
 
 .md-relationship-event__body a,
-.md-relationship-birthday a,
-.md-relationship-task-row a {
+.md-relationship-birthday a {
     color: inherit;
     text-decoration: none;
 }
 
 .md-relationship-event__body a:hover,
-.md-relationship-birthday a:hover,
-.md-relationship-task-row a:hover {
+.md-relationship-birthday a:hover {
     text-decoration: underline;
-}
-
-.md-relationship-task-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.375rem 0;
-}
-
-.md-relationship-task-row--done {
-    color: var(--md-sys-color-on-surface-variant);
-}
-
-.md-relationship-task-row--done a {
-    text-decoration: line-through;
 }
 
 .md-relationship-birthday {
@@ -198,3 +156,32 @@
         align-items: flex-start;
     }
 }
+
+/* Detalle de una persona: dos cards de gestión apiladas y widgets compactos en el panel derecho. */
+.md-relationship-home { display: grid; gap: 16px; min-width: 0; }
+
+.md-relationship-profile { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.md-relationship-profile__avatar { display: grid; flex: none; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: color-mix(in srgb, var(--md-module-accent) 16%, var(--md-sys-color-surface-container-lowest)); color: var(--md-module-accent); font-size: 1.1rem; font-weight: 700; }
+.md-relationship-profile__body { min-width: 0; }
+.md-relationship-profile__body strong { display: block; color: var(--md-sys-color-on-surface); font-size: .95rem; }
+.md-relationship-profile__body span { display: block; margin-top: 2px; font-size: .76rem; }
+.md-relationship-tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+
+.md-relationship-quick-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.md-relationship-quick-stat { min-width: 0; padding: 10px 12px; border-radius: 12px; background: var(--md-sys-color-surface-container-low); }
+.md-relationship-quick-stat dt { color: var(--md-sys-color-on-surface-variant); font-size: .7rem; font-weight: 600; }
+.md-relationship-quick-stat dd { margin: 2px 0 0; color: var(--md-sys-color-on-surface); font-size: 1.05rem; font-weight: 700; line-height: 1.25; }
+.md-relationship-quick-stat .md-relationship-quick-stat__support { font-size: .68rem; font-weight: 600; }
+.md-relationship-quick-stat--warning { background: var(--md-custom-color-warning-container); }
+.md-relationship-quick-stat--warning dd { color: var(--md-custom-color-on-warning-container); }
+.md-relationship-quick-stat--primary { background: color-mix(in srgb, var(--md-sys-color-primary-container) 60%, var(--md-sys-color-surface-container-lowest)); }
+.md-relationship-quick-stat--success { background: color-mix(in srgb, var(--md-custom-color-success-container) 60%, var(--md-sys-color-surface-container-lowest)); }
+.md-relationship-quick-stat--success dd { color: var(--md-custom-color-on-success-container); }
+.md-relationship-quick-stat--accent { background: color-mix(in srgb, var(--md-module-accent) 10%, var(--md-sys-color-surface-container-lowest)); }
+.md-relationship-quick-stat--accent dd { color: var(--md-module-accent); }
+
+.md-relationship-contact { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 4px 0; }
+.md-relationship-contact__icon { display: grid; flex: none; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: color-mix(in srgb, var(--md-module-accent) 12%, var(--md-sys-color-surface-container-lowest)); color: var(--md-module-accent); }
+.md-relationship-contact__body { flex: 1 1 auto; min-width: 0; }
+.md-relationship-contact__body strong { display: block; overflow: hidden; color: var(--md-sys-color-on-surface); font-size: .84rem; text-overflow: ellipsis; white-space: nowrap; }
+.md-relationship-contact__body span { display: block; font-size: .72rem; }

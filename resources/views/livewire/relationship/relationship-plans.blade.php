@@ -1,13 +1,8 @@
-<x-module-shell module="relationships" :title="$relationship->full_name" class="plans-page">
+<x-module-shell module="relationships" :title="$relationship->full_name" class="plans-page"
+                :tabs="\App\Support\Ui\Tabs\PersonTabs::for($relationship)" :back="\App\Support\Ui\Tabs\PersonTabs::back()">
     <x-slot:actions>
         <x-module-actions :primary="['label' => 'Agregar plan', 'icon' => 'bi-plus-lg', 'action' => 'openPlanForm']" :fab-always="true" />
     </x-slot:actions>
-
-    <div class="plans-back">
-        <a href="{{ route('relationships') }}" class="md-btn-text" wire:navigate><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a Relaciones</a>
-    </div>
-
-    @include('livewire.relationship.partials.person-tabs', ['relationship' => $relationship])
 
     <x-ui.management-card id="relationship-plans" :title="'Planes con '.$firstName" icon="bi-map" :count="'('.$plans->total().' / '.$total.')'"
                           :active-filters="$status !== '' ? 1 : 0" :paginator="$plans" noun="planes" class="plans-section">

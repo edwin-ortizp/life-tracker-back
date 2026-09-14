@@ -43,7 +43,6 @@
         </x-slot:filters>
         <x-slot:menu>
             <x-ui.menu-item icon="bi-arrow-counterclockwise" wire:click="confirmRestore">Restaurar catálogo predeterminado</x-ui.menu-item>
-            <x-ui.menu-item icon="bi-emoji-smile" :href="route('mood')">Volver al registro diario</x-ui.menu-item>
         </x-slot:menu>
         @forelse ($states as $state)
             <div class="md-list-item" wire:key="mood-state-{{ $state->id }}">

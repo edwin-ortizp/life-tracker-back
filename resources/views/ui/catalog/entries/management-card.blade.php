@@ -25,3 +25,23 @@
         </x-ui.list>
     </x-ui.management-card>
 </x-catalog.example>
+
+<x-catalog.example title="Card de gestión dentro de un detalle" description="Sin búsqueda ni paginación: `headerAction` lleva a la vista completa. La tabla md-table usa chips tonales para tipo y ⋮ por fila, y se apila bajo 640 px de ancho de la card.">
+    <x-ui.management-card id="catalog-mcard-summary" title="Historial reciente" icon="bi-clock-history">
+        <x-slot:headerAction><a href="{{ route('ui.catalog') }}" class="md-btn-text">Ver historial completo</a></x-slot:headerAction>
+        <table class="md-table md-table--stack">
+            <thead>
+                <tr><th scope="col">Fecha</th><th scope="col">Título</th><th scope="col">Tipo</th><th scope="col">Notas</th><th scope="col" class="md-table__actions"><span class="visually-hidden">Acciones</span></th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="md-table__date">27 de julio de 2026</td>
+                    <td class="md-table__title">Llamada larga<span class="md-table__meta">Conversación</span></td>
+                    <td class="md-table__nowrap"><span class="md-chip-tonal md-chip-tonal--primary"><i class="bi bi-calendar-event" aria-hidden="true"></i> Acontecimiento</span></td>
+                    <td class="md-table__notes">Me contó de su nuevo trabajo en Medellín.</td>
+                    <td class="md-table__actions"><x-ui.menu size="sm" label="Acciones de Llamada larga"><x-ui.menu-item icon="bi-pencil">Editar</x-ui.menu-item></x-ui.menu></td>
+                </tr>
+            </tbody>
+        </table>
+    </x-ui.management-card>
+</x-catalog.example>

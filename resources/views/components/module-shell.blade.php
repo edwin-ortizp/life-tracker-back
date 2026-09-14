@@ -1,4 +1,4 @@
-@props(['module' => null, 'title' => null, 'subtitle' => null, 'icon' => null, 'archetype' => null])
+@props(['module' => null, 'title' => null, 'subtitle' => null, 'icon' => null, 'archetype' => null, 'tabs' => null, 'back' => null])
 
 @php
     use App\Support\Ui\ScreenArchetype;
@@ -23,6 +23,9 @@
     $moduleTitle = $title ?? $definition['title'] ?? 'Life Tracker';
     // El panel contextual se retiró en la v1; los módulos que lo recuperan lo declaran.
     $showRail = $definition['rail'] ?? false;
+    // Un detalle declara sus propias pestañas; reemplazan a las del módulo en esa pantalla.
+    $isDetail = ! empty($tabs);
+    $navigationTabs = $isDetail ? $tabs : ($definition['tabs'] ?? []);
 @endphp
 
 <section {{ $attributes->class(['md-module-shell', 'md-archetype--'.$screenArchetype]) }}
@@ -34,13 +37,20 @@
     @if ($title)
         @push('module-title'){{ $title }}@endpush
     @endif
+    {{-- Detalle sin pestañas: el regreso va en la barra superior, antes del ícono del módulo. --}}
+    @if ($back && ! $isDetail)
+        @push('module-back')<a href="{{ $back['href'] }}" @if ($back['navigate'] ?? true) wire:navigate @endif class="md-btn-icon lt-topbar__back" aria-label="{{ $back['label'] }}" title="{{ $back['label'] }}"><i class="bi bi-arrow-left" aria-hidden="true"></i></a>@endpush
+    @endif
     @isset($actions)
         <div class="md-module-actions" data-region="actions">{{ $actions }}</div>
     @endisset
 
-    @if (! empty($definition['tabs']))
+    @if (! empty($navigationTabs))
         <div data-region="navigation">
-            <x-module-tabs :tabs="$definition['tabs']" :preserve="$definition['preserve'] ?? []" />
+            <x-module-tabs :tabs="$navigationTabs"
+                           :preserve="$isDetail ? [] : ($definition['preserve'] ?? [])"
+                           :back="$isDetail ? $back : null"
+                           :label="$isDetail ? 'Secciones de '.$moduleTitle : 'Vistas del módulo'" />
         </div>
     @endif
 

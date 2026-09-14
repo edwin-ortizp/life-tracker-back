@@ -5,7 +5,6 @@ import { registerUiSurfaces } from './ui-surfaces';
 import { markPlatform, registerAppFrame, registerPageTransitions } from './app-frame';
 import { registerInstallPrompt, registerServiceWorker } from './pwa';
 import { registerFeedback } from './feedback';
-import { registerSwipeRow } from './swipe-row';
 import { registerHealthBodyMap } from './health-body-map';
 
 registerPomodoroTimer(Alpine);
@@ -13,7 +12,6 @@ registerUiSurfaces(Alpine);
 registerFormEditor(Alpine);
 registerAppFrame(Alpine);
 registerFeedback(Alpine);
-registerSwipeRow(Alpine);
 registerHealthBodyMap(Alpine);
 
 registerInstallPrompt(Alpine);

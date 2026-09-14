@@ -1,7 +1,7 @@
 {% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
 {% call shell('journal', 'Semana 1.695 · 8–14 sep.', 'bi-calendar-week') %}
 {{ header('', '', '', '/journal-life') }}
-{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Resumen','/journal-summary','bi-card-list'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-week') }}
+{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Resumen','/journal-summary','bi-card-list'),('Historial','/journal-history','bi-journal-bookmark'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-week') }}
 <section class="lt-toolbar"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><p class="lt-toolbar__label">8 – 14 de septiembre de 2026</p><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button></section>
 <section class="lt-metrics">{{ metric('Ánimo promedio','Bien','success') }}{{ metric('Entradas escritas','3') }}{{ metric('Hábitos cumplidos','78 %','warning') }}</section>
 <section class="lt-grid-main">

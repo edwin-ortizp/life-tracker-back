@@ -59,6 +59,20 @@ class ManagementCardTest extends TestCase
         $this->assertStringContainsString('Mostrando <strong>51–58</strong>', $html);
     }
 
+    public function test_a_header_action_links_to_the_full_view(): void
+    {
+        $html = Blade::render(<<<'BLADE'
+            <x-ui.management-card title="Historial reciente" icon="bi-clock-history">
+                <x-slot:headerAction><a href="/historial" class="md-btn-text">Ver historial completo</a></x-slot:headerAction>
+                Filas
+            </x-ui.management-card>
+            BLADE);
+
+        $this->assertMatchesRegularExpression('/<div class="md-mcard__header-action">\s*<a href="\/historial"/', $html);
+        $this->assertStringNotContainsString('md-mcard__tools', $html);
+        $this->assertStringNotContainsString('md-mcard__foot', $html);
+    }
+
     public function test_split_fab_renders_primary_and_toggle(): void
     {
         $html = Blade::render(<<<'BLADE'

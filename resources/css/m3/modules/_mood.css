@@ -211,68 +211,6 @@
     flex-wrap: wrap;
 }
 
-/* Emotional context inside a relationship. */
-.md-relationship-emotion {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
-}
-
-.md-relationship-emotion:last-child {
-    border-bottom: none;
-}
-
-.md-relationship-emotion__emoji {
-    font-size: 1.5rem;
-    line-height: 1.2;
-}
-
-.md-relationship-emotion__body {
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-.md-relationship-emotion__reflection {
-    margin-top: 0.5rem;
-    padding: 0.625rem 0.75rem;
-    border-radius: var(--md-sys-shape-corner-medium, 12px);
-    background: var(--md-sys-color-surface-container-high);
-}
-
-.md-relationship-emotion__reflection dt {
-    font-size: 0.75rem;
-    color: var(--md-sys-color-on-surface-variant);
-}
-
-.md-relationship-emotion__reflection dd {
-    margin-bottom: 0.5rem;
-    white-space: pre-line;
-}
-
-.md-pattern-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.25rem 0;
-}
-
-.md-pattern-bar {
-    flex: 1 1 auto;
-    height: 6px;
-    border-radius: 999px;
-    background: var(--md-sys-color-surface-container-highest);
-    overflow: hidden;
-}
-
-.md-pattern-bar__fill {
-    height: 100%;
-    border-radius: 999px;
-    background: var(--md-sys-color-primary);
-}
-
 @media (max-width: 640px) {
     .md-mood-snackbar {
         left: 0.75rem;

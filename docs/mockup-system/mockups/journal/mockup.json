@@ -10,6 +10,7 @@
       "screens": [
         "journal-entries",
         "journal-summary",
+        "journal-history",
         "journal-life",
         "journal-week"
       ],
@@ -25,6 +26,11 @@
     "journal-summary": {
       "template": "screens/journal-summary.html.jinja",
       "title": "Resumen",
+      "bodyClass": ""
+    },
+    "journal-history": {
+      "template": "screens/journal-history.html.jinja",
+      "title": "Historial",
       "bodyClass": ""
     },
     "journal-life": {
@@ -46,6 +52,10 @@
     {
       "path": "/journal-summary",
       "screen": "journal-summary"
+    },
+    {
+      "path": "/journal-history",
+      "screen": "journal-history"
     },
     {
       "path": "/journal-life",

@@ -1,0 +1,39 @@
+/*
+ * Tabla de gestión (md-table).
+ * Filas compactas dentro de una card de gestión: título, fecha, chips de tipo y estado, y ⋮ al final.
+ * `md-table--stack` convierte cada fila en una tarjeta cuando la card mide 640 px o menos.
+ */
+.md-table { width: 100%; border-collapse: collapse; color: var(--md-sys-color-on-surface); font-size: .84rem; }
+.md-table th { padding: 10px 12px; border-bottom: 1px solid var(--md-sys-color-outline-variant); color: var(--md-sys-color-on-surface-variant); font-size: .72rem; font-weight: 700; text-align: left; white-space: nowrap; }
+.md-table td { padding: 6px 12px; border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent); vertical-align: middle; }
+.md-table tbody tr:last-child td { border-bottom: 0; }
+.md-table th.md-table__check, .md-table td.md-table__check { width: 1%; padding-inline: 0 4px; }
+.md-table__title { min-width: 180px; font-weight: 650; }
+.md-table__title a { color: inherit; text-decoration: none; }
+.md-table__title a:hover, .md-table__title a:focus-visible { text-decoration: underline; }
+.md-table__meta { display: block; margin-top: 1px; color: var(--md-sys-color-on-surface-variant); font-size: .72rem; font-weight: 500; }
+.md-table__date { color: var(--md-sys-color-on-surface-variant); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.md-table__nowrap { white-space: nowrap; }
+.md-table__notes { width: 36%; max-width: 0; overflow: hidden; color: var(--md-sys-color-on-surface-variant); text-overflow: ellipsis; white-space: nowrap; }
+.md-table th.md-table__actions, .md-table td.md-table__actions { width: 1%; padding-inline: 4px 0; text-align: right; white-space: nowrap; }
+.md-table tr.is-done .md-table__title, .md-table tr.is-archived .md-table__title { color: var(--md-sys-color-on-surface-variant); }
+.md-table tr.is-done .md-table__title { text-decoration: line-through; }
+.md-table__check-button { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--md-sys-color-outline); font-size: 1.2rem; cursor: pointer; }
+.md-table__check-button:hover { background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface); }
+.md-table__check-button:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.md-table tr.is-done .md-table__check-button { color: var(--md-custom-color-success); }
+
+@container md-mcard (max-width: 640px) {
+  .md-table--stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .md-table--stack, .md-table--stack tbody { display: block; }
+  .md-table--stack tr { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 10px 44px 10px 0; border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent); }
+  .md-table--stack tbody tr:last-child { border-bottom: 0; }
+  .md-table--stack tr:has(> .md-table__check:not(:empty)) { padding-left: 44px; }
+  .md-table--stack td { display: block; padding: 0; border: 0; }
+  .md-table--stack td:empty { display: none; }
+  .md-table--stack td.md-table__check { position: absolute; top: 4px; left: 0; width: auto; padding: 0; }
+  .md-table--stack td.md-table__actions { position: absolute; top: 50%; right: 0; width: auto; padding: 0; transform: translateY(-50%); }
+  .md-table--stack .md-table__title, .md-table--stack .md-table__date, .md-table--stack .md-table__notes { flex: 1 0 100%; min-width: 0; }
+  .md-table--stack .md-table__title { min-width: 0; }
+  .md-table--stack .md-table__notes { width: auto; max-width: none; white-space: normal; }
+}

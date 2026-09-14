@@ -44,7 +44,8 @@ class RelationshipModuleTest extends TestCase
     {
         $relationship = Relationship::factory()->create(['user_id' => $this->user->id]);
 
-        foreach (['/relationships', '/relationships/events', '/relationships/birthdays', '/relationships/'.$relationship->id] as $url) {
+        foreach (['/relationships', '/relationships/events', '/relationships/birthdays', '/relationships/'.$relationship->id,
+            '/relationships/'.$relationship->id.'/plans', '/relationships/'.$relationship->id.'/history', '/relationships/'.$relationship->id.'/tasks'] as $url) {
             $this->get($url)->assertOk()->assertSee('md-module-shell', false);
         }
     }

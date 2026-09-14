@@ -122,6 +122,11 @@
                 <i class="bi bi-arrow-left" aria-hidden="true"></i>
             </button>
 
+            {{-- Detalle sin pestañas: el shell envía aquí su regreso, antes del ícono del módulo. --}}
+            @hasstack('module-back')
+                <span class="lt-topbar__back-slot" x-show="!(compact && searchOpen)">@stack('module-back')</span>
+            @endif
+
             @if ($activeModuleKey)
                 <span class="lt-topbar__icon" data-module="{{ $activeModuleKey }}" aria-hidden="true" x-show="!(compact && searchOpen)"><i class="bi {{ config("modules.{$activeModuleKey}.icon") ?? 'bi-grid' }}"></i></span>
             @endif

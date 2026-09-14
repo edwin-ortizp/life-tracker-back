@@ -139,6 +139,40 @@ class ScreenArchetypeTest extends TestCase
         $this->assertStringContainsString('Emoción', $html);
     }
 
+    public function test_a_detail_puts_the_back_link_inside_its_own_tab_row(): void
+    {
+        $html = Blade::render(<<<'BLADE'
+            <x-module-shell module="tasks" title="Preparar la compra" archetype="detail"
+                            :tabs="[['label' => 'Resumen', 'route' => 'tasks.list', 'icon' => 'bi-house']]"
+                            :back="['href' => '/tasks', 'label' => 'Volver a Tareas']">
+                Contenido
+            </x-module-shell>
+        BLADE);
+
+        $start = (int) strpos($html, 'data-region="navigation"');
+        $navigation = substr($html, $start, (int) strpos($html, 'data-region="content"') - $start);
+
+        $this->assertStringContainsString('md-module-tabs--detail', $navigation);
+        $this->assertStringContainsString('md-module-tabs__back', $navigation);
+        $this->assertStringContainsString('aria-label="Volver a Tareas"', $navigation);
+        $this->assertStringContainsString('Resumen', $navigation);
+        // Las pestañas del detalle reemplazan a las del módulo en esa pantalla.
+        $this->assertStringNotContainsString('Kanban', $html);
+        $this->assertStringNotContainsString('Volver a Tareas</', $html, 'El regreso es un icon button, no un enlace de texto.');
+    }
+
+    public function test_a_detail_without_tabs_keeps_the_back_link_out_of_the_content(): void
+    {
+        $html = Blade::render(<<<'BLADE'
+            <x-module-shell module="goals" title="Correr 10K" archetype="detail" :back="['href' => '/goals', 'label' => 'Volver a objetivos']">
+                Contenido
+            </x-module-shell>
+        BLADE);
+
+        $this->assertStringNotContainsString('md-module-tabs__back', $html);
+        $this->assertStringNotContainsString('Volver a objetivos', substr($html, (int) strpos($html, 'data-region="content"')));
+    }
+
     public function test_tabs_and_context_parameters_are_untouched_by_the_archetype(): void
     {
         $before = config('modules.tasks');

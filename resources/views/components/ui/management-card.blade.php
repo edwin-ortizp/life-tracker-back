@@ -24,6 +24,7 @@
     $cardId = $id ?? 'mcard-'.\Illuminate\Support\Str::slug($title);
     $hasFilters = isset($filters);
     $hasMenu = isset($menu);
+    $hasHeaderAction = isset($headerAction);
     $isLengthAware = $paginator instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator;
     $state = trim('filtersOpen: false, searching: false'.($alpine !== '' ? ', '.$alpine : ''));
 @endphp
@@ -85,6 +86,11 @@
                     <x-ui.menu :label="'Más acciones de '.\Illuminate\Support\Str::lower($title)">{{ $menu }}</x-ui.menu>
                 @endif
             </div>
+        @endif
+
+        @if ($hasHeaderAction)
+            {{-- Acción de texto hacia la vista completa («Ver todas»). --}}
+            <div class="md-mcard__header-action">{{ $headerAction }}</div>
         @endif
     </header>
 

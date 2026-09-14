@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\Relationship\RelationshipShow;
+use App\Livewire\Relationship\RelationshipTasks;
 use App\Models\Circle;
 use App\Models\Relationship;
 use App\Models\RelationshipEvent;
@@ -85,14 +86,19 @@ class RelationshipRemindersTest extends TestCase
         TaskAssociation::link($task, $this->relationship);
 
         Livewire::test(RelationshipShow::class, ['relationship' => $this->relationship->id])
-            ->assertSee('Llamar a Alison')
-            ->assertDontSee('md-relationship-task-row--done', false);
+            ->assertSee('Llamar a Alison');
 
         $task->update(['completed' => true, 'completed_at' => now()]);
 
+        // A completed task leaves «Pendientes y próximos» and stays under Tareas relacionadas.
         Livewire::test(RelationshipShow::class, ['relationship' => $this->relationship->id])
+            ->assertDontSee('Llamar a Alison');
+
+        Livewire::test(RelationshipTasks::class, ['relationship' => $this->relationship->id])
+            ->assertDontSee('Llamar a Alison')
+            ->call('setStatus', 'completed')
             ->assertSee('Llamar a Alison')
-            ->assertSee('md-relationship-task-row--done', false);
+            ->assertSee('Completada');
 
         $this->assertDatabaseCount('tasks', 1);
         $this->assertDatabaseCount('task_associations', 1);
@@ -109,7 +115,7 @@ class RelationshipRemindersTest extends TestCase
         $this->assertDatabaseCount('task_associations', 0);
     }
 
-    public function test_an_overdue_follow_up_is_flagged_and_offers_a_task_without_creating_one(): void
+    public function test_an_overdue_follow_up_is_flagged_in_the_quick_stats_without_creating_a_task(): void
     {
         $circle = Circle::factory()->create(['user_id' => $this->user->id, 'contact_frequency_days' => 15]);
         $this->relationship->update([
@@ -118,15 +124,17 @@ class RelationshipRemindersTest extends TestCase
         ]);
 
         $component = Livewire::test(RelationshipShow::class, ['relationship' => $this->relationship->id])
-            ->assertSee('Seguimiento vencido');
+            ->assertSee('Hace 64 días')
+            ->assertSee('Seguimiento vencido')
+            ->assertSee('md-relationship-quick-stat--warning', false);
 
         $this->assertDatabaseCount('tasks', 0);
 
-        $component->call('suggestFollowUpTask')
+        $component->call('openTaskForm', 'Contactar a Alison Restrepo')
             ->assertSet('showTaskForm', true)
             ->assertSet('taskTitle', 'Contactar a Alison Restrepo');
 
-        // The suggestion only opens the form; it must not create a task on its own.
+        // Opening the form must not create a task on its own.
         $this->assertDatabaseCount('tasks', 0);
 
         $component->call('saveTask')->assertHasNoErrors();
@@ -144,7 +152,8 @@ class RelationshipRemindersTest extends TestCase
 
         Livewire::test(RelationshipShow::class, ['relationship' => $this->relationship->id])
             ->call('markContact')
-            ->assertDontSee('Seguimiento vencido');
+            ->assertDontSee('Seguimiento vencido')
+            ->assertSee('Hoy');
 
         $fresh = $this->relationship->fresh();
         $this->assertFalse($fresh->isFollowUpDue());
@@ -168,6 +177,6 @@ class RelationshipRemindersTest extends TestCase
         TaskAssociation::link($task, $this->relationship);
 
         Livewire::test(RelationshipShow::class, ['relationship' => $this->relationship->id])
-            ->assertSeeInOrder(['Cronología', 'Graduación', 'Pendientes', 'Comprar regalo de graduación']);
+            ->assertSeeInOrder(['Pendientes y próximos', 'Graduación', 'Acontecimiento', 'Comprar regalo de graduación', 'Tarea', 'Historial reciente']);
     }
 }

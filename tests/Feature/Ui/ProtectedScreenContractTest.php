@@ -15,7 +15,7 @@ class ProtectedScreenContractTest extends TestCase
     /**
      * Rutas de página completa que no pueden resolverse sin un registro concreto.
      */
-    private const PARAMETERISED = ['vehicles.show', 'vehicles.fuel', 'vehicles.maintenance', 'relationships.show', 'goals.show', 'journal.life.week'];
+    private const PARAMETERISED = ['vehicles.show', 'vehicles.fuel', 'vehicles.maintenance', 'vehicles.services', 'vehicles.expenses', 'relationships.show', 'goals.show', 'journal.life.week'];
 
     /**
      * @return list<string>

@@ -11,6 +11,7 @@
         "relationships-index",
         "relationships-show",
         "relationships-plans",
+        "relationships-history",
         "relationships-events",
         "relationships-birthdays"
       ],
@@ -42,6 +43,11 @@
       "template": "screens/relationships-plans.html.jinja",
       "title": "Planes de la relación",
       "bodyClass": ""
+    },
+    "relationships-history": {
+      "template": "screens/relationships-history.html.jinja",
+      "title": "Historial de la relación",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -56,6 +62,10 @@
     {
       "path": "/relationships-plans",
       "screen": "relationships-plans"
+    },
+    {
+      "path": "/relationships-history",
+      "screen": "relationships-history"
     },
     {
       "path": "/relationships-events",

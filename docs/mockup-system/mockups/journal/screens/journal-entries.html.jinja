@@ -1,44 +1,78 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, manage_card, row_split %}
 {% call shell('journal', 'Diario', 'bi-journal-text') %}
-{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Resumen','/journal-summary','bi-card-list'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-entries') }}
-<section class="lt-toolbar">
-  <label class="lt-field"><span class="lt-sr-only">Buscar en el diario</span><input type="search" placeholder="Buscar en tus entradas..."></label>
-  <button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>Esta semana</button>
-  <button class="lt-button lt-button--text" type="button" data-lt-static-nav>Este mes</button>
-  <button class="lt-button lt-button--text" type="button" data-lt-static-nav>Todo</button>
-  <button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-pencil-square"></i> Nueva entrada</button>
+{{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Resumen','/journal-summary','bi-card-list'),('Historial','/journal-history','bi-journal-bookmark'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-entries') }}
+<section class="lt-grid-main lt-grid-main--journal">
+  <article class="lt-panel">
+    <div class="lt-panel__head"><i class="bi bi-pencil-square"></i><h3>Entrada de hoy</h3><span class="lt-date-inline"><i class="bi bi-calendar3" aria-hidden="true"></i> Sábado 13 de septiembre de 2026</span><span class="lt-panel__meta"><i class="bi bi-clock-history" aria-hidden="true"></i> Última edición · hoy 21:40</span></div>
+    <div class="lt-panel__body">
+      <div class="lt-field">
+        <span id="journal-entry-label">Tu entrada</span>
+        <div class="lt-md-editor">
+          <div class="lt-md-editor__toolbar" role="toolbar" aria-label="Formato de la entrada">
+            <button class="lt-md-editor__tool" type="button" data-lt-static-nav aria-label="Negrita"><i class="bi bi-type-bold"></i></button>
+            <button class="lt-md-editor__tool" type="button" data-lt-static-nav aria-label="Cursiva"><i class="bi bi-type-italic"></i></button>
+            <span class="lt-md-editor__sep" aria-hidden="true"></span>
+            <button class="lt-md-editor__tool" type="button" data-lt-static-nav aria-label="Enlace"><i class="bi bi-link-45deg"></i></button>
+            <span class="lt-md-editor__sep" aria-hidden="true"></span>
+            <button class="lt-md-editor__tool" type="button" data-lt-static-nav aria-label="Lista con viñetas"><i class="bi bi-list-ul"></i></button>
+            <button class="lt-md-editor__tool" type="button" data-lt-static-nav aria-label="Lista numerada"><i class="bi bi-list-ol"></i></button>
+            <span class="lt-md-editor__hint"><i class="bi bi-question-circle" aria-hidden="true"></i> Markdown</span>
+          </div>
+          <textarea rows="7" aria-labelledby="journal-entry-label" placeholder="Escribe tu entrada del día...">Me levanté tarde y me costó arrancar, pero a media mañana terminé el informe de gastos que venía aplazando. En la noche cocinamos con Laura y hablamos de las vacaciones.</textarea>
+        </div>
+      </div>
+      <label class="lt-field lt-field--spaced"><span>Resumen del día</span><input type="text" maxlength="255" placeholder="Un resumen breve para ver en la vista mensual..." value="Mañana lenta; terminé el informe de gastos y cociné con Laura."></label>
+      <p class="lt-summary-field__meta">62 / 255</p>
+    </div>
+    <div class="lt-panel__foot"><span>34 palabras · 186 caracteres · cambios sin guardar</span><button class="lt-button lt-button--accent" type="button" data-lt-static-nav><i class="bi bi-floppy"></i> Guardar</button></div>
+  </article>
+
+  <article class="lt-panel">
+    <div class="lt-panel__head"><i class="bi bi-emoji-smile"></i><h3>¿Cómo te sientes ahora?</h3></div>
+    <div class="lt-panel__body">
+      <label class="lt-field lt-field--icon"><span>Buscar estado de ánimo</span><i class="bi bi-search" aria-hidden="true"></i><input type="search" placeholder="Ej. tranquilo, ansioso..."></label>
+      <p class="lt-section-label lt-section-label--spaced">Estados de ánimo</p>
+      <div class="lt-mood-chips">{% for e, n in [('😄','Alegre'),('😌','Tranquilo'),('🙏','Agradecido'),('😟','Ansioso'),('😴','Cansado'),('😤','Frustrado'),('💪','Motivado'),('😢','Triste'),('🎯','Enfocado'),('😣','Estresado'),('🧘','Calmado'),('😊','Feliz')] %}<button class="lt-mood-chip" type="button" aria-pressed="{{ 'true' if n == 'Tranquilo' else 'false' }}" data-lt-static-nav><span aria-hidden="true">{{ e }}</span> {{ n }}</button>{% endfor %}</div>
+      <hr class="lt-divider">
+      <p class="lt-section-label" id="journal-energy-label">Nivel de energía</p>
+      <div class="lt-energy-scale" role="group" aria-labelledby="journal-energy-label">{% for n in range(1, 11) %}<button type="button" aria-pressed="{{ 'true' if n == 7 else 'false' }}" aria-label="Energía {{ n }} de 10" data-lt-static-nav>{{ n }}</button>{% endfor %}</div>
+      <div class="lt-energy-scale__ends"><span>Muy baja</span><span>Muy alta</span></div>
+      <label class="lt-field lt-field--spaced"><span>Comentario (opcional)</span><input type="text" maxlength="255" placeholder="¿Qué influyó en tu energía?"></label>
+      <p class="lt-summary-field__meta">0 / 255</p>
+      <div class="lt-actions lt-actions--end"><button class="lt-button lt-button--accent" type="button" data-lt-static-nav><i class="bi bi-plus-circle"></i> Registrar energía</button></div>
+    </div>
+  </article>
 </section>
-<section class="lt-grid-main">
-  <div class="lt-stack">
-    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-pencil-square"></i><h3>Entrada de hoy</h3><small>Sábado 13 sep.</small></div><div class="lt-panel__body">
-      <label class="lt-field"><span>Resumen del día</span><input type="text" maxlength="255" value="Mañana lenta; terminé el informe de gastos y cociné con Laura."></label>
-      <p class="lt-summary-field__meta">Lo más importante del día en una línea · aparece en Resumen · 63/255</p>
-      <label class="lt-field"><span>Entrada completa</span><textarea rows="6">Me levanté tarde y me costó arrancar, pero a media mañana terminé el informe de gastos que venía aplazando. En la noche cocinamos con Laura y hablamos de las vacaciones.</textarea></label>
-      <div class="lt-actions"><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-floppy"></i> Guardar</button></div>
-    </div></article>
-    {% for date, title, paras, mood, tags in [
-      ('Hoy · miércoles 10 sep. · 21:40','Un día más liviano',['Terminé la propuesta antes del almuerzo y eso cambió el tono de toda la tarde. Salí a caminar sin el celular y noté que la espalda molesta menos.','Quiero proteger las mañanas para el trabajo profundo el resto de la semana.'],'🙂 Tranquilo · energía 7/10',['Trabajo','Salud']),
-      ('Martes 9 sep. · 22:15','Conversación con mamá',['Llamé a mamá después de varios días. Me sentí culpable por no hacerlo antes, pero la conversación fue cálida y me recordó por qué vale la pena sostener la rutina de los domingos.'],'😌 Agradecido · energía 5/10',['Familia']),
-      ('Domingo 7 sep. · 20:05','Migraña y descanso',['La migraña me sacó del día. Dormí poco el sábado; necesito cortar pantallas a las 22:00.'],'😣 Cansado · energía 3/10',['Salud','Sueño'])
-    ] %}
-    <article class="lt-panel{% if loop.first %} lt-panel--accent{% endif %}"><div class="lt-panel__head"><i class="bi bi-journal-text"></i><h3>{{ title }}</h3><small>{{ date }}</small><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Más acciones de la entrada"><i class="bi bi-three-dots-vertical"></i></button></div><div class="lt-panel__body">
-      {% for p in paras %}<p class="lt-prose">{{ p }}</p>{% endfor %}
-      <div class="lt-entry-meta"><span class="lt-chip">{{ mood }}</span>{% for t in tags %}<span class="lt-chip lt-chip--neutral">#{{ t }}</span>{% endfor %}</div>
-    </div></article>
-    {% endfor %}
-  </div>
-  <aside class="lt-stack">
-    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-emoji-smile"></i><h3>¿Cómo te sientes?</h3></div><div class="lt-panel__body">
-      <div class="lt-chip-row">{% for e in ['😊 Alegre','😌 Tranquilo','🙏 Agradecido','😟 Ansioso','😣 Cansado','😠 Frustrado'] %}<button class="lt-button {% if loop.index == 2 %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ e }}</button>{% endfor %}</div>
-      <p class="lt-section-label">Energía</p>
-      <div class="lt-progress"><span style="width:70%"></span></div>
-      <label class="lt-field"><span class="lt-sr-only">Comentario</span><input type="text" placeholder="Comentario opcional"></label>
-      <div class="lt-actions"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>Registrar estado de ánimo</button></div>
-    </div></article>
-    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-diagram-3"></i><h3>Conecta los puntos</h3></div><div class="lt-panel__body"><div class="lt-list">
-      <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-moon-stars"></i></span><div class="lt-list-item__body"><strong>Dormir poco → energía baja</strong><span>3 de tus 4 días con energía ≤ 4 siguen a noches de menos de 6 h.</span></div></div>
-      <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-person-walking"></i></span><div class="lt-list-item__body"><strong>Caminar mejora tu ánimo</strong><span>Tus entradas son más positivas los días con ejercicio.</span></div></div>
-    </div></div></article>
-  </aside>
+
+<section class="lt-stack">
+  {% call(zone) manage_card('journal-today-states', 'Estados de hoy', 'bi-bar-chart', count='(3 / 3)', total=3, search='Buscar en los estados', filters=0,
+    footer={'from':1,'to':3,'total':3,'noun':'registros','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
+    <div class="lt-popover" id="journal-today-states-filters" role="dialog" aria-labelledby="journal-today-states-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
+      <div class="lt-popover__head"><h4 id="journal-today-states-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="journal-today-states-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+      <label class="lt-field"><span>Tipo</span><select>{% for r in ['Todos','Energía','Estado de ánimo'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+      <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="journal-today-states-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
+    </div>
+  {% else %}
+    <table class="lt-mtable">
+      <thead><tr><th scope="col">Hora</th><th scope="col">Tipo</th><th scope="col">Valor / Estado</th><th scope="col">Comentario</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead>
+      <tbody>
+      {% for r in [
+        {'time':'20:45','type':'Energía','value':7,'comment':'Me sentí con buena energía para terminar el día.'},
+        {'time':'14:20','type':'Estado de ánimo','mood':'😌 Tranquilo','comment':'Después de almorzar.'},
+        {'time':'08:15','type':'Energía','value':6,'comment':'Un poco cansado al inicio del día.'}
+      ] %}
+        <tr>
+          <td class="lt-mtable__time" data-label="Hora">{{ r.time }}</td>
+          <td class="lt-mtable__type" data-label="Tipo">{% if r.get('value') %}<i class="bi bi-lightning-charge-fill lt-mtable__icon lt-mtable__icon--energy" aria-hidden="true"></i>{% else %}<i class="bi bi-emoji-smile lt-mtable__icon" aria-hidden="true"></i>{% endif %} {{ r.type }}</td>
+          <td class="lt-mtable__value" data-label="Valor / Estado">{% if r.get('value') %}<span class="lt-mtable__score">{{ r.value }}/10</span><div class="lt-progress lt-mtable__bar" role="img" aria-label="Energía {{ r.value }} de 10"><span style="width:{{ r.value * 10 }}%"></span></div>{% else %}<span class="lt-mood-chip lt-mood-chip--static">{{ r.mood }}</span>{% endif %}</td>
+          <td class="lt-mtable__comment" data-label="Comentario">{{ r.comment }}</td>
+          <td class="lt-mtable__actions">
+            {{ row_split('journal-state-menu-' ~ loop.index, 'Editar', [('Duplicar','bi-files'),('Eliminar','bi-trash',true)], 'el registro de las ' ~ r.time) }}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}{% endcall %}
 </section>
 {% endcall %}

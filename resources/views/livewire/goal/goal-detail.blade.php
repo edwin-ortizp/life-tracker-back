@@ -1,10 +1,9 @@
-<x-module-shell module="goals">
+<x-module-shell module="goals" :back="['href' => route('goals'), 'label' => 'Volver a objetivos']">
     <x-slot:actions>
         <x-module-actions :primary="['label' => 'Agregar tarea', 'icon' => 'bi-check2-square', 'action' => 'openTaskForm']" :secondary="array_values(array_filter([
             ['label' => 'Registrar avance', 'icon' => 'bi-journal-plus', 'action' => 'openEntryForm', 'create' => true],
             $kpi ? ['label' => 'Registrar medición', 'icon' => 'bi-graph-up-arrow', 'action' => 'openNumericForm', 'create' => true] : null,
             ['label' => 'Editar objetivo', 'icon' => 'bi-pencil', 'action' => 'openGoalForm'],
-            ['label' => 'Volver a objetivos', 'icon' => 'bi-arrow-left', 'href' => route('goals')],
         ]))" />
     </x-slot:actions>
 

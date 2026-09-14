@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Livewire\Vehicle\VehicleCatalog;
 use App\Livewire\Vehicle\VehicleFuel;
 use App\Livewire\Vehicle\VehicleMaintenance;
+use App\Livewire\Vehicle\VehicleServices;
 use App\Livewire\Vehicle\VehicleShow;
 use App\Models\MaintenanceTemplate;
 use App\Models\User;
@@ -395,15 +396,22 @@ class VehicleModuleTest extends TestCase
         $this->actingAs($owner)
             ->get(route('vehicles.show', $vehicle))->assertOk()->assertSee('Auto privado')
             ->assertSee(route('vehicles.fuel', $vehicle), false)
-            ->assertSee(route('vehicles.maintenance', $vehicle), false);
+            ->assertSee(route('vehicles.maintenance', $vehicle), false)
+            ->assertSee(route('vehicles.services', $vehicle), false)
+            ->assertSee(route('vehicles.expenses', $vehicle), false);
         $this->get(route('vehicles.fuel', $vehicle))->assertOk();
-        $this->get(route('vehicles.maintenance', $vehicle))->assertOk();
+        $this->get(route('vehicles.maintenance', $vehicle))->assertOk()->assertSee('Plan de mantenimiento');
+        $this->get(route('vehicles.services', $vehicle))->assertOk()->assertSee('Historial de servicios');
+        $this->get(route('vehicles.expenses', $vehicle))->assertOk()->assertSee('Historial de gastos');
         $this->get(route('vehicles.catalog'))->assertOk();
         $this->get(route('vehicles.fuel', $human))->assertNotFound();
+        $this->get(route('vehicles.services', $human))->assertOk();
 
         $this->actingAs($other)->get(route('vehicles.show', $vehicle))->assertNotFound();
         $this->get(route('vehicles.fuel', $vehicle))->assertNotFound();
         $this->get(route('vehicles.maintenance', $vehicle))->assertNotFound();
+        $this->get(route('vehicles.services', $vehicle))->assertNotFound();
+        $this->get(route('vehicles.expenses', $vehicle))->assertNotFound();
     }
 
     public function test_histories_and_catalog_use_the_management_card_pagination(): void
@@ -427,7 +435,7 @@ class VehicleModuleTest extends TestCase
             ->assertViewHas('energyLogs', fn ($logs) => $logs->count() === 10 && $logs->total() === 25)
             ->set('perPage', 7)
             ->assertSet('perPage', 25);
-        Livewire::test(VehicleMaintenance::class, ['vehicle' => $vehicle->id])
+        Livewire::test(VehicleServices::class, ['vehicle' => $vehicle->id])
             ->set('perPage', 10)
             ->assertViewHas('maintenanceLogs', fn ($logs) => $logs->count() === 10 && $logs->total() === 25);
         Livewire::test(VehicleCatalog::class)
@@ -450,6 +458,91 @@ class VehicleModuleTest extends TestCase
 
         $queries = [];
         $this->get(route('vehicles.fuel', $vehicle))->assertOk();
-        $this->assertFalse(collect($queries)->contains(fn (string $sql) => str_contains($sql, 'vehicle_maintenance_logs') || str_contains($sql, 'maintenance_templates')));
+        $this->assertFalse(collect($queries)->contains(fn (string $sql) => str_contains($sql, 'vehicle_maintenance_logs') || str_contains($sql, 'maintenance_templates') || str_contains($sql, 'vehicle_expenses')));
+
+        $queries = [];
+        $this->get(route('vehicles.maintenance', $vehicle))->assertOk();
+        $this->assertFalse(collect($queries)->contains(fn (string $sql) => str_contains($sql, 'vehicle_expenses')));
+
+        $queries = [];
+        $this->get(route('vehicles.expenses', $vehicle))->assertOk();
+        $this->assertFalse(collect($queries)->contains(fn (string $sql) => str_contains($sql, 'vehicle_energy_logs') || str_contains($sql, 'vehicle_maintenance_logs') || str_contains($sql, 'maintenance_templates')));
+    }
+
+    public function test_fuel_history_filters_by_period_fill_and_search_and_can_be_cleared(): void
+    {
+        Carbon::setTestNow('2026-07-20 10:00:00');
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $vehicle = $user->vehicles()->create(['name' => 'Auto', 'vehicle_type' => 'automovil', 'power_source' => 'gasolina', 'fuel_volume_unit' => 'gal']);
+        $recentFull = $vehicle->energyLogs()->create(['recorded_on' => '2026-07-15', 'energy_source' => 'gasolina', 'quantity' => 10, 'unit' => 'gal', 'is_full' => true, 'provider' => 'Terpel Av. 68']);
+        $recentPartial = $vehicle->energyLogs()->create(['recorded_on' => '2026-07-10', 'energy_source' => 'gasolina', 'quantity' => 4, 'unit' => 'gal', 'is_full' => false, 'provider' => 'Esso Calle 80']);
+        $vehicle->energyLogs()->create(['recorded_on' => '2026-01-10', 'energy_source' => 'gasolina', 'quantity' => 9, 'unit' => 'gal', 'is_full' => true, 'provider' => 'Terpel Norte']);
+
+        $ids = fn ($logs) => $logs->getCollection()->pluck('id')->all();
+
+        Livewire::test(VehicleFuel::class, ['vehicle' => $vehicle->id])
+            ->assertViewHas('energyLogs', fn ($logs) => $logs->total() === 3)
+            ->set('fuelPeriod', '1m')
+            ->assertViewHas('energyLogs', fn ($logs) => $ids($logs) === [$recentFull->id, $recentPartial->id])
+            ->set('fuelFill', 'partial')
+            ->assertViewHas('energyLogs', fn ($logs) => $ids($logs) === [$recentPartial->id])
+            ->assertViewHas('totalCount', 3)
+            ->call('clearFuelFilters')
+            ->set('fuelSearch', 'terpel')
+            ->assertViewHas('energyLogs', fn ($logs) => $logs->total() === 2)
+            ->set('fuelSearch', 'sin coincidencias')
+            ->assertSee('Limpiar filtros');
+        Carbon::setTestNow();
+    }
+
+    public function test_service_history_is_separate_from_the_plan_and_services_can_be_filtered_and_edited(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $vehicle = $user->vehicles()->create(['name' => 'Auto', 'vehicle_type' => 'automovil', 'power_source' => 'gasolina', 'usage_unit' => 'km']);
+        $oil = MaintenanceTemplate::create(['name' => 'Cambio de aceite', 'category' => 'motor']);
+        $brakes = MaintenanceTemplate::create(['name' => 'Pastillas de freno', 'category' => 'frenos']);
+        $oilPlan = $vehicle->maintenancePlans()->create(['maintenance_template_id' => $oil->id, 'interval_usage' => 5000]);
+        $brakesPlan = $vehicle->maintenancePlans()->create(['maintenance_template_id' => $brakes->id, 'interval_usage' => 30000]);
+        $oilLog = $vehicle->maintenanceLogs()->create(['vehicle_maintenance_plan_id' => $oilPlan->id, 'performed_on' => '2026-07-01', 'usage_reading' => 1000, 'provider' => 'Autolab']);
+        $vehicle->maintenanceLogs()->create(['vehicle_maintenance_plan_id' => $brakesPlan->id, 'performed_on' => '2026-07-05', 'usage_reading' => 1200]);
+
+        Livewire::test(VehicleMaintenance::class, ['vehicle' => $vehicle->id])
+            ->assertViewMissing('maintenanceLogs')
+            ->set('planSearch', 'freno')
+            ->assertViewHas('plans', fn ($plans) => $plans->pluck('id')->all() === [$brakesPlan->id]);
+
+        Livewire::test(VehicleServices::class, ['vehicle' => $vehicle->id])
+            ->set('servicePlan', $oilPlan->id)
+            ->assertViewHas('maintenanceLogs', fn ($logs) => $logs->getCollection()->pluck('id')->all() === [$oilLog->id])
+            ->call('clearServiceFilters')
+            ->set('serviceSearch', 'pastillas')
+            ->assertViewHas('maintenanceLogs', fn ($logs) => $logs->total() === 1)
+            ->call('editMaintenanceLog', $oilLog->id)
+            ->assertSet('maintenancePlanId', $oilPlan->id)
+            ->set('maintenanceCost', 250000)
+            ->call('saveMaintenanceLog')
+            ->assertHasNoErrors()
+            ->assertSet('showMaintenanceForm', false);
+        $this->assertDatabaseHas('vehicle_maintenance_logs', ['id' => $oilLog->id, 'cost' => 250000, 'usage_reading' => 1000]);
+
+        // Desde el FAB del historial se elige el mantenimiento; no se acepta un plan de otro vehículo.
+        $otherVehicle = $user->vehicles()->create(['name' => 'Otro', 'vehicle_type' => 'automovil', 'power_source' => 'gasolina']);
+        $foreignPlan = $otherVehicle->maintenancePlans()->create(['maintenance_template_id' => $oil->id, 'interval_days' => 30]);
+        Livewire::test(VehicleServices::class, ['vehicle' => $vehicle->id])
+            ->call('openMaintenanceForm')
+            ->assertSet('maintenancePlanId', null)
+            ->set('maintenanceDate', '2026-07-10')
+            ->set('maintenanceUsageReading', null)
+            ->call('saveMaintenanceLog')
+            ->assertHasErrors(['maintenancePlanId' => 'required'])
+            ->set('maintenancePlanId', $foreignPlan->id)
+            ->call('saveMaintenanceLog')
+            ->assertHasErrors(['maintenancePlanId'])
+            ->set('maintenancePlanId', $brakesPlan->id)
+            ->call('saveMaintenanceLog')
+            ->assertHasNoErrors();
+        $this->assertSame(3, $vehicle->maintenanceLogs()->count());
     }
 }

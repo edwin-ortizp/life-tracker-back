@@ -19,7 +19,7 @@ La identidad de la pantalla vive **una sola vez**, en la barra superior: botón 
 
 - El icono del módulo va inmediatamente a la derecha del botón de menú, dentro de un contenedor redondeado con fondo tonal del acento del módulo (`color-mix` del acento sobre `--md-surface-lowest`) y el glifo en el color de acento.
 - El título de la barra es el título de la pantalla. Si la vista pertenece a una entidad, la incluye: `Combustible · Mazda 3`, `Camila Rojas`.
-- No se repite el título dentro del contenido: no hay bloque de encabezado con icono, título grande ni subtítulo descriptivo debajo de la barra. El contenido empieza con `Volver` (solo en vistas de detalle), las pestañas o las métricas.
+- No se repite el título dentro del contenido: no hay bloque de encabezado con icono, título grande ni subtítulo descriptivo debajo de la barra. El contenido empieza con las pestañas o las métricas; el regreso de un detalle sigue la [navegación de detalle](#navegación-de-detalle) y nunca ocupa una fila propia.
 - Los datos que antes iban en el subtítulo y que sí aportan información (fecha del registro, placa, periodo) se trasladan a un control o métrica visible, nunca a texto decorativo.
 - En móvil se conserva el mismo orden; el icono se reduce a 36 px y el título se trunca con elipsis.
 
@@ -45,6 +45,16 @@ Cada módulo tiene un color de énfasis simbólico (`--lt-accent`) que se usa en
 - Un módulo con una sola vista no muestra pestañas.
 - Los ajustes específicos pertenecen al módulo. Ajustes generales conserva perfil, seguridad y preferencias transversales.
 - Las rutas históricas se mantienen como redirects cuando cambia la URL canónica.
+
+### Navegación de detalle
+
+Regla transversal para producción y mockups: **el regreso de una vista de detalle está integrado en la navegación existente; nunca añade una fila solo para «Volver».**
+
+- **Detalle con pestañas** (persona, vehículo): `x-module-shell` recibe `:tabs` y `:back`. La fila de pestañas empieza con un icon button ← de 44 px (`aria-label="Volver a <destino>"`, `title` igual), seguido de un divisor vertical de 1 px y las pestañas del detalle, que reemplazan a las del módulo en esa pantalla. En móvil las pestañas se desplazan en horizontal y el ← queda fijo.
+- **Detalle sin pestañas** (plan, objetivo, catálogo): `x-module-shell` recibe solo `:back` y el ← aparece en la barra superior, antes del ícono del módulo.
+- **Vistas hermanas** alcanzables desde las pestañas del módulo (ajustes, semanal, calendario) no llevan regreso: las pestañas ya lo resuelven.
+- **No permitido**: enlace de texto «Volver a…» en una fila propia, acción «Volver» dentro de ⋮ o del menú de acciones, y navegación de pestañas hecha a mano por módulo.
+- Referencias: `resources/views/components/module-tabs.blade.php` (prop `back`), `App\Support\Ui\Tabs\PersonTabs` y `VehicleTabs`; en mockups, `detail_nav()` y `shell(back=…)` de `life-shell.html.jinja`.
 
 ## Responsive y accesibilidad
 
@@ -150,6 +160,7 @@ Base visual de **todos** los formularios, no solo de los modales:
 ## Menús, filtros y botón flotante
 
 - **Más opciones (⋮)**: `x-ui.menu` con `x-ui.menu-item` y `x-ui.menu-divider`. La acción principal queda visible (tonal o filled) y las secundarias van al menú, con las destructivas al final tras un divisor y `tone="danger"`. Nunca un grupo de botones grandes sueltos.
+- **Acciones por fila** (vistas de gestión): `x-ui.row-actions`. En escritorio es un botón dividido rectangular (esquinas `--md-sys-shape-corner-small`, sin ícono) con la acción principal visible y el resto tras ▾; en card compacta o móvil se colapsa a un único ⋮ que incluye también la acción principal. No se usan gestos de deslizar.
 - **Filtros**: un único botón "Filtros" (outlined) que abre `x-ui.popover` con todas las opciones, incluido el rango de tiempo; no se duplica el concepto con un selector aparte. Con filtros activos el botón lleva `x-ui.badge placement="corner"` con el número. Debajo se listan como chips removibles y, si hay al menos uno, el enlace "Limpiar filtros".
 - **Filtros en móvil (< 768 px)**: el mismo `x-ui.popover` se presenta como hoja inferior: scrim, bordes superiores redondeados, indicador de arrastre, título «Filtros», contenido con scroll y footer fijo con línea divisoria. El footer lleva solo «Limpiar» (outlined, izquierda) y «Filtrar» (filled, derecha); no hay Cancelar ni ✕. Se cierra deslizando hacia abajo, tocando fuera o con Escape. En escritorio sigue siendo popover anclado al botón.
 - **Opciones simples y múltiples**: `x-ui.select` para una opción, `x-ui.multi-select` (checkboxes) para varias.
@@ -198,8 +209,10 @@ Toda pantalla cuyo propósito principal sea consultar y administrar varios regis
 - **Contenido** (slot por defecto; `flush` para listas de borde a borde): columnas, filas, acciones por fila y estados vacío / filtrado vacío propios del módulo.
 - **Footer** (automático con `paginator`): «Mostrando a–b de N», filas por página 10/25/50/100 (25 por defecto, `?per_page=`) y paginación con página activa en el color del módulo; anterior/siguiente se deshabilitan en los extremos.
 - **Responsive**: se compacta por el ancho de la propia card (container query de 640 px): búsqueda y Filtros pasan a ícono, la búsqueda se expande sobre el header al tocarla y se cierra con ✕ o Escape; el footer muestra «1 / 3».
+- **Acción por fila**: botón split **outline** (acción principal, p. ej. «Editar», + chevron con menú; en compacto se reemplaza por ⋮). Nunca con relleno. En mockups se usa la macro `row_split` de `life-shell.html.jinja`.
 - **Creación**: fuera de la card, con `x-module-actions` / `x-ui.fab`. Con varias creaciones relacionadas, FAB dividido (`:split="true"` y secundarias con `'create' => true`). No se duplican botones de crear en estados vacíos ni en barras.
-- **No usar** en dashboards, calendarios, Kanban/Gantt, formularios, detalle de un registro ni checklists diarios.
+- **No usar** en dashboards, calendarios, Kanban/Gantt, formularios ni checklists diarios. Dentro de un detalle se usa para los registros que se gestionan (por ejemplo «Pendientes y próximos» e «Historial reciente» de una persona): sin búsqueda ni paginación, con el slot `headerAction` para «Ver todas» hacia la pestaña completa.
+- **Tablas**: `<table class="md-table md-table--stack">` (`resources/css/m3/patterns/_table.css`), con columnas compactas, chips tonales canónicos para tipo y estado, y ⋮ (`x-ui.menu size="sm"`) al final de cada fila. Bajo 640 px de ancho de la card cada fila se apila como tarjeta.
 
 ### Inventario de pantallas migradas
 
@@ -211,7 +224,7 @@ Toda pantalla cuyo propósito principal sea consultar y administrar varios regis
 | Comidas | `Meal/MealShopping` | Estándar | Vista compacta/agrupada, agrupar por categoría o tienda, tienda, necesarios de la semana |
 | Comidas | `Meal/MealIngredients` | Estándar | Categoría, acordeones por categoría, resumen del rail sobre todo el catálogo |
 | Comidas | `Meal/MealRecipes` | Pendiente | Grid de tarjetas, favoritos, tipo y dificultad |
-| Tareas | `Task/TaskList` | Estándar | Cuándo/categoría/estado/prioridad/tamaño, swipe, recurrencia, editor por evento; Planificación y Progreso en ⋮ |
+| Tareas | `Task/TaskList` | Estándar | Cuándo/categoría/estado/prioridad/tamaño, acciones por fila (`x-ui.row-actions`), recurrencia, editor por evento; Planificación y Progreso en ⋮ |
 | Relaciones | `Relationship/RelationshipIndex` | Estándar | Archivadas, círculo, etiqueta, acciones por fila, FAB dividido (persona, círculo, etiqueta) |
 | Relaciones | `Relationship/RelationshipEvents` | Pendiente | Periodo, archivados, sensibles, relación, categoría |
 | Relaciones | `Relationship/RelationshipBirthdays` | Pendiente | Filtro por mes, orden por próxima fecha, crear tarea |

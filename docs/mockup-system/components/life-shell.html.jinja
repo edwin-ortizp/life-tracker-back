@@ -27,8 +27,17 @@
 <nav class="lt-tabs" aria-label="Vistas del módulo">{% for item in items %}{% set label, route, icon = item[0], item[1], item[2] %}{% if item|length > 3 and item[3] %}<button class="lt-tab" type="button" data-lt-static-nav><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></button>{% else %}<a class="lt-tab{% if route == current %} is-active{% endif %}" href="#{{ route }}"{% if route == current %} aria-current="page"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></a>{% endif %}{% endfor %}</nav>
 {%- endmacro %}
 
+{#- Navegación del detalle de contacto: el regreso vive en la misma fila que las pestañas. -#}
 {% macro relationship_tabs(current) -%}
-{{ tabs([('Inicio','/relationships-show','bi-house'),('Planes','/relationships-plans','bi-map'),('Fechas importantes',None,'bi-calendar-heart',true),('Experiencias emocionales',None,'bi-heart',true),('Tareas relacionadas',None,'bi-list-check',true)], current) }}
+<div class="lt-detail-nav"><a class="lt-icon-button lt-detail-nav__back" href="#/relationships-index" aria-label="Volver a Relaciones" title="Volver a Relaciones"><i class="bi bi-arrow-left" aria-hidden="true"></i></a><span class="lt-detail-nav__divider" aria-hidden="true"></span>{{ tabs([('Inicio','/relationships-show','bi-house'),('Planes','/relationships-plans','bi-map'),('Historial','/relationships-history','bi-clock-history'),('Tareas relacionadas',None,'bi-list-check',true)], current) }}</div>
+{%- endmacro %}
+
+{#- Card resumida de gestión: mismo header que `manage_card` (ícono, título) con una acción de texto «Ver…», sin búsqueda, filtros ni paginación. -#}
+{% macro summary_card(id, title, icon, link_label=None, link_route=None) -%}
+<article class="lt-mcard lt-mcard--summary" id="{{ id }}" aria-labelledby="{{ id }}-title">
+  <header class="lt-mcard__head"><div class="lt-mcard__title"><span class="lt-mcard__icon" aria-hidden="true"><i class="bi {{ icon }}"></i></span><h3 id="{{ id }}-title"><span class="lt-mcard__heading-text">{{ title }}</span></h3></div>{% if link_label %}{% if link_route %}<a class="lt-button lt-button--text lt-mcard__link" href="#{{ link_route }}">{{ link_label }}</a>{% else %}<button class="lt-button lt-button--text lt-mcard__link" type="button" data-lt-static-nav>{{ link_label }}</button>{% endif %}{% endif %}</header>
+  <div class="lt-mcard__body">{{ caller() }}</div>
+</article>
 {%- endmacro %}
 
 {% macro vehicle_tabs(current) -%}
@@ -106,4 +115,19 @@
     </nav>
   </footer>{% endif %}
 </article>
+{%- endmacro %}
+
+{# Acción por fila en vistas de gestión: split outline (principal + chevron con menú); en compacto, ⋮ con todas las acciones. #}
+{% macro row_split(id, label, actions, aria) -%}
+<div class="lt-menu-anchor lt-row-split">
+  <div class="lt-split">
+    <button class="lt-button lt-split__main" type="button" data-lt-static-nav>{{ label }}</button>
+    <button class="lt-button lt-split__toggle" type="button" data-lt-toggle="{{ id }}" aria-haspopup="menu" aria-expanded="false" aria-label="Más acciones de {{ aria }}"><i class="bi bi-chevron-down"></i></button>
+  </div>
+  <button class="lt-icon-button lt-row-more" type="button" data-lt-toggle="{{ id }}" aria-haspopup="menu" aria-expanded="false" aria-label="Acciones de {{ aria }}"><i class="bi bi-three-dots-vertical"></i></button>
+  <div class="lt-menu lt-menu--down" id="{{ id }}" role="menu" hidden>
+    <button class="lt-menu__item lt-row-more__edit" role="menuitem" type="button" data-lt-static-nav>{{ label }}</button>
+    {% for a in actions %}{% if a|length > 2 and a[2] %}<hr class="lt-menu__divider">{% endif %}<button class="lt-menu__item{% if a|length > 2 and a[2] %} lt-menu__item--danger{% endif %}" role="menuitem" type="button" data-lt-static-nav><i class="bi {{ a[1] }}"></i> {{ a[0] }}</button>{% endfor %}
+  </div>
+</div>
 {%- endmacro %}

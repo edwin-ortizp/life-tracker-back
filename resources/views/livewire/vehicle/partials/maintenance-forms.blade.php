@@ -1,3 +1,37 @@
-@if($showPlanForm)<div class="md-dialog-backdrop"><div class="md-dialog vehicle-maintenance-dialog"><div class="d-flex justify-content-between align-items-center mb-3"><h2 class="md-title-large mb-0">Activar mantenimiento</h2><button wire:click="$set('showPlanForm', false)" class="md-btn-icon"><i class="bi bi-x-lg"></i></button></div><div class="row g-3"><div class="col-12"><label class="form-label">Plantilla *</label><select wire:model.live="templateId" class="form-select"><option value="">Selecciona un mantenimiento</option>@foreach($templates as $template)<option value="{{ $template->id }}">{{ $template->name }}</option>@endforeach</select>@error('templateId')<small class="text-danger">{{ $message }}</small>@enderror</div><div class="col-md-6"><label class="form-label">Cada cuántos días</label><input wire:model="planIntervalDays" type="number" min="1" class="form-control"></div><div class="col-md-6"><label class="form-label">Cada cuántos {{ $vehicle->usage_unit }}</label><input wire:model="planIntervalUsage" type="number" min="1" step=".01" class="form-control"></div><div class="col-md-6"><label class="form-label">Último servicio</label><input wire:model="planBaselineDate" type="date" class="form-control"></div><div class="col-md-6"><label class="form-label">Lectura al servicio</label><input wire:model="planBaselineUsage" type="number" min="0" step=".01" class="form-control"></div></div><div class="md-dialog-actions mt-4"><button wire:click="$set('showPlanForm', false)" class="md-btn-text">Cancelar</button><button wire:click="savePlan" class="md-btn-filled">Activar plan</button></div></div></div>@endif
+@isset($templates)
+    <x-ui.form-dialog :open="$showPlanForm" close="closePlanForm" submit-action="savePlan" id="vehicle-plan-dialog"
+                      title="Activar mantenimiento" icon="bi-calendar2-check" submit="Activar plan">
+        <div class="d-flex flex-column gap-3">
+            <x-ui.select name="templateId" label="Mantenimiento" placeholder="Selecciona un mantenimiento" :required="true"
+                         :options="$templates->mapWithKeys(fn ($template) => [$template->id => $template->name])->all()"
+                         :selected="$templateId" wire:model.live="templateId" />
+            <div class="md-field-pair">
+                <x-ui.field name="planIntervalDays" label="Cada cuántos días" type="number" min="1" wire:model="planIntervalDays" />
+                <x-ui.field name="planIntervalUsage" :label="'Cada cuántos '.($vehicle->usage_unit ?: 'de uso')" type="number" min="1" step=".01" wire:model="planIntervalUsage" />
+            </div>
+            <div class="md-field-pair">
+                <x-ui.field name="planBaselineDate" label="Último servicio" type="date" wire:model="planBaselineDate" />
+                <x-ui.field name="planBaselineUsage" label="Lectura al servicio" type="number" min="0" step=".01" wire:model="planBaselineUsage" />
+            </div>
+            <p class="md-body-small mb-0">Los intervalos parten de la recomendación del catálogo; ajústalos si el manual de tu vehículo indica otros.</p>
+        </div>
+    </x-ui.form-dialog>
+@endisset
 
-@if($showMaintenanceForm)<div class="md-dialog-backdrop"><div class="md-dialog vehicle-maintenance-dialog"><div class="d-flex justify-content-between align-items-center mb-3"><h2 class="md-title-large mb-0">Registrar servicio</h2><button wire:click="$set('showMaintenanceForm', false)" class="md-btn-icon"><i class="bi bi-x-lg"></i></button></div><div class="row g-3"><div class="col-md-6"><label class="form-label">Fecha *</label><input wire:model="maintenanceDate" type="date" class="form-control"></div><div class="col-md-6"><label class="form-label">Lectura {{ $vehicle->usage_unit }}</label><input wire:model="maintenanceUsageReading" type="number" min="0" step=".01" class="form-control">@error('maintenanceUsageReading')<small class="text-danger">{{ $message }}</small>@enderror</div><div class="col-md-6"><label class="form-label">Costo</label><input wire:model="maintenanceCost" type="number" min="0" step=".01" class="form-control"></div><div class="col-md-6"><label class="form-label">Proveedor</label><input wire:model="maintenanceProvider" class="form-control"></div><div class="col-12"><label class="form-label">Notas</label><textarea wire:model="maintenanceNotes" rows="3" class="form-control"></textarea></div></div><div class="md-dialog-actions mt-4"><button wire:click="$set('showMaintenanceForm', false)" class="md-btn-text">Cancelar</button><button wire:click="saveMaintenanceLog" class="md-btn-filled">Guardar servicio</button></div></div></div>@endif
+<x-ui.form-dialog :open="$showMaintenanceForm" close="closeMaintenanceForm" submit-action="saveMaintenanceLog" id="vehicle-service-dialog"
+                  :title="$editingMaintenanceLogId ? 'Editar servicio' : 'Registrar servicio'" icon="bi-wrench-adjustable"
+                  :submit="$editingMaintenanceLogId ? 'Guardar cambios' : 'Guardar servicio'">
+    <div class="d-flex flex-column gap-3">
+        <x-ui.select name="maintenancePlanId" label="Mantenimiento realizado" placeholder="Selecciona el mantenimiento" :required="true"
+                     :options="$planOptions" :selected="$maintenancePlanId" icon="bi-tools" wire:model="maintenancePlanId" />
+        <div class="md-field-pair">
+            <x-ui.field name="maintenanceDate" label="Fecha" type="date" :required="true" wire:model="maintenanceDate" />
+            <x-ui.field name="maintenanceUsageReading" :label="'Lectura ('.($vehicle->usage_unit ?: 'uso').')'" type="number" min="0" step=".01" icon="bi-speedometer2" wire:model="maintenanceUsageReading" />
+        </div>
+        <div class="md-field-pair">
+            <x-ui.field name="maintenanceCost" label="Costo" type="number" min="0" step=".01" icon="bi-cash" wire:model="maintenanceCost" />
+            <x-ui.field name="maintenanceProvider" label="Taller o proveedor" maxlength="120" icon="bi-shop" wire:model="maintenanceProvider" />
+        </div>
+        <x-ui.textarea name="maintenanceNotes" label="Notas" rows="3" wire:model="maintenanceNotes" />
+    </div>
+</x-ui.form-dialog>

@@ -1,5 +1,7 @@
 <x-layouts.catalog-screen title="Arquetipo de detalle">
-    <x-module-shell module="tasks" title="Preparar la compra semanal" subtitle="Comidas · vence hoy" archetype="detail">
+    <x-module-shell module="tasks" title="Preparar la compra semanal" subtitle="Comidas · vence hoy" archetype="detail"
+                    :tabs="[['label' => 'Resumen', 'route' => 'ui.catalog.archetype', 'params' => ['archetype' => 'detail'], 'icon' => 'bi-house', 'active' => ['ui.catalog.archetype']], ['label' => 'Historial', 'route' => 'ui.catalog', 'icon' => 'bi-clock-history', 'active' => ['ui.catalog.none']]]"
+                    :back="['href' => route('ui.catalog'), 'label' => 'Volver al catálogo']">
         <x-slot:actions>
             <x-ui.action variant="outlined" icon="bi-clock-history">Posponer</x-ui.action>
             <x-ui.action variant="filled" icon="bi-check2">Completar</x-ui.action>

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\Relationship\RelationshipEvents;
+use App\Livewire\Relationship\RelationshipHistory;
 use App\Livewire\Relationship\RelationshipShow;
 use App\Models\Relationship;
 use App\Models\RelationshipEvent;
@@ -153,12 +154,18 @@ class RelationshipTimelineTest extends TestCase
         $event = RelationshipEvent::factory()->forRelationship($this->relationship)->create(['title' => 'Mudanza']);
 
         $component = Livewire::test(RelationshipShow::class, ['relationship' => $this->relationship->id])
+            ->assertSee('Mudanza')
             ->call('toggleEventArchive', $event->id)
             ->assertDontSee('Mudanza');
 
         $this->assertTrue($event->fresh()->is_archived);
 
-        $component->set('showArchivedEvents', true)->assertSee('Mudanza');
+        // Archived events are only listed on demand, from the full history.
+        Livewire::test(RelationshipHistory::class, ['relationship' => $this->relationship->id])
+            ->assertDontSee('Mudanza')
+            ->set('archived', true)
+            ->assertSee('Mudanza')
+            ->assertSee('Archivado');
 
         $component->call('toggleEventArchive', $event->id);
         $this->assertFalse($event->fresh()->is_archived);

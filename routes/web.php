@@ -47,6 +47,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/vehicles/{vehicle}', \App\Livewire\Vehicle\VehicleShow::class)->name('vehicles.show');
     Route::get('/vehicles/{vehicle}/fuel', \App\Livewire\Vehicle\VehicleFuel::class)->name('vehicles.fuel');
     Route::get('/vehicles/{vehicle}/maintenance', \App\Livewire\Vehicle\VehicleMaintenance::class)->name('vehicles.maintenance');
+    Route::get('/vehicles/{vehicle}/services', \App\Livewire\Vehicle\VehicleServices::class)->name('vehicles.services');
+    Route::get('/vehicles/{vehicle}/expenses', \App\Livewire\Vehicle\VehicleExpenses::class)->name('vehicles.expenses');
     Route::get('/habits', \App\Livewire\Habit\HabitTracker::class)->name('habits');
     Route::get('/habits/weekly', \App\Livewire\Habit\HabitWeekly::class)->name('habits.weekly');
     Route::get('/mood', \App\Livewire\Mood\MoodTracker::class)->name('mood');
@@ -74,6 +76,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/relationships/birthdays', \App\Livewire\Relationship\RelationshipBirthdays::class)->name('relationships.birthdays');
     Route::get('/relationships/{relationship}', \App\Livewire\Relationship\RelationshipShow::class)->name('relationships.show');
     Route::get('/relationships/{relationship}/plans', \App\Livewire\Relationship\RelationshipPlans::class)->name('relationships.plans');
+    Route::get('/relationships/{relationship}/history', \App\Livewire\Relationship\RelationshipHistory::class)->name('relationships.history');
+    Route::get('/relationships/{relationship}/tasks', \App\Livewire\Relationship\RelationshipTasks::class)->name('relationships.tasks');
     Route::get('/plans', \App\Livewire\Plan\PlanIndex::class)->name('plans');
     Route::get('/plans/{plan}', \App\Livewire\Plan\PlanShow::class)->name('plans.show');
     Route::get('/goals', \App\Livewire\Goal\GoalIndex::class)->name('goals');
