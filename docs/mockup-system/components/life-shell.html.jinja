@@ -1,4 +1,5 @@
-{% macro shell(module, title, icon, catalog_navigation=None, status=None) -%}
+{#- `back` = (ruta, etiqueta): en un detalle sin pestañas el regreso va en la barra superior, antes del ícono del módulo. -#}
+{% macro shell(module, title, icon, catalog_navigation=None, status=None, back=None) -%}
 {% set sections = [
   ('Vista general', [('Mi día','bi-sunrise','home'),('Estadísticas','bi-bar-chart','statistics'),('Ajustes','bi-gear','settings')]),
   ('Salud y cuerpo', [('Salud','bi-heart-pulse','health'),('Ejercicio','bi-activity','exercise'),('Hidratación','bi-droplet','hydration'),('Comidas','bi-egg-fried','meals')]),
@@ -16,7 +17,7 @@
   </aside>
   <button class="lt-scrim" type="button" data-lt-close-drawer aria-label="Cerrar módulos"></button>
   <div class="lt-shell__body">
-    <header class="lt-topbar"><button class="lt-icon-button" type="button" data-lt-nav-toggle aria-label="Mostrar módulos"><i class="bi bi-list" aria-hidden="true"></i></button><span class="lt-topbar__icon" aria-hidden="true"><i class="bi {{ icon }}"></i></span><h1 class="lt-topbar__title">{{ title }}</h1>{% if status %}<span class="lt-chip lt-chip--success lt-topbar__status">{{ status }}</span>{% endif %}<div class="lt-search" role="search"><i class="bi bi-search" aria-hidden="true"></i><label class="lt-sr-only" for="lt-search-{{ module }}">Buscar en todos los módulos</label><input id="lt-search-{{ module }}" type="search" placeholder="Buscar en todos los módulos…" data-lt-search-input></div><button class="lt-icon-button lt-topbar__search-button" type="button" data-lt-search aria-label="Buscar"><i class="bi bi-search" aria-hidden="true"></i></button><div class="lt-topbar__tools"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Ajustes"><i class="bi bi-gear" aria-hidden="true"></i></button><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Notificaciones"><i class="bi bi-bell" aria-hidden="true"></i></button><button class="lt-profile" type="button" data-lt-static-nav aria-label="Abrir menú de perfil" aria-haspopup="menu"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C9B8A6'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23E8C4A2'/%3E%3Cpath d='M25 28c0-11 7-17 15-17s16 6 15 17c-3-5-8-7-15-7s-12 2-15 7z' fill='%233B2A20'/%3E%3Cpath d='M12 80c2-17 13-25 28-25s26 8 28 25z' fill='%23455A64'/%3E%3C/svg%3E" alt="" width="40" height="40"></button></div></header>
+    <header class="lt-topbar"><button class="lt-icon-button" type="button" data-lt-nav-toggle aria-label="Mostrar módulos"><i class="bi bi-list" aria-hidden="true"></i></button>{% if back %}<a class="lt-icon-button lt-topbar__back" href="#{{ back[0] }}" aria-label="{{ back[1] }}" title="{{ back[1] }}"><i class="bi bi-arrow-left" aria-hidden="true"></i></a>{% endif %}<span class="lt-topbar__icon" aria-hidden="true"><i class="bi {{ icon }}"></i></span><h1 class="lt-topbar__title">{{ title }}</h1>{% if status %}<span class="lt-chip lt-chip--success lt-topbar__status">{{ status }}</span>{% endif %}<div class="lt-search" role="search"><i class="bi bi-search" aria-hidden="true"></i><label class="lt-sr-only" for="lt-search-{{ module }}">Buscar en todos los módulos</label><input id="lt-search-{{ module }}" type="search" placeholder="Buscar en todos los módulos…" data-lt-search-input></div><button class="lt-icon-button lt-topbar__search-button" type="button" data-lt-search aria-label="Buscar"><i class="bi bi-search" aria-hidden="true"></i></button><div class="lt-topbar__tools"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Ajustes"><i class="bi bi-gear" aria-hidden="true"></i></button><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Notificaciones"><i class="bi bi-bell" aria-hidden="true"></i></button><button class="lt-profile" type="button" data-lt-static-nav aria-label="Abrir menú de perfil" aria-haspopup="menu"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C9B8A6'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23E8C4A2'/%3E%3Cpath d='M25 28c0-11 7-17 15-17s16 6 15 17c-3-5-8-7-15-7s-12 2-15 7z' fill='%233B2A20'/%3E%3Cpath d='M12 80c2-17 13-25 28-25s26 8 28 25z' fill='%23455A64'/%3E%3C/svg%3E" alt="" width="40" height="40"></button></div></header>
     <main class="lt-main"><div class="lt-page">{{ caller() }}</div></main>
     <nav class="lt-bottom" aria-label="Destinos principales"><button class="lt-bottom__item{% if module == 'home' %} is-active{% endif %}" type="button" data-lt-static-nav><i class="bi bi-house" aria-hidden="true"></i><span>Inicio</span></button><button class="lt-bottom__item{% if module == 'habits' %} is-active{% endif %}" type="button" data-lt-static-nav><i class="bi bi-check2-square" aria-hidden="true"></i><span>Hábitos</span></button><button class="lt-bottom__item{% if module == 'tasks' %} is-active{% endif %}" type="button" data-lt-static-nav><i class="bi bi-list-task" aria-hidden="true"></i><span>Tareas</span></button><button class="lt-bottom__item" type="button" data-lt-static-nav><i class="bi bi-bar-chart" aria-hidden="true"></i><span>Stats</span></button><button class="lt-bottom__item" type="button" data-lt-open-drawer><i class="bi bi-grid" aria-hidden="true"></i><span>Módulos</span></button></nav>
   </div>
@@ -27,9 +28,14 @@
 <nav class="lt-tabs" aria-label="Vistas del módulo">{% for item in items %}{% set label, route, icon = item[0], item[1], item[2] %}{% if item|length > 3 and item[3] %}<button class="lt-tab" type="button" data-lt-static-nav><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></button>{% else %}<a class="lt-tab{% if route == current %} is-active{% endif %}" href="#{{ route }}"{% if route == current %} aria-current="page"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></a>{% endif %}{% endfor %}</nav>
 {%- endmacro %}
 
-{#- Navegación del detalle de contacto: el regreso vive en la misma fila que las pestañas. -#}
+{#- Navegación de detalle (pilar transversal): el ← vive al inicio de la fila de pestañas, seguido de un divisor.
+    Nunca se agrega una fila solo para «Volver». Un detalle sin pestañas usa shell(back=…). -#}
+{% macro detail_nav(items, current, back_route, back_label) -%}
+<div class="lt-detail-nav"><a class="lt-icon-button lt-detail-nav__back" href="#{{ back_route }}" aria-label="{{ back_label }}" title="{{ back_label }}"><i class="bi bi-arrow-left" aria-hidden="true"></i></a><span class="lt-detail-nav__divider" aria-hidden="true"></span>{{ tabs(items, current) }}</div>
+{%- endmacro %}
+
 {% macro relationship_tabs(current) -%}
-<div class="lt-detail-nav"><a class="lt-icon-button lt-detail-nav__back" href="#/relationships-index" aria-label="Volver a Relaciones" title="Volver a Relaciones"><i class="bi bi-arrow-left" aria-hidden="true"></i></a><span class="lt-detail-nav__divider" aria-hidden="true"></span>{{ tabs([('Inicio','/relationships-show','bi-house'),('Planes','/relationships-plans','bi-map'),('Historial','/relationships-history','bi-clock-history'),('Tareas relacionadas',None,'bi-list-check',true)], current) }}</div>
+{{ detail_nav([('Inicio','/relationships-show','bi-house'),('Planes','/relationships-plans','bi-map'),('Historial','/relationships-history','bi-clock-history'),('Tareas relacionadas',None,'bi-list-check',true)], current, '/relationships-index', 'Volver a Relaciones') }}
 {%- endmacro %}
 
 {#- Card resumida de gestión: mismo header que `manage_card` (ícono, título) con una acción de texto «Ver…», sin búsqueda, filtros ni paginación. -#}
@@ -41,12 +47,11 @@
 {%- endmacro %}
 
 {% macro vehicle_tabs(current) -%}
-{{ tabs([('Resumen','/vehicles-show','bi-speedometer2'),('Combustible','/vehicles-fuel','bi-fuel-pump'),('Mantenimientos','/vehicles-maintenance','bi-wrench-adjustable'),('Gastos','/vehicles-expenses','bi-wallet2')], current) }}
+{{ detail_nav([('Resumen','/vehicles-show','bi-speedometer2'),('Combustible','/vehicles-fuel','bi-fuel-pump'),('Mantenimientos','/vehicles-maintenance','bi-wrench-adjustable'),('Gastos','/vehicles-expenses','bi-wallet2')], current, '/vehicles-index', 'Volver al garaje') }}
 {%- endmacro %}
 
-{% macro header(title, subtitle, icon, back=None) -%}
-{% if back %}<a class="lt-page-head__back lt-page-back" href="#{{ back }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver</a>{% endif %}
-{%- endmacro %}
+{#- Sin encabezado dentro del contenido: la identidad vive en la barra superior y el regreso usa detail_nav o shell(back=…). -#}
+{% macro header(title, subtitle, icon, back=None) -%}{%- endmacro %}
 
 {% macro metric(label, value, tone='primary') -%}<article class="lt-metric lt-metric--{{ tone }}"><span>{{ label }}</span><strong>{{ value }}</strong></article>{%- endmacro %}
 

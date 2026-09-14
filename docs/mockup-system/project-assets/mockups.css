@@ -334,3 +334,5 @@ a.lt-menu__item{text-decoration:none}.lt-plans__search{flex:1 1 280px}.lt-plans_
 .lt-row-split{display:inline-block;position:relative}
 .lt-summary-field__meta{margin:6px 4px 0;text-align:right}
 .lt-field--icon>span{z-index:2}
+/* Navegación de detalle sin pestañas: ← en la barra superior, antes del ícono del módulo */
+.lt-topbar__back{flex:none;color:var(--md-on-surface-variant);text-decoration:none}.lt-topbar .lt-topbar__back+.lt-topbar__icon{margin-left:-6px}

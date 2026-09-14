@@ -190,9 +190,11 @@ class RelationshipDetailTest extends TestCase
 
         Livewire::test(RelationshipHistory::class, ['relationship' => $this->camila->id])
             ->set('perPage', 10)
-            ->assertSee('(10 / 12)')
+            ->assertSee('(12 / 12)')
+            ->assertSeeHtml('Mostrando <strong>1–10</strong> de <strong>12</strong> registros')
             ->assertSee('Momento 12')
-            ->assertDontSee('Momento 2<');
+            ->assertSee('Momento 3')
+            ->assertDontSee('Momento 2');
     }
 
     public function test_quick_stats_summarise_contact_frequency_moments_and_pending_plans(): void

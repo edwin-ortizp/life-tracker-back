@@ -24,6 +24,8 @@ final class VehicleTabs
                 ? null
                 : ['label' => $energyUi['tab'] ?? 'Energía', 'route' => 'vehicles.fuel', 'params' => $params, 'icon' => 'bi-fuel-pump', 'active' => ['vehicles.fuel'], 'navigate' => false],
             ['label' => 'Mantenimiento', 'route' => 'vehicles.maintenance', 'params' => $params, 'icon' => 'bi-tools', 'active' => ['vehicles.maintenance'], 'navigate' => false],
+            ['label' => 'Servicios', 'route' => 'vehicles.services', 'params' => $params, 'icon' => 'bi-clock-history', 'active' => ['vehicles.services'], 'navigate' => false],
+            ['label' => 'Gastos', 'route' => 'vehicles.expenses', 'params' => $params, 'icon' => 'bi-wallet2', 'active' => ['vehicles.expenses'], 'navigate' => false],
         ]));
     }
 
