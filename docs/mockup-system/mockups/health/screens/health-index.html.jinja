@@ -6,7 +6,7 @@
     {% call(zone) manage_card('health-timeline', 'Cronología de salud', 'bi-clock-history', count='(25 / 58)', total=58, search='Buscar eventos', filters=2,
       menu=[('Exportar CSV','bi-filetype-csv'),('Descargar PDF','bi-file-earmark-pdf'),('Imprimir historial','bi-printer'),('Ver estadísticas','bi-bar-chart-line')],
       footer={'from':1,'to':25,'total':58,'noun':'eventos','page':1,'pages':3,'per_page':25}) %}{% if zone == 'filters' %}
-      <div class="lt-popover" id="health-timeline-filters" role="dialog" aria-labelledby="health-filters-title" hidden>
+      <div class="lt-popover" id="health-timeline-filters" role="dialog" aria-labelledby="health-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="health-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="health-timeline-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <label class="lt-field"><span>Rango de tiempo</span><select>{% for r in ['Últimos 30 días','Últimos 60 días','Últimos 6 meses','Último año','Todo el historial'] %}<option{% if r == 'Últimos 60 días' %} selected{% endif %}>{{ r }}</option>{% endfor %}</select></label>
         <label class="lt-field"><span>Estado</span><select>{% for r in ['Todos','En seguimiento','Recuperados'] %}<option{% if r == 'En seguimiento' %} selected{% endif %}>{{ r }}</option>{% endfor %}</select></label>
@@ -15,7 +15,7 @@
             <div class="lt-multiselect__panel" id="health-type-options" role="listbox" aria-multiselectable="true" hidden>{% for r in ['Síntoma','Enfermedad','Cita','Control','Procedimiento','Vacuna'] %}<label class="lt-multiselect__option"><input type="checkbox"> {{ r }}</label>{% endfor %}</div>
           </div>
         </div>
-        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="health-timeline-filters">Aplicar</button></div>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="health-timeline-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     {% else %}
     <div class="lt-chip-row lt-applied-filters" aria-label="Filtros aplicados">

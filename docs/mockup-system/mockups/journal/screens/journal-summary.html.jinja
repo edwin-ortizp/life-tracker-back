@@ -4,7 +4,7 @@
 <section class="lt-stack">
   {% call(zone) manage_card('journal-summary', 'Resumen del diario', 'bi-card-list', count='(14 / 212)', total=212, search='Buscar en los resúmenes', filters=1,
     footer={'from':1,'to':14,'total':14,'noun':'días','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
-    <div class="lt-popover" id="journal-summary-filters" role="dialog" aria-labelledby="journal-summary-filters-title" hidden>
+    <div class="lt-popover" id="journal-summary-filters" role="dialog" aria-labelledby="journal-summary-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
       <div class="lt-popover__head"><h4 id="journal-summary-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="journal-summary-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
       <label class="lt-field"><span>Periodo</span><select>{% for r in ['Último mes','Últimos 6 meses','Último año','Todo el historial','Personalizado'] %}<option{% if r == 'Último mes' %} selected{% endif %}>{{ r }}</option>{% endfor %}</select></label>
       <div class="lt-summary-range">
@@ -12,7 +12,7 @@
         <label class="lt-field"><span>Hasta</span><input type="date" value="2026-09-13"></label>
       </div>
       <p class="lt-page-head__subtitle">Desde y Hasta aplican al elegir «Personalizado».</p>
-      <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Restablecer</button><button class="lt-button" type="button" data-lt-toggle="journal-summary-filters">Aplicar</button></div>
+      <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="journal-summary-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
     </div>
   {% else %}
     <div class="lt-chip-row lt-applied-filters" aria-label="Filtros aplicados">

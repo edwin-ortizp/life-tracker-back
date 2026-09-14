@@ -21,8 +21,8 @@
             <x-ui.select name="sort" label="Ordenar por" :options="$sorts" :selected="$sort" icon="bi-sort-down" wire:model.live="sort" />
         </x-slot:filters>
         <x-slot:filterActions>
-            <x-ui.action variant="text" wire:click="clearFilters">Limpiar</x-ui.action>
-            <x-ui.action variant="filled" x-on:click="filtersOpen = false">Aplicar</x-ui.action>
+            <x-ui.action variant="outlined" icon="bi-eraser" wire:click="clearFilters">Limpiar</x-ui.action>
+            <x-ui.action variant="filled" icon="bi-funnel-fill" x-on:click="filtersOpen = false">Filtrar</x-ui.action>
         </x-slot:filterActions>
         <x-slot:menu>
             <x-ui.menu-item icon="bi-shuffle" wire:click="surprise">Sorpréndeme</x-ui.menu-item>

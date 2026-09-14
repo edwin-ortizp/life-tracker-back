@@ -3,11 +3,11 @@
 {{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Estadísticas','/exercise-statistics','bi-bar-chart-line'),('Ajustes','/exercise-settings','bi-sliders')], '/exercise-settings') }}
 <section class="lt-metrics">{{ metric('Tipos de ejercicio','21') }}{{ metric('Con registros','8 de 21','success') }}{{ metric('Sin registros','13','warning') }}</section>
 {% call(zone) manage_card('exercise-types', 'Tipos de ejercicio', 'bi-activity', count='(13 / 21)', total=21, search='Buscar tipo de ejercicio', menu=[('Restaurar predeterminados', 'bi-arrow-counterclockwise', 'exercise-type-restore'), ('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':13,'total':21,'noun':'tipos','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
-      <div class="lt-popover" id="exercise-types-filters" role="dialog" aria-labelledby="exercise-types-filters-title" hidden>
+      <div class="lt-popover" id="exercise-types-filters" role="dialog" aria-labelledby="exercise-types-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="exercise-types-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="exercise-types-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <div class="lt-field"><span>Categoría</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Todas</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Cardio</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Deportes</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Fuerza</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Flexibilidad</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Sin categoría</button></div></div>
         <label class="lt-field"><span>Uso</span><select><option>Todos</option><option>Con registros</option><option>Sin registros</option></select></label>
-        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="exercise-types-filters">Aplicar</button></div>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="exercise-types-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     {% else %}
 {% for cat, cicon, items in [

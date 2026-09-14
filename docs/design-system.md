@@ -151,6 +151,7 @@ Base visual de **todos** los formularios, no solo de los modales:
 
 - **Más opciones (⋮)**: `x-ui.menu` con `x-ui.menu-item` y `x-ui.menu-divider`. La acción principal queda visible (tonal o filled) y las secundarias van al menú, con las destructivas al final tras un divisor y `tone="danger"`. Nunca un grupo de botones grandes sueltos.
 - **Filtros**: un único botón "Filtros" (outlined) que abre `x-ui.popover` con todas las opciones, incluido el rango de tiempo; no se duplica el concepto con un selector aparte. Con filtros activos el botón lleva `x-ui.badge placement="corner"` con el número. Debajo se listan como chips removibles y, si hay al menos uno, el enlace "Limpiar filtros".
+- **Filtros en móvil (< 768 px)**: el mismo `x-ui.popover` se presenta como hoja inferior: scrim, bordes superiores redondeados, indicador de arrastre, título «Filtros», contenido con scroll y footer fijo con línea divisoria. El footer lleva solo «Limpiar» (outlined, izquierda) y «Filtrar» (filled, derecha); no hay Cancelar ni ✕. Se cierra deslizando hacia abajo, tocando fuera o con Escape. En escritorio sigue siendo popover anclado al botón.
 - **Opciones simples y múltiples**: `x-ui.select` para una opción, `x-ui.multi-select` (checkboxes) para varias.
 - **Botón flotante**: ver [Acciones de creación](#acciones-de-creación).
 - **Pestañas de módulo**: sin fondo ni pastilla; el estado activo es el color de acento con un indicador inferior de 3 px.

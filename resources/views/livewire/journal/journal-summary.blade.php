@@ -16,8 +16,8 @@
             </div>
         </x-slot:filters>
         <x-slot:filterActions>
-            <x-ui.action variant="text" wire:click="clearFilters" x-on:click="filtersOpen = false">Restablecer</x-ui.action>
-            <x-ui.action variant="filled" x-on:click="$wire.applyFilters(draftPeriod, draftFrom, draftTo); filtersOpen = false">Aplicar</x-ui.action>
+            <x-ui.action variant="outlined" icon="bi-eraser" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+            <x-ui.action variant="filled" icon="bi-funnel-fill" x-on:click="$wire.applyFilters(draftPeriod, draftFrom, draftTo); filtersOpen = false">Filtrar</x-ui.action>
         </x-slot:filterActions>
 
         <x-slot:strip>

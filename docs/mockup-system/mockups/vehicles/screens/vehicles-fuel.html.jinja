@@ -6,12 +6,12 @@
 <section class="lt-metrics">{{ metric('Rendimiento último tanque','14,8 km/gal','success') }}{{ metric('Gasto del mes','$ 412.000') }}{{ metric('Precio promedio','$ 15.980 / gal','warning') }}</section>
 <section>
   {% call(zone) manage_card('fuel', 'Historial de repostajes', 'bi-fuel-pump', count='(4 / 32)', total=32, search='Buscar estación o fecha', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':4,'total':32,'noun':'repostajes','page':1,'pages':2,'per_page':25}) %}{% if zone == 'filters' %}
-      <div class="lt-popover" id="fuel-filters" role="dialog" aria-labelledby="fuel-filters-title" hidden>
+      <div class="lt-popover" id="fuel-filters" role="dialog" aria-labelledby="fuel-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="fuel-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="fuel-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <label class="lt-field"><span>Periodo</span><select><option>Último mes</option><option selected>Últimos 3 meses</option><option>Último año</option><option>Todo el historial</option></select></label>
         <label class="lt-field"><span>Estación</span><select><option>Todas</option><option>Terpel Av. 68</option><option>Esso Calle 80</option><option>Primax Autopista</option></select></label>
         <div class="lt-field"><span>Tanque</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Todos</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Lleno</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Parcial</button></div></div>
-        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="fuel-filters">Aplicar</button></div>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="fuel-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     {% else %}
 <div class="lt-list">

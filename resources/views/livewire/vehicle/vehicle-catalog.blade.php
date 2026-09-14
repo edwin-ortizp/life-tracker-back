@@ -49,7 +49,8 @@
         </x-slot:filters>
         @if ($catalogActive)
             <x-slot:filterActions>
-                <x-ui.action variant="text" icon="bi-x-circle" wire:click="clearCatalogFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+                <x-ui.action variant="outlined" icon="bi-eraser" wire:click="clearCatalogFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+                <x-ui.action variant="filled" icon="bi-funnel-fill" x-on:click="filtersOpen = false">Filtrar</x-ui.action>
             </x-slot:filterActions>
         @endif
 

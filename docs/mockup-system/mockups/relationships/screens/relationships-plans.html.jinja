@@ -24,7 +24,7 @@
         <button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-shuffle"></i> Sorpréndeme</button>
         <button class="lt-button lt-button--text lt-filter-button" type="button" data-lt-toggle="plans-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="plans-filters"><i class="bi bi-sliders"></i> Filtros<span class="lt-badge lt-badge--corner" data-lt-filter-count hidden>0</span></button>
       </div>
-      <div class="lt-popover" id="plans-filters" role="dialog" aria-labelledby="plans-filters-title" hidden>
+      <div class="lt-popover" id="plans-filters" role="dialog" aria-labelledby="plans-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="plans-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="plans-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <label class="lt-field"><span>Ciudad</span><select>{% for r in ['Todas','Popayán','Bogotá','Cartagena'] %}<option>{{ r }}</option>{% endfor %}</select></label>
         <div class="lt-field"><span id="plans-type-label">Tipo de plan</span>
@@ -36,7 +36,7 @@
         <label class="lt-field"><span>Estado</span><select>{% for r in ['Todos','Pendientes','Programados','Realizados'] %}<option>{{ r }}</option>{% endfor %}</select></label>
         <label class="lt-field"><span>Fecha</span><select>{% for r in ['Cualquier fecha','Con fecha','Sin fecha','Próximos 30 días','Próximos 3 meses'] %}<option>{{ r }}</option>{% endfor %}</select></label>
         <label class="lt-field"><span>Persona</span><select disabled><option>Camila Rojas</option></select><small>Disponible fuera de la relación</small></label>
-        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="plans-filters">Aplicar</button></div>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="plans-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     </div>
     <div class="lt-chip-row" aria-label="Estado de los planes">{% for label, n, icon, sel in [('Todos',12,'bi-grid',true),('Pendientes',8,'bi-bookmark',false),('Programados',2,'bi-calendar-event',false),('Realizados',2,'bi-check2',false)] %}<button class="lt-chip lt-chip--filter{% if sel %} is-selected{% endif %}" type="button" data-lt-static-nav{% if sel %} aria-pressed="true"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i> {{ label }} ({{ n }})</button>{% endfor %}</div>

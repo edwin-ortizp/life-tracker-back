@@ -3,11 +3,11 @@
 {{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-ingredients') }}
 <section class="lt-grid-main">
   {% call(zone) manage_card('ingredients', 'Catálogo de ingredientes', 'bi-basket', count='(9 / 86)', total=86, search='Buscar ingredientes', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':9,'total':86,'noun':'ingredientes','page':1,'pages':4,'per_page':25}) %}{% if zone == 'filters' %}
-      <div class="lt-popover" id="ingredients-filters" role="dialog" aria-labelledby="ingredients-filters-title" hidden>
+      <div class="lt-popover" id="ingredients-filters" role="dialog" aria-labelledby="ingredients-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="ingredients-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="ingredients-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <div class="lt-field"><span>Inventario</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Todos</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>En stock</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Por agotarse</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Sin stock</button></div></div>
         <label class="lt-field"><span>Categoría</span><select><option>Todas</option><option>Verduras y frutas</option><option>Proteínas</option><option>Lácteos</option><option>Despensa</option><option>Especias</option></select></label>
-        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="ingredients-filters">Aplicar</button></div>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="ingredients-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     {% else %}
 

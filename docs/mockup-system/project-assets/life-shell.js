@@ -49,3 +49,20 @@ export function mountLifeShell({root, scope, toast}) {
   });
   scope.on(window, 'keydown', event => { if (event.key === 'Escape') { closePopups(null); root.querySelectorAll('.lt-mcard.is-searching').forEach(c => c.classList.remove('is-searching')); } if (event.key === 'Escape') root.querySelector('.lt-shell')?.classList.remove('is-drawer-open'); });
 }
+
+// Hoja inferior de filtros en móvil: arrastrar el indicador hacia abajo la cierra.
+document.addEventListener('pointerdown', event => {
+  const handle = event.target.closest('.lt-popover__handle'); if (!handle || !matchMedia('(max-width: 767.98px)').matches) return;
+  const sheet = handle.closest('.lt-popover'); const start = event.clientY; let dy = 0;
+  const move = e => { dy = Math.max(0, e.clientY - start); sheet.style.transform = `translateY(${dy}px)`; };
+  const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); sheet.style.transform = ''; if (dy > 80) { sheet.hidden = true; document.querySelectorAll(`[data-lt-toggle="${sheet.id}"][aria-expanded]`).forEach(b => b.setAttribute('aria-expanded', 'false')); } };
+  addEventListener('pointermove', move); addEventListener('pointerup', up);
+});
+// El scrim de la hoja (::before de .lt-popover) recibe el toque: cerrar si cae fuera del panel, sin activar lo que hay debajo.
+document.addEventListener('click', event => {
+  const sheet = event.target.classList?.contains('lt-popover') ? event.target : null;
+  if (!sheet || !matchMedia('(max-width: 767.98px)').matches) return;
+  if (event.clientY >= sheet.getBoundingClientRect().top) return;
+  event.stopImmediatePropagation(); sheet.hidden = true;
+  document.querySelectorAll(`[data-lt-toggle="${sheet.id}"][aria-expanded]`).forEach(b => b.setAttribute('aria-expanded', 'false'));
+}, true);

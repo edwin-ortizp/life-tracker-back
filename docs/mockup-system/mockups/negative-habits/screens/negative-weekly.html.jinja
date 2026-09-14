@@ -5,11 +5,11 @@
 <section class="lt-metrics">{{ metric('Incidencias esta semana','6','warning') }}{{ metric('Días limpios','8 de 12','success') }}{{ metric('Frente a la semana pasada','−40 %','success') }}</section>
 <section class="lt-stack">
   {% call(zone) manage_card('negative-week', 'Registro semanal', 'bi-calendar-week', search='Buscar hábito', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':4,'total':4,'noun':'hábitos','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
-      <div class="lt-popover" id="negative-week-filters" role="dialog" aria-labelledby="negative-week-filters-title" hidden>
+      <div class="lt-popover" id="negative-week-filters" role="dialog" aria-labelledby="negative-week-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="negative-week-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="negative-week-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <div class="lt-field"><span>Hábito</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Todos</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Redes sociales de noche</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Gaseosa</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Compras impulsivas</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Picar entre comidas</button></div></div>
         <label class="lt-field"><span>Estado</span><select><option>Todos</option><option>Dentro del límite</option><option>Fuera del límite</option></select></label>
-        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="negative-week-filters">Aplicar</button></div>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="negative-week-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     {% else %}
     <p class="lt-section-label">Toca un día para registrar</p>

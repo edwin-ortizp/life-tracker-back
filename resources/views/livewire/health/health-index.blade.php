@@ -24,8 +24,8 @@
             <x-ui.multi-select name="types" model-expression="draftTypes" :live="false" label="Tipo" :options="$typeLabels" all-label="Todos los tipos" icon="bi-tag" />
         </x-slot:filters>
         <x-slot:filterActions>
-            <x-ui.action variant="text" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
-            <x-ui.action variant="filled" x-on:click="$wire.applyFilters(draftRange, draftStatus, draftTypes); filtersOpen = false">Aplicar</x-ui.action>
+            <x-ui.action variant="outlined" icon="bi-eraser" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+            <x-ui.action variant="filled" icon="bi-funnel-fill" x-on:click="$wire.applyFilters(draftRange, draftStatus, draftTypes); filtersOpen = false">Filtrar</x-ui.action>
         </x-slot:filterActions>
         @if ($statisticsRoute)
             <x-slot:menu>

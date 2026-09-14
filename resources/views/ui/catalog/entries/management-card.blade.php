@@ -9,8 +9,8 @@
             <x-ui.select name="catalog-mcard-range" label="Rango de tiempo" :options="\App\Support\Ui\CatalogFixtures::periodOptions()" />
         </x-slot:filters>
         <x-slot:filterActions>
-            <x-ui.action variant="text">Limpiar</x-ui.action>
-            <x-ui.action x-on:click="filtersOpen = false">Aplicar</x-ui.action>
+            <x-ui.action variant="outlined" icon="bi-eraser">Limpiar</x-ui.action>
+            <x-ui.action variant="filled" icon="bi-funnel-fill" x-on:click="filtersOpen = false">Filtrar</x-ui.action>
         </x-slot:filterActions>
         <x-slot:menu>
             <x-ui.menu-item icon="bi-filetype-csv">Exportar CSV</x-ui.menu-item>

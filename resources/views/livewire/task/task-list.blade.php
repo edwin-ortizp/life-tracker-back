@@ -57,7 +57,8 @@
         </x-slot:filters>
         @if ($activeFilterCount)
             <x-slot:filterActions>
-                <x-ui.action variant="text" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+                <x-ui.action variant="outlined" icon="bi-eraser" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+                <x-ui.action variant="filled" icon="bi-funnel-fill" x-on:click="filtersOpen = false">Filtrar</x-ui.action>
             </x-slot:filterActions>
         @endif
         <x-slot:menu>

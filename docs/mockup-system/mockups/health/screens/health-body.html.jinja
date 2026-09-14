@@ -15,7 +15,7 @@
     <div class="lt-section-head lt-filter-anchor">
       <h3><i class="bi bi-person-standing"></i> Mapa corporal <span class="lt-count" title="Eventos con zona del cuerpo en el periodo">(17 eventos)</span></h3>
       <button class="lt-button lt-button--text lt-filter-button" type="button" data-lt-toggle="body-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="body-filters"><i class="bi bi-sliders"></i> Filtros<span class="lt-badge lt-badge--corner" data-lt-filter-count aria-label="1 filtro activo">1</span></button>
-      <div class="lt-popover" id="body-filters" role="dialog" aria-labelledby="body-filters-title" hidden>
+      <div class="lt-popover" id="body-filters" role="dialog" aria-labelledby="body-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="body-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="body-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <label class="lt-field lt-field--icon"><span>Periodo</span><i class="bi bi-calendar-range" aria-hidden="true"></i><select>{% for r in ['Últimos 30 días','Últimos 6 meses','Últimos 12 meses','Este año','Todo el historial'] %}<option{% if r == 'Últimos 12 meses' %} selected{% endif %}>{{ r }}</option>{% endfor %}</select></label>
         <label class="lt-field lt-field--icon"><span>Estado</span><i class="bi bi-activity" aria-hidden="true"></i><select>{% for r in ['Todos','En seguimiento','Recuperados'] %}<option>{{ r }}</option>{% endfor %}</select></label>
@@ -24,7 +24,7 @@
             <div class="lt-multiselect__panel" id="body-type-options" role="listbox" aria-multiselectable="true" hidden>{% for r in ['Síntoma','Enfermedad','Procedimiento'] %}<label class="lt-multiselect__option"><input type="checkbox"> {{ r }}</label>{% endfor %}</div>
           </div>
         </div>
-        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-clear-filters>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="body-filters">Aplicar</button></div>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-clear-filters><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="body-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     </div>
     <div class="lt-chip-row lt-applied-filters" aria-label="Filtros aplicados">

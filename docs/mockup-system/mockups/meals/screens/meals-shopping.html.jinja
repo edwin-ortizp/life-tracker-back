@@ -3,11 +3,11 @@
 {{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-shopping') }}
 <section class="lt-grid-main">
   {% call(zone) manage_card('shopping', 'Por comprar', 'bi-cart3', count='(10 / 18)', total=18, search='Buscar en lista de compras', menu=[('Exportar CSV', 'bi-filetype-csv'), ('Imprimir lista', 'bi-printer')], footer={'from':1,'to':10,'total':18,'noun':'productos','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
-      <div class="lt-popover" id="shopping-filters" role="dialog" aria-labelledby="shopping-filters-title" hidden>
+      <div class="lt-popover" id="shopping-filters" role="dialog" aria-labelledby="shopping-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="shopping-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="shopping-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <div class="lt-field"><span>Estado</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Pendientes</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Comprados</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Por receta</button></div></div>
         <label class="lt-field"><span>Pasillo</span><select><option>Todos</option><option>Verduras y frutas</option><option>Proteínas</option><option>Despensa</option></select></label>
-        <div class="lt-popover__actions"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="shopping-filters">Aplicar</button></div>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="shopping-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     {% else %}
 
