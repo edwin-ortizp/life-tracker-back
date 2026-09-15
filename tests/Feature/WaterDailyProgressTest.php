@@ -22,6 +22,9 @@ class WaterDailyProgressTest extends TestCase
         DrinkType::create(['name' => 'Agua', 'icon' => '💧', 'hydration_factor' => 1]);
         $this->drink(now()->toDateString(), 1500);
 
+        // El panel contextual solo es visible si el módulo lo declara (config/modules.php → 'rail').
+        $this->get('/water/daily')->assertOk()->assertSee('md-module-workspace--rail', false);
+
         Livewire::test(WaterDaily::class)
             ->assertDontSee('Progreso del día')
             ->assertDontSee('Ritmo mensual')

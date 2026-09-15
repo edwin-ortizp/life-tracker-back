@@ -47,6 +47,8 @@ return [
         'icon' => 'bi-droplet',
         'patterns' => ['water*'],
         'preserve' => ['date', 'period'],
+        // Registro diario (objetivo, calendario y agregar rápido) y Ajustes (meta diaria) usan el panel contextual.
+        'rail' => true,
         'tabs' => [
             ['label' => 'Registro diario', 'route' => 'water.daily', 'icon' => 'bi-droplet-half', 'active' => ['water.daily']],
             ['label' => 'Calendario', 'route' => 'water.calendar', 'archetype' => 'dashboard', 'icon' => 'bi-calendar3', 'active' => ['water.calendar']],

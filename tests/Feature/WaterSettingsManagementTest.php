@@ -24,7 +24,8 @@ class WaterSettingsManagementTest extends TestCase
             ->assertSee('Tipos de bebida')
             ->assertSee('Nueva bebida')
             ->assertSee('Meta diaria')
-            ->assertSee('2.500');
+            ->assertSee('2.500')
+            ->assertSee('md-module-workspace--rail', false);
     }
 
     public function test_fab_dialog_creates_a_drink_type_and_closes(): void
