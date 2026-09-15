@@ -29,7 +29,7 @@ class WaterDailyProgressTest extends TestCase
             ->assertDontSee('Progreso del día')
             ->assertDontSee('Ritmo mensual')
             ->assertSee('Objetivo de hoy')
-            ->assertSee('1,5 L / 2,2 L')
+            ->assertSeeHtml('<strong>1,5 L <span>/ 2,2 L</span></strong>')
             ->assertSee('68 %')
             ->assertSee('Faltan 700 ml para alcanzar tu meta diaria.')
             ->assertSee('Calendario del mes')
@@ -43,7 +43,7 @@ class WaterDailyProgressTest extends TestCase
 
         Livewire::test(WaterDaily::class)
             ->assertViewHas('rawPercentage', 114)
-            ->assertSee('2,5 L / 2,2 L')
+            ->assertSeeHtml('<strong>2,5 L <span>/ 2,2 L</span></strong>')
             ->assertSee('114 %')
             ->assertSee('Superaste tu meta por 300 ml.');
     }

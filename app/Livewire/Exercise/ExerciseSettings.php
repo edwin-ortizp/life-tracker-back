@@ -4,6 +4,7 @@ namespace App\Livewire\Exercise;
 
 use App\Models\ExerciseLog;
 use App\Models\ExerciseType;
+use App\Support\ExerciseProgress;
 use App\Support\DefaultExerciseTypes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -47,6 +48,25 @@ class ExerciseSettings extends Component
     public string $reassignTo = '';
 
     public string $message = '';
+
+    public ?int $dailyExerciseMinutes = null;
+
+    public function mount(): void
+    {
+        $this->dailyExerciseMinutes = auth()->user()->daily_exercise_minutes ?: ExerciseProgress::DEFAULT_DAILY_MINUTES;
+    }
+
+    public function saveGoal(): void
+    {
+        $data = $this->validate(
+            ['dailyExerciseMinutes' => ['required', 'integer', 'between:5,600']],
+            [],
+            ['dailyExerciseMinutes' => 'minutos activos'],
+        );
+
+        auth()->user()->update(['daily_exercise_minutes' => $data['dailyExerciseMinutes']]);
+        $this->message = 'Meta diaria actualizada.';
+    }
 
     public function openForm(?string $id = null): void
     {

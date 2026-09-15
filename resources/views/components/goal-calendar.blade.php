@@ -1,25 +1,34 @@
-{{-- Calendario del mes: cada día es un recipiente que se llena desde abajo según el cumplimiento de la meta. --}}
-@php
-    $formatLiters = fn (int $ml) => number_format($ml / 1000, 1, ',', '.').' L';
-@endphp
+@props([
+    'monthData',
+    'goal',
+    'format',
+    'route',
+    'label' => 'Cumplimiento de la meta diaria',
+])
 
-<div class="water-fill-calendar" role="grid" aria-label="Cumplimiento de la meta de hidratación en {{ $monthData['label'] }}">
-    <div class="water-fill-calendar__weekdays" role="row">
+{{--
+    Calendario del mes de una meta diaria (hidratación, minutos activos…).
+    Cada día es un recipiente que se llena desde abajo según su cumplimiento: por encima del 100 % se ve lleno.
+    Hoy lleva borde de acento; los días sin registros o futuros quedan vacíos y neutros.
+    `monthData` viene de App\Support\GoalCalendar::month(); `format` es un closure que muestra un valor con su unidad.
+--}}
+<div class="goal-fill-calendar" role="grid" aria-label="{{ $label }} · {{ $monthData['label'] }}">
+    <div class="goal-fill-calendar__weekdays" role="row">
         @foreach (['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as $weekday)<span role="columnheader">{{ $weekday }}</span>@endforeach
     </div>
     @foreach ($monthData['weeks'] as $week)
-        <div class="water-fill-calendar__week" role="row">
+        <div class="goal-fill-calendar__week" role="row">
             @foreach ($week as $day)
                 @php
                     $isEmpty = ! $day['has_data'] || $day['future'];
                     $dateLabel = $day['date']->translatedFormat('j \d\e F');
                     $dayLabel = $isEmpty
                         ? $dateLabel.': sin registros'
-                        : $dateLabel.': '.$formatLiters($day['total']).' de '.$formatLiters($dailyGoal).' ('.$day['raw_percentage'].' %)';
+                        : $dateLabel.': '.$format($day['total']).' de '.$format($goal).' ('.$day['raw_percentage'].' %)';
                 @endphp
-                <a href="{{ route('water.daily', ['date' => $day['date']->toDateString()]) }}" wire:navigate
+                <a href="{{ route($route, ['date' => $day['date']->toDateString()]) }}" wire:navigate
                    @class([
-                       'water-fill-day',
+                       'goal-fill-day',
                        'is-outside' => ! $day['in_month'],
                        'is-today' => $day['today'],
                        'is-selected' => $day['selected'],

@@ -154,3 +154,28 @@
   <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-clear-filters><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="{{ id }}-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
 </div>
 {%- endmacro %}
+
+
+{#- Calendario de una meta diaria: cada día es un recipiente que se llena desde abajo según su cumplimiento.
+    `days` = [(valor, meta), ...] desde el día 1 (valor None = sin registros); `lead` = celdas vacías antes del día 1;
+    `today` = número del día actual; `unit` = 'L' (valor en ml) o 'min'. -#}
+{% macro goal_value(value, unit) -%}{% if unit == 'L' %}{{ '%.1f'|format(value / 1000)|replace('.', ',') }} L{% else %}{{ value }} min{% endif %}{%- endmacro %}
+{% macro goal_calendar(label, lead, days_in_month, days, today, unit, streak_text) -%}
+<div class="lt-goal-cal" role="grid" aria-label="{{ label }}">
+  {% for dow in ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] %}<span class="lt-goal-cal__dow" aria-hidden="true">{{ dow }}</span>{% endfor %}
+  {% for _ in range(lead) %}<span class="lt-goal-day lt-goal-day--pad" aria-hidden="true"></span>{% endfor %}
+  {% for d in range(1, days_in_month + 1) %}
+    {% set rec = days[d - 1] if d <= days|length else None %}
+    {% if rec and rec[0] is not none %}
+      {% set pct = (rec[0] * 100 / rec[1])|round|int %}
+      {% set text = goal_value(rec[0], unit) ~ ' de ' ~ goal_value(rec[1], unit) ~ ' (' ~ pct ~ ' %)' %}
+      <div class="lt-goal-day{% if d == today %} is-today{% endif %}{% if pct >= 60 %} is-high{% endif %}" role="gridcell" style="--fill:{{ [pct, 100]|min }}%" title="{{ d }} sep: {{ text }}" aria-label="{{ d }} sep{% if d == today %}, hoy{% endif %}: {{ text }}"><span>{{ d }}</span></div>
+    {% else %}
+      <div class="lt-goal-day is-empty{% if d == today %} is-today{% endif %}" role="gridcell" title="{{ d }} sep: sin registros" aria-label="{{ d }} sep: sin registros"><span>{{ d }}</span></div>
+    {% endif %}
+  {% endfor %}
+  {% for _ in range((7 - (lead + days_in_month) % 7) % 7) %}<span class="lt-goal-day lt-goal-day--pad" aria-hidden="true"></span>{% endfor %}
+</div>
+<hr class="lt-divider">
+<p class="lt-goal-streak"><span aria-hidden="true">🔥</span> {{ streak_text }}</p>
+{%- endmacro %}

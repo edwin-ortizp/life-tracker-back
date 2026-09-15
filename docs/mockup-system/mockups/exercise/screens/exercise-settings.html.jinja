@@ -2,6 +2,7 @@
 {% call shell('exercise', 'Ejercicio', 'bi-activity') %}
 {{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Estadísticas','/exercise-statistics','bi-bar-chart-line'),('Ajustes','/exercise-settings','bi-sliders')], '/exercise-settings') }}
 <section class="lt-metrics">{{ metric('Tipos de ejercicio','21') }}{{ metric('Con registros','8 de 21','success') }}{{ metric('Sin registros','13','warning') }}</section>
+<section class="lt-grid-main">
 {% call(zone) manage_card('exercise-types', 'Tipos de ejercicio', 'bi-activity', count='(13 / 21)', total=21, search='Buscar tipo de ejercicio', menu=[('Restaurar predeterminados', 'bi-arrow-counterclockwise', 'exercise-type-restore'), ('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':13,'total':21,'noun':'tipos','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
       <div class="lt-popover" id="exercise-types-filters" role="dialog" aria-labelledby="exercise-types-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="exercise-types-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="exercise-types-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
@@ -26,6 +27,18 @@
 </div>
 {% endfor %}
 {% endif %}{% endcall %}
+<article class="lt-panel lt-panel--accent">
+  <div class="lt-panel__head"><i class="bi bi-bullseye"></i><h3>Meta diaria</h3></div>
+  <div class="lt-panel__body">
+    <p class="lt-goal"><strong>90</strong><span>min activos al día</span></p>
+    <div class="lt-goal-form">
+      <label class="lt-field"><span>Minutos activos (5–600)</span><input type="number" min="5" max="600" step="5" value="90"></label>
+      <button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-floppy"></i> Guardar</button>
+    </div>
+    <p class="lt-page-head__subtitle">La OMS recomienda al menos 30 min diarios.</p>
+  </div>
+</article>
+</section>
 {{ fab('Nuevo tipo', 'bi-plus-lg', 'exercise-type-new') }}
 
 {% macro type_form(name, category, emoji, kcal, steps) -%}

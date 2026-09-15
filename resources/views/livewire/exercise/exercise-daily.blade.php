@@ -15,14 +15,6 @@
         <p class="md-body-medium mb-0">{{ ucfirst(\Carbon\Carbon::parse($selectedDate)->translatedFormat('l d \d\e F')) }}</p>
     </x-slot:controls>
 
-    <x-ui.section title="Resumen del día" :level="2">
-        <x-ui.metric-grid label="Resumen del día">
-            <x-ui.metric label="Calorías" icon="bi-fire" tone="danger" :value="number_format($totalCalories)" unit="kcal" />
-            <x-ui.metric label="Duración" icon="bi-clock" tone="info" :value="$totalDuration" unit="min" />
-            <x-ui.metric label="Pasos" icon="bi-signpost-2" tone="success" :value="number_format($totalSteps)" unit="pasos" />
-        </x-ui.metric-grid>
-    </x-ui.section>
-
     <x-ui.management-card id="exercise-day-logs" title="Actividades del día" icon="bi-list-ul"
                           :count="'('.$logs->total().' / '.$totalLogs.')'" search="search" search-placeholder="Buscar actividades"
                           :active-filters="count($activeFilters)" :paginator="$logs" noun="registros"
@@ -96,6 +88,48 @@
                         message="Registra tu primera actividad para ver aquí el detalle." />
         @endif
     </x-ui.management-card>
+
+    <x-slot:rail>
+        @php
+            $selectedDay = \Carbon\Carbon::parse($selectedDate);
+            $minutes = fn (int $value) => number_format($value, 0, ',', '.').' min';
+            $done = (int) $totalDuration;
+        @endphp
+
+        <x-context-widget :title="$selectedDay->isToday() ? 'Objetivo de hoy' : 'Objetivo del '.$selectedDay->translatedFormat('j \d\e F')" icon="bi-bullseye">
+            <p class="goal-today"><strong>{{ $minutes($done) }} <span>/ {{ $minutes($dailyGoal) }}</span></strong><b>{{ $rawPercentage }} %</b></p>
+            <x-ui.progress :value="min($rawPercentage, 100)" tone="primary" label="Avance de la meta diaria" :valueText="$rawPercentage.'% de la meta'" />
+            <p class="md-body-small mb-1">
+                @if ($done < $dailyGoal)
+                    Faltan {{ $minutes($dailyGoal - $done) }} para alcanzar tu meta diaria.
+                @elseif ($done === $dailyGoal)
+                    Alcanzaste tu meta diaria.
+                @else
+                    Superaste tu meta por {{ $minutes($done - $dailyGoal) }}.
+                @endif
+            </p>
+            <p class="md-body-small mb-0">{{ number_format($totalCalories, 0, ',', '.') }} kcal · {{ number_format($totalSteps, 0, ',', '.') }} pasos</p>
+        </x-context-widget>
+
+        <x-context-widget title="Calendario del mes" icon="bi-calendar3">
+            <x-slot:actions>
+                <div class="goal-month-nav">
+                    <x-ui.icon-action icon="bi-chevron-left" label="Mes anterior" size="sm" wire:click="previousMonth" />
+                    <span>{{ ucfirst($monthData['label']) }}</span>
+                    <x-ui.icon-action icon="bi-chevron-right" label="Mes siguiente" size="sm" wire:click="nextMonth" />
+                </div>
+            </x-slot:actions>
+            <x-goal-calendar :month-data="$monthData" :goal="$dailyGoal" :format="$minutes" route="exercise" label="Minutos activos" />
+            <p class="goal-streak">
+                <span aria-hidden="true">🔥</span>
+                @if ($streak > 0)
+                    Racha actual: {{ $streak }} {{ $streak === 1 ? 'día' : 'días' }} cumpliendo tu meta de actividad.
+                @else
+                    Aún no tienes racha: cumple tu meta de actividad para empezarla.
+                @endif
+            </p>
+        </x-context-widget>
+    </x-slot:rail>
 
     <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="exercise-dialog"
                       :title="$editingId ? 'Editar ejercicio' : 'Registrar ejercicio'" icon="bi-activity"

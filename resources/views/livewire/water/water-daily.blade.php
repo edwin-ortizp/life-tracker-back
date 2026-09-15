@@ -87,9 +87,7 @@
         @endphp
 
         <x-context-widget :title="$selectedDay->isToday() ? 'Objetivo de hoy' : 'Objetivo del '.$selectedDay->translatedFormat('j \d\e F')" icon="bi-droplet">
-            <x-slot:actions>
-                <p class="water-goal-today"><strong>{{ $liters($consumed) }} / {{ $liters($dailyGoal) }}</strong><span>{{ $rawPercentage }} %</span></p>
-            </x-slot:actions>
+            <p class="goal-today"><strong>{{ $liters($consumed) }} <span>/ {{ $liters($dailyGoal) }}</span></strong><b>{{ $rawPercentage }} %</b></p>
             <x-ui.progress :value="min($rawPercentage, 100)" tone="primary" label="Avance de la meta diaria" :valueText="$rawPercentage.'% de la meta'" />
             <p class="md-body-small mb-0">
                 @if ($consumed < $dailyGoal)
@@ -104,14 +102,14 @@
 
         <x-context-widget title="Calendario del mes" icon="bi-calendar3">
             <x-slot:actions>
-                <div class="water-month-nav">
+                <div class="goal-month-nav">
                     <x-ui.icon-action icon="bi-chevron-left" label="Mes anterior" size="sm" wire:click="previousMonth" />
                     <span>{{ ucfirst($monthData['label']) }}</span>
                     <x-ui.icon-action icon="bi-chevron-right" label="Mes siguiente" size="sm" wire:click="nextMonth" />
                 </div>
             </x-slot:actions>
-            @include('livewire.water.partials.month-fill-calendar')
-            <p class="water-streak">
+            <x-goal-calendar :month-data="$monthData" :goal="$dailyGoal" :format="$liters" route="water.daily" label="Cumplimiento de la meta de hidratación" />
+            <p class="goal-streak">
                 <span aria-hidden="true">🔥</span>
                 @if ($streak > 0)
                     Racha actual: {{ $streak }} {{ $streak === 1 ? 'día' : 'días' }} cumpliendo la meta al 100%.

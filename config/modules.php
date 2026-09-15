@@ -61,6 +61,8 @@ return [
         'archetype' => 'daily-log',
         'title' => 'Ejercicio', 'subtitle' => 'Actividad, esfuerzo y progreso físico.', 'icon' => 'bi-activity',
         'patterns' => ['exercise*'], 'preserve' => ['date'],
+        // Registro diario (objetivo y calendario) y Ajustes (meta diaria) usan el panel contextual.
+        'rail' => true,
         'tabs' => [
             ['label' => 'Registro diario', 'route' => 'exercise', 'icon' => 'bi-activity', 'active' => ['exercise']],
             ['label' => 'Estadísticas', 'route' => 'exercise.statistics', 'archetype' => 'dashboard', 'icon' => 'bi-bar-chart-line', 'active' => ['exercise.statistics']],

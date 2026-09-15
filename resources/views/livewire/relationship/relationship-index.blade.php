@@ -9,15 +9,6 @@
             :split="true" />
     </x-slot:actions>
 
-    <div class="md-summary-strip mb-3" aria-label="Resumen de relaciones">
-        <span class="md-count-badge--info">{{ $activeCount }} activas</span>
-        @if ($archivedCount)
-            <span class="md-count-badge--primary">{{ $archivedCount }} archivadas</span>
-        @endif
-        @if ($dueFollowUps->isNotEmpty())
-            <span class="md-count-badge--warning">{{ $dueFollowUps->count() }} por contactar</span>
-        @endif
-    </div>
 
     @php($activeFilterCount = collect([$showArchived, $circleFilter, $tagFilter])->filter()->count())
     <x-ui.management-card id="relationship-people" title="Personas" icon="bi-people" :count="'('.$relationships->total().' / '.($activeCount + $archivedCount).')'"

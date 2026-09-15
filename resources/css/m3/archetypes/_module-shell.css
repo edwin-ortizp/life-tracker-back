@@ -70,23 +70,24 @@
 .water-month-day { position: relative; aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--md-sys-color-outline-variant); border-radius: 9px; background: linear-gradient(to top, var(--md-sys-color-primary-container) var(--water-progress), var(--md-sys-color-surface-container-lowest) var(--water-progress)); color: var(--md-sys-color-on-surface); font-size: .68rem; font-weight: 680; text-decoration: none; }
 .water-month-day.is-outside { opacity: .3; }.water-month-day.is-complete { border-color: var(--md-custom-color-success); }.water-month-day.is-selected { outline: 2px solid var(--md-sys-color-primary); outline-offset: 1px; }
 .water-month-day i { position: absolute; right: 3px; bottom: 3px; width: 4px; height: 4px; border-radius: 50%; background: var(--md-sys-color-primary); }
-.water-fill-calendar { display: grid; gap: 6px; }
-.water-fill-calendar__weekdays, .water-fill-calendar__week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; justify-items: center; }
-.water-fill-calendar__weekdays span { color: var(--md-sys-color-on-surface-variant); font-size: .66rem; font-weight: 600; }
-.water-fill-day { position: relative; display: grid; place-items: center; width: 100%; max-width: 40px; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--md-sys-color-outline-variant); border-radius: 8px; background: var(--md-sys-color-surface-container-lowest); color: var(--md-sys-color-on-surface); font-size: .72rem; font-weight: 600; text-decoration: none; }
-.water-fill-day::before { content: ""; position: absolute; inset: auto 0 0; height: var(--md-progress-value, 0%); background: var(--md-module-accent, var(--md-sys-color-primary)); }
-.water-fill-day span { position: relative; }
-.water-fill-day.is-high { color: #fff; }
-.water-fill-day.is-today { border: 2px solid var(--md-module-accent, var(--md-sys-color-primary)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--md-module-accent, var(--md-sys-color-primary)) 25%, transparent); }
-.water-fill-day.is-selected:not(.is-today) { outline: 2px solid color-mix(in srgb, var(--md-module-accent, var(--md-sys-color-primary)) 45%, transparent); outline-offset: 1px; }
-.water-fill-day.is-empty { border-style: dashed; color: var(--md-sys-color-on-surface-variant); }
-.water-fill-day.is-outside { opacity: .3; }
-.water-fill-day:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
-.water-goal-today { display: grid; justify-items: end; gap: 1px; margin: 0; line-height: 1.2; white-space: nowrap; }
-.water-goal-today strong { font-size: .92rem; font-weight: 700; }
-.water-goal-today span { color: var(--md-sys-color-on-surface-variant); font-size: .78rem; font-weight: 600; }
-.water-month-nav { display: flex; align-items: center; gap: 2px; font-size: .78rem; font-weight: 600; white-space: nowrap; }
-.water-streak { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--md-sys-color-outline-variant); color: var(--md-sys-color-on-surface-variant); font-size: .78rem; }
+.goal-fill-calendar { display: grid; gap: 6px; }
+.goal-fill-calendar__weekdays, .goal-fill-calendar__week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; justify-items: center; }
+.goal-fill-calendar__weekdays span { color: var(--md-sys-color-on-surface-variant); font-size: .66rem; font-weight: 600; }
+.goal-fill-day { position: relative; display: grid; place-items: center; width: 100%; max-width: 40px; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--md-sys-color-outline-variant); border-radius: 8px; background: var(--md-sys-color-surface-container-lowest); color: var(--md-sys-color-on-surface); font-size: .72rem; font-weight: 600; text-decoration: none; }
+.goal-fill-day::before { content: ""; position: absolute; inset: auto 0 0; height: var(--md-progress-value, 0%); background: var(--md-module-accent, var(--md-sys-color-primary)); }
+.goal-fill-day span { position: relative; }
+.goal-fill-day.is-high { color: #fff; }
+.goal-fill-day.is-today { border: 2px solid var(--md-module-accent, var(--md-sys-color-primary)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--md-module-accent, var(--md-sys-color-primary)) 25%, transparent); }
+.goal-fill-day.is-selected:not(.is-today) { outline: 2px solid color-mix(in srgb, var(--md-module-accent, var(--md-sys-color-primary)) 45%, transparent); outline-offset: 1px; }
+.goal-fill-day.is-empty { border-style: dashed; color: var(--md-sys-color-on-surface-variant); }
+.goal-fill-day.is-outside { opacity: .3; }
+.goal-fill-day:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.goal-today { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0 0 8px; line-height: 1.2; white-space: nowrap; }
+.goal-today strong { font-size: 1.15rem; font-weight: 700; }
+.goal-today strong span { color: var(--md-sys-color-on-surface-variant); font-size: .82rem; font-weight: 600; }
+.goal-today b { color: var(--md-module-accent, var(--md-sys-color-primary)); font-size: .92rem; font-weight: 700; }
+.goal-month-nav { display: flex; align-items: center; gap: 2px; font-size: .78rem; font-weight: 600; white-space: nowrap; }
+.goal-streak { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--md-sys-color-outline-variant); color: var(--md-sys-color-on-surface-variant); font-size: .78rem; }
 .habit-month-calendar { display: grid; gap: 5px; }
 .habit-month-calendar__weekdays, .habit-month-calendar__week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
 .habit-month-calendar__weekdays span { color: var(--md-sys-color-on-surface-variant); font-size: .62rem; font-weight: 750; text-align: center; }

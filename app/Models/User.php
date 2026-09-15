@@ -23,6 +23,7 @@ class User extends Authenticatable
         'birth_date',
         'activity_level',
         'daily_water_goal',
+        'daily_exercise_minutes',
     ];
 
     protected $hidden = [
@@ -38,6 +39,7 @@ class User extends Authenticatable
             'height_cm' => 'integer',
             'birth_date' => 'date',
             'daily_water_goal' => 'integer',
+            'daily_exercise_minutes' => 'integer',
         ];
     }
 

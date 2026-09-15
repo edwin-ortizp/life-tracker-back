@@ -1,8 +1,7 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog, fab, manage_card, row_split, applied_filters, date_filters %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, goal_calendar, dialog, fab, manage_card, row_split, applied_filters, date_filters %}
 {% call shell('exercise', 'Ejercicio', 'bi-activity') %}
 {{ header('Ejercicio', 'Actividad, esfuerzo y progreso físico · Miércoles 10 sep.', 'bi-activity') }}
 {{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Estadísticas','/exercise-statistics','bi-bar-chart-line'),('Ajustes','/exercise-settings','bi-sliders')], '/exercise-daily') }}
-<section class="lt-metrics">{{ metric('Duración','75 min','success') }}{{ metric('Calorías','612 kcal','warning') }}{{ metric('Pasos','8.420') }}</section>
 <section class="lt-grid-main">
   {% call(zone) manage_card('exercise-log', 'Actividades del día', 'bi-list-ul', count='(3 / 64)', total=64, search='Buscar actividades', filters=1, menu=[('Exportar CSV', 'bi-filetype-csv'), ('Ver estadísticas', 'bi-bar-chart-line')], footer={'from':1,'to':3,'total':3,'noun':'registros','page':1,'pages':1,'per_page':25}, footer_all={'to':25,'total':64,'pages':3}) %}{% if zone == 'filters' %}
     {% call date_filters('exercise-log') %}<div class="lt-field"><span>Tipo</span><div class="lt-chip-row">{% for t in ['Todos','Cardio','Fuerza','Deportes','Flexibilidad'] %}<button class="lt-chip lt-chip--filter{% if loop.first %} is-selected{% endif %}" type="button" data-lt-static-nav aria-pressed="{{ 'true' if loop.first else 'false' }}">{{ t }}</button>{% endfor %}</div></div>{% endcall %}
@@ -24,7 +23,27 @@
       </tbody>
     </table>
   {% endif %}{% endcall %}
-  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-bullseye"></i><h3>Meta diaria</h3><small>83 %</small></div><div class="lt-panel__body"><div class="lt-progress"><span style="width:83%"></span></div><p class="lt-page-head__subtitle">75 de 90 minutos activos. Una caminata de 15 min completa la meta.</p></div></article>
+  <aside class="lt-stack">
+    <article class="lt-panel lt-panel--accent">
+      <div class="lt-panel__head"><i class="bi bi-bullseye"></i><h3>Objetivo de hoy</h3></div>
+      <div class="lt-panel__body">
+        <p class="lt-goal-today"><strong>75 min <span>/ 90 min</span></strong><b>83 %</b></p>
+        <div class="lt-progress" role="img" aria-label="83 % de la meta diaria"><span style="width:83%"></span></div>
+        <p class="lt-page-head__subtitle">Faltan 15 min para alcanzar tu meta diaria.</p>
+        <p class="lt-page-head__subtitle">612 kcal · 8.420 pasos</p>
+      </div>
+    </article>
+    <article class="lt-panel">
+      <div class="lt-panel__head"><i class="bi bi-calendar3"></i><h3>Calendario del mes</h3>
+        <div class="lt-month-nav"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Mes anterior"><i class="bi bi-chevron-left"></i></button><span>Septiembre 2026</span><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Mes siguiente"><i class="bi bi-chevron-right"></i></button></div>
+      </div>
+      <div class="lt-panel__body">
+        {# (minutos activos, meta de 90 min). Hoy es 10 sep; el 5 sep (60 min) corta la racha. #}
+        {% set days = [(95,90),(40,90),(None,90),(90,90),(60,90),(92,90),(100,90),(90,90),(120,90),(75,90)] %}
+        {{ goal_calendar('Minutos activos en septiembre de 2026', 1, 30, days, 10, 'min', 'Racha actual: 4 días cumpliendo tu meta de actividad.') }}
+      </div>
+    </article>
+  </aside>
 </section>
 {{ fab('Registrar ejercicio', 'bi-activity', 'exercise-new') }}
 {% call dialog('exercise-new', 'Registrar ejercicio', icon='bi-activity', sections=[('basic','Información básica','bi-activity'),('metrics','Series y distancia','bi-bar-chart'),('details','Detalles adicionales','bi-card-text')]) %}

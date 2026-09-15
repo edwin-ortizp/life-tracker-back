@@ -79,6 +79,19 @@
     @endforelse
     </x-ui.management-card>
 
+    <x-slot:rail>
+        <x-context-widget title="Meta diaria" icon="bi-bullseye">
+            <p class="md-headline-small mb-0"><strong>{{ number_format((int) auth()->user()->daily_exercise_minutes ?: \App\Support\ExerciseProgress::DEFAULT_DAILY_MINUTES, 0, ',', '.') }}</strong> <span class="md-body-medium">min activos al día</span></p>
+            <p class="md-body-small mb-3">La OMS recomienda al menos 30 min diarios.</p>
+            <form wire:submit="saveGoal" class="d-grid gap-2" novalidate>
+                <x-ui.field name="dailyExerciseMinutes" label="Minutos activos (5–600)" type="number" min="5" max="600" step="5" wire:model="dailyExerciseMinutes" />
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="md-btn-filled"><i class="bi bi-floppy" aria-hidden="true"></i><span>Guardar</span></button>
+                </div>
+            </form>
+        </x-context-widget>
+    </x-slot:rail>
+
     <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="exercise-type-dialog"
                       :title="$editingId ? 'Editar tipo de ejercicio' : 'Nuevo tipo de ejercicio'" icon="bi-tags"
                       :submit="$editingId ? 'Actualizar' : 'Crear tipo'">

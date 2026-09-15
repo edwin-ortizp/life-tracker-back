@@ -5,6 +5,8 @@ namespace App\Livewire\Exercise;
 use App\Livewire\Concerns\HasUrlDate;
 use App\Models\ExerciseLog;
 use App\Models\ExerciseType;
+use App\Support\ExerciseProgress;
+use App\Support\GoalCalendar;
 use Carbon\Carbon;
 use Livewire\Component;
 use App\Livewire\Concerns\WithDefaultDateFilter;
@@ -27,6 +29,11 @@ class ExerciseDaily extends Component
     #[Url(as: 'type', history: true, except: '')]
     public string $typeFilter = '';
 
+    #[Url(as: 'month', history: true, except: '')]
+    public string $calendarMonth = '';
+
+    public int $dailyGoal = ExerciseProgress::DEFAULT_DAILY_MINUTES;
+
     // Form
     public bool $showForm = false;
     public ?string $editingId = null;
@@ -44,6 +51,8 @@ class ExerciseDaily extends Component
     {
         $this->initializeSelectedDate();
         $this->setDateScope($this->dateScope);
+        $this->calendarMonth = $this->normalizeCalendarMonth($this->calendarMonth);
+        $this->dailyGoal = auth()->user()->daily_exercise_minutes ?: ExerciseProgress::DEFAULT_DAILY_MINUTES;
     }
 
     public function updatedSearch(): void
@@ -75,19 +84,37 @@ class ExerciseDaily extends Component
         $this->typeFilter = '';
     }
 
+    public function previousMonth(): void
+    {
+        $this->calendarMonth = Carbon::parse($this->calendarMonth.'-01')->subMonthNoOverflow()->format('Y-m');
+    }
+
+    public function nextMonth(): void
+    {
+        $this->calendarMonth = Carbon::parse($this->calendarMonth.'-01')->addMonthNoOverflow()->format('Y-m');
+    }
+
+    private function normalizeCalendarMonth(string $month): string
+    {
+        return preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month) === 1 ? $month : substr($this->selectedDate, 0, 7);
+    }
+
     public function previousDay()
     {
         $this->selectedDate = Carbon::parse($this->selectedDate)->subDay()->toDateString();
+        $this->calendarMonth = substr($this->selectedDate, 0, 7);
     }
 
     public function nextDay()
     {
         $this->selectedDate = Carbon::parse($this->selectedDate)->addDay()->toDateString();
+        $this->calendarMonth = substr($this->selectedDate, 0, 7);
     }
 
     public function today()
     {
         $this->selectedDate = now()->toDateString();
+        $this->calendarMonth = substr($this->selectedDate, 0, 7);
     }
 
     public function openForm(?string $id = null)
@@ -197,7 +224,7 @@ class ExerciseDaily extends Component
 
     public function render()
     {
-        $dayLogs = ExerciseLog::where('date', $this->selectedDate);
+        $dayLogs = ExerciseLog::whereDate('date', $this->selectedDate);
         $search = trim($this->search);
         $logs = $this->applyDateScope(ExerciseLog::query())
             ->with('exerciseType')
@@ -229,7 +256,20 @@ class ExerciseDaily extends Component
             'exerciseTypes' => $exerciseTypes,
             'totalCalories' => $totalCalories,
             'totalDuration' => $totalDuration,
+            // Sin tope: el usuario puede superar su meta; la barra se limita en la vista.
+            'rawPercentage' => $this->dailyGoal > 0 ? (int) round(($totalDuration / $this->dailyGoal) * 100) : 0,
+            'monthData' => $this->monthData(),
+            'streak' => GoalCalendar::streak(ExerciseProgress::totals(today()->subDays(366), today()), $this->dailyGoal),
             'totalSteps' => $totalSteps,
         ]);
+    }
+
+    private function monthData(): array
+    {
+        $selected = Carbon::parse($this->selectedDate);
+        $monthStart = Carbon::parse($this->normalizeCalendarMonth($this->calendarMonth).'-01');
+        [$gridStart, $gridEnd] = GoalCalendar::gridBounds($selected, $monthStart);
+
+        return GoalCalendar::month(ExerciseProgress::totals($gridStart, $gridEnd), $selected, $this->dailyGoal, $monthStart);
     }
 }
