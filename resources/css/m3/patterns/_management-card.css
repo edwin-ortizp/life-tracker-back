@@ -26,7 +26,7 @@
 .md-mcard__search input::-webkit-search-cancel-button { cursor: pointer; }
 .md-mcard__search-close, .md-mcard__search-toggle { display: none; }
 .md-mcard__filter-chips { flex-wrap: wrap; gap: 6px; overflow: visible; }
-.md-mcard__filter { position: relative; display: inline-flex; align-items: center; gap: 8px; overflow: visible; }
+.md-mcard__filter { position: relative; display: inline-flex; align-items: center; gap: 8px; overflow: visible; font-size: 14px; font-weight: 500; }
 
 .md-mcard__strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 18px; border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 55%, transparent); background: color-mix(in srgb, var(--md-module-accent) 4%, var(--md-sys-color-surface-container-lowest)); }
 .md-mcard__body { min-width: 0; padding: 4px 18px 8px; }
@@ -49,6 +49,11 @@
 .md-pager button[disabled] { opacity: .38; cursor: not-allowed; }
 .md-pager__gap { padding: 0 4px; }
 .md-pager__compact { display: none; padding: 0 8px; font-variant-numeric: tabular-nums; }
+
+/* Franja de filtros aplicados (x-ui.applied-filters). */
+.md-applied-chip { display: inline-flex; align-items: center; gap: 6px; padding: 0 4px 0 12px; }
+.md-applied-chip__remove { width: 24px; height: 24px; min-width: 24px; font-size: .95rem; }
+.md-applied-clear { text-decoration: underline; text-underline-offset: 3px; }
 
 @container md-mcard (max-width: 640px) {
   .md-mcard__head { gap: 4px; padding: 8px 4px 8px 12px; }

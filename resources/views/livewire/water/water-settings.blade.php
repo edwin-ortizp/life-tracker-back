@@ -1,23 +1,103 @@
+@php
+    use App\Support\Ui\DataState;
+
+    $isFiltered = count($activeFilters) > 0 || trim($search) !== '';
+    $typesState = $drinkTypes->count() > 0
+        ? DataState::CONTENT
+        : ($totalTypes > 0 && $isFiltered ? DataState::FILTERED_EMPTY : DataState::EMPTY);
+@endphp
+
 <x-module-shell module="water">
     <x-slot:actions>
-        <x-module-actions :primary="['label' => 'Nueva bebida', 'icon' => 'bi-plus-lg', 'action' => 'edit']" />
+        <x-module-actions :primary="['label' => 'Nueva bebida', 'icon' => 'bi-plus-lg', 'action' => 'openForm']" />
     </x-slot:actions>
-    @if ($message)<div class="md-card-filled mb-3 py-3">{{ $message }}</div>@endif
-    <div class="md-module-workspace">
-        <div class="md-module-primary">
-            <section class="md-card-elevated mb-3">
-                <h2 class="md-title-medium mb-1">Meta diaria</h2><p class="md-body-small mb-3">Si queda vacía, se calculará con tu peso registrado.</p>
-                <form wire:submit="saveGoal" class="d-flex align-items-start gap-2 flex-wrap"><div class="md-text-field" style="min-width:220px"><input wire:model="dailyWaterGoal" type="number" min="500" max="10000" id="water-goal" placeholder=" "><label for="water-goal">Meta personalizada (ml)</label></div><button class="md-btn-filled">Guardar meta</button></form>
-                @error('dailyWaterGoal')<small style="color:var(--md-sys-color-error)">{{ $message }}</small>@enderror
-            </section>
-            <x-ui.management-card id="water-drink-types" title="Catálogo de bebidas" icon="bi-cup-straw" :count="'('.$drinkTypes->total().')'" :paginator="$drinkTypes" noun="bebidas" flush>
-                @foreach ($drinkTypes as $type)<div class="md-list-item"><div class="md-list-item-leading" style="font-size:1.4rem">{{ $type->icon ?: '💧' }}</div><div class="md-list-item-content"><div class="md-list-item-headline">{{ $type->name }}</div><div class="md-list-item-supporting">Factor {{ $type->hydration_factor }}</div></div><div class="md-list-item-trailing"><button wire:click="edit('{{ $type->id }}')" class="md-btn-icon" aria-label="Editar {{ $type->name }}"><i class="bi bi-pencil"></i></button><button wire:click="deleteDrinkType('{{ $type->id }}')" wire:confirm="¿Eliminar esta bebida?" class="md-btn-icon" aria-label="Eliminar {{ $type->name }}"><i class="bi bi-trash"></i></button></div></div>@endforeach
-            </x-ui.management-card>
+
+    @if ($message)
+        <div class="md-card-filled mb-3 py-3" role="status">{{ $message }}</div>
+    @endif
+
+    <x-ui.management-card id="water-drink-types" title="Tipos de bebida" icon="bi-cup-straw"
+                          :count="'('.$drinkTypes->total().' / '.$totalTypes.')'" search="search" search-placeholder="Buscar bebida"
+                          :active-filters="count($activeFilters)" :paginator="$drinkTypes" noun="bebidas"
+                          sort-model="sort" :sort-options="$sorts" :sort-value="$sort"
+                          alpine="draftFactor: 'all', draftUsage: 'all'"
+                          on-filters-open="draftFactor = $wire.factor; draftUsage = $wire.usage">
+        <x-slot:filters>
+            <x-ui.select name="filterFactor" label="Factor de hidratación" :options="$factors" :selected="$factor" icon="bi-droplet-half" x-model="draftFactor" />
+            <x-ui.select name="filterUsage" label="Uso" :options="$usages" :selected="$usage" icon="bi-clock-history" x-model="draftUsage" />
+        </x-slot:filters>
+        <x-slot:filterActions>
+            <x-ui.action variant="outlined" icon="bi-eraser" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+            <x-ui.action variant="filled" icon="bi-funnel-fill" x-on:click="$wire.applyFilters(draftFactor, draftUsage); filtersOpen = false">Filtrar</x-ui.action>
+        </x-slot:filterActions>
+
+        @if (count($activeFilters) > 0)
+            <x-slot:strip>
+                <x-ui.applied-filters :filters="$activeFilters" />
+            </x-slot:strip>
+        @endif
+
+        @if ($typesState === DataState::CONTENT)
+            <table class="md-table md-table--stack">
+                <thead>
+                    <tr>
+                        <th scope="col">Bebida</th>
+                        <th scope="col">Factor</th>
+                        <th scope="col">Registros</th>
+                        <th scope="col" class="md-table__actions"><span class="visually-hidden">Acciones</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($drinkTypes as $type)
+                        <tr wire:key="drink-type-{{ $type->id }}">
+                            <td class="md-table__title"><span aria-hidden="true">{{ $type->icon ?: '💧' }}</span> {{ $type->name }}</td>
+                            <td class="md-table__nowrap">×{{ number_format((float) $type->hydration_factor, 2, ',', '.') }}</td>
+                            <td class="md-table__nowrap">{{ $type->logs_count ? number_format($type->logs_count, 0, ',', '.') : 'Sin registros' }}</td>
+                            <td class="md-table__actions">
+                                <x-ui.row-actions :label="'Más acciones de '.$type->name">
+                                    <x-slot:primary wire:click="openForm('{{ $type->id }}')">Editar</x-slot:primary>
+                                    <x-ui.menu-divider />
+                                    @if ($type->logs_count)
+                                        <x-ui.menu-item icon="bi-trash" tone="danger" disabled aria-disabled="true"
+                                                        title="Tiene registros históricos; no se puede eliminar">Eliminar</x-ui.menu-item>
+                                    @else
+                                        <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete('{{ $type->id }}')"
+                                                        wire:confirm="La bebida «{{ $type->name }}» se elimina de forma permanente.">Eliminar</x-ui.menu-item>
+                                    @endif
+                                </x-ui.row-actions>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @elseif ($typesState === DataState::FILTERED_EMPTY)
+            <x-ui.state variant="{{ DataState::FILTERED_EMPTY }}" message="Prueba con otra búsqueda o quita algún filtro." />
+        @else
+            <x-ui.state variant="{{ DataState::EMPTY }}" icon="bi-cup-straw" title="Aún no tienes tipos de bebida"
+                        message="Crea una bebida para usarla en tus registros de hidratación." />
+        @endif
+    </x-ui.management-card>
+
+    <x-slot:rail>
+        <x-context-widget title="Meta diaria" icon="bi-bullseye">
+            <p class="md-headline-small mb-0"><strong>{{ number_format($goal, 0, ',', '.') }}</strong> <span class="md-body-medium">ml al día</span></p>
+            <p class="md-body-small mb-3">≈ {{ number_format(round($goal / 250), 0, ',', '.') }} vasos de 250 ml</p>
+            <form wire:submit="saveGoal" class="d-grid gap-2" novalidate>
+                <x-ui.field name="dailyWaterGoal" label="Nueva meta (ml)" type="number" min="500" max="10000" step="50" wire:model="dailyWaterGoal" />
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="md-btn-filled"><i class="bi bi-floppy" aria-hidden="true"></i><span>Guardar</span></button>
+                </div>
+            </form>
+        </x-context-widget>
+    </x-slot:rail>
+
+    <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="water-drink-type-dialog"
+                      :title="$editingId ? 'Editar bebida' : 'Nueva bebida'" icon="bi-cup-straw" submit="Guardar">
+        <div class="d-flex flex-column gap-3">
+            <x-ui.field name="icon" label="Ícono" :required="true" maxlength="40" help="Un emoji basta." wire:model="icon" />
+            <x-ui.field name="name" label="Nombre" :required="true" maxlength="255" wire:model="name" />
+            <x-ui.field name="hydrationFactor" label="Factor de hidratación" type="number" :required="true" min="0" max="9.99" step="0.01"
+                        help="Multiplica los ml registrados: 1,00 hidrata igual que el agua." wire:model="hydrationFactor" />
         </div>
-        <aside class="md-context-rail">
-            <x-context-widget title="{{ $editingId ? 'Editar bebida' : 'Nueva bebida' }}" icon="bi-cup-straw">
-                <form wire:submit="saveDrinkType" class="d-grid gap-3"><div><label class="form-label" for="drink-name">Nombre</label><input wire:model="name" id="drink-name" class="form-control">@error('name')<small class="text-danger">{{ $message }}</small>@enderror</div><div><label class="form-label" for="drink-icon">Icono</label><input wire:model="icon" id="drink-icon" class="form-control">@error('icon')<small class="text-danger">{{ $message }}</small>@enderror</div><div><label class="form-label" for="drink-factor">Factor</label><input wire:model="hydrationFactor" id="drink-factor" type="number" min="0" max="9.99" step=".01" class="form-control">@error('hydrationFactor')<small class="text-danger">{{ $message }}</small>@enderror</div><button class="md-btn-filled">Guardar bebida</button></form>
-            </x-context-widget>
-        </aside>
-    </div>
+    </x-ui.form-dialog>
 </x-module-shell>

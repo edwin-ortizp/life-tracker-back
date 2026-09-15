@@ -1,7 +1,9 @@
 @php
     use App\Support\Ui\DataState;
 
-    $logsState = DataState::resolve(visible: $logs->count(), total: $logs->count());
+    $logsState = $logs->count() > 0
+        ? DataState::CONTENT
+        : ($totalLogs > 0 && (count($activeFilters) > 0 || trim($search) !== '') ? DataState::FILTERED_EMPTY : DataState::EMPTY);
 @endphp
 
 <x-module-shell module="exercise">
@@ -21,46 +23,77 @@
         </x-ui.metric-grid>
     </x-ui.section>
 
-    <x-ui.management-card id="exercise-day-logs" title="Actividades del día" icon="bi-list-ul" :count="'('.$logs->total().')'" :paginator="$logs" noun="registros">
+    <x-ui.management-card id="exercise-day-logs" title="Actividades del día" icon="bi-list-ul"
+                          :count="'('.$logs->total().' / '.$totalLogs.')'" search="search" search-placeholder="Buscar actividades"
+                          :active-filters="count($activeFilters)" :paginator="$logs" noun="registros"
+                          alpine="draftScope: 'day', draftType: ''"
+                          on-filters-open="draftScope = $wire.dateScope; draftType = $wire.typeFilter">
+        <x-slot:filters>
+            <x-ui.select name="filterDateScope" label="Fecha" :options="$dateScopes" :selected="$dateScope" icon="bi-calendar-event" x-model="draftScope" />
+            <x-ui.select name="filterExerciseType" label="Tipo de ejercicio" placeholder="Todos"
+                         :options="$exerciseTypes->mapWithKeys(fn ($type) => [$type->id => ($type->icon ?? '🏃').' '.$type->name])->all()"
+                         :selected="$typeFilter" icon="bi-tag" x-model="draftType" />
+        </x-slot:filters>
+        <x-slot:filterActions>
+            <x-ui.action variant="outlined" icon="bi-eraser" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+            <x-ui.action variant="filled" icon="bi-funnel-fill" x-on:click="$wire.applyFilters(draftScope, draftType); filtersOpen = false">Filtrar</x-ui.action>
+        </x-slot:filterActions>
+
+        @if (count($activeFilters) > 0)
+            <x-slot:strip>
+                <x-ui.applied-filters :filters="$activeFilters" />
+            </x-slot:strip>
+        @endif
+
         @if ($logsState === DataState::CONTENT)
-            <x-ui.list label="Actividades del día">
-                @foreach ($logs as $log)
-                    @php
-                        $detail = collect([
-                            $log->duration ? $log->duration.' min' : null,
-                            $log->calories ? $log->calories.' kcal' : null,
-                            $log->sets && $log->reps ? $log->sets.'x'.$log->reps : null,
-                            $log->weight ? $log->weight.' kg' : null,
-                            $log->distance ? $log->distance.' km' : null,
-                            $log->steps ? number_format($log->steps).' pasos' : null,
-                        ])->filter()->implode(' · ');
-                    @endphp
-
-                    <x-ui.list-item :headline="$log->exerciseType?->name ?? 'Ejercicio'"
-                                    :supporting="$detail"
-                                    wire:key="exercise-{{ $log->id }}">
-                        <x-slot:leading>
-                            <span class="md-list-icon-circle" aria-hidden="true">{{ $log->exerciseType?->icon ?? '🏃' }}</span>
-                        </x-slot:leading>
-
-                        @if ($log->notes)
-                            <p class="md-list-item-supporting md-list-item-note">{{ $log->notes }}</p>
-                        @endif
-
-                        <x-slot:trailing>
-                            <x-ui.icon-action icon="bi-pencil" label="Editar el registro de {{ $log->exerciseType?->name ?? 'ejercicio' }}"
-                                              wire:click="openForm('{{ $log->id }}')" />
-                            <x-ui.destructive-action label="Eliminar el registro de {{ $log->exerciseType?->name ?? 'ejercicio' }}" :iconOnly="true"
-                                                     action="delete('{{ $log->id }}')"
-                                                     title="Eliminar registro"
-                                                     message="El registro de actividad se elimina de forma permanente." />
-                        </x-slot:trailing>
-                    </x-ui.list-item>
-                @endforeach
-            </x-ui.list>
+            <table class="md-table md-table--stack">
+                <thead>
+                    <tr>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Actividad</th>
+                        <th scope="col">Detalle</th>
+                        <th scope="col">Calorías</th>
+                        <th scope="col" class="md-table__actions"><span class="visually-hidden">Acciones</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($logs as $log)
+                        @php
+                            $logDate = \Carbon\Carbon::parse($log->date);
+                            $typeName = $log->exerciseType?->name ?? 'Ejercicio';
+                            $detail = collect([
+                                $log->duration ? $log->duration.' min' : null,
+                                $log->sets && $log->reps ? $log->sets.' × '.$log->reps : null,
+                                $log->weight ? $log->weight.' kg' : null,
+                                $log->distance ? $log->distance.' km' : null,
+                                $log->steps ? number_format($log->steps, 0, ',', '.').' pasos' : null,
+                            ])->filter()->implode(' · ');
+                        @endphp
+                        <tr wire:key="exercise-{{ $log->id }}">
+                            <td class="md-table__date">{{ $logDate->isToday() ? 'Hoy' : $logDate->translatedFormat('j M Y') }}</td>
+                            <td class="md-table__title">
+                                <span aria-hidden="true">{{ $log->exerciseType?->icon ?? '🏃' }}</span> {{ $typeName }}
+                                @if ($log->notes)<span class="md-table__meta">{{ $log->notes }}</span>@endif
+                            </td>
+                            <td>{{ $detail ?: '—' }}</td>
+                            <td class="md-table__nowrap">{{ $log->calories ? number_format($log->calories, 0, ',', '.').' kcal' : '—' }}</td>
+                            <td class="md-table__actions">
+                                <x-ui.row-actions :label="'Más acciones del registro de '.$typeName">
+                                    <x-slot:primary wire:click="openForm('{{ $log->id }}')">Editar</x-slot:primary>
+                                    <x-ui.menu-divider />
+                                    <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete('{{ $log->id }}')"
+                                                    wire:confirm="El registro de actividad se elimina de forma permanente.">Eliminar</x-ui.menu-item>
+                                </x-ui.row-actions>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @elseif ($logsState === DataState::FILTERED_EMPTY)
+            <x-ui.state variant="{{ DataState::FILTERED_EMPTY }}" message="Quita el filtro de fecha o cambia la búsqueda para ver otros registros." />
         @else
-            <x-ui.state variant="empty" icon="bi-activity" title="Sin ejercicios registrados"
-                        message="Registra tu primera actividad para ver aquí el detalle del día." />
+            <x-ui.state variant="{{ DataState::EMPTY }}" icon="bi-activity" title="Sin ejercicios registrados"
+                        message="Registra tu primera actividad para ver aquí el detalle." />
         @endif
     </x-ui.management-card>
 

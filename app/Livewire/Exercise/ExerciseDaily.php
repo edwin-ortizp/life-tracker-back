@@ -7,7 +7,9 @@ use App\Models\ExerciseLog;
 use App\Models\ExerciseType;
 use Carbon\Carbon;
 use Livewire\Component;
+use App\Livewire\Concerns\WithDefaultDateFilter;
 use App\Livewire\Concerns\WithManagementCard;
+use Livewire\Attributes\Url;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 
@@ -17,6 +19,13 @@ class ExerciseDaily extends Component
 {
     use HasUrlDate;
     use WithManagementCard;
+    use WithDefaultDateFilter;
+
+    #[Url(as: 'q', history: true, except: '')]
+    public string $search = '';
+
+    #[Url(as: 'type', history: true, except: '')]
+    public string $typeFilter = '';
 
     // Form
     public bool $showForm = false;
@@ -34,6 +43,36 @@ class ExerciseDaily extends Component
     public function mount()
     {
         $this->initializeSelectedDate();
+        $this->setDateScope($this->dateScope);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function applyFilters(string $scope, string $type): void
+    {
+        $this->setDateScope($scope);
+        $this->typeFilter = $type !== '' && ExerciseType::whereKey($type)->exists() ? $type : '';
+        $this->resetPage();
+    }
+
+    public function removeFilter(string $key, ?string $value = null): void
+    {
+        $this->resetPage();
+        match ($key) {
+            'date' => $this->dateScope = 'all',
+            'type' => $this->typeFilter = '',
+            default => null,
+        };
+    }
+
+    public function clearFilters(): void
+    {
+        $this->resetPage();
+        $this->dateScope = 'all';
+        $this->typeFilter = '';
     }
 
     public function previousDay()
@@ -127,6 +166,8 @@ class ExerciseDaily extends Component
         if ($this->editingId) {
             $log = ExerciseLog::find($this->editingId);
             if ($log) {
+                // Editar desde «Todas las fechas» no mueve el registro al día seleccionado.
+                unset($data['date']);
                 $log->update($data);
             }
         } else {
@@ -157,12 +198,23 @@ class ExerciseDaily extends Component
     public function render()
     {
         $dayLogs = ExerciseLog::where('date', $this->selectedDate);
-        $logs = (clone $dayLogs)
+        $search = trim($this->search);
+        $logs = $this->applyDateScope(ExerciseLog::query())
             ->with('exerciseType')
+            ->when($search !== '', fn ($q) => $q->where(fn ($inner) => $inner
+                ->whereHas('exerciseType', fn ($type) => $type->where('name', 'like', '%'.$search.'%'))
+                ->orWhere('notes', 'like', '%'.$search.'%')))
+            ->when($this->typeFilter !== '', fn ($q) => $q->where('exercise_type_id', $this->typeFilter))
+            ->orderByDesc('date')
             ->orderByDesc('created_at')
             ->paginate($this->perPage());
 
         $exerciseTypes = ExerciseType::orderBy('name')->get();
+        $typeFilterLabel = $this->typeFilter !== '' ? $exerciseTypes->firstWhere('id', $this->typeFilter)?->name : null;
+        $activeFilters = $this->dateFilterChips();
+        if ($typeFilterLabel) {
+            $activeFilters[] = ['key' => 'type', 'value' => null, 'label' => 'Tipo: '.$typeFilterLabel, 'icon' => 'bi-tag'];
+        }
 
         // Los totales del día no dependen de la página visible.
         $totalCalories = (clone $dayLogs)->sum('calories');
@@ -171,6 +223,9 @@ class ExerciseDaily extends Component
 
         return view('livewire.exercise.exercise-daily', [
             'logs' => $logs,
+            'totalLogs' => ExerciseLog::count(),
+            'activeFilters' => $activeFilters,
+            'dateScopes' => $this->dateScopeOptions(),
             'exerciseTypes' => $exerciseTypes,
             'totalCalories' => $totalCalories,
             'totalDuration' => $totalDuration,

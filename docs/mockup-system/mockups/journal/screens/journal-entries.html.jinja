@@ -1,4 +1,4 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, manage_card, row_split %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, manage_card, row_split, applied_filters %}
 {% call shell('journal', 'Diario', 'bi-journal-text') %}
 {{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Resumen','/journal-summary','bi-card-list'),('Historial','/journal-history','bi-journal-bookmark'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-entries') }}
 <section class="lt-grid-main lt-grid-main--journal">
@@ -45,23 +45,28 @@
 </section>
 
 <section class="lt-stack">
-  {% call(zone) manage_card('journal-today-states', 'Estados de hoy', 'bi-bar-chart', count='(3 / 3)', total=3, search='Buscar en los estados', filters=0,
-    footer={'from':1,'to':3,'total':3,'noun':'registros','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
+  {% call(zone) manage_card('journal-today-states', 'Estados de hoy', 'bi-bar-chart', count='(3 / 86)', total=86, search='Buscar en los estados', filters=1,
+    footer={'from':1,'to':3,'total':3,'noun':'registros','page':1,'pages':1,'per_page':25}, footer_all={'to':25,'total':86,'pages':4}) %}{% if zone == 'filters' %}
     <div class="lt-popover" id="journal-today-states-filters" role="dialog" aria-labelledby="journal-today-states-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
       <div class="lt-popover__head"><h4 id="journal-today-states-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="journal-today-states-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+      <label class="lt-field"><span>Fecha</span><select>{% for r in ['Hoy','Ayer','Últimos 7 días','Este mes','Todas las fechas'] %}<option>{{ r }}</option>{% endfor %}</select></label>
       <label class="lt-field"><span>Tipo</span><select>{% for r in ['Todos','Energía','Estado de ánimo'] %}<option>{{ r }}</option>{% endfor %}</select></label>
-      <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="journal-today-states-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
+      <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-clear-filters><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="journal-today-states-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
     </div>
   {% else %}
+    {{ applied_filters([('bi-calendar-event','Fecha: Hoy')]) }}
     <table class="lt-mtable">
-      <thead><tr><th scope="col">Hora</th><th scope="col">Tipo</th><th scope="col">Valor / Estado</th><th scope="col">Comentario</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead>
+      <thead><tr><th scope="col">Fecha</th><th scope="col">Hora</th><th scope="col">Tipo</th><th scope="col">Valor / Estado</th><th scope="col">Comentario</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead>
       <tbody>
       {% for r in [
         {'time':'20:45','type':'Energía','value':7,'comment':'Me sentí con buena energía para terminar el día.'},
         {'time':'14:20','type':'Estado de ánimo','mood':'😌 Tranquilo','comment':'Después de almorzar.'},
-        {'time':'08:15','type':'Energía','value':6,'comment':'Un poco cansado al inicio del día.'}
+        {'time':'08:15','type':'Energía','value':6,'comment':'Un poco cansado al inicio del día.'},
+        {'date':'12 sep.','time':'21:30','type':'Energía','value':8,'comment':'Día productivo; cerré el sprint.'},
+        {'date':'12 sep.','time':'18:00','type':'Estado de ánimo','mood':'😄 Alegre','comment':'Salí a correr 5 km.'}
       ] %}
-        <tr>
+        <tr{% if r.get('date') %} data-lt-outside-filter{% endif %}>
+          <td class="lt-mtable__date" data-label="Fecha">{{ r.get('date', 'Hoy') }}</td>
           <td class="lt-mtable__time" data-label="Hora">{{ r.time }}</td>
           <td class="lt-mtable__type" data-label="Tipo">{% if r.get('value') %}<i class="bi bi-lightning-charge-fill lt-mtable__icon lt-mtable__icon--energy" aria-hidden="true"></i>{% else %}<i class="bi bi-emoji-smile lt-mtable__icon" aria-hidden="true"></i>{% endif %} {{ r.type }}</td>
           <td class="lt-mtable__value" data-label="Valor / Estado">{% if r.get('value') %}<span class="lt-mtable__score">{{ r.value }}/10</span><div class="lt-progress lt-mtable__bar" role="img" aria-label="Energía {{ r.value }} de 10"><span style="width:{{ r.value * 10 }}%"></span></div>{% else %}<span class="lt-mood-chip lt-mood-chip--static">{{ r.mood }}</span>{% endif %}</td>

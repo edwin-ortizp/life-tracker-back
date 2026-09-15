@@ -35,18 +35,7 @@
 
         @if (count($activeFilters) > 0)
             <x-slot:strip>
-                @foreach ($activeFilters as $filter)
-                    <span class="md-chip md-chip-input health-applied-chip" wire:key="health-filter-{{ $filter['key'] }}-{{ $filter['value'] }}">
-                        <i class="bi {{ $filter['icon'] }}" aria-hidden="true"></i>
-                        <span>{{ $filter['label'] }}</span>
-                        <button type="button" class="md-btn-icon md-btn--sm health-applied-chip__remove"
-                                wire:click="removeFilter(@js($filter['key']), @js($filter['value']))"
-                                aria-label="Quitar filtro {{ $filter['label'] }}" title="Quitar filtro">
-                            <i class="bi bi-x" aria-hidden="true"></i>
-                        </button>
-                    </span>
-                @endforeach
-                <button type="button" class="md-btn-text md-btn--sm health-clear-filters" wire:click="clearFilters">Limpiar filtros</button>
+                <x-ui.applied-filters :filters="$activeFilters" />
             </x-slot:strip>
         @endif
 

@@ -12,9 +12,6 @@
 .health-filter-button { position: relative; }
 
 .health-applied-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
-.health-applied-chip { display: inline-flex; align-items: center; gap: 6px; padding: 0 4px 0 12px; }
-.health-applied-chip__remove { width: 24px; height: 24px; min-width: 24px; font-size: .95rem; }
-.health-clear-filters { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Cronología: fecha grande a la izquierda y tarjeta acordeón. */
 .health-timeline { display: flex; flex-direction: column; gap: 12px; }

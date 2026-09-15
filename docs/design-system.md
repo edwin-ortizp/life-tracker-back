@@ -204,8 +204,9 @@ CI ejecuta ese orden de fallo rápido en `.github/workflows/ui-quality.yml`.
 
 Toda pantalla cuyo propósito principal sea consultar y administrar varios registros (tablas, historiales, catálogos, listados) usa **un único contenedor**: `x-ui.management-card` (`resources/views/components/ui/management-card.blade.php`), con el estado de paginación del trait `App\Livewire\Concerns\WithManagementCard`. Es el mismo arquetipo aprobado en el mockup de Salud (`manage_card` en `docs/mockup-system/components/life-shell.html.jinja`); no se crean variantes por módulo.
 
-- **Header**: ícono en contenedor tonal con `--md-module-accent`, título, contador `(visibles / total)`, divisor, búsqueda (`search`), botón Filtros con badge (slot `filters` + `filterActions`, abre `x-ui.popover`), divisor y ⋮ (slot `menu`). División horizontal inferior.
-- **Franja de filtros aplicados** (slot `strip`): chips removibles y «Limpiar filtros».
+- **Header**: ícono en contenedor tonal con `--md-module-accent`, título, contador `(visibles / total)`, divisor, búsqueda (`search`), botón Ordenar (props `sort-model`, `sort-options`, `sort-value`; mismo aspecto que Filtros y a su izquierda), botón Filtros con badge (slot `filters` + `filterActions`, abre `x-ui.popover`), divisor y ⋮ (slot `menu`). Ordenar y Filtros usan 14 px / 500. División horizontal inferior.
+- **Franja de filtros aplicados** (slot `strip`): `x-ui.applied-filters` con los chips removibles (`removeFilter(key, value)`) y «Limpiar filtros» (`clearFilters`). El componente Livewire expone `activeFilters()` como lista `key/value/label/icon`.
+- **Filtro por defecto**: cuando una tabla parte acotada (p. ej. el registro diario al día seleccionado), ese criterio es un filtro real: aparece como chip («Fecha: Hoy»), cuenta en el badge y se puede quitar para ver todos los registros paginados. Para fechas se usa el trait `App\Livewire\Concerns\WithDefaultDateFilter` (`?scope=all`); las métricas del día no dependen de él.
 - **Contenido** (slot por defecto; `flush` para listas de borde a borde): columnas, filas, acciones por fila y estados vacío / filtrado vacío propios del módulo.
 - **Footer** (automático con `paginator`): «Mostrando a–b de N», filas por página 10/25/50/100 (25 por defecto, `?per_page=`) y paginación con página activa en el color del módulo; anterior/siguiente se deshabilitan en los extremos.
 - **Responsive**: se compacta por el ancho de la propia card (container query de 640 px): búsqueda y Filtros pasan a ícono, la búsqueda se expande sobre el header al tocarla y se cierra con ✕ o Escape; el footer muestra «1 / 3».
@@ -219,7 +220,7 @@ Toda pantalla cuyo propósito principal sea consultar y administrar varios regis
 | Módulo | Pantalla (Livewire) | Mockup | Particularidades conservadas |
 |---|---|---|---|
 | Salud | `Health/HealthIndex` | Estándar | Acordeones con evolución, filtros por rango/estado/tipo/zona con chips, FAB dividido (evento + pendiente); se añade búsqueda por título y notas |
-| Ejercicio | `Exercise/ExerciseDaily` | Estándar | Totales del día sobre todos los registros; editar/eliminar |
+| Ejercicio | `Exercise/ExerciseDaily` | Estándar | Tabla con filtro por defecto «Fecha» y tipo; totales del día independientes del filtro; editar un registro de otra fecha conserva su fecha |
 | Ejercicio | `Exercise/ExerciseSettings` | Estándar | Búsqueda, categoría, agrupación por categoría por página, reasignar antes de eliminar, restaurar predeterminados en ⋮ |
 | Comidas | `Meal/MealShopping` | Estándar | Vista compacta/agrupada, agrupar por categoría o tienda, tienda, necesarios de la semana |
 | Comidas | `Meal/MealIngredients` | Estándar | Categoría, acordeones por categoría, resumen del rail sobre todo el catálogo |
@@ -231,8 +232,8 @@ Toda pantalla cuyo propósito principal sea consultar y administrar varios regis
 | Relaciones | `Relationship/RelationshipPlans` | Pendiente | Estados con conteo, Sorpréndeme y filtros avanzados en ⋮ |
 | Planes | `Plan/PlanIndex` | Estándar | Grupos, estado, ciudad, tipos, círculos, personas y orden en Filtros; chips aplicados; Sorpréndeme en ⋮ |
 | Objetivos | `Goal/GoalIndex` | Estándar | Estado, menú completar/abandonar/reactivar/eliminar |
-| Hidratación | `Water/WaterDaily` | Estándar | Progreso del día sobre todos los registros, agregar rápido fuera de la card |
-| Hidratación | `Water/WaterSettings` | Pendiente | Formulario del rail; «Nueva bebida» pasa al FAB |
+| Hidratación | `Water/WaterDaily` | Estándar | Tabla con filtro por defecto «Fecha» y bebida; progreso del día independiente del filtro; agregar rápido fuera de la card |
+| Hidratación | `Water/WaterSettings` | Estándar | Tipos de bebida con búsqueda, factor, uso y orden; FAB «Nueva bebida» y el mismo diálogo para editar; eliminar bloqueado con registros; meta diaria en el rail |
 | Hábitos a evitar | `NegativeHabit/NegativeHabitWeekly` | Estándar | Navegador de semana, agrupación por categoría, registrar incidencia por fila |
 | Vehículos | `Vehicle/VehicleIndex` | Pendiente | Grid del garaje; catálogo en ⋮ |
 | Vehículos | `Vehicle/VehicleFuel` | Estándar | Tabla en escritorio y tarjetas en móvil |

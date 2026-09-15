@@ -192,6 +192,14 @@ class ComponentCatalog
     <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete">Eliminar</x-ui.menu-item>
 </x-ui.row-actions>',
         ],
+        'applied-filters' => [
+            'layer' => 'patterns',
+            'title' => 'Filtros aplicados',
+            'description' => 'Franja de chips removibles y «Limpiar filtros» para el slot strip de la card de gestión. Un filtro por defecto (p. ej. «Fecha: Hoy») se declara igual que cualquier otro.',
+            'usage' => '<x-slot:strip>
+    <x-ui.applied-filters :filters="$activeFilters" />
+</x-slot:strip>',
+        ],
         'menu-divider' => [
             'layer' => 'patterns',
             'title' => 'Divisor de menú',

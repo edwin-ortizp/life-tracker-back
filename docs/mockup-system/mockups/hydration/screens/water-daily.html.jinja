@@ -1,16 +1,27 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, manage_card, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, manage_card, fab, row_split, applied_filters, date_filters %}
 {% call shell('hydration', 'Registro diario', 'bi-droplet') %}
 {{ header('Registro diario', 'Consumo, objetivo y momentos del día.', 'bi-droplet') }}
-{{ module_tabs([('Registro diario','/water-daily','bi-droplet-half'),('Resumen semanal','/water-weekly','bi-bar-chart-line')], '/water-daily') }}
+{{ module_tabs([('Registro diario','/water-daily','bi-droplet-half'),('Resumen semanal','/water-weekly','bi-bar-chart-line'),('Ajustes','/water-settings','bi-sliders')], '/water-daily') }}
 <section class="lt-metrics">{{ metric('Consumido','1.5 L','success') }}{{ metric('Objetivo','2.2 L') }}{{ metric('Racha','6 días') }}</section>
-<section class="lt-grid-main">{% call(zone) manage_card('water-log', 'Registro de hoy', 'bi-clock-history', count='(3)', search='Buscar registros', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':3,'total':3,'noun':'registros','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
-      <div class="lt-popover" id="water-log-filters" role="dialog" aria-labelledby="water-log-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
-        <div class="lt-popover__head"><h4 id="water-log-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="water-log-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
-        <label class="lt-field"><span>Día</span><select><option selected>Hoy</option><option>Ayer</option><option>Últimos 7 días</option></select></label>
-        <div class="lt-field"><span>Recipiente</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Todos</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Vaso</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Botella</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Termo</button></div></div>
-        <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="water-log-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
-      </div>
-    {% else %}
-<div class="lt-list">{% for time, amount in [('08:00','350 ml'),('11:30','500 ml'),('15:00','650 ml')] %}<div class="lt-list-item"><i class="bi bi-droplet-fill" style="color:var(--lt-accent)"></i><div class="lt-list-item__body"><strong>{{ amount }}</strong><span>{{ time }}</span></div></div>{% endfor %}</div>{% endif %}{% endcall %}<article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-droplet"></i><h3>Objetivo de hoy</h3><small>68 %</small></div><div class="lt-panel__body"><div class="lt-progress"><span style="width:68%"></span></div><p class="lt-page-head__subtitle">Faltan 700 ml para alcanzar tu meta diaria.</p></div></article></section>
+<section class="lt-grid-main">{% call(zone) manage_card('water-log', 'Registro de hoy', 'bi-clock-history', count='(3 / 142)', total=142, search='Buscar registros', filters=1, menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':3,'total':3,'noun':'registros','page':1,'pages':1,'per_page':25}, footer_all={'to':25,'total':142,'pages':6}) %}{% if zone == 'filters' %}
+  {% call date_filters('water-log') %}<label class="lt-field"><span>Bebida</span><select><option>Todas</option><option>Agua</option><option>Café</option><option>Té verde</option><option>Jugo de naranja</option></select></label>{% endcall %}
+{% else %}
+  {{ applied_filters([('bi-calendar-event','Fecha: Hoy')]) }}
+  <table class="lt-mtable">
+    <thead><tr><th scope="col">Fecha</th><th scope="col">Hora</th><th scope="col">Bebida</th><th scope="col">Cantidad</th><th scope="col">Hidratación efectiva</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead>
+    <tbody>
+    {% for date, time, icon, drink, ml, eff, old in [('Hoy','15:00','💧','Agua','650 ml','650 ml',false),('Hoy','11:30','☕','Café','250 ml','200 ml',false),('Hoy','08:00','💧','Agua','350 ml','350 ml',false),('12 sep.','21:10','🍵','Té verde','300 ml','270 ml',true),('12 sep.','17:45','💧','Agua','500 ml','500 ml',true),('12 sep.','09:05','☕','Café','250 ml','200 ml',true),('11 sep.','19:30','🧃','Jugo de naranja','400 ml','340 ml',true)] %}
+      <tr{% if old %} data-lt-outside-filter{% endif %}>
+        <td class="lt-mtable__date" data-label="Fecha">{{ date }}</td>
+        <td class="lt-mtable__time" data-label="Hora">{{ time }}</td>
+        <td class="lt-mtable__type" data-label="Bebida"><span aria-hidden="true">{{ icon }}</span> {{ drink }}</td>
+        <td data-label="Cantidad"><strong>{{ ml }}</strong></td>
+        <td data-label="Hidratación efectiva">{{ eff }}</td>
+        <td class="lt-mtable__actions">{{ row_split('water-log-menu-' ~ loop.index, 'Editar', [('Eliminar','bi-trash',true)], 'el registro de ' ~ date ~ ' a las ' ~ time) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endif %}{% endcall %}<article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-droplet"></i><h3>Objetivo de hoy</h3><small>68 %</small></div><div class="lt-panel__body"><div class="lt-progress"><span style="width:68%"></span></div><p class="lt-page-head__subtitle">Faltan 700 ml para alcanzar tu meta diaria.</p></div></article></section>
 {{ fab('Registrar agua', 'bi-droplet') }}
 {% endcall %}

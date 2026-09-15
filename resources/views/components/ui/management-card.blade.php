@@ -13,6 +13,9 @@
     'alpine' => '',
     'onFiltersOpen' => '',
     'flush' => false,
+    'sortModel' => null,
+    'sortOptions' => [],
+    'sortValue' => null,
 ])
 
 @php
@@ -25,6 +28,8 @@
     $hasFilters = isset($filters);
     $hasMenu = isset($menu);
     $hasHeaderAction = isset($headerAction);
+    $hasSort = filled($sortModel) && $sortOptions !== [];
+    $sortLabel = $sortOptions[$sortValue] ?? reset($sortOptions);
     $isLengthAware = $paginator instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator;
     $state = trim('filtersOpen: false, searching: false'.($alpine !== '' ? ', '.$alpine : ''));
 @endphp
@@ -43,7 +48,7 @@
             </h2>
         </div>
 
-        @if ($search || $hasFilters || $hasMenu)
+        @if ($search || $hasSort || $hasFilters || $hasMenu)
             <span class="md-mcard__divider" aria-hidden="true"></span>
             <div class="md-mcard__tools">
                 @if ($search)
@@ -60,6 +65,25 @@
                             :aria-expanded="searching.toString()" aria-label="{{ $searchPlaceholder }}" title="{{ $searchPlaceholder }}">
                         <i class="bi bi-search" aria-hidden="true"></i>
                     </button>
+                @endif
+
+                @if ($hasSort)
+                    {{-- Ordenar: mismo aspecto que Filtros, a su izquierda. --}}
+                    <div class="md-menu md-mcard__sort" x-data="{ open: false }" @click.outside="open = false"
+                         @keydown.escape.stop="if (open) { open = false; $refs.sortTrigger.focus() }">
+                        <button type="button" x-ref="sortTrigger" class="md-btn-text md-mcard__filter" aria-haspopup="menu"
+                                :aria-expanded="open.toString()" aria-label="Ordenar por {{ $sortLabel }}" title="Ordenar" @click="open = !open">
+                            <i class="bi bi-sort-down" aria-hidden="true"></i><span class="md-mcard__filter-label">{{ $sortLabel }}</span>
+                        </button>
+                        <div class="md-menu__surface" role="menu" x-cloak x-show="open" x-transition.opacity.duration.120ms @click="open = false">
+                            @foreach ($sortOptions as $sortKey => $optionLabel)
+                                <button type="button" role="menuitemradio" aria-checked="{{ $sortKey === $sortValue ? 'true' : 'false' }}"
+                                        class="md-menu__item" wire:click="$set('{{ $sortModel }}', @js($sortKey))">
+                                    <i class="bi {{ $sortKey === $sortValue ? 'bi-check2' : 'bi-dot' }}" aria-hidden="true"></i><span>{{ $optionLabel }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
                 @endif
 
                 @if ($hasFilters)

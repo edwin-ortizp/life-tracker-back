@@ -1,7 +1,9 @@
 @php
     use App\Support\Ui\DataState;
 
-    $logsState = DataState::resolve(visible: $logs->count(), total: $logs->count());
+    $logsState = $logs->count() > 0
+        ? DataState::CONTENT
+        : ($totalLogs > 0 && (count($activeFilters) > 0 || trim($search) !== '') ? DataState::FILTERED_EMPTY : DataState::EMPTY);
     $drinksState = DataState::resolve(visible: $drinkTypes->count(), total: $drinkTypes->count());
 @endphp
 
@@ -41,30 +43,66 @@
         </x-ui.filter-bar>
     </x-ui.section>
 
-    <x-ui.management-card id="water-day-logs" title="Registro del día" icon="bi-clock-history" :count="'('.$logs->total().')'" :paginator="$logs" noun="registros">
+    <x-ui.management-card id="water-day-logs" title="Registro del día" icon="bi-clock-history"
+                          :count="'('.$logs->total().' / '.$totalLogs.')'" search="search" search-placeholder="Buscar registros"
+                          :active-filters="count($activeFilters)" :paginator="$logs" noun="registros"
+                          alpine="draftScope: 'day', draftDrink: ''"
+                          on-filters-open="draftScope = $wire.dateScope; draftDrink = $wire.drinkFilter">
+        <x-slot:filters>
+            <x-ui.select name="filterDateScope" label="Fecha" :options="$dateScopes" :selected="$dateScope" icon="bi-calendar-event" x-model="draftScope" />
+            <x-ui.select name="filterDrink" label="Bebida" placeholder="Todas"
+                         :options="$drinkTypes->mapWithKeys(fn ($type) => [$type->id => ($type->icon ?? '💧').' '.$type->name])->all()"
+                         :selected="$drinkFilter" icon="bi-cup-straw" x-model="draftDrink" />
+        </x-slot:filters>
+        <x-slot:filterActions>
+            <x-ui.action variant="outlined" icon="bi-eraser" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
+            <x-ui.action variant="filled" icon="bi-funnel-fill" x-on:click="$wire.applyFilters(draftScope, draftDrink); filtersOpen = false">Filtrar</x-ui.action>
+        </x-slot:filterActions>
+
+        @if (count($activeFilters) > 0)
+            <x-slot:strip>
+                <x-ui.applied-filters :filters="$activeFilters" />
+            </x-slot:strip>
+        @endif
+
         @if ($logsState === DataState::CONTENT)
-            <x-ui.list label="Registros del día">
-                @foreach ($logs as $log)
-                    <x-ui.list-item :headline="$log->drink_type"
-                                    :supporting="$log->amount.' ml · '.$log->hydration_value.' ml hidratación'"
-                                    wire:key="log-{{ $log->id }}">
-                        <x-slot:leading>
-                            <x-ui.chip variant="tonal" tone="primary">{{ $log->time }}</x-ui.chip>
-                        </x-slot:leading>
-                        <x-slot:trailing>
-                            <x-ui.icon-action icon="bi-pencil" label="Editar el registro de {{ $log->drink_type }}"
-                                              wire:click="openForm('{{ $log->id }}')" />
-                            <x-ui.destructive-action label="Eliminar el registro de {{ $log->drink_type }}" :iconOnly="true"
-                                                     action="delete('{{ $log->id }}')"
-                                                     title="Eliminar registro"
-                                                     message="El registro de {{ $log->amount }} ml se elimina de forma permanente." />
-                        </x-slot:trailing>
-                    </x-ui.list-item>
-                @endforeach
-            </x-ui.list>
+            <table class="md-table md-table--stack">
+                <thead>
+                    <tr>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Hora</th>
+                        <th scope="col">Bebida</th>
+                        <th scope="col">Cantidad</th>
+                        <th scope="col">Hidratación efectiva</th>
+                        <th scope="col" class="md-table__actions"><span class="visually-hidden">Acciones</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($logs as $log)
+                        @php $logDate = \Carbon\Carbon::parse($log->date); @endphp
+                        <tr wire:key="log-{{ $log->id }}">
+                            <td class="md-table__date">{{ $logDate->isToday() ? 'Hoy' : $logDate->translatedFormat('j M Y') }}</td>
+                            <td class="md-table__date">{{ $log->time }}</td>
+                            <td class="md-table__title"><span aria-hidden="true">{{ $log->drinkType?->icon ?? '💧' }}</span> {{ $log->drink_type }}</td>
+                            <td class="md-table__nowrap">{{ number_format($log->amount, 0, ',', '.') }} ml</td>
+                            <td class="md-table__nowrap">{{ number_format($log->hydration_value, 0, ',', '.') }} ml</td>
+                            <td class="md-table__actions">
+                                <x-ui.row-actions :label="'Más acciones del registro de '.$log->drink_type">
+                                    <x-slot:primary wire:click="openForm('{{ $log->id }}')">Editar</x-slot:primary>
+                                    <x-ui.menu-divider />
+                                    <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete('{{ $log->id }}')"
+                                                    wire:confirm="El registro de {{ $log->amount }} ml se elimina de forma permanente.">Eliminar</x-ui.menu-item>
+                                </x-ui.row-actions>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @elseif ($logsState === DataState::FILTERED_EMPTY)
+            <x-ui.state variant="{{ DataState::FILTERED_EMPTY }}" message="Quita el filtro de fecha o cambia la búsqueda para ver otros registros." />
         @else
-            <x-ui.state variant="empty" icon="bi-droplet" title="Sin registros para este día"
-                        message="Registra tu primera bebida para ver aquí el detalle del día." />
+            <x-ui.state variant="{{ DataState::EMPTY }}" icon="bi-droplet" title="Sin registros de hidratación"
+                        message="Registra tu primera bebida para ver aquí el detalle." />
         @endif
     </x-ui.management-card>
 

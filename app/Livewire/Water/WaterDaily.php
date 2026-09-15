@@ -11,7 +11,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use App\Livewire\Concerns\WithDefaultDateFilter;
 use App\Livewire\Concerns\WithManagementCard;
+use Livewire\Attributes\Url;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 
@@ -21,7 +23,15 @@ class WaterDaily extends Component
 {
     use HasUrlDate;
     use WithManagementCard;
+    use WithDefaultDateFilter;
+
     public int $dailyGoal = 2500;
+
+    #[Url(as: 'q', history: true, except: '')]
+    public string $search = '';
+
+    #[Url(as: 'drink', history: true, except: '')]
+    public string $drinkFilter = '';
 
     // Form fields
     public string $drinkTypeId = '';
@@ -42,7 +52,37 @@ class WaterDaily extends Component
     public function mount()
     {
         $this->initializeSelectedDate();
+        $this->setDateScope($this->dateScope);
         $this->dailyGoal = WaterGoal::forUser(Auth::user());
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function applyFilters(string $scope, string $drink): void
+    {
+        $this->setDateScope($scope);
+        $this->drinkFilter = $drink !== '' && DrinkType::whereKey($drink)->exists() ? $drink : '';
+        $this->resetPage();
+    }
+
+    public function removeFilter(string $key, ?string $value = null): void
+    {
+        $this->resetPage();
+        match ($key) {
+            'date' => $this->dateScope = 'all',
+            'drink' => $this->drinkFilter = '',
+            default => null,
+        };
+    }
+
+    public function clearFilters(): void
+    {
+        $this->resetPage();
+        $this->dateScope = 'all';
+        $this->drinkFilter = '';
     }
 
     public function previousDay()
@@ -267,7 +307,11 @@ class WaterDaily extends Component
     public function render()
     {
         $dayLogs = DrinkLog::where('date', $this->selectedDate);
-        $logs = (clone $dayLogs)
+        $search = trim($this->search);
+        $logs = $this->applyDateScope(DrinkLog::query())
+            ->when($search !== '', fn ($q) => $q->where('drink_type', 'like', '%'.$search.'%'))
+            ->when($this->drinkFilter !== '', fn ($q) => $q->where('drink_type_id', $this->drinkFilter))
+            ->orderByDesc('date')
             ->orderByDesc('timestamp')
             ->paginate($this->perPage());
 
@@ -275,10 +319,18 @@ class WaterDaily extends Component
         $totalHydration = (clone $dayLogs)->sum('hydration_value');
         $totalAmount = (clone $dayLogs)->sum('amount');
         $drinkTypes = DrinkType::orderBy('name')->get();
+        $drinkFilterLabel = $this->drinkFilter !== '' ? $drinkTypes->firstWhere('id', $this->drinkFilter)?->name : null;
+        $activeFilters = $this->dateFilterChips();
+        if ($drinkFilterLabel) {
+            $activeFilters[] = ['key' => 'drink', 'value' => null, 'label' => 'Bebida: '.$drinkFilterLabel, 'icon' => 'bi-cup-straw'];
+        }
         $percentage = $this->dailyGoal > 0 ? min(($totalHydration / $this->dailyGoal) * 100, 100) : 0;
 
         return view('livewire.water.water-daily', [
             'logs' => $logs,
+            'totalLogs' => DrinkLog::count(),
+            'activeFilters' => $activeFilters,
+            'dateScopes' => $this->dateScopeOptions(),
             'totalHydration' => $totalHydration,
             'totalAmount' => $totalAmount,
             'drinkTypes' => $drinkTypes,

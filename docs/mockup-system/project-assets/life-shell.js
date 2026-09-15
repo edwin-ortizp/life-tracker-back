@@ -34,7 +34,20 @@ export function mountLifeShell({root, scope, toast}) {
     if (toggle) { const el = root.querySelector('#' + toggle.dataset.ltToggle); if (el) { closePopups(el); el.hidden = !el.hidden; root.querySelectorAll('[data-lt-toggle="' + toggle.dataset.ltToggle + '"][aria-expanded]').forEach(b => b.setAttribute('aria-expanded', String(!el.hidden))); } return; }
     const remove = event.target.closest('[data-lt-remove-filter]');
     const clear = event.target.closest('[data-lt-clear-filters]');
-    if (remove || clear) { (clear ? root.querySelectorAll('[data-lt-remove-filter]') : [remove]).forEach(b => { const chip = b.closest('.lt-chip'); if (chip?.hasAttribute('data-zone-chip')) { dropStore('lt-health-zone'); dropStore('lt-health-range'); } chip?.remove(); }); const count = root.querySelectorAll('[data-lt-remove-filter]').length; const badge = root.querySelector('[data-lt-filter-count]'); if (badge) { badge.textContent = count; badge.hidden = count === 0; badge.setAttribute('aria-label', count + ' filtros activos'); } const link = root.querySelector('[data-lt-clear-filters]'); if (link) link.hidden = count === 0; const counter = root.querySelector('[data-lt-visible-count]'); if (counter && count === 0) counter.textContent = '(' + (counter.dataset.total || '') + ' / ' + (counter.dataset.total || '') + ')'; return; }
+    if (remove || clear) {
+      const card = (remove || clear).closest('.lt-mcard'); const area = card || root;
+      (clear ? area.querySelectorAll('[data-lt-remove-filter]') : [remove]).forEach(b => { const chip = b.closest('.lt-chip'); if (chip?.hasAttribute('data-zone-chip')) { dropStore('lt-health-zone'); dropStore('lt-health-range'); } chip?.remove(); });
+      const count = area.querySelectorAll('[data-lt-remove-filter]').length;
+      const badge = area.querySelector('[data-lt-filter-count]'); if (badge) { badge.textContent = count; badge.hidden = count === 0; badge.setAttribute('aria-label', count + (count === 1 ? ' filtro activo' : ' filtros activos')); }
+      const link = area.querySelector('[data-lt-clear-filters].lt-link'); if (link) link.hidden = count === 0;
+      if (count === 0) {
+        const counter = area.querySelector('[data-lt-visible-count]'); if (counter) counter.textContent = '(' + (counter.dataset.total || '') + ' / ' + (counter.dataset.total || '') + ')';
+        const foot = card?.querySelector('[data-range-all]');
+        if (foot) { card.classList.add('is-unfiltered'); foot.querySelector('.lt-mcard__range').innerHTML = foot.dataset.rangeAll; const compactPager = foot.querySelector('.lt-pager__compact'); if (compactPager) compactPager.textContent = '1 / ' + foot.dataset.pagesAll; const steps = foot.querySelectorAll('.lt-pager__step'); if (steps[1]) steps[1].disabled = false; }
+      }
+      area.querySelectorAll('.lt-popover').forEach(p => { p.hidden = true; });
+      return;
+    }
     if (!event.target.closest('.lt-popover,.lt-menu,.lt-dialog')) closePopups(null);
     if (event.target.closest('.lt-multiselect__option')) { const panel = event.target.closest('.lt-multiselect__panel'); const picked = [...panel.querySelectorAll('input:checked')].map(i => i.parentElement.textContent.trim()); root.querySelector('[data-lt-toggle="' + panel.id + '"] span').textContent = picked.length ? picked.join(', ') : 'Todos los tipos'; return; }
     const action = event.target.closest('[data-lt-nav-toggle],[data-lt-open-drawer],[data-lt-close-drawer],[data-lt-static-nav],[data-lt-search]');

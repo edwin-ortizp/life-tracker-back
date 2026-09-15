@@ -17,4 +17,9 @@ class DrinkType extends Model
         'icon',
         'category',
     ];
+
+    public function logs()
+    {
+        return $this->hasMany(DrinkLog::class);
+    }
 }

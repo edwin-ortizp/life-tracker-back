@@ -9,7 +9,8 @@
       "template": "pages/main.html.jinja",
       "screens": [
         "water-daily",
-        "water-weekly"
+        "water-weekly",
+        "water-settings"
       ],
       "output": "hydration.html"
     }
@@ -24,6 +25,11 @@
       "template": "screens/water-weekly.html.jinja",
       "title": "Resumen semanal",
       "bodyClass": ""
+    },
+    "water-settings": {
+      "template": "screens/water-settings.html.jinja",
+      "title": "Ajustes",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -34,6 +40,10 @@
     {
       "path": "/water-weekly",
       "screen": "water-weekly"
+    },
+    {
+      "path": "/water-settings",
+      "screen": "water-settings"
     }
   ],
   "datasets": {

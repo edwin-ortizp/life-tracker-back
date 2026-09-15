@@ -55,7 +55,7 @@
 
 {% macro metric(label, value, tone='primary') -%}<article class="lt-metric lt-metric--{{ tone }}"><span>{{ label }}</span><strong>{{ value }}</strong></article>{%- endmacro %}
 
-{% macro dialog(id, title, submit='Guardar', icon=None, sections=None) -%}
+{% macro dialog(id, title, submit='Guardar', icon=None, sections=None, submit_action=None) -%}
 <div class="lt-dialog-layer" id="{{ id }}" hidden>
   <button class="lt-dialog-scrim" type="button" data-lt-toggle="{{ id }}" aria-label="Cerrar" tabindex="-1"></button>
   <section class="lt-dialog{% if sections %} lt-dialog--sections{% endif %}" role="dialog" aria-modal="true" aria-labelledby="{{ id }}-title">
@@ -70,7 +70,7 @@
       {% if sections %}<nav class="lt-dialog__nav" id="{{ id }}-nav" aria-label="Secciones del formulario">{% for key, label, sicon in sections %}<button class="lt-dialog__nav-item" type="button" data-lt-dialog-section="{{ key }}"{% if loop.first %} aria-current="true"{% endif %}><i class="bi {{ sicon }}" aria-hidden="true"></i><span>{{ label }}</span></button>{% endfor %}</nav>{% endif %}
       <div class="lt-dialog__body">{{ caller() }}</div>
     </div>
-    <footer class="lt-dialog__actions"><button class="lt-button lt-button--text" type="button" data-lt-toggle="{{ id }}">Cancelar</button><button class="lt-button" type="button" data-lt-toggle="{{ id }}"><i class="bi bi-floppy"></i> {{ submit }}</button></footer>
+    <footer class="lt-dialog__actions"><button class="lt-button lt-button--text" type="button" data-lt-toggle="{{ id }}">Cancelar</button><button class="lt-button" type="button"{% if submit_action %} data-lt-action="{{ submit_action }}"{% else %} data-lt-toggle="{{ id }}"{% endif %}><i class="bi bi-floppy"></i> {{ submit }}</button></footer>
   </section>
 </div>
 {%- endmacro %}
@@ -92,7 +92,7 @@
 {#- Card de gestión estándar: header (ícono, título, contador | buscador, filtros | ⋮), contenido y footer con paginación.
     `caller(zone)` recibe 'filters' (popover de filtros) y 'content' (chips aplicados + listado).
     `menu` = [(label, icon[, dialog_id]), ...]; `footer` = {from, to, total, noun, page, pages, per_page}. -#}
-{% macro manage_card(id, title, icon, count=None, search='Buscar', filters=0, menu=None, footer=None, total=None) -%}
+{% macro manage_card(id, title, icon, count=None, search='Buscar', filters=0, menu=None, footer=None, total=None, sort=None, footer_all=None) -%}
 <article class="lt-mcard" id="{{ id }}" aria-labelledby="{{ id }}-title">
   <header class="lt-mcard__head">
     <div class="lt-mcard__title"><span class="lt-mcard__icon" aria-hidden="true"><i class="bi {{ icon }}"></i></span><h3 id="{{ id }}-title"><span class="lt-mcard__heading-text">{{ title }}</span>{% if count %}<span class="lt-count" title="Registros visibles de los existentes"><span aria-hidden="true">·</span> <span data-lt-visible-count data-total="{{ total or '' }}">{{ count }}</span></span>{% endif %}</h3></div>
@@ -100,6 +100,9 @@
     <div class="lt-mcard__tools lt-filter-anchor">
       <label class="lt-mcard__search"><i class="bi bi-search" aria-hidden="true"></i><span class="lt-sr-only">{{ search }}</span><input type="search" placeholder="{{ search }}"><button class="lt-icon-button lt-mcard__search-close" type="button" data-lt-mcard-search aria-label="Cerrar búsqueda"><i class="bi bi-x-lg"></i></button></label>
       <button class="lt-icon-button lt-mcard__search-toggle" type="button" data-lt-mcard-search aria-expanded="false" aria-label="{{ search }}"><i class="bi bi-search"></i></button>
+      {% if sort %}<div class="lt-menu-anchor lt-mcard__sort"><button class="lt-button lt-button--text lt-filter-button lt-sort-button" type="button" data-lt-toggle="{{ id }}-sort" aria-haspopup="menu" aria-expanded="false" aria-label="Ordenar por {{ sort[0][1] }}"><i class="bi bi-sort-down"></i><span class="lt-filter-button__label" data-lt-sort-label>{{ sort[0][1] }}</span></button>
+        <div class="lt-menu lt-menu--down" id="{{ id }}-sort" role="menu" hidden>{% for key, label, sicon in sort %}<button class="lt-menu__item" role="menuitem" type="button" data-lt-sort="{{ key }}"{% if loop.first %} aria-checked="true"{% endif %}><i class="bi {{ sicon }}"></i> {{ label }}</button>{% endfor %}</div>
+      </div>{% endif %}
       <button class="lt-button lt-button--text lt-filter-button" type="button" data-lt-toggle="{{ id }}-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="{{ id }}-filters" aria-label="Filtros"><i class="bi bi-sliders"></i><span class="lt-filter-button__label">Filtros</span><span class="lt-badge lt-badge--corner" data-lt-filter-count aria-label="{{ filters }} filtros activos"{% if not filters %} hidden{% endif %}>{{ filters }}</span></button>
       {{ caller('filters') }}
       {% if menu %}<span class="lt-mcard__divider" aria-hidden="true"></span>
@@ -109,12 +112,12 @@
     </div>
   </header>
   <div class="lt-mcard__body">{{ caller('content') }}</div>
-  {% if footer %}{% set f = footer %}<footer class="lt-mcard__foot">
+  {% if footer %}{% set f = footer %}<footer class="lt-mcard__foot"{% if footer_all %} data-range-all="{{ ('Mostrando <strong>1–' ~ footer_all.to ~ '</strong> de <strong>' ~ footer_all.total ~ '</strong> ' ~ f.noun)|e }}" data-pages-all="{{ footer_all.pages }}"{% endif %}>
     <p class="lt-mcard__range">Mostrando <strong>{{ f.from }}–{{ f.to }}</strong> de <strong>{{ f.total }}</strong> {{ f.noun }}</p>
     <label class="lt-mcard__rows"><span>Filas por página</span><select>{% for n in [10, 25, 50, 100] %}<option{% if n == f.per_page %} selected{% endif %}>{{ n }}</option>{% endfor %}</select></label>
     <nav class="lt-pager" aria-label="Paginación de {{ title }}">
       <button class="lt-pager__step" type="button" data-lt-static-nav aria-label="Página anterior"{% if f.page == 1 %} disabled{% endif %}><i class="bi bi-chevron-left"></i><span>Anterior</span></button>
-      {% for p in range(1, f.pages + 1) %}<button class="lt-pager__page{% if p == f.page %} is-active{% endif %}" type="button"{% if p == f.page %} aria-current="page"{% else %} data-lt-static-nav{% endif %} aria-label="Página {{ p }}">{{ p }}</button>{% endfor %}
+      {% for p in range(1, f.pages + 1) %}<button class="lt-pager__page{% if p == f.page %} is-active{% endif %}" type="button"{% if p == f.page %} aria-current="page"{% else %} data-lt-static-nav{% endif %} aria-label="Página {{ p }}">{{ p }}</button>{% endfor %}{% if footer_all %}{% for p in range(f.pages + 1, footer_all.pages + 1) %}<button class="lt-pager__page" type="button" data-lt-static-nav data-lt-outside-filter aria-label="Página {{ p }}">{{ p }}</button>{% endfor %}{% endif %}
       <span class="lt-pager__compact">{{ f.page }} / {{ f.pages }}</span>
       <button class="lt-pager__step" type="button" data-lt-static-nav aria-label="Página siguiente"{% if f.page == f.pages %} disabled{% endif %}><span>Siguiente</span><i class="bi bi-chevron-right"></i></button>
     </nav>
@@ -123,16 +126,31 @@
 {%- endmacro %}
 
 {# Acción por fila en vistas de gestión: split outline (principal + chevron con menú); en compacto, ⋮ con todas las acciones. #}
-{% macro row_split(id, label, actions, aria) -%}
+{% macro row_split(id, label, actions, aria, action=None) -%}
 <div class="lt-menu-anchor lt-row-split">
   <div class="lt-split">
-    <button class="lt-button lt-split__main" type="button" data-lt-static-nav>{{ label }}</button>
+    <button class="lt-button lt-split__main" type="button"{% if action %} data-lt-action="{{ action }}"{% else %} data-lt-static-nav{% endif %}>{{ label }}</button>
     <button class="lt-button lt-split__toggle" type="button" data-lt-toggle="{{ id }}" aria-haspopup="menu" aria-expanded="false" aria-label="Más acciones de {{ aria }}"><i class="bi bi-chevron-down"></i></button>
   </div>
   <button class="lt-icon-button lt-row-more" type="button" data-lt-toggle="{{ id }}" aria-haspopup="menu" aria-expanded="false" aria-label="Acciones de {{ aria }}"><i class="bi bi-three-dots-vertical"></i></button>
   <div class="lt-menu lt-menu--down" id="{{ id }}" role="menu" hidden>
-    <button class="lt-menu__item lt-row-more__edit" role="menuitem" type="button" data-lt-static-nav>{{ label }}</button>
-    {% for a in actions %}{% if a|length > 2 and a[2] %}<hr class="lt-menu__divider">{% endif %}<button class="lt-menu__item{% if a|length > 2 and a[2] %} lt-menu__item--danger{% endif %}" role="menuitem" type="button" data-lt-static-nav><i class="bi {{ a[1] }}"></i> {{ a[0] }}</button>{% endfor %}
+    <button class="lt-menu__item lt-row-more__edit" role="menuitem" type="button"{% if action %} data-lt-action="{{ action }}"{% else %} data-lt-static-nav{% endif %}>{{ label }}</button>
+    {% for a in actions %}{% if a|length > 2 and a[2] %}<hr class="lt-menu__divider">{% endif %}<button class="lt-menu__item{% if a|length > 2 and a[2] %} lt-menu__item--danger{% endif %}" role="menuitem" type="button"{% if a|length > 3 and a[3] %} data-lt-action="{{ a[3] }}"{% else %} data-lt-static-nav{% endif %}><i class="bi {{ a[1] }}"></i> {{ a[0] }}</button>{% endfor %}
   </div>
+</div>
+{%- endmacro %}
+
+{#- Filtros aplicados de una tarjeta de gestión: `chips` = [(icon, label), ...]; incluye «Limpiar filtros». -#}
+{% macro applied_filters(chips) -%}
+<div class="lt-chip-row lt-applied-filters" aria-label="Filtros aplicados">{% for icon, label in chips %}<span class="lt-chip lt-chip--input"><i class="bi {{ icon }}"></i> <span>{{ label }}</span><button class="lt-chip__remove" type="button" data-lt-remove-filter aria-label="Quitar filtro {{ label }}"><i class="bi bi-x"></i></button></span>{% endfor %}<button class="lt-link" type="button" data-lt-clear-filters>Limpiar filtros</button></div>
+{%- endmacro %}
+
+{#- Popover de filtros estándar con campo Fecha (por defecto «Hoy»); `caller()` añade campos propios. -#}
+{% macro date_filters(id) -%}
+<div class="lt-popover" id="{{ id }}-filters" role="dialog" aria-labelledby="{{ id }}-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
+  <div class="lt-popover__head"><h4 id="{{ id }}-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="{{ id }}-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+  <label class="lt-field"><span>Fecha</span><select>{% for r in ['Hoy','Ayer','Últimos 7 días','Este mes','Todas las fechas'] %}<option{% if loop.first %} selected{% endif %}>{{ r }}</option>{% endfor %}</select></label>
+  {{ caller() }}
+  <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-clear-filters><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="{{ id }}-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
 </div>
 {%- endmacro %}

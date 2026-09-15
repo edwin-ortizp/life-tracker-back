@@ -1,0 +1,62 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, dialog, fab, manage_card, row_split %}
+{% set drinks = [('💧','Agua',1.00,142),('☕','Café',0.80,38),('🍵','Té verde',0.90,12),('🥛','Leche',0.90,6),('🧃','Jugo de naranja',0.85,4),('⚡','Bebida isotónica',1.10,0),('🥥','Agua de coco',1.05,0),('🍺','Cerveza',0.40,0)] %}
+{% call shell('hydration', 'Ajustes', 'bi-droplet') %}
+{{ header('Ajustes', 'Tipos de bebida y meta diaria de hidratación.', 'bi-droplet') }}
+{{ module_tabs([('Registro diario','/water-daily','bi-droplet-half'),('Resumen semanal','/water-weekly','bi-bar-chart-line'),('Ajustes','/water-settings','bi-sliders')], '/water-settings') }}
+<section class="lt-grid-main">
+{% call(zone) manage_card('drink-types', 'Tipos de bebida', 'bi-cup-straw', count='(8 / 8)', total=8, search='Buscar bebida', filters=0, menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':8,'total':8,'noun':'bebidas','page':1,'pages':1,'per_page':25}, sort=[('name','Nombre (A–Z)','bi-sort-alpha-down'),('factor','Mayor factor','bi-sort-numeric-down-alt'),('logs','Más registros','bi-sort-down')]) %}{% if zone == 'filters' %}
+      <div class="lt-popover" id="drink-types-filters" role="dialog" aria-labelledby="drink-types-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
+        <div class="lt-popover__head"><h4 id="drink-types-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="drink-types-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+        <div class="lt-field"><span>Factor de hidratación</span><div class="lt-chip-row">{% for key, label in [('all','Todos'),('low','Hidrata menos (< 1)'),('neutral','Igual al agua (1)'),('high','Hidrata más (> 1)')] %}<button class="lt-chip lt-chip--filter{% if loop.first %} is-selected{% endif %}" type="button" data-drink-factor="{{ key }}" aria-pressed="{{ 'true' if loop.first else 'false' }}">{{ label }}</button>{% endfor %}</div></div>
+        <label class="lt-field"><span>Uso</span><select data-drink-usage><option value="all">Todos</option><option value="used">Con registros</option><option value="unused">Sin registros</option></select></label>
+        <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-action="drink-filters-clear"><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-action="drink-filters-apply"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
+      </div>
+    {% else %}
+    <div class="lt-chip-row lt-applied-filters" aria-label="Filtros aplicados" data-drink-chips></div>
+    <table class="lt-mtable">
+      <thead><tr>
+        <th scope="col" aria-sort="ascending"><button class="lt-mtable__sort" type="button" data-drink-sort-col="name">Bebida <i class="bi bi-arrow-down-up" aria-hidden="true"></i></button></th>
+        <th scope="col"><button class="lt-mtable__sort" type="button" data-drink-sort-col="factor">Factor <i class="bi bi-arrow-down-up" aria-hidden="true"></i></button></th>
+        <th scope="col"><button class="lt-mtable__sort" type="button" data-drink-sort-col="logs">Registros <i class="bi bi-arrow-down-up" aria-hidden="true"></i></button></th>
+        <th scope="col" class="lt-mtable__actions">Acciones</th>
+      </tr></thead>
+      <tbody data-drink-rows>
+      {% for icon, name, factor, logs in drinks|sort(attribute='1') %}
+        <tr>
+          <td class="lt-mtable__type" data-label="Bebida"><span aria-hidden="true">{{ icon }}</span> <strong>{{ name }}</strong></td>
+          <td data-label="Factor"><div class="lt-mtable__factor"><span>×{{ '%.2f'|format(factor)|replace('.', ',') }}</span><div class="lt-progress" role="img" aria-label="Factor {{ factor }}"><span style="width:{{ [factor * 100 / 1.5, 100]|min|round }}%"></span></div></div></td>
+          <td data-label="Registros">{{ logs if logs else 'Sin registros' }}</td>
+          <td class="lt-mtable__actions">{{ row_split('drink-menu-' ~ loop.index, 'Editar', [('Eliminar','bi-trash',true,'drink-delete')], name, action='drink-edit') }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="lt-page-head__subtitle" data-drink-empty hidden>No hay bebidas que coincidan con la búsqueda o los filtros.</p>
+{% endif %}{% endcall %}
+  <article class="lt-panel lt-panel--accent">
+    <div class="lt-panel__head"><i class="bi bi-bullseye"></i><h3>Meta diaria</h3></div>
+    <div class="lt-panel__body">
+      <p class="lt-goal"><strong data-goal-value>2.500</strong><span>ml al día</span></p>
+      <p class="lt-page-head__subtitle" data-goal-hint>≈ 10 vasos de 250 ml</p>
+      <div class="lt-goal-form">
+        <label class="lt-field"><span>Nueva meta (ml)</span><input type="number" min="500" max="10000" step="50" value="2500" data-goal-input><small class="lt-field__error" data-goal-error hidden>Entre 500 y 10.000 ml.</small></label>
+        <button class="lt-button" type="button" data-lt-action="goal-save"><i class="bi bi-floppy"></i> Guardar</button>
+      </div>
+    </div>
+  </article>
+</section>
+{{ fab('Nueva bebida', 'bi-plus-lg', 'drink-type-dialog') }}
+
+{% call dialog('drink-type-dialog', 'Nueva bebida', submit='Guardar', icon='bi-cup-straw', submit_action='drink-save') %}
+<div class="lt-form">
+  <label class="lt-field"><span>Ícono *</span><input type="text" maxlength="40" placeholder="Ej. 💧" data-drink-field="icon"><small class="lt-field__error" hidden></small></label>
+  <label class="lt-field"><span>Nombre *</span><input type="text" maxlength="255" placeholder="Ej. Agua con gas" data-drink-field="name"><small class="lt-field__error" hidden></small></label>
+  <label class="lt-field lt-form--full"><span>Factor de hidratación *</span><input type="number" min="0" max="9.99" step="0.05" value="1" data-drink-field="factor"><small class="lt-field__error" hidden></small></label>
+</div>
+<p class="lt-page-head__subtitle">El factor multiplica los ml registrados: 1,00 hidrata igual que el agua. * Campos obligatorios.</p>
+{% endcall %}
+
+{% call dialog('drink-type-delete', 'Eliminar bebida', submit='Eliminar', icon='bi-trash', submit_action='drink-delete-confirm') %}
+<p class="lt-page-head__subtitle" data-drink-delete-text></p>
+{% endcall %}
+{% endcall %}
