@@ -20,9 +20,9 @@ class WaterProgress
             ->mapWithKeys(fn (DrinkLog $row) => [$row->date->toDateString() => (int) $row->total]);
     }
 
-    public static function month(Carbon $selected, int $goal): array
+    public static function month(Carbon $selected, int $goal, ?Carbon $monthStart = null): array
     {
-        $month = $selected->copy()->startOfMonth();
+        $month = ($monthStart ?? $selected)->copy()->startOfMonth();
         $gridStart = $month->copy()->startOfWeek(Carbon::MONDAY);
         $gridEnd = $month->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY);
         $totals = self::totals($gridStart, $gridEnd);
@@ -33,6 +33,9 @@ class WaterProgress
                 'date' => $date->copy(),
                 'total' => $total,
                 'percentage' => $goal > 0 ? min((int) round(($total / $goal) * 100), 100) : 0,
+                'raw_percentage' => $goal > 0 ? (int) round(($total / $goal) * 100) : 0,
+                'has_data' => $total > 0,
+                'future' => $date->gt(today()),
                 'completed' => $goal > 0 && $total >= $goal,
                 'in_month' => $date->month === $month->month,
                 'selected' => $date->isSameDay($selected),
@@ -48,6 +51,27 @@ class WaterProgress
             'completed_days' => $monthDays->where('completed', true)->count(),
             'average' => (int) round($monthDays->avg('total') ?? 0),
         ];
+    }
+
+    /**
+     * Días consecutivos cumpliendo al menos el 100 % de la meta.
+     * Cuenta hacia atrás desde ayer; hoy suma solo si ya alcanzó la meta y, si aún no, no rompe la racha.
+     */
+    public static function streak(int $goal, ?Carbon $today = null): int
+    {
+        if ($goal <= 0) {
+            return 0;
+        }
+
+        $today = ($today ?? today())->copy()->startOfDay();
+        $totals = self::totals($today->copy()->subDays(366), $today);
+        $streak = ($totals[$today->toDateString()] ?? 0) >= $goal ? 1 : 0;
+
+        for ($day = $today->copy()->subDay(); ($totals[$day->toDateString()] ?? 0) >= $goal; $day->subDay()) {
+            $streak++;
+        }
+
+        return $streak;
     }
 
     public static function week(Carbon $selected, int $goal): array

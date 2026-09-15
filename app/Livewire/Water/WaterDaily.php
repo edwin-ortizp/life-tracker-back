@@ -33,6 +33,9 @@ class WaterDaily extends Component
     #[Url(as: 'drink', history: true, except: '')]
     public string $drinkFilter = '';
 
+    #[Url(as: 'month', history: true, except: '')]
+    public string $calendarMonth = '';
+
     // Form fields
     public string $drinkTypeId = '';
     public int $amount = 250;
@@ -53,6 +56,7 @@ class WaterDaily extends Component
     {
         $this->initializeSelectedDate();
         $this->setDateScope($this->dateScope);
+        $this->calendarMonth = $this->normalizeCalendarMonth($this->calendarMonth);
         $this->dailyGoal = WaterGoal::forUser(Auth::user());
     }
 
@@ -85,19 +89,37 @@ class WaterDaily extends Component
         $this->drinkFilter = '';
     }
 
+    public function previousMonth(): void
+    {
+        $this->calendarMonth = Carbon::parse($this->calendarMonth.'-01')->subMonthNoOverflow()->format('Y-m');
+    }
+
+    public function nextMonth(): void
+    {
+        $this->calendarMonth = Carbon::parse($this->calendarMonth.'-01')->addMonthNoOverflow()->format('Y-m');
+    }
+
+    private function normalizeCalendarMonth(string $month): string
+    {
+        return preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month) === 1 ? $month : substr($this->selectedDate, 0, 7);
+    }
+
     public function previousDay()
     {
         $this->selectedDate = Carbon::parse($this->selectedDate)->subDay()->toDateString();
+        $this->calendarMonth = substr($this->selectedDate, 0, 7);
     }
 
     public function nextDay()
     {
         $this->selectedDate = Carbon::parse($this->selectedDate)->addDay()->toDateString();
+        $this->calendarMonth = substr($this->selectedDate, 0, 7);
     }
 
     public function today()
     {
         $this->selectedDate = now()->toDateString();
+        $this->calendarMonth = substr($this->selectedDate, 0, 7);
     }
 
     public function openForm(?string $id = null)
@@ -306,7 +328,7 @@ class WaterDaily extends Component
 
     public function render()
     {
-        $dayLogs = DrinkLog::where('date', $this->selectedDate);
+        $dayLogs = DrinkLog::whereDate('date', $this->selectedDate);
         $search = trim($this->search);
         $logs = $this->applyDateScope(DrinkLog::query())
             ->when($search !== '', fn ($q) => $q->where('drink_type', 'like', '%'.$search.'%'))
@@ -324,7 +346,8 @@ class WaterDaily extends Component
         if ($drinkFilterLabel) {
             $activeFilters[] = ['key' => 'drink', 'value' => null, 'label' => 'Bebida: '.$drinkFilterLabel, 'icon' => 'bi-cup-straw'];
         }
-        $percentage = $this->dailyGoal > 0 ? min(($totalHydration / $this->dailyGoal) * 100, 100) : 0;
+        // Sin tope: el usuario puede superar su meta; la barra se limita en la vista.
+        $rawPercentage = $this->dailyGoal > 0 ? (int) round(($totalHydration / $this->dailyGoal) * 100) : 0;
 
         return view('livewire.water.water-daily', [
             'logs' => $logs,
@@ -334,8 +357,9 @@ class WaterDaily extends Component
             'totalHydration' => $totalHydration,
             'totalAmount' => $totalAmount,
             'drinkTypes' => $drinkTypes,
-            'percentage' => $percentage,
-            'monthData' => WaterProgress::month(Carbon::parse($this->selectedDate), $this->dailyGoal),
+            'rawPercentage' => $rawPercentage,
+            'streak' => WaterProgress::streak($this->dailyGoal),
+            'monthData' => WaterProgress::month(Carbon::parse($this->selectedDate), $this->dailyGoal, Carbon::parse($this->normalizeCalendarMonth($this->calendarMonth).'-01')),
         ]);
     }
 }

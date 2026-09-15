@@ -16,33 +16,6 @@
         <p class="md-body-medium mb-0">{{ ucfirst(\Carbon\Carbon::parse($selectedDate)->translatedFormat('l d \d\e F')) }}</p>
     </x-slot:controls>
 
-    <x-ui.section title="Progreso del día" :level="2">
-        <x-ui.metric-grid label="Progreso del día">
-            <x-ui.metric label="Hidratación registrada" icon="bi-droplet-fill" tone="primary"
-                         :value="number_format($totalHydration)" unit="ml"
-                         :support="'Meta de '.number_format($dailyGoal).' ml'">
-                <x-ui.progress :value="$percentage" tone="primary" label="Avance del día"
-                               :valueText="number_format($percentage, 0).'% completado'" />
-            </x-ui.metric>
-            <x-ui.metric label="Meta alcanzada este mes" icon="bi-calendar-check" tone="success"
-                         :value="$monthData['completed_days']" unit="días" support="Días que cumplieron la meta" />
-            <x-ui.metric label="Promedio del mes" icon="bi-activity"
-                         :value="number_format($monthData['average'])" unit="ml" support="Hidratación diaria" />
-        </x-ui.metric-grid>
-    </x-ui.section>
-
-    <x-ui.section title="Agregar rápido" description="Registra 250 ml de una bebida habitual." :level="3">
-        <x-ui.filter-bar label="Bebidas habituales">
-            <x-slot:chips>
-                @foreach ($drinkTypes->take(6) as $type)
-                    <x-ui.chip variant="suggestion" wire:click="quickAdd('{{ $type->id }}', 250)" wire:key="quick-{{ $type->id }}">
-                        {{ $type->icon ?? '💧' }} {{ $type->name }} (250 ml)
-                    </x-ui.chip>
-                @endforeach
-            </x-slot:chips>
-        </x-ui.filter-bar>
-    </x-ui.section>
-
     <x-ui.management-card id="water-day-logs" title="Registro del día" icon="bi-clock-history"
                           :count="'('.$logs->total().' / '.$totalLogs.')'" search="search" search-placeholder="Buscar registros"
                           :active-filters="count($activeFilters)" :paginator="$logs" noun="registros"
@@ -107,16 +80,61 @@
     </x-ui.management-card>
 
     <x-slot:rail>
-        <x-context-widget title="{{ $monthData['label'] }}" icon="bi-calendar3">
-            @include('livewire.water.partials.month-calendar')
-            <x-ui.action variant="text" :href="route('water.calendar', ['date' => $selectedDate])">Abrir calendario</x-ui.action>
+        @php
+            $selectedDay = \Carbon\Carbon::parse($selectedDate);
+            $liters = fn (int $ml) => number_format($ml / 1000, 1, ',', '.').' L';
+            $consumed = (int) $totalHydration;
+        @endphp
+
+        <x-context-widget :title="$selectedDay->isToday() ? 'Objetivo de hoy' : 'Objetivo del '.$selectedDay->translatedFormat('j \d\e F')" icon="bi-droplet">
+            <x-slot:actions>
+                <p class="water-goal-today"><strong>{{ $liters($consumed) }} / {{ $liters($dailyGoal) }}</strong><span>{{ $rawPercentage }} %</span></p>
+            </x-slot:actions>
+            <x-ui.progress :value="min($rawPercentage, 100)" tone="primary" label="Avance de la meta diaria" :valueText="$rawPercentage.'% de la meta'" />
+            <p class="md-body-small mb-0">
+                @if ($consumed < $dailyGoal)
+                    Faltan {{ number_format($dailyGoal - $consumed, 0, ',', '.') }} ml para alcanzar tu meta diaria.
+                @elseif ($consumed === $dailyGoal)
+                    Alcanzaste tu meta diaria.
+                @else
+                    Superaste tu meta por {{ number_format($consumed - $dailyGoal, 0, ',', '.') }} ml.
+                @endif
+            </p>
         </x-context-widget>
-        <x-context-widget title="Ritmo mensual" icon="bi-activity" tone="success">
-            <dl class="md-context-list">
-                <div><dt>Meta alcanzada</dt><dd>{{ $monthData['completed_days'] }} días</dd></div>
-                <div><dt>Promedio</dt><dd>{{ number_format($monthData['average']) }} ml</dd></div>
-            </dl>
+
+        <x-context-widget title="Calendario del mes" icon="bi-calendar3">
+            <x-slot:actions>
+                <div class="water-month-nav">
+                    <x-ui.icon-action icon="bi-chevron-left" label="Mes anterior" size="sm" wire:click="previousMonth" />
+                    <span>{{ ucfirst($monthData['label']) }}</span>
+                    <x-ui.icon-action icon="bi-chevron-right" label="Mes siguiente" size="sm" wire:click="nextMonth" />
+                </div>
+            </x-slot:actions>
+            @include('livewire.water.partials.month-fill-calendar')
+            <p class="water-streak">
+                <span aria-hidden="true">🔥</span>
+                @if ($streak > 0)
+                    Racha actual: {{ $streak }} {{ $streak === 1 ? 'día' : 'días' }} cumpliendo la meta al 100%.
+                @else
+                    Aún no tienes racha: cumple tu meta al 100% para empezarla.
+                @endif
+            </p>
         </x-context-widget>
+
+        @if ($drinkTypes->isNotEmpty())
+            <x-context-widget title="Agregar rápido" icon="bi-lightning-charge">
+                <p class="md-body-small">Registra 250 ml de una bebida habitual.</p>
+                <x-ui.filter-bar label="Bebidas habituales">
+                    <x-slot:chips>
+                        @foreach ($drinkTypes->take(6) as $type)
+                            <x-ui.chip variant="suggestion" wire:click="quickAdd('{{ $type->id }}', 250)" wire:key="quick-{{ $type->id }}">
+                                {{ $type->icon ?? '💧' }} {{ $type->name }} (250 ml)
+                            </x-ui.chip>
+                        @endforeach
+                    </x-slot:chips>
+                </x-ui.filter-bar>
+            </x-context-widget>
+        @endif
     </x-slot:rail>
 
     <x-ui.dialog state="showDialog" title="{{ $editingId ? 'Editar bebida' : 'Nueva bebida' }}">

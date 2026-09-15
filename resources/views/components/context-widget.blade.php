@@ -4,6 +4,9 @@
     <header class="md-context-widget__header">
         <span class="md-context-widget__icon"><i class="bi {{ $icon }}" aria-hidden="true"></i></span>
         <h2>{{ $title }}</h2>
+        @isset($actions)
+            <div class="md-context-widget__actions">{{ $actions }}</div>
+        @endisset
         @isset($menu)
             <x-ui.menu size="sm" :label="$menuLabel ?? 'Más acciones de '.\Illuminate\Support\Str::lower($title)" class="md-context-widget__menu">{{ $menu }}</x-ui.menu>
         @endisset
