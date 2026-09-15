@@ -1,15 +1,76 @@
 {% from '@project/components/vehicle-dialogs.html.jinja' import maintenance_dialog, dialog %}
 {% from '@project/components/life-shell.html.jinja' import fab %}
 {% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs, tabs as module_tabs, header, metric %}
+{% from '@project/components/vehicle-map.html.jinja' import vehicle_side, vehicle_top %}
+{# Planes ordenados por urgencia: la primera fila de cada zona es la más urgente. #}
+{% set plans = [
+  ('Filtro de aire acondicionado','Cada 15.000 km','Vencido hace 600 km',100,'over','cabin'),
+  ('Cambio de aceite y filtro','Cada 5.000 km','Faltan 400 km',92,'soon','engine'),
+  ('Revisión técnico-mecánica','Cada 12 meses','25 sep.',85,'soon','documents'),
+  ('Plumillas limpiaparabrisas','Cada 12 meses','30 sep.',88,'soon','glass'),
+  ('Escaneo OBD y sensores','Cada 12 meses','10 oct.',80,'soon','electronics'),
+  ('Filtro de combustible','Cada 40.000 km','Faltan 9.500 km',76,'ok','filters'),
+  ('Rotación de llantas','Cada 10.000 km','Faltan 3.380 km',66,'ok','tires'),
+  ('Cambio de aceite de transmisión','Cada 60.000 km','Faltan 21.000 km',65,'ok','transmission'),
+  ('Pastillas de freno','Cada 30.000 km','Faltan 11.400 km',62,'ok','brakes'),
+  ('Cambio de refrigerante','Cada 40.000 km','Faltan 18.200 km',55,'ok','cooling'),
+  ('Seguro todo riesgo','Cada 12 meses','14 feb. 2027',42,'ok','documents'),
+  ('Limpieza de tapicería','Cada 6 meses','12 dic.',40,'ok','interior'),
+  ('Batería','Cada 36 meses','Garantía hasta sep. 2027',30,'ok','battery')
+] %}
+{% set rank = {'over': 3, 'soon': 2, 'ok': 1} %}
+{% set tones = {} %}
+{% for p in plans %}{% if rank[p[4]] > rank.get(tones.get(p[5]), 0) %}{% set _ = tones.update({p[5]: p[4]}) %}{% endif %}{% endfor %}
 {% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
 {{ vehicle_tabs('/vehicles-maintenance') }}
-<section class="lt-metrics">{{ metric('Planes activos','5') }}{{ metric('Vencen este mes','2','warning') }}{{ metric('Gastado en 2026','$ 1.240.000') }}</section>
-<section class="lt-grid-2">
-  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-calendar2-check"></i><h3>Plan de cuidados</h3><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Añadir plan</button></div><div class="lt-panel__body"><div class="lt-list">
-    {% for task, rule, remaining, pct, tone in [('Cambio de aceite y filtro','Cada 5.000 km','Faltan 400 km',92,'warning'),('Revisión técnico-mecánica','Cada 12 meses','25 sep.',85,'warning'),('Rotación de llantas','Cada 10.000 km','Faltan 3.380 km',66,'neutral'),('Pastillas de freno','Cada 30.000 km','Faltan 11.400 km',62,'neutral'),('Seguro todo riesgo','Cada 12 meses','14 feb. 2027',42,'neutral')] %}
-    <div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ rule }} · {{ remaining }}</span><div class="lt-progress"><span style="width:{{ pct }}%"></span></div></div><button class="lt-button lt-button--tonal" type="button" data-lt-toggle="vehicle-maintenance-new" aria-haspopup="dialog">Registrar</button></div>
+<section class="lt-metrics">{{ metric('Planes activos','13') }}{{ metric('Vencidos','1','warning') }}{{ metric('Gastado en 2026','$ 1.240.000') }}</section>
+<section class="lt-grid-2 lt-car-layout">
+  <article class="lt-panel lt-car-card">
+    <div class="lt-panel__head"><i class="bi bi-car-front"></i><h3>Estado del vehículo</h3></div>
+    <div class="lt-body-card__toolbar">
+      <div class="lt-view-toggle" role="group" aria-label="Perspectiva del vehículo">
+        <button type="button" data-car-view="side" aria-pressed="true">Lateral</button>
+        <button type="button" data-car-view="top" aria-pressed="false">Superior</button>
+      </div>
+      <span class="lt-body-card__caption" data-car-caption>Vista lateral</span>
+    </div>
+    <div class="lt-car-strip" aria-label="Documentos del vehículo">
+      <span class="lt-car-strip__label">Documentos</span>
+      {% for name, meta, tone in [('SOAT','Vence 3 mar. 2027','ok'),('Técnico-mecánica','Vence 25 sep.','soon'),('Seguro todo riesgo','Vence 14 feb. 2027','ok')] %}
+      <button class="lt-car-chip lt-tone-{{ tone }}" type="button" data-zone="documents" data-label="Documentos y seguro"><i class="bi bi-file-earmark-text" aria-hidden="true"></i><span><strong>{{ name }}</strong><small>{{ meta }}</small></span></button>
+      {% endfor %}
+    </div>
+    <div class="lt-car-stage">
+      {{ vehicle_side(tones) }}
+      {{ vehicle_top(tones) }}
+    </div>
+    <div class="lt-car-strip" aria-label="Otros sistemas del vehículo">
+      <span class="lt-car-strip__label">Otros sistemas</span>
+      {% for id, name, meta, icon in [('electronics','Sensores y electrónica','OBD, sensores, tablero','bi-cpu'),('filters','Otros filtros','Combustible y adicionales','bi-funnel'),('interior','Interior y confort','Sonido, tapicería, polarizado','bi-music-note-beamed')] %}
+      <button class="lt-car-chip lt-tone-{{ tones.get(id, 'none') }}" type="button" data-zone="{{ id }}" data-label="{{ name }}"><i class="bi {{ icon }}" aria-hidden="true"></i><span><strong>{{ name }}</strong><small>{{ meta }}</small></span></button>
+      {% endfor %}
+      <button class="lt-car-chip lt-car-chip--add" type="button" data-lt-static-nav><i class="bi bi-plus-lg" aria-hidden="true"></i><span><strong>Añadir categoría</strong><small>Otras partes a controlar</small></span></button>
+    </div>
+    <ul class="lt-car-legend" aria-label="Estado de los planes">
+      {% for tone, text in [('over','Vencido'),('soon','Vence pronto'),('ok','Al día'),('none','Sin plan')] %}<li><span class="lt-heat-swatch lt-tone-{{ tone }}" aria-hidden="true"></span>{{ text }}</li>{% endfor %}
+    </ul>
+    <div class="lt-body-detail" data-car-detail hidden>
+      <span class="lt-body-detail__dot" aria-hidden="true"></span>
+      <div class="lt-body-detail__text"><strong data-detail-name></strong><span data-detail-meta></span></div>
+    </div>
+    <p class="lt-body-card__hint" data-car-hint><i class="bi bi-hand-index" aria-hidden="true"></i> Toca una pieza, una etiqueta o un chip para filtrar su plan. Cambia a "Superior" para ver motor, transmisión, batería y refrigeración.</p>
+  </article>
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-calendar2-check"></i><h3>Plan de cuidados</h3><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Añadir plan</button></div><div class="lt-panel__body">
+    <div class="lt-car-filter" data-care-filter hidden><i class="bi bi-funnel-fill" aria-hidden="true"></i><span data-care-filter-label></span><button class="lt-link" type="button" data-care-clear>Ver todos</button></div>
+    <div class="lt-list">
+    {% for task, rule, remaining, pct, tone, zone in plans %}
+    <div class="lt-list-item lt-care-row lt-tone-{{ tone }}" data-zone="{{ zone }}"><span class="lt-care-row__dot" aria-hidden="true"></span><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ rule }} · {{ remaining }}</span><div class="lt-progress"><span style="width:{{ pct }}%"></span></div></div><button class="lt-button lt-button--tonal" type="button" data-lt-toggle="vehicle-maintenance-new" aria-haspopup="dialog">Registrar</button></div>
     {% endfor %}
-  </div></div></article>
+    <p class="lt-care-empty" data-care-empty hidden>Esta zona no tiene planes. <button class="lt-link" type="button" data-lt-static-nav>Añadir plan</button></p>
+    </div>
+  </div></article>
+</section>
+<section class="lt-stack">
   <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-clock-history"></i><h3>Historial de servicios</h3></div><div class="lt-panel__body">
     <div class="lt-timeline">
       {% for title, meta, note in [('Cambio de aceite y filtro','14 jul. · 138.020 km · $ 245.000','Taller Autolab · aceite 0W-20 sintético.'),('Alineación y balanceo','2 jun. · 136.800 km · $ 90.000','Vibración al frenar resuelta.'),('Batería nueva','20 mar. · 133.900 km · $ 420.000','Garantía 18 meses.'),('Cambio de aceite y filtro','5 feb. · 133.010 km · $ 238.000','')] %}

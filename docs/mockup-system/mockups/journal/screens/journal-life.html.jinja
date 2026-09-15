@@ -3,8 +3,31 @@
 {{ module_tabs([('Entradas','/journal-entries','bi-journal-text'),('Resumen','/journal-summary','bi-card-list'),('Historial','/journal-history','bi-journal-bookmark'),('Vida','/journal-life','bi-grid-3x3-gap'),('Semana','/journal-week','bi-calendar-week')], '/journal-life') }}
 <section class="lt-metrics">{{ metric('Semanas vividas','1.694') }}{{ metric('Semanas por delante','2.466','success') }}{{ metric('Recorrido','41 %','warning') }}</section>
 <section class="lt-grid-main">
-  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-grid-3x3-gap"></i><h3>Tus semanas, de principio a fin</h3><small>80 años · 52 semanas por fila</small></div><div class="lt-panel__body">
-    <div class="lt-life" role="img" aria-label="Calendario completo de vida: 1.694 de 4.160 semanas vividas">{% for i in range(4160) %}<i{% if i < 1694 %} class="l"{% elif i == 1694 %} class="n"{% endif %}></i>{% endfor %}</div>
+  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-grid-3x3-gap"></i><h3>Tus semanas, de principio a fin</h3><small>80 años · una fila por año · 52 semanas</small></div><div class="lt-panel__body">
+    {% set highlights = {
+      0: ('familia','bi-balloon','Nacimiento · 1994'),
+      312: ('logro','bi-backpack','Primer día de colegio · 2000'),
+      470: ('viaje','bi-airplane','Viaje a Cartagena con la familia · 2003'),
+      615: ('salud','bi-bandaid','Fractura de brazo · 2005'),
+      886: ('logro','bi-mortarboard','Grado de bachiller · 2011'),
+      936: ('logro','bi-building','Inicio de universidad · 2012'),
+      1060: ('viaje','bi-airplane','Intercambio en México · 2014'),
+      1190: ('familia','bi-heart','Fallece la abuela Rosa · 2016'),
+      1227: ('logro','bi-mortarboard','Grado de ingeniería · 2017'),
+      1240: ('trabajo','bi-briefcase','Primer trabajo · 2017'),
+      1330: ('viaje','bi-airplane','Viaje a Europa · 2019'),
+      1363: ('salud','bi-heart-pulse','Cirugía de rodilla · 2020'),
+      1413: ('trabajo','bi-house','Mudanza a Bogotá · 2021'),
+      1440: ('trabajo','bi-briefcase','Nuevo empleo senior · 2021'),
+      1510: ('familia','bi-heart','Inicio de relación con Laura · 2023'),
+      1560: ('logro','bi-trophy','Primera media maratón · 2024'),
+      1600: ('viaje','bi-airplane','Viaje a Japón · 2024'),
+      1650: ('familia','bi-house-heart','Nos vamos a vivir juntos · 2025'),
+      1680: ('trabajo','bi-rocket-takeoff','Lanzamiento de proyecto propio · 2026')
+    } %}
+    <div class="lt-life" role="img" aria-label="Calendario completo de vida: 1.694 de 4.160 semanas vividas, una fila por año">
+      {% for y in range(80) %}<div class="lt-life__row"><span class="lt-life__year"{% if y % 5 %} aria-hidden="true"{% endif %}>{% if y % 5 == 0 %}{{ 1994 + y }}{% endif %}</span>{% for w in range(52) %}{% set i = y * 52 + w %}{% set h = highlights.get(i) %}<i class="{% if i < 1694 %}l{% elif i == 1694 %}n{% endif %}"{% if h %} title="{{ h[2] }}"{% endif %}>{% if h %}<span class="bi {{ h[1] }}"></span>{% endif %}</i>{% endfor %}</div>{% endfor %}
+    </div>
     <div class="lt-legend" aria-label="Leyenda"><span><i class="l"></i> Vivida</span><span><i class="n"></i> Semana actual</span><span><i></i> Por vivir</span></div>
   </div></article>
   <aside class="lt-stack">
