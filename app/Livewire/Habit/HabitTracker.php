@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Habit;
 
+use App\Livewire\Concerns\HandlesHabitActionPrompt;
 use App\Livewire\Concerns\HasUrlDate;
 use App\Models\HabitCompletion;
 use App\Models\HabitDefinition;
@@ -16,6 +17,7 @@ use Livewire\Component;
 #[Title('Hábitos')]
 class HabitTracker extends Component
 {
+    use HandlesHabitActionPrompt;
     use HasUrlDate;
 
     public ?array $lastHabitFeedback = null;
@@ -29,24 +31,33 @@ class HabitTracker extends Component
     {
         $this->lastHabitFeedback = $gamification->toggle($habitId, $this->selectedDate);
         $this->dispatch('habit-feedback', ...$this->lastHabitFeedback);
+
+        $this->openHabitActionPrompt(
+            $habitId,
+            HabitDefinition::find($habitId)?->name ?? '',
+            $this->lastHabitFeedback,
+        );
     }
 
     public function previousDay()
     {
         $this->selectedDate = Carbon::parse($this->selectedDate)->subDay()->toDateString();
         $this->lastHabitFeedback = null;
+        $this->skipHabitAction();
     }
 
     public function nextDay()
     {
         $this->selectedDate = Carbon::parse($this->selectedDate)->addDay()->toDateString();
         $this->lastHabitFeedback = null;
+        $this->skipHabitAction();
     }
 
     public function today()
     {
         $this->selectedDate = now()->toDateString();
         $this->lastHabitFeedback = null;
+        $this->skipHabitAction();
     }
 
     public function render(HabitGamificationService $gamification)

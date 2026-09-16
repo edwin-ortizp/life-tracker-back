@@ -13,6 +13,8 @@ class HabitCompletion extends Model
         'habit_id',
         'date',
         'completed',
+        'actionable_type',
+        'actionable_id',
     ];
 
     protected function casts(): array
@@ -21,6 +23,12 @@ class HabitCompletion extends Model
             'completed' => 'boolean',
             'date' => 'date',
         ];
+    }
+
+    /** El registro que creó la acción asociada, para poder deshacerlo al desmarcar. */
+    public function actionable()
+    {
+        return $this->morphTo();
     }
 
     public function habitDefinition()

@@ -92,6 +92,7 @@ return [
         'tabs' => [
             ['label' => 'Registro diario', 'route' => 'habits', 'icon' => 'bi-check2-square', 'active' => ['habits']],
             ['label' => 'Resumen semanal', 'route' => 'habits.weekly', 'archetype' => 'dashboard', 'icon' => 'bi-bar-chart-line', 'active' => ['habits.weekly']],
+            ['label' => 'Ajustes', 'route' => 'habits.settings', 'archetype' => 'settings', 'icon' => 'bi-sliders', 'active' => ['habits.settings']],
         ],
     ],
     'mood' => [

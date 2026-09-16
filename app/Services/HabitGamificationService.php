@@ -5,22 +5,28 @@ namespace App\Services;
 use App\Models\HabitCompletion;
 use App\Models\HabitDefinition;
 use App\Support\HabitProgress;
+use App\Support\Habits\HabitActionRunner;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class HabitGamificationService
 {
+    public function __construct(private readonly HabitActionRunner $actions) {}
+
     /**
      * Toggle a habit and return the single highest-priority feedback message.
      *
-     * @return array{kind: string, tone: string, title: string, message: string, icon: string, date: string, habitId: int, period: ?string, streak: int}
+     * Las claves de acción (requiresInput, promptFields, actionResult) van siempre
+     * presentes: este array se reparte con `dispatch('habit-feedback', ...)`.
+     *
+     * @return array{kind: string, tone: string, title: string, message: string, icon: string, date: string, habitId: int, period: ?string, streak: int, requiresInput: bool, promptFields: array, actionResult: ?string}
      */
     public function toggle(int $habitId, string $date): array
     {
         $selected = Carbon::parse($date, config('app.timezone'))->startOfDay();
 
-        return DB::transaction(function () use ($habitId, $selected): array {
+        [$habit, $completion, $isCompleting] = DB::transaction(function () use ($habitId, $selected): array {
             $habit = HabitDefinition::query()->findOrFail($habitId);
             $completion = HabitCompletion::query()
                 ->where('habit_id', $habit->id)
@@ -31,106 +37,137 @@ class HabitGamificationService
             if ($completion) {
                 $completion->update(['completed' => $isCompleting]);
             } else {
-                HabitCompletion::create([
+                $completion = HabitCompletion::create([
                     'habit_id' => $habit->id,
                     'date' => $selected->toDateString(),
                     'completed' => true,
                 ]);
             }
 
-            if (! $selected->isToday()) {
-                return $this->feedback(
-                    kind: 'history',
-                    tone: 'neutral',
-                    title: 'Registro actualizado',
-                    message: $isCompleting ? "Marcaste {$habit->name} como completado." : "Marcaste {$habit->name} como pendiente.",
-                    icon: 'bi-calendar-check',
-                    selected: $selected,
-                    habit: $habit,
-                );
-            }
+            return [$habit, $completion, $isCompleting];
+        });
 
-            if (! $isCompleting) {
-                return $this->feedback(
-                    kind: 'habit',
-                    tone: 'neutral',
-                    title: 'Hábito pendiente',
-                    message: "Actualizamos {$habit->name}. Puedes retomarlo cuando tenga sentido.",
-                    icon: 'bi-arrow-counterclockwise',
-                    selected: $selected,
-                    habit: $habit,
-                );
-            }
+        // Fuera de la transacción: un fallo aquí no debe deshacer el completado.
+        $action = $isCompleting
+            ? $this->actions->afterComplete($habit, $completion, $selected)
+            : array_merge(HabitActionRunner::EMPTY, ['actionResult' => $this->actions->afterUncomplete($completion)]);
 
-            $habits = HabitDefinition::query()->orderBy('base_time')->orderBy('id')->get();
-            $completedIds = HabitCompletion::query()
-                ->whereDate('date', $selected->toDateString())
-                ->where('completed', true)
-                ->pluck('habit_id')
-                ->map(fn ($id) => (int) $id);
-            $period = $habit->time_of_day ?: 'anytime';
+        return $this->feedbackFor($habit, $selected, $isCompleting) + $action;
+    }
 
-            if ($habits->isNotEmpty() && $completedIds->count() === $habits->count()) {
-                return $this->feedback(
-                    kind: 'day',
-                    tone: 'celebration',
-                    title: 'Día completo',
-                    message: $this->message('day', $selected, $habit),
-                    icon: 'bi-stars',
-                    selected: $selected,
-                    habit: $habit,
-                    period: $period,
-                );
-            }
+    /**
+     * Segundo paso del modo «preguntar al completar»: el usuario ya respondió.
+     *
+     * @param  array<string, mixed>  $input
+     * @return array{actionResult: ?string}
+     */
+    public function resolveAction(int $habitId, string $date, array $input): array
+    {
+        $selected = Carbon::parse($date, config('app.timezone'))->startOfDay();
+        $habit = HabitDefinition::query()->findOrFail($habitId);
+        $completion = HabitCompletion::query()
+            ->where('habit_id', $habit->id)
+            ->whereDate('date', $selected->toDateString())
+            ->firstOrFail();
 
-            $periodHabits = $habits->filter(
-                fn (HabitDefinition $candidate) => ($candidate->time_of_day ?: 'anytime') === $period,
+        return ['actionResult' => $this->actions->resolve($habit, $completion, $selected, $input)];
+    }
+
+    /** @return array<string, mixed> El mensaje de gamificación de mayor prioridad. */
+    private function feedbackFor(HabitDefinition $habit, Carbon $selected, bool $isCompleting): array
+    {
+        if (! $selected->isToday()) {
+            return $this->feedback(
+                kind: 'history',
+                tone: 'neutral',
+                title: 'Registro actualizado',
+                message: $isCompleting ? "Marcaste {$habit->name} como completado." : "Marcaste {$habit->name} como pendiente.",
+                icon: 'bi-calendar-check',
+                selected: $selected,
+                habit: $habit,
             );
-            $periodIsComplete = $periodHabits->isNotEmpty()
-                && $periodHabits->every(fn (HabitDefinition $candidate) => $completedIds->contains($candidate->id));
+        }
 
-            if ($periodIsComplete) {
-                $periodConfig = config("habit_gamification.periods.{$period}", config('habit_gamification.periods.anytime'));
-
-                return $this->feedback(
-                    kind: 'period',
-                    tone: 'success',
-                    title: $periodConfig['title'],
-                    message: $this->message('period', $selected, $habit, $period),
-                    icon: $periodConfig['icon'],
-                    selected: $selected,
-                    habit: $habit,
-                    period: $period,
-                );
-            }
-
-            $streak = $this->streakFor($habit, $selected);
-            if (in_array($streak, config('habit_gamification.streak_milestones', []), true)) {
-                return $this->feedback(
-                    kind: 'streak',
-                    tone: 'support',
-                    title: "Racha de {$streak} días",
-                    message: $this->message('streak', $selected, $habit, $period, $streak),
-                    icon: 'bi-fire',
-                    selected: $selected,
-                    habit: $habit,
-                    period: $period,
-                    streak: $streak,
-                );
-            }
-
+        if (! $isCompleting) {
             return $this->feedback(
                 kind: 'habit',
+                tone: 'neutral',
+                title: 'Hábito pendiente',
+                message: "Actualizamos {$habit->name}. Puedes retomarlo cuando tenga sentido.",
+                icon: 'bi-arrow-counterclockwise',
+                selected: $selected,
+                habit: $habit,
+            );
+        }
+
+        $habits = HabitDefinition::query()->orderBy('base_time')->orderBy('id')->get();
+        $completedIds = HabitCompletion::query()
+            ->whereDate('date', $selected->toDateString())
+            ->where('completed', true)
+            ->pluck('habit_id')
+            ->map(fn ($id) => (int) $id);
+        $period = $habit->time_of_day ?: 'anytime';
+
+        if ($habits->isNotEmpty() && $completedIds->count() === $habits->count()) {
+            return $this->feedback(
+                kind: 'day',
+                tone: 'celebration',
+                title: 'Día completo',
+                message: $this->message('day', $selected, $habit),
+                icon: 'bi-stars',
+                selected: $selected,
+                habit: $habit,
+                period: $period,
+            );
+        }
+
+        $periodHabits = $habits->filter(
+            fn (HabitDefinition $candidate) => ($candidate->time_of_day ?: 'anytime') === $period,
+        );
+        $periodIsComplete = $periodHabits->isNotEmpty()
+            && $periodHabits->every(fn (HabitDefinition $candidate) => $completedIds->contains($candidate->id));
+
+        if ($periodIsComplete) {
+            $periodConfig = config("habit_gamification.periods.{$period}", config('habit_gamification.periods.anytime'));
+
+            return $this->feedback(
+                kind: 'period',
                 tone: 'success',
-                title: 'Buen paso',
-                message: $this->message('habit', $selected, $habit, $period),
-                icon: 'bi-check2-circle',
+                title: $periodConfig['title'],
+                message: $this->message('period', $selected, $habit, $period),
+                icon: $periodConfig['icon'],
+                selected: $selected,
+                habit: $habit,
+                period: $period,
+            );
+        }
+
+        $streak = $this->streakFor($habit, $selected);
+        if (in_array($streak, config('habit_gamification.streak_milestones', []), true)) {
+            return $this->feedback(
+                kind: 'streak',
+                tone: 'support',
+                title: "Racha de {$streak} días",
+                message: $this->message('streak', $selected, $habit, $period, $streak),
+                icon: 'bi-fire',
                 selected: $selected,
                 habit: $habit,
                 period: $period,
                 streak: $streak,
             );
-        });
+        }
+
+        return $this->feedback(
+            kind: 'habit',
+            tone: 'success',
+            title: 'Buen paso',
+            message: $this->message('habit', $selected, $habit, $period),
+            icon: 'bi-check2-circle',
+            selected: $selected,
+            habit: $habit,
+            period: $period,
+            streak: $streak,
+        );
     }
 
     /**

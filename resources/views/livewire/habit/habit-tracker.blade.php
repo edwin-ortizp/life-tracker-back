@@ -116,4 +116,6 @@
             <a href="{{ route('habits.weekly', ['date' => $selectedDate]) }}" class="md-btn-text w-100 mt-2">Abrir resumen semanal</a>
         </x-context-widget>
     </x-slot:rail>
+
+    @include('livewire.habit.partials.action-prompt-dialog')
 </x-module-shell>

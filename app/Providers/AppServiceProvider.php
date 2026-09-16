@@ -5,11 +5,17 @@ namespace App\Providers;
 use App\CalDav\AuthBackend;
 use App\CalDav\PrincipalBackend;
 use App\CalDav\TaskCalendarBackend;
+use App\Models\DrinkLog;
+use App\Models\EnergyEntry;
+use App\Models\ExerciseLog;
 use App\Models\Goal;
 use App\Models\HealthEvent;
+use App\Models\MoodEntry;
 use App\Models\Relationship;
+use App\Models\RelationshipEvent;
 use App\Models\Task;
 use App\Observers\TaskCalDavObserver;
+use App\Support\Habits\HabitActionRegistry;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 use LaravelSabre\LaravelSabre;
@@ -28,7 +34,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(
+            HabitActionRegistry::class,
+            fn (): HabitActionRegistry => new HabitActionRegistry(config('habit_actions.actions', [])),
+        );
     }
 
     /**
@@ -59,6 +68,12 @@ class AppServiceProvider extends ServiceProvider
             'relationship' => Relationship::class,
             'health-event' => HealthEvent::class,
             'task' => Task::class,
+            // Registros que puede crear un hábito al completarse, para poder deshacerlos.
+            'drink-log' => DrinkLog::class,
+            'exercise-log' => ExerciseLog::class,
+            'mood-entry' => MoodEntry::class,
+            'energy-entry' => EnergyEntry::class,
+            'relationship-event' => RelationshipEvent::class,
         ]);
     }
 }

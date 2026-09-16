@@ -3,6 +3,7 @@
 namespace App\Livewire\Home;
 
 use App\Actions\LogDrink;
+use App\Livewire\Concerns\HandlesHabitActionPrompt;
 use App\Livewire\Concerns\HandlesRecurringTaskCompletion;
 use App\Livewire\Concerns\HasUrlDate;
 use App\Livewire\Concerns\LogsMoodProgressively;
@@ -14,7 +15,6 @@ use App\Models\HabitDefinition;
 use App\Models\JournalEntry;
 use App\Models\MealPlanEntry;
 use App\Models\MoodEntry;
-use App\Models\MoodState;
 use App\Models\Task;
 use App\Models\Vehicle;
 use App\Models\VehicleMaintenancePlan;
@@ -24,15 +24,15 @@ use App\Support\VehicleMaintenanceStatus;
 use App\Support\VehicleUsageProjection;
 use App\Support\WaterGoal;
 use Carbon\Carbon;
-use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Layout('layouts.app')]
 #[Title('Inicio')]
 class Dashboard extends Component
 {
-    use HandlesRecurringTaskCompletion, HasUrlDate, LogsMoodProgressively;
+    use HandlesHabitActionPrompt, HandlesRecurringTaskCompletion, HasUrlDate, LogsMoodProgressively;
 
     public const MEAL_TYPES = [
         'desayuno' => 'Desayuno',
@@ -65,7 +65,9 @@ class Dashboard extends Component
     public function quickAddWater(string $drinkTypeId, int $amount): void
     {
         $drinkType = DrinkType::find($drinkTypeId);
-        if (!$drinkType || $amount <= 0) return;
+        if (! $drinkType || $amount <= 0) {
+            return;
+        }
 
         LogDrink::handle($drinkType, $this->selectedDate, $amount);
     }
@@ -78,7 +80,9 @@ class Dashboard extends Component
 
     public function saveEnergy(int $level): void
     {
-        if ($level < 1 || $level > 5) return;
+        if ($level < 1 || $level > 5) {
+            return;
+        }
 
         $now = now();
 
@@ -94,12 +98,20 @@ class Dashboard extends Component
     {
         $feedback = $gamification->toggle($habitId, $this->selectedDate);
         $this->dispatch('habit-feedback', ...$feedback);
+
+        $this->openHabitActionPrompt(
+            $habitId,
+            HabitDefinition::find($habitId)?->name ?? '',
+            $feedback,
+        );
     }
 
     public function toggleTask(string $id, TaskGamificationService $gamification): void
     {
         $task = Task::find($id);
-        if (!$task) return;
+        if (! $task) {
+            return;
+        }
 
         if ($this->prepareRecurringCompletion($task)) {
             return;

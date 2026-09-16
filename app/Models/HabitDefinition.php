@@ -21,4 +21,10 @@ class HabitDefinition extends Model
     {
         return $this->hasMany(HabitCompletion::class, 'habit_id');
     }
+
+    /** Lo que ocurre en otro módulo al completar este hábito, si se configuró algo. */
+    public function action()
+    {
+        return $this->hasOne(HabitAction::class, 'habit_id');
+    }
 }

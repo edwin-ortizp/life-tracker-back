@@ -51,5 +51,6 @@
     @include('livewire.habit.partials.completion-feedback')
     @include('livewire.task.partials.completion-celebration')
     @include('livewire.task.partials.recurring-completion-dialog')
+    @include('livewire.habit.partials.action-prompt-dialog')
     @include('livewire.mood.partials.progressive')
 </div>
