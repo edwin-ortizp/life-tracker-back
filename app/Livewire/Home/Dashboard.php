@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Home;
 
+use App\Actions\LogDrink;
 use App\Livewire\Concerns\HandlesRecurringTaskCompletion;
 use App\Livewire\Concerns\HasUrlDate;
 use App\Livewire\Concerns\LogsMoodProgressively;
@@ -66,17 +67,7 @@ class Dashboard extends Component
         $drinkType = DrinkType::find($drinkTypeId);
         if (!$drinkType || $amount <= 0) return;
 
-        $now = now();
-
-        DrinkLog::create([
-            'date' => $this->selectedDate,
-            'drink_type' => $drinkType->name,
-            'amount' => $amount,
-            'hydration_value' => (int) round($amount * $drinkType->hydration_factor),
-            'time' => $now->format('H:i'),
-            'timestamp' => $now->timestamp,
-            'drink_type_id' => $drinkTypeId,
-        ]);
+        LogDrink::handle($drinkType, $this->selectedDate, $amount);
     }
 
     /** One tap through the shared logger, so Inicio matches Ánimo and Diario exactly. */

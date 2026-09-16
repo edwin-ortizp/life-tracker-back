@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Exercise;
 
+use App\Actions\LogExercise;
 use App\Livewire\Concerns\HasUrlDate;
 use App\Models\ExerciseLog;
 use App\Models\ExerciseType;
@@ -149,28 +150,31 @@ class ExerciseDaily extends Component
 
     public function updatedExerciseTypeId()
     {
-        if ($this->exerciseTypeId && !$this->editingId) {
-            $type = ExerciseType::find($this->exerciseTypeId);
-            if ($type && $this->duration && $type->calories_per_hour > 0) {
-                $this->calories = (int) round(($this->duration / 60) * $type->calories_per_hour);
-            }
-            if ($type && $this->duration && $type->steps_equivalent > 0) {
-                $this->steps = (int) round(($this->duration / 60) * $type->steps_equivalent);
-            }
+        if (!$this->editingId) {
+            $this->estimateFromDuration();
         }
     }
 
     public function updatedDuration()
     {
-        if ($this->exerciseTypeId && $this->duration) {
-            $type = ExerciseType::find($this->exerciseTypeId);
-            if ($type && $type->calories_per_hour > 0) {
-                $this->calories = (int) round(($this->duration / 60) * $type->calories_per_hour);
-            }
-            if ($type && $type->steps_equivalent > 0) {
-                $this->steps = (int) round(($this->duration / 60) * $type->steps_equivalent);
-            }
+        $this->estimateFromDuration();
+    }
+
+    /** Recalcula calorías y pasos sugeridos; el usuario puede sobrescribirlos después. */
+    private function estimateFromDuration(): void
+    {
+        if (!$this->exerciseTypeId || !$this->duration) {
+            return;
         }
+
+        $type = ExerciseType::find($this->exerciseTypeId);
+        if (!$type) {
+            return;
+        }
+
+        $estimate = LogExercise::estimate($type, $this->duration);
+        $this->calories = $estimate['calories'] ?? $this->calories;
+        $this->steps = $estimate['steps'] ?? $this->steps;
     }
 
     public function save()

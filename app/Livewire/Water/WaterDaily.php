@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Water;
 
+use App\Actions\LogDrink;
 use App\Livewire\Concerns\HasUrlDate;
 use App\Models\DrinkLog;
 use App\Models\DrinkType;
@@ -247,18 +248,7 @@ class WaterDaily extends Component
         $drinkType = DrinkType::find($drinkTypeId);
         if (!$drinkType) return;
 
-        $hydrationValue = (int) round($amount * $drinkType->hydration_factor);
-        $now = now();
-
-        DrinkLog::create([
-            'date' => $this->selectedDate,
-            'drink_type' => $drinkType->name,
-            'amount' => $amount,
-            'hydration_value' => $hydrationValue,
-            'time' => $now->format('H:i'),
-            'timestamp' => $now->timestamp,
-            'drink_type_id' => $drinkTypeId,
-        ]);
+        LogDrink::handle($drinkType, $this->selectedDate, $amount);
     }
 
     public function save()
@@ -272,34 +262,14 @@ class WaterDaily extends Component
         $drinkType = DrinkType::find($this->drinkTypeId);
         if (!$drinkType || $this->amount <= 0) return;
 
-        $hydrationValue = (int) round($this->amount * $drinkType->hydration_factor);
-
         if ($this->editingId) {
             $log = DrinkLog::find($this->editingId);
             if ($log) {
-                $timestamp = Carbon::createFromFormat('Y-m-d H:i', $log->date->toDateString().' '.$this->time)->timestamp;
-
-                $log->update([
-                    'drink_type' => $drinkType->name,
-                    'amount' => $this->amount,
-                    'hydration_value' => $hydrationValue,
-                    'time' => $this->time,
-                    'timestamp' => $timestamp,
-                    'drink_type_id' => $this->drinkTypeId,
-                ]);
+                // Editar no mueve el registro de día; solo cambia la hora dentro del suyo.
+                LogDrink::update($log, $drinkType, $this->amount, $this->time);
             }
         } else {
-            $timestamp = Carbon::createFromFormat('Y-m-d H:i', $this->selectedDate.' '.$this->time)->timestamp;
-
-            DrinkLog::create([
-                'date' => $this->selectedDate,
-                'drink_type' => $drinkType->name,
-                'amount' => $this->amount,
-                'hydration_value' => $hydrationValue,
-                'time' => $this->time,
-                'timestamp' => $timestamp,
-                'drink_type_id' => $this->drinkTypeId,
-            ]);
+            LogDrink::handle($drinkType, $this->selectedDate, $this->amount, $this->time);
         }
 
         $this->closeForm();

@@ -2,9 +2,9 @@
 
 namespace App\Mcp\Tools\Exercise;
 
+use App\Actions\LogExercise;
 use App\Mcp\Tools\Exercise\Concerns\ResolvesExerciseType;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -36,39 +36,14 @@ class LogExerciseTool extends Tool
             return $type;
         }
 
-        $duration = $data['duration'] ?? null;
-        $calories = $data['calories'] ?? null;
-        $steps = $data['steps'] ?? null;
-
-        // Mirrors App\Livewire\Exercise\ExerciseDaily::updatedDuration() — keep in sync.
-        if ($duration !== null) {
-            if ($calories === null && $type->calories_per_hour > 0) {
-                $calories = (int) round(($duration / 60) * $type->calories_per_hour);
-            }
-            if ($steps === null && $type->steps_equivalent > 0) {
-                $steps = (int) round(($duration / 60) * $type->steps_equivalent);
-            }
-        }
-
-        $log = Auth::user()->exerciseLogs()->create([
-            'date' => $data['date'] ?? today()->toDateString(),
-            'exercise_type_id' => $type->id,
-            'sets' => $data['sets'] ?? null,
-            'reps' => $data['reps'] ?? null,
-            'duration' => $duration,
-            'distance' => $data['distance'] ?? null,
-            'weight' => $data['weight'] ?? null,
-            'calories' => $calories,
-            'steps' => $steps,
-            'notes' => $data['notes'] ?? null,
-        ]);
+        $log = LogExercise::handle($type, $data['date'] ?? today()->toDateString(), $data);
 
         $message = "Ejercicio registrado: \"{$type->name}\" el {$log->date->toDateString()}.";
-        if ($calories !== null) {
-            $message .= " {$calories} kcal.";
+        if ($log->calories !== null) {
+            $message .= " {$log->calories} kcal.";
         }
-        if ($steps !== null) {
-            $message .= " {$steps} pasos.";
+        if ($log->steps !== null) {
+            $message .= " {$log->steps} pasos.";
         }
 
         return Response::text($message);

@@ -2,10 +2,10 @@
 
 namespace App\Mcp\Tools\Water;
 
+use App\Actions\LogDrink;
 use App\Mcp\Tools\Water\Concerns\ResolvesDrinkType;
 use App\Support\WaterGoal;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -32,20 +32,9 @@ class LogWaterIntakeTool extends Tool
             return $drinkType;
         }
 
-        $now = now();
-        $date = $data['date'] ?? $now->toDateString();
-        $time = $data['time'] ?? $now->format('H:i');
-        $hydrationValue = (int) round($data['amount_ml'] * $drinkType->hydration_factor);
+        $date = $data['date'] ?? today()->toDateString();
 
-        Auth::user()->drinkLogs()->create([
-            'date' => $date,
-            'drink_type' => $drinkType->name,
-            'drink_type_id' => $drinkType->id,
-            'amount' => $data['amount_ml'],
-            'hydration_value' => $hydrationValue,
-            'time' => $time,
-            'timestamp' => Carbon::createFromFormat('Y-m-d H:i', "{$date} {$time}")->timestamp,
-        ]);
+        LogDrink::handle($drinkType, $date, $data['amount_ml'], $data['time'] ?? null);
 
         $totalToday = (int) Auth::user()->drinkLogs()->whereDate('date', $date)->sum('hydration_value');
         $goal = WaterGoal::forUser(Auth::user());
