@@ -197,6 +197,36 @@
         </x-ui.card>
     </x-ui.section>
 
+    <x-ui.section title="Aplicaciones conectadas"
+                  description="Herramientas externas que conectaste con tu cuenta por OAuth, como ChatGPT o Claude."
+                  :level="2">
+        <x-ui.card variant="outlined" icon="bi-plug" iconTone="secondary">
+            @forelse ($connectedApps as $app)
+                <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap" wire:key="connected-app-{{ $app->id }}">
+                    <div>
+                        <p class="md-title-small mb-0">{{ $app->client->name }}</p>
+                        <p class="md-body-small mb-0">
+                            Conectada {{ $app->created_at->diffForHumans() }}.
+                            @if ($app->expires_at)
+                                Caduca {{ $app->expires_at->diffForHumans() }}.
+                            @endif
+                        </p>
+                    </div>
+                    <x-ui.destructive-action label="Revocar {{ $app->client->name }}" icon="bi-slash-circle" variant="outlined"
+                                             action="revokeConnectedApp('{{ $app->id }}')"
+                                             title="Revocar el acceso"
+                                             message="“{{ $app->client->name }}” dejará de poder acceder a tus datos. Puedes volver a conectarla cuando quieras." />
+                </div>
+                @if (! $loop->last)<hr class="my-3">@endif
+            @empty
+                <p class="md-body-medium mb-0">
+                    Todavía no has conectado ninguna aplicación. Para hacerlo, añade la URL del servidor MCP
+                    como conector en la herramienta que uses y autoriza el acceso desde allí.
+                </p>
+            @endforelse
+        </x-ui.card>
+    </x-ui.section>
+
     <x-ui.section title="Cambiar contraseña" :level="2">
         <x-ui.card variant="outlined" icon="bi-lock" iconTone="secondary">
             <x-ui.field name="currentPassword" label="Contraseña actual" type="password" wire:model="currentPassword" />

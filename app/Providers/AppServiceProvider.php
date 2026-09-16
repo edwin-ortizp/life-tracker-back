@@ -18,6 +18,7 @@ use App\Observers\TaskCalDavObserver;
 use App\Support\Habits\HabitActionRegistry;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Passport;
 use LaravelSabre\LaravelSabre;
 use Sabre\CalDAV\CalendarRoot;
 use Sabre\CalDAV\Plugin;
@@ -46,6 +47,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Task::observe(TaskCalDavObserver::class);
+
+        // Clientes OAuth de MCP: access tokens cortos y refresh rotativo de un mes.
+        Passport::tokensExpireIn(now()->addHour());
+        Passport::refreshTokensExpireIn(now()->addDays(30));
+        Passport::personalAccessTokensExpireIn(now()->addDays(30));
+        Passport::authorizationView('auth.oauth-authorize');
 
         LaravelSabre::nodes(function (): array {
             $principals = app(PrincipalBackend::class);

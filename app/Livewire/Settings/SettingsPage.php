@@ -5,6 +5,7 @@ namespace App\Livewire\Settings;
 use App\Models\IntegrationToken;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Passport\Token;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -197,6 +198,24 @@ class SettingsPage extends Component
         $this->aiIntegrationToken = null;
     }
 
+    /** Corta el acceso de una app conectada por OAuth: su token y los refresh que cuelgan de él. */
+    public function revokeConnectedApp(string $tokenId): void
+    {
+        $token = Auth::user()->tokens()->where('id', $tokenId)->first();
+
+        if (! $token) {
+            $this->successMessage = 'Esa aplicación ya no estaba conectada.';
+
+            return;
+        }
+
+        $name = $token->client?->name ?? 'La aplicación';
+        $token->revoke();
+        $token->refreshToken?->revoke();
+
+        $this->successMessage = "{$name} ya no tiene acceso a tu cuenta.";
+    }
+
     public function render()
     {
         return view('livewire.settings.settings-page', [
@@ -220,6 +239,13 @@ class SettingsPage extends Component
                 ->latest('created_at')
                 ->first(),
             'mcpUrl' => rtrim(config('app.url'), '/').'/life-tracker',
+            'connectedApps' => Auth::user()->tokens()
+                ->with('client')
+                ->where('revoked', false)
+                ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+                ->latest('created_at')
+                ->get()
+                ->filter(fn (Token $token) => $token->client !== null),
         ]);
     }
 }

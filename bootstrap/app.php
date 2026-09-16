@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\AuthenticateIntegrationToken;
+use App\Http\Middleware\AuthenticateMcpRequest;
+use App\Http\Middleware\MeasurePerformance;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,9 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->prepend(\App\Http\Middleware\MeasurePerformance::class);
+        $middleware->prepend(MeasurePerformance::class);
         $middleware->alias([
-            'integration.token' => \App\Http\Middleware\AuthenticateIntegrationToken::class,
+            'integration.token' => AuthenticateIntegrationToken::class,
+            'mcp.auth' => AuthenticateMcpRequest::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
