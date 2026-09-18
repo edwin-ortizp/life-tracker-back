@@ -30,17 +30,17 @@
                 <td class="md-table__nowrap"><span class="{{ $toneClass($row['typeTone']) }}"><i class="bi {{ $row['icon'] }}" aria-hidden="true"></i> {{ $row['type'] }}</span></td>
                 <td class="md-table__notes" @if ($row['notes']) title="{{ $row['notes'] }}" @endif>{{ $row['notes'] ?: '—' }}</td>
                 <td class="md-table__actions">
-                    <x-ui.menu size="sm" :label="'Acciones de '.$row['title']">
-                        @if ($row['kind'] === 'event')
-                            <x-ui.menu-item icon="bi-pencil" wire:click="openEventForm('{{ $row['id'] }}')">Editar</x-ui.menu-item>
+                    @if ($row['kind'] === 'event')
+                        <x-ui.row-actions :label="'Más acciones de '.$row['title']">
+                            <x-slot:primary wire:click="openEventForm('{{ $row['id'] }}')">Editar</x-slot:primary>
                             <x-ui.menu-item icon="bi-archive" wire:click="toggleEventArchive('{{ $row['id'] }}')">{{ $row['archived'] ? 'Desarchivar' : 'Archivar' }}</x-ui.menu-item>
                             <x-ui.menu-divider />
                             <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="deleteEvent('{{ $row['id'] }}')"
                                             wire:confirm="¿Eliminar este acontecimiento?">Eliminar</x-ui.menu-item>
-                        @else
-                            <x-ui.menu-item icon="bi-box-arrow-up-right" :href="$row['url']" wire:navigate>Ver plan</x-ui.menu-item>
-                        @endif
-                    </x-ui.menu>
+                        </x-ui.row-actions>
+                    @else
+                        <x-ui.action variant="outlined" size="sm" :href="$row['url']" wire:navigate>Ver plan</x-ui.action>
+                    @endif
                 </td>
             </tr>
         @endforeach

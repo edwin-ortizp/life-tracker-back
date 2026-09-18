@@ -50,9 +50,12 @@
                         <td>{{ $log->usage_reading !== null ? number_format($log->usage_reading, 0, ',', '.').' '.$vehicle->usage_unit : '—' }}</td>
                         <td>{{ $log->cost !== null ? '$ '.number_format($log->cost, 0, ',', '.') : '—' }}</td>
                         <td><div class="d-flex">
-                            <x-ui.icon-action icon="bi-pencil" label="Editar {{ $log->plan->template->name }} del {{ $log->performed_on->format('d/m/Y') }}" size="sm" wire:click="editMaintenanceLog('{{ $log->id }}')" />
-                            <x-ui.destructive-action label="Eliminar {{ $log->plan->template->name }} del {{ $log->performed_on->format('d/m/Y') }}" :iconOnly="true" size="sm"
-                                                     action="deleteMaintenanceLog('{{ $log->id }}')" title="Eliminar servicio" message="El servicio se elimina del historial y el plan recalcula su próximo cuidado." />
+                            <x-ui.row-actions :label="'Más acciones de '.$log->plan->template->name.' del '.$log->performed_on->format('d/m/Y')">
+                                <x-slot:primary wire:click="editMaintenanceLog('{{ $log->id }}')">Editar</x-slot:primary>
+                                <x-ui.menu-divider />
+                                <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="deleteMaintenanceLog('{{ $log->id }}')"
+                                                wire:confirm="El servicio se elimina del historial y el plan recalcula su próximo cuidado.">Eliminar</x-ui.menu-item>
+                            </x-ui.row-actions>
                         </div></td>
                     </tr>
                 @endforeach
@@ -62,9 +65,12 @@
                 @foreach ($maintenanceLogs as $log)
                     <article class="md-card-outlined" wire:key="maintenance-card-{{ $log->id }}">
                         <header><time>{{ $log->performed_on->translatedFormat('d M Y') }}</time><div>
-                            <x-ui.icon-action icon="bi-pencil" label="Editar {{ $log->plan->template->name }} del {{ $log->performed_on->format('d/m/Y') }}" size="sm" wire:click="editMaintenanceLog('{{ $log->id }}')" />
-                            <x-ui.destructive-action label="Eliminar {{ $log->plan->template->name }} del {{ $log->performed_on->format('d/m/Y') }}" :iconOnly="true" size="sm"
-                                                     action="deleteMaintenanceLog('{{ $log->id }}')" title="Eliminar servicio" message="El servicio se elimina del historial y el plan recalcula su próximo cuidado." />
+                            <x-ui.row-actions :label="'Más acciones de '.$log->plan->template->name.' del '.$log->performed_on->format('d/m/Y')">
+                                <x-slot:primary wire:click="editMaintenanceLog('{{ $log->id }}')">Editar</x-slot:primary>
+                                <x-ui.menu-divider />
+                                <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="deleteMaintenanceLog('{{ $log->id }}')"
+                                                wire:confirm="El servicio se elimina del historial y el plan recalcula su próximo cuidado.">Eliminar</x-ui.menu-item>
+                            </x-ui.row-actions>
                         </div></header>
                         <strong>{{ $log->plan->template->name }}</strong>
                         <span>{{ $log->provider ?: 'Sin proveedor' }}</span>

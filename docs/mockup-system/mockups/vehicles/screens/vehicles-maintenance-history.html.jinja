@@ -1,0 +1,12 @@
+{% from '@project/components/vehicle-dialogs.html.jinja' import maintenance_dialog, plan_item_dialog %}
+{% from '@project/components/vehicle-maintenance.html.jinja' import maintenance_history, maintenance_rows %}
+{% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs, metric, fab %}
+{#- Lo ejecutado. Si se llega desde un elemento del plan, vehicle-map.js aplica ese filtro al abrir. -#}
+{% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
+{{ vehicle_tabs('/vehicles-maintenance-history') }}
+<section class="lt-metrics">{{ metric('Mantenimientos','24') }}{{ metric('Hechos por mí','7') }}{{ metric('Gasto vinculado','$ 1.675.000') }}</section>
+{{ maintenance_history(maintenance_rows) }}
+{{ fab('Registrar mantenimiento', 'bi-plus-lg', 'vehicle-maintenance-new') }}
+{{ maintenance_dialog() }}
+{{ plan_item_dialog('vehicle-plan-item-edit', 'Editar elemento del plan', {'name':'Cambio de aceite y filtro','system':'Motor','applies':'Combustión','km':5000,'months':6,'notes':'Aceite 5W-30 sintético, filtro ACDelco.'}) }}
+{% endcall %}

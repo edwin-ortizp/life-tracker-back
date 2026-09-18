@@ -44,6 +44,7 @@ use App\Livewire\Task\TaskKanban;
 use App\Livewire\Task\TaskList;
 use App\Livewire\Task\TaskPlanning;
 use App\Livewire\Task\TaskProgress;
+use App\Livewire\Task\TaskSettings;
 use App\Livewire\Vehicle\VehicleCatalog;
 use App\Livewire\Vehicle\VehicleExpenses;
 use App\Livewire\Vehicle\VehicleFuel;
@@ -126,6 +127,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/tasks/kanban', TaskKanban::class)->name('tasks.kanban');
     Route::get('/tasks/planning', TaskPlanning::class)->name('tasks.planning');
     Route::get('/tasks/progress', TaskProgress::class)->name('tasks.progress');
+    Route::get('/tasks/settings', TaskSettings::class)->name('tasks.settings');
     Route::get('/relationships', RelationshipIndex::class)->name('relationships');
     Route::get('/relationships/events', RelationshipEvents::class)->name('relationships.events');
     Route::get('/relationships/birthdays', RelationshipBirthdays::class)->name('relationships.birthdays');

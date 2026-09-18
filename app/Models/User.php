@@ -194,6 +194,11 @@ class User extends Authenticatable
         return $this->hasMany(Vehicle::class);
     }
 
+    public function taskCategories()
+    {
+        return $this->hasMany(TaskCategory::class);
+    }
+
     public function vehicleExpenseCategories()
     {
         return $this->hasMany(VehicleExpenseCategory::class);

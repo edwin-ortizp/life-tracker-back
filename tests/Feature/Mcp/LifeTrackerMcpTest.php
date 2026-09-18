@@ -60,6 +60,7 @@ class LifeTrackerMcpTest extends TestCase
     public function test_create_task_tool_creates_a_task_for_the_authenticated_user(): void
     {
         $user = User::factory()->create();
+        \App\Support\DefaultTaskCategories::createFor($user);
 
         LifeTrackerServer::actingAs($user)
             ->tool(CreateTaskTool::class, [

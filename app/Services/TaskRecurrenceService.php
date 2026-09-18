@@ -12,6 +12,50 @@ class TaskRecurrenceService
 {
     public function __construct(private readonly RecurrenceRule $recurrenceRule) {}
 
+    public const PATTERNS = ['daily', 'weekly', 'monthly', 'custom'];
+
+    /**
+     * Estructura `recurrence` que se guarda en la tarea. Una RRULE, si llega, manda sobre el patrón.
+     * Al cambiar la regla se reinicia el conteo de ocurrencias: el ancla vuelve a ser la fecha de la tarea.
+     *
+     * @throws \InvalidArgumentException si la RRULE no es válida.
+     */
+    public function buildRecurrence(string $pattern, int $interval = 1, ?string $rrule = null): array
+    {
+        if (filled($rrule)) {
+            return ['pattern' => 'custom', 'frequency' => 1, 'rrule' => $this->recurrenceRule->normalize($rrule)];
+        }
+
+        $interval = max(1, $interval);
+
+        return $pattern === 'custom' || ! in_array($pattern, self::PATTERNS, true)
+            ? ['pattern' => 'custom', 'frequency' => 1, 'customDays' => $interval]
+            : ['pattern' => $pattern, 'frequency' => $interval];
+    }
+
+    /** Descripción legible de la recurrencia, p. ej. «cada 2 semanas» o la RRULE. */
+    public function describe(?array $recurrence): ?string
+    {
+        if (! $recurrence) {
+            return null;
+        }
+
+        if (filled($recurrence['rrule'] ?? null) && ($recurrence['pattern'] ?? 'custom') === 'custom' && ! isset($recurrence['customDays'])) {
+            return 'RRULE '.$recurrence['rrule'];
+        }
+
+        $frequency = max(1, (int) ($recurrence['frequency'] ?? 1));
+        [$singular, $plural] = match ($recurrence['pattern'] ?? 'custom') {
+            'daily' => ['día', 'días'],
+            'weekly' => ['semana', 'semanas'],
+            'monthly' => ['mes', 'meses'],
+            default => ['día', 'días'],
+        };
+        $count = ($recurrence['pattern'] ?? 'custom') === 'custom' ? max(1, (int) ($recurrence['customDays'] ?? $frequency)) : $frequency;
+
+        return $count === 1 ? "cada {$singular}" : "cada {$count} {$plural}";
+    }
+
     public function suggestedNextDate(Task $task, ?Carbon $completedAt = null): Carbon
     {
         $recurrence = $task->recurrence ?? [];

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\DefaultExerciseTypes;
 use App\Support\DefaultHabitDefinitions;
 use App\Support\DefaultMoodStates;
+use App\Support\DefaultTaskCategories;
 use App\Support\DefaultVehicleExpenseCategories;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -66,5 +67,6 @@ class RegisterController extends Controller
         DefaultMoodStates::createFor($user);
 
         DefaultVehicleExpenseCategories::createFor($user);
+        DefaultTaskCategories::createFor($user);
     }
 }

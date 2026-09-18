@@ -1,0 +1,147 @@
+<?php
+
+namespace App\Mcp\Tools\Task\Concerns;
+
+use App\Models\TaskCategory;
+use App\Services\TaskRecurrenceService;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use InvalidArgumentException;
+
+/**
+ * Campos comunes a crear y actualizar tareas desde MCP: categoría del catálogo del usuario,
+ * fechas (con o sin hora) y recurrencia.
+ */
+trait InteractsWithTaskFields
+{
+    private const PRIORITIES = [
+        'urgent-important', 'not-urgent-important', 'urgent-not-important', 'not-urgent-not-important',
+    ];
+
+    private const SIZES = ['XS', 'S', 'M', 'L', 'XL'];
+
+    /** Reglas de los campos editables compartidos. */
+    protected function fieldRules(): array
+    {
+        return [
+            'description' => ['nullable', 'string'],
+            'category' => ['nullable', 'string', 'max:80'],
+            'priority' => ['nullable', 'string', Rule::in(self::PRIORITIES)],
+            'size' => ['nullable', 'string', Rule::in(self::SIZES)],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
+            'estimated_time' => ['nullable', 'integer', 'min:1', 'max:10080'],
+            'is_private' => ['nullable', 'boolean'],
+            'recurrence' => ['nullable', 'string', Rule::in(['none', ...TaskRecurrenceService::PATTERNS])],
+            'recurrence_interval' => ['nullable', 'integer', 'min:1', 'max:365'],
+            'rrule' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    /** Busca la categoría por key o por nombre (sin distinguir mayúsculas). */
+    protected function resolveCategory(string $value): ?TaskCategory
+    {
+        $value = trim($value);
+
+        return Auth::user()->taskCategories()->where('key', $value)->first()
+            ?? Auth::user()->taskCategories()->whereRaw('LOWER(name) = ?', [mb_strtolower($value)])->first();
+    }
+
+    protected function categoryNotFound(string $value): string
+    {
+        $available = Auth::user()->taskCategories()->orderBy('sort_order')->pluck('name', 'key')
+            ->map(fn ($name, $key) => "{$name} ({$key})")->implode(', ');
+
+        return "La categoría \"{$value}\" no existe. Disponibles: {$available}. Puedes crearla con manage-task-category-tool.";
+    }
+
+    /**
+     * Traduce los campos validados a atributos de Task. Solo incluye las claves presentes,
+     * así un null explícito limpia el valor y la ausencia lo conserva.
+     *
+     * @throws InvalidArgumentException con un mensaje apto para el usuario.
+     */
+    protected function taskAttributes(array $data, TaskRecurrenceService $recurrence): array
+    {
+        $attributes = [];
+
+        foreach (['description', 'priority', 'size', 'estimated_time'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $attributes[$field] = $data[$field];
+            }
+        }
+
+        if (array_key_exists('is_private', $data)) {
+            $attributes['is_private'] = (bool) $data['is_private'];
+        }
+
+        if (array_key_exists('category', $data)) {
+            if (blank($data['category'])) {
+                $attributes['category'] = null;
+            } elseif ($category = $this->resolveCategory($data['category'])) {
+                $attributes['category'] = $category->key;
+            } else {
+                throw new InvalidArgumentException($this->categoryNotFound($data['category']));
+            }
+        }
+
+        foreach (['start', 'end'] as $edge) {
+            $field = "{$edge}_date";
+            if (array_key_exists($field, $data)) {
+                $attributes[$field] = $data[$field];
+                // "YYYY-MM-DD" es un día completo; con hora, un momento concreto.
+                $attributes["{$edge}_is_date"] = $data[$field] === null || strlen(trim($data[$field])) <= 10;
+            }
+        }
+
+        if (array_key_exists('recurrence', $data) || filled($data['rrule'] ?? null)) {
+            $pattern = $data['recurrence'] ?? 'custom';
+
+            if ($pattern === 'none' && blank($data['rrule'] ?? null)) {
+                $attributes['is_recurrent'] = false;
+                $attributes['recurrence'] = null;
+            } else {
+                $attributes['is_recurrent'] = true;
+                $attributes['recurrence'] = $recurrence->buildRecurrence(
+                    $pattern === 'none' ? 'custom' : $pattern,
+                    (int) ($data['recurrence_interval'] ?? 1),
+                    $data['rrule'] ?? null,
+                );
+            }
+        }
+
+        return $attributes;
+    }
+
+    protected function fieldSchema(JsonSchema $schema): array
+    {
+        return [
+            'description' => $schema->string()
+                ->description('Descripción en markdown. Admite listas de subtareas con "- [ ]" y "- [x]".'),
+            'category' => $schema->string()
+                ->description('Key o nombre de una categoría del usuario (consulta list-task-categories-tool). Vacío deja la tarea sin categoría.'),
+            'priority' => $schema->string()
+                ->enum(self::PRIORITIES)
+                ->description('Cuadrante de Eisenhower de la tarea.'),
+            'size' => $schema->string()
+                ->enum(self::SIZES)
+                ->description('Tamaño estimado: XS (<30 min), S (30 min-1 h), M (1-2 h), L (2-4 h), XL (>4 h).'),
+            'start_date' => $schema->string()
+                ->description('Fecha de inicio "YYYY-MM-DD" (día completo) o "YYYY-MM-DD HH:MM" (con hora).'),
+            'end_date' => $schema->string()
+                ->description('Fecha límite "YYYY-MM-DD" o "YYYY-MM-DD HH:MM".'),
+            'estimated_time' => $schema->integer()
+                ->description('Tiempo estimado en minutos.'),
+            'is_private' => $schema->boolean()
+                ->description('Si la tarea es privada.'),
+            'recurrence' => $schema->string()
+                ->enum(['none', ...TaskRecurrenceService::PATTERNS])
+                ->description('Recurrencia: daily, weekly, monthly, custom (cada N días) o none para quitarla. Se combina con recurrence_interval.'),
+            'recurrence_interval' => $schema->integer()
+                ->description('Cada cuántos días/semanas/meses se repite (por defecto 1).'),
+            'rrule' => $schema->string()
+                ->description('Regla iCalendar avanzada, p. ej. "FREQ=WEEKLY;BYDAY=MO,TH" o "FREQ=MONTHLY;BYMONTHDAY=5". Tiene prioridad sobre recurrence.'),
+        ];
+    }
+}

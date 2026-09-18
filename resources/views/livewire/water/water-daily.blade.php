@@ -18,6 +18,7 @@
 
     <x-ui.management-card id="water-day-logs" title="Registro del día" icon="bi-clock-history"
                           :count="'('.$logs->total().' / '.$totalLogs.')'" search="search" search-placeholder="Buscar registros"
+                          sort-model="sort" :sort-options="$sorts" :sort-value="$sort"
                           :active-filters="count($activeFilters)" :paginator="$logs" noun="registros"
                           alpine="draftScope: 'day', draftDrink: ''"
                           on-filters-open="draftScope = $wire.dateScope; draftDrink = $wire.drinkFilter">

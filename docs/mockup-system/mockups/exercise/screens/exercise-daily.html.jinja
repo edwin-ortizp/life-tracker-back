@@ -3,15 +3,17 @@
 {{ header('Ejercicio', 'Actividad, esfuerzo y progreso físico · Miércoles 10 sep.', 'bi-activity') }}
 {{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Estadísticas','/exercise-statistics','bi-bar-chart-line'),('Ajustes','/exercise-settings','bi-sliders')], '/exercise-daily') }}
 <section class="lt-grid-main">
-  {% call(zone) manage_card('exercise-log', 'Actividades del día', 'bi-list-ul', count='(3 / 64)', total=64, search='Buscar actividades', filters=1, menu=[('Exportar CSV', 'bi-filetype-csv'), ('Ver estadísticas', 'bi-bar-chart-line')], footer={'from':1,'to':3,'total':3,'noun':'registros','page':1,'pages':1,'per_page':25}, footer_all={'to':25,'total':64,'pages':3}) %}{% if zone == 'filters' %}
+  {% call(zone) manage_card('exercise-log', 'Actividades del día', 'bi-list-ul', count='(3 / 64)', total=64, search='Buscar actividades', filters=1, menu=[('Exportar CSV', 'bi-filetype-csv'), ('Ver estadísticas', 'bi-bar-chart-line')], footer={'from':1,'to':3,'total':3,'noun':'registros','page':1,'pages':1,'per_page':25}, footer_all={'to':25,'total':64,'pages':3}, sort=[('recent','Más reciente','bi-sort-down'),('oldest','Más antiguo','bi-sort-up'),('duration','Mayor duración','bi-stopwatch'),('calories','Más calorías','bi-fire')]) %}{% if zone == 'filters' %}
     {% call date_filters('exercise-log') %}<div class="lt-field"><span>Tipo</span><div class="lt-chip-row">{% for t in ['Todos','Cardio','Fuerza','Deportes','Flexibilidad'] %}<button class="lt-chip lt-chip--filter{% if loop.first %} is-selected{% endif %}" type="button" data-lt-static-nav aria-pressed="{{ 'true' if loop.first else 'false' }}">{{ t }}</button>{% endfor %}</div></div>{% endcall %}
   {% else %}
     {{ applied_filters([('bi-calendar-event','Fecha: Hoy')]) }}
     <table class="lt-mtable">
       <thead><tr><th scope="col">Fecha</th><th scope="col">Hora</th><th scope="col">Actividad</th><th scope="col">Detalle</th><th scope="col">Calorías</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead>
       <tbody>
+      {% set iso = {'Hoy':'2026-09-10','9 sep.':'2026-09-09','8 sep.':'2026-09-08','7 sep.':'2026-09-07'} %}
+      {% set mins = [45,40,32,45,30,40,60] %}
       {% for date, time, icon, name, detail, kcal, old in [('Hoy','18:35','bi-universal-access','Press de banca','4 series × 10 reps · 45 kg','124 kcal',false),('Hoy','18:10','bi-universal-access','Sentadilla con barra','4 series × 8 reps · 60 kg','140 kcal',false),('Hoy','06:40','bi-person-walking','Correr','5,2 km · 32 min · ritmo 6:09/km','348 kcal',false),('9 sep.','19:00','bi-person-walking','Caminar','3,1 km · 45 min','198 kcal',true),('9 sep.','07:10','bi-flower1','Yoga','30 min','125 kcal',true),('8 sep.','18:30','bi-bicycle','Bicicleta estática','40 min','320 kcal',true),('7 sep.','10:00','bi-dribbble','Fútbol','60 min','490 kcal',true)] %}
-        <tr{% if old %} data-lt-outside-filter{% endif %}>
+        <tr data-sort-at="{{ iso[date] }}T{{ time }}" data-sort-duration="{{ mins[loop.index0] }}" data-sort-calories="{{ kcal|replace(' kcal','') }}"{% if old %} data-lt-outside-filter{% endif %}>
           <td class="lt-mtable__date" data-label="Fecha">{{ date }}</td>
           <td class="lt-mtable__time" data-label="Hora">{{ time }}</td>
           <td class="lt-mtable__type" data-label="Actividad"><i class="bi {{ icon }} lt-mtable__icon" aria-hidden="true"></i> {{ name }}</td>

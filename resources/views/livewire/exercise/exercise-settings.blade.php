@@ -50,15 +50,16 @@
                             <span class="md-list-icon-circle" aria-hidden="true">{{ $type->icon ?: '🏃' }}</span>
                         </x-slot:leading>
                         <x-slot:trailing>
-                            <x-ui.icon-action icon="bi-pencil" label="Editar {{ $type->name }}" wire:click="openForm('{{ $type->id }}')" />
-                            @if ($type->logs_count)
-                                <x-ui.icon-action icon="bi-trash" tone="danger" label="Eliminar {{ $type->name }}" wire:click="confirmDelete('{{ $type->id }}')" />
-                            @else
-                                <x-ui.destructive-action label="Eliminar {{ $type->name }}" :iconOnly="true"
-                                                         action="delete('{{ $type->id }}')"
-                                                         title="Eliminar tipo de ejercicio"
-                                                         message="“{{ $type->name }}” no tiene registros; se eliminará de tu catálogo." />
-                            @endif
+                            <x-ui.row-actions :label="'Más acciones de '.$type->name">
+                                <x-slot:primary wire:click="openForm('{{ $type->id }}')">Editar</x-slot:primary>
+                                <x-ui.menu-divider />
+                                @if ($type->logs_count)
+                                    <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="confirmDelete('{{ $type->id }}')">Eliminar</x-ui.menu-item>
+                                @else
+                                    <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete('{{ $type->id }}')"
+                                                    wire:confirm="“{{ $type->name }}” no tiene registros; se eliminará de tu catálogo.">Eliminar</x-ui.menu-item>
+                                @endif
+                            </x-ui.row-actions>
                         </x-slot:trailing>
                     </x-ui.list-item>
                 @endforeach

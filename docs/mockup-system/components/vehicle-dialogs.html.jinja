@@ -25,33 +25,69 @@
 {% endcall %}
 {%- endmacro %}
 
+{#- Mantenimiento = lo ejecutado. El gasto es opcional y vive en Gastos; aquí solo se crea o vincula. -#}
 {% macro maintenance_dialog(id='vehicle-maintenance-new', service='Cambio de aceite y filtro') -%}
-{% call dialog(id, 'Registrar mantenimiento', 'Guardar', 'bi-wrench-adjustable', [('service','Servicio','bi-wrench-adjustable'),('work','Detalle','bi-card-text'),('next','Próximo cuidado','bi-calendar2-check')]) %}
+{#- Elementos del plan agrupados por sistema; alimentan el select del registro. -#}
+{% set plan_groups = [
+  ('Motor y fluidos',['Cambio de aceite y filtro','Filtro de combustible','Cambio de refrigerante','Cambio de aceite de transmisión']),
+  ('Frenos y llantas',['Pastillas de freno','Rotación de llantas']),
+  ('Cabina y vidrios',['Filtro de aire acondicionado','Plumillas limpiaparabrisas','Limpieza de tapicería']),
+  ('Eléctrico y documentos',['Batería','Escaneo OBD y sensores','Revisión técnico-mecánica','Seguro todo riesgo'])
+] %}
+{% call dialog(id, 'Registrar mantenimiento', 'Guardar', 'bi-wrench-adjustable', [('service','Mantenimiento','bi-wrench-adjustable'),('work','Detalle','bi-card-text'),('expense','Gasto','bi-wallet2')]) %}
 <section class="lt-dialog__section" data-section="service">
-  <header class="lt-dialog__section-head"><h3>Servicio</h3><p>Qué se hizo, cuándo y cuánto costó.</p></header>
+  <header class="lt-dialog__section-head"><h3>Mantenimiento</h3><p>Qué se hizo, a qué elemento del plan pertenece y con qué odómetro.</p></header>
   <div class="lt-form">
-    <label class="lt-field lt-field--icon lt-form--full"><span>Tipo de servicio <b>*</b></span><i class="bi bi-tools" aria-hidden="true"></i><select>{% for t in ['Cambio de aceite y filtro','Rotación de llantas','Pastillas de freno','Revisión técnico-mecánica','Alineación y balanceo','Batería','Otro'] %}<option{% if t == service %} selected{% endif %}>{{ t }}</option>{% endfor %}</select></label>
+    <label class="lt-field lt-field--icon lt-form--full"><span>Elemento del plan <b>*</b></span><i class="bi bi-calendar2-check" aria-hidden="true"></i><select>{% for group, items in plan_groups %}<optgroup label="{{ group }}">{% for t in items %}<option{% if t == service %} selected{% endif %}>{{ t }}</option>{% endfor %}</optgroup>{% endfor %}<option>Sin plan (mantenimiento puntual)</option></select></label>
+    <label class="lt-field lt-form--full"><span>Servicio realizado <b>*</b></span><input type="text" value="{{ service }}"></label>
     <label class="lt-field"><span>Fecha <b>*</b></span><input type="date" value="2026-09-12"></label>
     <label class="lt-field lt-field--icon"><span>Odómetro (km) <b>*</b></span><i class="bi bi-speedometer2" aria-hidden="true"></i><input type="number" value="142620"></label>
+    <div class="lt-field"><span>Realizado por</span><div class="lt-segmented" role="group" aria-label="Realizado por"><button type="button" data-lt-static-nav>Yo</button><button class="is-active" type="button" data-lt-static-nav>Taller</button></div></div>
     <label class="lt-field lt-field--icon"><span>Taller</span><i class="bi bi-shop" aria-hidden="true"></i><input type="text" value="Taller Autolab"></label>
-    <label class="lt-field lt-field--icon"><span>Costo total <b>*</b></span><i class="bi bi-cash" aria-hidden="true"></i><input type="text" value="$ 252.000"></label>
+    <div class="lt-field lt-form--full"><small>Al guardar, el plan recalcula el próximo: 147.620 km o 12 mar. 2027, lo que ocurra primero.</small></div>
   </div>
 </section>
 <section class="lt-dialog__section" data-section="work" hidden>
-  <header class="lt-dialog__section-head"><h3>Detalle</h3><p>Trabajos y repuestos, para tener el historial completo.</p></header>
+  <header class="lt-dialog__section-head"><h3>Detalle</h3><p>Trabajos, repuestos y observaciones del mantenimiento.</p></header>
   <div class="lt-form">
     <label class="lt-field lt-form--full"><span>Trabajos realizados</span><textarea>Cambio de aceite 5W-30 sintético y filtro de aceite. Revisión de niveles.</textarea></label>
     <label class="lt-field lt-field--icon lt-form--full"><span>Repuestos</span><i class="bi bi-box-seam" aria-hidden="true"></i><input type="text" value="Aceite Mobil 5W-30 (4,5 L), filtro ACDelco"></label>
-    <label class="lt-field lt-form--full"><span>Notas</span><textarea placeholder="Ej. El mecánico recomienda revisar la suspensión delantera"></textarea></label>
+    <label class="lt-field lt-form--full"><span>Observaciones</span><textarea placeholder="Ej. El mecánico recomienda revisar la suspensión delantera"></textarea></label>
   </div>
 </section>
-<section class="lt-dialog__section" data-section="next" hidden>
-  <header class="lt-dialog__section-head"><h3>Próximo cuidado</h3><p>Así aparece en «Próximos cuidados» del Resumen.</p></header>
+<section class="lt-dialog__section" data-section="expense" hidden>
+  <header class="lt-dialog__section-head"><h3>Gasto</h3><p>Opcional. El gasto se guarda en Gastos y queda vinculado a este mantenimiento.</p></header>
   <div class="lt-form">
-    <div class="lt-field lt-form--full"><span>¿Programar el siguiente?</span><div class="lt-segmented" role="group" aria-label="Programar el siguiente"><button class="is-active" type="button" data-lt-static-nav>Sí</button><button type="button" data-lt-static-nav>No</button></div></div>
-    <label class="lt-field lt-field--icon"><span>Cada (km)</span><i class="bi bi-signpost-split" aria-hidden="true"></i><input type="number" value="5000"></label>
-    <label class="lt-field lt-field--icon"><span>O cada (meses)</span><i class="bi bi-calendar3" aria-hidden="true"></i><input type="number" value="6"></label>
-    <div class="lt-field lt-form--full"><small>Lo que ocurra primero: 147.620 km o 12 mar. 2027.</small></div>
+    <div class="lt-field lt-form--full"><span>¿Tuvo costo?</span><div class="lt-segmented" role="group" aria-label="Gasto del mantenimiento"><button type="button" data-lt-static-nav>Sin gasto</button><button class="is-active" type="button" data-lt-static-nav>Registrar gasto</button><button type="button" data-lt-static-nav>Vincular existente</button></div></div>
+    <label class="lt-field lt-field--icon"><span>Valor <b>*</b></span><i class="bi bi-cash" aria-hidden="true"></i><input type="text" value="$ 252.000"></label>
+    <label class="lt-field lt-field--icon"><span>Categoría</span><i class="bi bi-tag" aria-hidden="true"></i><select>{% for t in ['Mantenimiento','Repuestos','Otro'] %}<option>{{ t }}</option>{% endfor %}</select></label>
+    <div class="lt-field lt-form--full"><small>Fecha, odómetro y descripción se toman del mantenimiento: no se escriben dos veces.</small></div>
+  </div>
+</section>
+{% endcall %}
+{%- endmacro %}
+
+{#- Elemento del plan: existe una vez y agrupa todos sus mantenimientos; su regla define cuándo toca. -#}
+{% macro plan_item_dialog(id='vehicle-plan-item-new', title='Añadir elemento al plan', v={}) -%}
+{% call dialog(id, title, 'Guardar', 'bi-calendar2-check', [('item','Elemento','bi-calendar2-check'),('rule','Frecuencia','bi-arrow-repeat')]) %}
+<section class="lt-dialog__section" data-section="item">
+  <header class="lt-dialog__section-head"><h3>Elemento</h3><p>Qué debe atenderse y en qué parte del vehículo se ubica.</p></header>
+  <div class="lt-form">
+    <label class="lt-field lt-form--full"><span>Nombre <b>*</b></span><input type="text" value="{{ v.get('name') or '' }}" placeholder="Ej. Cambio de líquido de frenos"></label>
+    <label class="lt-field lt-field--icon"><span>Sistema <b>*</b></span><i class="bi bi-diagram-3" aria-hidden="true"></i><select>{% for t in ['Motor','Transmisión','Refrigeración','Frenos','Llantas','Batería','Batería de alto voltaje','Cabina','Vidrios','Sensores y electrónica','Documentos'] %}<option{% if t == v.get('system') %} selected{% endif %}>{{ t }}</option>{% endfor %}</select></label>
+    <label class="lt-field lt-field--icon"><span>Aplica a</span><i class="bi bi-ev-front" aria-hidden="true"></i><select>{% for t in ['Combustión','Eléctrico','Híbrido','Todos los tipos'] %}<option{% if t == (v.get('applies') or 'Todos los tipos') %} selected{% endif %}>{{ t }}</option>{% endfor %}</select></label>
+    <label class="lt-field lt-form--full"><span>Notas</span><textarea placeholder="Ej. Usar aceite 5W-30 sintético">{{ v.get('notes') or '' }}</textarea></label>
+  </div>
+</section>
+<section class="lt-dialog__section" data-section="rule" hidden>
+  <header class="lt-dialog__section-head"><h3>Frecuencia</h3><p>Cuándo vuelve a tocar, contado desde el último mantenimiento registrado.</p></header>
+  <div class="lt-form">
+    <div class="lt-field lt-form--full"><span>Regla</span><div class="lt-segmented" role="group" aria-label="Regla"><button type="button" data-lt-static-nav>Kilómetros</button><button type="button" data-lt-static-nav>Tiempo</button><button class="is-active" type="button" data-lt-static-nav>Lo primero</button><button type="button" data-lt-static-nav>Por condición</button></div></div>
+    <label class="lt-field lt-field--icon"><span>Cada (km)</span><i class="bi bi-signpost-split" aria-hidden="true"></i><input type="number" value="{{ v.get('km') or '' }}" placeholder="Ej. 10000"></label>
+    <label class="lt-field lt-field--icon"><span>O cada (meses)</span><i class="bi bi-calendar3" aria-hidden="true"></i><input type="number" value="{{ v.get('months') or '' }}" placeholder="Ej. 12"></label>
+    <label class="lt-field lt-field--icon"><span>Avisar antes (km)</span><i class="bi bi-bell" aria-hidden="true"></i><input type="number" value="500"></label>
+    <label class="lt-field lt-field--icon"><span>Avisar antes (días)</span><i class="bi bi-bell" aria-hidden="true"></i><input type="number" value="15"></label>
+    <div class="lt-field lt-form--full"><small>«Por condición» no calcula vencimiento: queda pendiente de revisar, como el desgaste de las llantas.</small></div>
   </div>
 </section>
 {% endcall %}
@@ -61,13 +97,15 @@
 {% set concept = v.get('concept') or 'Seguros' %}
 {% call dialog(id, title, 'Guardar', 'bi-wallet2', [('expense','Gasto','bi-wallet2'),('repeat','Recurrencia','bi-arrow-repeat')]) %}
 <section class="lt-dialog__section" data-section="expense">
-  <header class="lt-dialog__section-head"><h3>Gasto</h3><p>Seguros, llantas, pintura y lo que no sea combustible ni mantenimiento.</p></header>
+  <header class="lt-dialog__section-head"><h3>Gasto</h3><p>Todo lo que cuesta dinero, excepto combustible. Puede vincularse a un mantenimiento.</p></header>
   <div class="lt-form">
-    <label class="lt-field lt-field--icon"><span>Concepto <b>*</b></span><i class="bi bi-tag" aria-hidden="true"></i><select>{% for t in ['Seguros','Llantas','Pintura y latonería','Accesorios y lujos','Trámites y peajes','Otro'] %}<option{% if t == concept %} selected{% endif %}>{{ t }}</option>{% endfor %}</select></label>
+    <label class="lt-field lt-field--icon"><span>Concepto <b>*</b></span><i class="bi bi-tag" aria-hidden="true"></i><select>{% for t in ['Seguros','Mantenimiento','Llantas','Pintura y latonería','Accesorios y lujos','Trámites y peajes','Otro'] %}<option{% if t == concept %} selected{% endif %}>{{ t }}</option>{% endfor %}</select></label>
     <label class="lt-field lt-field--icon"><span>Valor <b>*</b></span><i class="bi bi-cash" aria-hidden="true"></i><input type="text" value="{{ v.get('amount') or '' }}" placeholder="$ 0"></label>
     <label class="lt-field lt-form--full"><span>Descripción <b>*</b></span><input type="text" value="{{ v.get('description') or '' }}" placeholder="Ej. Cuota seguro todo riesgo"></label>
     <label class="lt-field"><span>Fecha <b>*</b></span><input type="date" value="{{ v.get('date') or '2026-09-12' }}"></label>
     <label class="lt-field lt-field--icon"><span>Odómetro (km)</span><i class="bi bi-speedometer2" aria-hidden="true"></i><input type="number" placeholder="Opcional"></label>
+    <label class="lt-field lt-field--icon lt-form--full"><span>Mantenimiento vinculado</span><i class="bi bi-link-45deg" aria-hidden="true"></i><select>{% for t in ['Ninguno','Cambio de aceite y filtro · 14 jul. · 138.020 km','Alineación y balanceo · 2 jun. · 136.800 km','Batería nueva · 20 mar. · 133.900 km'] %}<option{% if t == v.get('maintenance') %} selected{% endif %}>{{ t }}</option>{% endfor %}</select></label>
+    <div class="lt-field lt-form--full"><small>Si lo vinculas, la fecha y el odómetro se leen del mantenimiento.</small></div>
   </div>
 </section>
 <section class="lt-dialog__section" data-section="repeat" hidden>

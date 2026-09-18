@@ -1,4 +1,4 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, row_split %}
 {% call shell('relationships', 'Cumpleaños', 'bi-cake2') %}
 {{ header('Cumpleaños', 'No dejes pasar una fecha importante.', 'bi-cake2') }}
 {{ module_tabs([('Relaciones','/relationships-index','bi-people'),('Acontecimientos','/relationships-events','bi-calendar-event'),('Cumpleaños','/relationships-birthdays','bi-cake2')], '/relationships-birthdays') }}
@@ -6,7 +6,7 @@
 <section class="lt-grid-2">
   <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-gift"></i><h3>Próximos 60 días</h3></div><div class="lt-panel__body"><div class="lt-list">
     {% for ini, name, date, age, chip, tone in [('DP','Daniel Pérez','Dom 14 sep.','Cumple 33','En 4 días','warning'),('AR','Andrés Ruiz','Jue 25 sep.','Cumple 30','En 15 días','neutral'),('SO','Sofía Ortiz','Lun 29 sep.','Cumple 8','En 19 días','neutral'),('LG','Laura Gómez','Jue 2 oct.','','En 22 días','neutral'),('MO','María Ortiz','Sáb 1 nov.','Cumple 60','En 52 días','neutral')] %}
-    <a class="lt-list-item" href="#/relationships-show"><span class="lt-avatar">{{ ini }}</span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ date }}{% if age %} · {{ age }}{% endif %}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></a>
+    <div class="lt-list-item"><span class="lt-avatar">{{ ini }}</span><div class="lt-list-item__body"><strong><a href="#/relationships-show">{{ name }}</a></strong><span>{{ date }}{% if age %} · {{ age }}{% endif %}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span>{{ row_split('birthday-menu-' ~ loop.index, 'Crear tarea', [('Ver relación','bi-person',false)], name) }}</div>
     {% endfor %}
   </div></div></article>
   <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-calendar3"></i><h3>Por mes</h3><small>2026</small></div><div class="lt-panel__body"><div class="lt-list">

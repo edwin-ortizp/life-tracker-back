@@ -80,15 +80,56 @@ class DailyLogDefaultDateFilterTest extends TestCase
         $this->assertSame(50, $old->fresh()->duration);
     }
 
-    private function drink(DrinkType $type, string $date, int $amount): void
+    public function test_water_log_table_sorts_by_time_by_default_and_by_amount(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $water = DrinkType::create(['name' => 'Agua', 'icon' => '💧', 'hydration_factor' => 1]);
+        $today = now()->toDateString();
+        $this->drink($water, $today, 500, '08:00');
+        $this->drink($water, $today, 200, '15:00');
+        $this->drink($water, $today, 300, '11:00');
+
+        $amounts = fn (array $expected) => fn ($logs) => $logs->pluck('amount')->all() === $expected;
+
+        Livewire::test(WaterDaily::class)
+            ->assertSet('sort', 'recent')
+            ->assertSee('Más reciente')
+            ->assertViewHas('logs', $amounts([200, 300, 500]))
+            ->set('sort', 'oldest')
+            ->assertViewHas('logs', $amounts([500, 300, 200]))
+            ->set('sort', 'amount')
+            ->assertViewHas('logs', $amounts([500, 300, 200]))
+            ->set('sort', 'nope')
+            ->assertSet('sort', 'recent');
+    }
+
+    public function test_exercise_log_table_sorts_by_recent_by_default_and_by_duration(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $run = ExerciseType::create(['name' => 'Correr', 'calories_per_hour' => 700, 'icon' => '🏃']);
+        ExerciseLog::create(['date' => now()->toDateString(), 'exercise_type_id' => $run->id, 'duration' => 20])->forceFill(['created_at' => now()->subHours(3)])->save();
+        ExerciseLog::create(['date' => now()->toDateString(), 'exercise_type_id' => $run->id, 'duration' => 60])->forceFill(['created_at' => now()->subHours(2)])->save();
+        ExerciseLog::create(['date' => now()->toDateString(), 'exercise_type_id' => $run->id, 'duration' => 40])->forceFill(['created_at' => now()->subHour()])->save();
+
+        $durations = fn (array $expected) => fn ($logs) => $logs->pluck('duration')->all() === $expected;
+
+        Livewire::test(ExerciseDaily::class)
+            ->assertViewHas('logs', $durations([40, 60, 20]))
+            ->set('sort', 'oldest')
+            ->assertViewHas('logs', $durations([20, 60, 40]))
+            ->set('sort', 'duration')
+            ->assertViewHas('logs', $durations([60, 40, 20]));
+    }
+
+    private function drink(DrinkType $type, string $date, int $amount, string $time = '08:00'): void
     {
         DrinkLog::create([
             'date' => $date,
             'drink_type' => $type->name,
             'amount' => $amount,
             'hydration_value' => $amount,
-            'time' => '08:00',
-            'timestamp' => strtotime($date.' 08:00'),
+            'time' => $time,
+            'timestamp' => strtotime($date.' '.$time),
             'drink_type_id' => $type->id,
         ]);
     }

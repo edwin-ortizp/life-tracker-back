@@ -1,5 +1,5 @@
-{% from '@project/components/life-shell.html.jinja' import shell, relationship_tabs, summary_card %}
-{% from '@project/components/relationship-detail.html.jinja' import history_rows, history_table, type_chip, row_menu, event_actions %}
+{% from '@project/components/life-shell.html.jinja' import shell, relationship_tabs, summary_card, row_split %}
+{% from '@project/components/relationship-detail.html.jinja' import history_rows, history_table, type_chip, event_actions %}
 {% call shell('relationships', 'Camila Rojas', 'bi-person') %}
 {{ relationship_tabs('/relationships-show') }}
 <section class="lt-grid-main">
@@ -19,7 +19,7 @@
         <td class="lt-mtable__date">{{ date }}</td>
         <td class="lt-mtable__kind">{{ type_chip(kind) }}</td>
         <td class="lt-mtable__state"><span class="lt-chip lt-chip--{{ tone }}">{{ state }}</span></td>
-        <td class="lt-mtable__actions">{{ row_menu('rel-upcoming-menu-' ~ loop.index, 'Acciones de ' ~ title, [('Editar','bi-pencil',false),('Marcar como hecha','bi-check2-circle',false),('Posponer','bi-calendar-plus',false),('Eliminar','bi-trash',true)]) }}</td>
+        <td class="lt-mtable__actions">{% if kind == 'Plan' %}<a class="lt-button lt-button--outlined" href="#/relationships-plans">Ver plan</a>{% else %}{{ row_split('rel-upcoming-menu-' ~ loop.index, 'Editar', [('Marcar como hecha','bi-check2-circle',false),('Posponer','bi-calendar-plus',false),('Eliminar','bi-trash',true)], title) }}{% endif %}</td>
       </tr>{% endfor %}</tbody>
     </table>
     {% endcall %}

@@ -1,4 +1,4 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab, manage_card %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab, manage_card, row_split %}
 {% call shell('exercise', 'Ejercicio', 'bi-activity') %}
 {{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Estadísticas','/exercise-statistics','bi-bar-chart-line'),('Ajustes','/exercise-settings','bi-sliders')], '/exercise-settings') }}
 <section class="lt-metrics">{{ metric('Tipos de ejercicio','21') }}{{ metric('Con registros','8 de 21','success') }}{{ metric('Sin registros','13','warning') }}</section>
@@ -20,8 +20,7 @@
 <p class="lt-section-label"><i class="bi {{ cicon }}"></i> {{ cat }} · {{ items|length }} tipos</p><div class="lt-list">
   {% for icon, name, rates, usage in items %}
   <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi {{ icon }}"></i></span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ rates }} · {{ usage }}</span></div>
-    <button class="lt-icon-button" type="button" data-lt-toggle="exercise-type-edit" aria-label="Editar {{ name }}"><i class="bi bi-pencil"></i></button>
-    <button class="lt-icon-button" type="button" data-lt-toggle="{{ 'exercise-type-delete' if usage == 'Sin registros' else 'exercise-type-delete-used' }}" aria-label="Eliminar {{ name }}"><i class="bi bi-trash"></i></button>
+    {{ row_split('exercise-type-menu-' ~ cat|lower ~ '-' ~ loop.index, 'Editar', [('Eliminar','bi-trash',true,None,'exercise-type-delete' if usage == 'Sin registros' else 'exercise-type-delete-used')], name, dialog='exercise-type-edit') }}
   </div>
   {% endfor %}
 </div>

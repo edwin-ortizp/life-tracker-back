@@ -52,31 +52,33 @@
                                 <td class="md-table__nowrap"><span class="{{ $toneClass($item['typeTone']) }}"><i class="bi {{ $item['icon'] }}" aria-hidden="true"></i> {{ $item['type'] }}</span></td>
                                 <td class="md-table__nowrap"><span class="{{ $toneClass($item['stateTone']) }}">{{ $item['state'] }}</span></td>
                                 <td class="md-table__actions">
-                                    <x-ui.menu size="sm" :label="'Acciones de '.$item['title']">
-                                        @switch ($item['kind'])
-                                            @case ('task')
+                                    @switch ($item['kind'])
+                                        @case ('task')
+                                            <x-ui.row-actions :label="'Más acciones de '.$item['title']">
+                                                <x-slot:primary x-on:click="Livewire.navigate('{{ $item['url'] }}')">Editar</x-slot:primary>
                                                 @unless ($item['recurrent'])
                                                     <x-ui.menu-item icon="bi-check2-circle" wire:click="toggleTask('{{ $item['id'] }}')">Completar</x-ui.menu-item>
                                                 @endunless
-                                                <x-ui.menu-item icon="bi-pencil" :href="$item['url']" wire:navigate>Editar en Tareas</x-ui.menu-item>
                                                 <x-ui.menu-divider />
                                                 <x-ui.menu-item icon="bi-link-45deg" tone="danger" wire:click="unlinkTask('{{ $item['id'] }}')"
                                                                 wire:confirm="Se quitará el vínculo con esta persona. La tarea se conserva en Tareas. ¿Continuar?">Quitar vínculo</x-ui.menu-item>
-                                                @break
-                                            @case ('event')
-                                                <x-ui.menu-item icon="bi-pencil" wire:click="openEventForm('{{ $item['id'] }}')">Editar</x-ui.menu-item>
+                                            </x-ui.row-actions>
+                                            @break
+                                        @case ('event')
+                                            <x-ui.row-actions :label="'Más acciones de '.$item['title']">
+                                                <x-slot:primary wire:click="openEventForm('{{ $item['id'] }}')">Editar</x-slot:primary>
                                                 <x-ui.menu-item icon="bi-archive" wire:click="toggleEventArchive('{{ $item['id'] }}')">Archivar</x-ui.menu-item>
                                                 <x-ui.menu-divider />
                                                 <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="deleteEvent('{{ $item['id'] }}')"
                                                                 wire:confirm="¿Eliminar este acontecimiento?">Eliminar</x-ui.menu-item>
-                                                @break
-                                            @case ('plan')
-                                                <x-ui.menu-item icon="bi-box-arrow-up-right" :href="$item['url']" wire:navigate>Ver plan</x-ui.menu-item>
-                                                @break
-                                            @default
-                                                <x-ui.menu-item icon="bi-cake2" :href="$item['url']" wire:navigate>Ver cumpleaños</x-ui.menu-item>
-                                        @endswitch
-                                    </x-ui.menu>
+                                            </x-ui.row-actions>
+                                            @break
+                                        @case ('plan')
+                                            <x-ui.action variant="outlined" size="sm" :href="$item['url']" wire:navigate>Ver plan</x-ui.action>
+                                            @break
+                                        @default
+                                            <x-ui.action variant="outlined" size="sm" :href="$item['url']" wire:navigate>Ver cumpleaños</x-ui.action>
+                                    @endswitch
                                 </td>
                             </tr>
                         @endforeach

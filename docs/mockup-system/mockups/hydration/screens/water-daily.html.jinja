@@ -2,15 +2,16 @@
 {% call shell('hydration', 'Registro diario', 'bi-droplet') %}
 {{ header('Registro diario', 'Consumo, objetivo y momentos del día.', 'bi-droplet') }}
 {{ module_tabs([('Registro diario','/water-daily','bi-droplet-half'),('Resumen semanal','/water-weekly','bi-bar-chart-line'),('Ajustes','/water-settings','bi-sliders')], '/water-daily') }}
-<section class="lt-grid-main">{% call(zone) manage_card('water-log', 'Registro de hoy', 'bi-clock-history', count='(3 / 142)', total=142, search='Buscar registros', filters=1, menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':3,'total':3,'noun':'registros','page':1,'pages':1,'per_page':25}, footer_all={'to':25,'total':142,'pages':6}) %}{% if zone == 'filters' %}
+<section class="lt-grid-main">{% call(zone) manage_card('water-log', 'Registro de hoy', 'bi-clock-history', count='(3 / 142)', total=142, search='Buscar registros', filters=1, menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':3,'total':3,'noun':'registros','page':1,'pages':1,'per_page':25}, footer_all={'to':25,'total':142,'pages':6}, sort=[('recent','Más reciente','bi-sort-down'),('oldest','Más antiguo','bi-sort-up'),('amount','Mayor cantidad','bi-sort-numeric-down-alt'),('hydration','Mayor hidratación','bi-droplet-half')]) %}{% if zone == 'filters' %}
   {% call date_filters('water-log') %}<label class="lt-field"><span>Bebida</span><select><option>Todas</option><option>Agua</option><option>Café</option><option>Té verde</option><option>Jugo de naranja</option></select></label>{% endcall %}
 {% else %}
   {{ applied_filters([('bi-calendar-event','Fecha: Hoy')]) }}
   <table class="lt-mtable">
     <thead><tr><th scope="col">Fecha</th><th scope="col">Hora</th><th scope="col">Bebida</th><th scope="col">Cantidad</th><th scope="col">Hidratación efectiva</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead>
     <tbody>
+    {% set iso = {'Hoy':'2026-09-13','12 sep.':'2026-09-12','11 sep.':'2026-09-11'} %}
     {% for date, time, icon, drink, ml, eff, old in [('Hoy','15:00','💧','Agua','650 ml','650 ml',false),('Hoy','11:30','☕','Café','250 ml','200 ml',false),('Hoy','08:00','💧','Agua','350 ml','350 ml',false),('12 sep.','21:10','🍵','Té verde','300 ml','270 ml',true),('12 sep.','17:45','💧','Agua','500 ml','500 ml',true),('12 sep.','09:05','☕','Café','250 ml','200 ml',true),('11 sep.','19:30','🧃','Jugo de naranja','400 ml','340 ml',true)] %}
-      <tr{% if old %} data-lt-outside-filter{% endif %}>
+      <tr data-sort-at="{{ iso[date] }}T{{ time }}" data-sort-amount="{{ ml|replace(' ml','') }}" data-sort-hydration="{{ eff|replace(' ml','') }}"{% if old %} data-lt-outside-filter{% endif %}>
         <td class="lt-mtable__date" data-label="Fecha">{{ date }}</td>
         <td class="lt-mtable__time" data-label="Hora">{{ time }}</td>
         <td class="lt-mtable__type" data-label="Bebida"><span aria-hidden="true">{{ icon }}</span> {{ drink }}</td>

@@ -1,4 +1,4 @@
-{% from '@project/components/life-shell.html.jinja' import dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import dialog, fab, row_split %}
 
 {#- Historial compartido por Inicio (5 más recientes) y la pestaña Historial. -#}
 {% set history_rows = [
@@ -32,7 +32,7 @@
     <td class="lt-mtable__title">{{ r.title }}</td>
     <td class="lt-mtable__kind">{{ type_chip(r.type) }}</td>
     <td class="lt-mtable__notes">{{ r.notes or '—' }}</td>
-    <td class="lt-mtable__actions">{{ row_menu(prefix ~ '-menu-' ~ loop.index, 'Acciones de ' ~ r.title, [('Editar','bi-pencil',false),('Duplicar','bi-files',false),('Eliminar','bi-trash',true)]) }}</td>
+    <td class="lt-mtable__actions">{% if r.type == 'Plan' %}<a class="lt-button lt-button--outlined" href="#/relationships-plans">Ver plan</a>{% else %}{{ row_split(prefix ~ '-menu-' ~ loop.index, 'Editar', [('Archivar','bi-archive',false),('Eliminar','bi-trash',true)], r.title) }}{% endif %}</td>
   </tr>{% endfor %}</tbody>
 </table>
 {%- endmacro %}

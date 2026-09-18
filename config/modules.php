@@ -146,6 +146,7 @@ return [
             ['label' => 'Kanban', 'route' => 'tasks.kanban', 'archetype' => 'dashboard', 'icon' => 'bi-kanban', 'active' => ['tasks.kanban']],
             ['label' => 'Planificación', 'route' => 'tasks.planning', 'archetype' => 'dashboard', 'icon' => 'bi-calendar-week', 'active' => ['tasks.planning']],
             ['label' => 'Progreso', 'route' => 'tasks.progress', 'archetype' => 'dashboard', 'icon' => 'bi-trophy', 'active' => ['tasks.progress']],
+            ['label' => 'Ajustes', 'route' => 'tasks.settings', 'archetype' => 'settings', 'icon' => 'bi-sliders', 'active' => ['tasks.settings']],
         ],
     ],
     'relationships' => [

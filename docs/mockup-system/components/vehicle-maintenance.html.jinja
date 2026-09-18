@@ -1,0 +1,67 @@
+{% from '@project/components/life-shell.html.jinja' import manage_card, applied_filters %}
+
+{#- Mantenimiento = lo ejecutado (fecha, odómetro, elemento del plan). El gasto es otro registro:
+    aquí solo se enlaza (valor + «Ver gasto»), nunca se copian sus datos. -#}
+{% set maintenance_rows = [
+  {'date':'14 jul. 2026','km':'138.020 km','service':'Cambio de aceite y filtro','item':'Cambio de aceite y filtro','icon':'bi-droplet','by':'Taller Autolab','note':'Aceite 0W-20 sintético y filtro ACDelco.','expense':'$ 245.000'},
+  {'date':'28 jun. 2026','km':'137.450 km','service':'Rotación de llantas','item':'Rotación de llantas','icon':'bi-arrow-repeat','by':'Yo','note':'Cruzadas delante-atrás en casa.','expense':None},
+  {'date':'2 jun. 2026','km':'136.800 km','service':'Alineación y balanceo','item':None,'icon':'bi-bullseye','by':'Serviteca La 5','note':'Vibración al frenar resuelta.','expense':'$ 90.000'},
+  {'date':'15 abr. 2026','km':'134.700 km','service':'Revisión de niveles y plumillas','item':'Plumillas limpiaparabrisas','icon':'bi-wind','by':'Yo','note':'Plumillas Bosch compradas con la batería.','expense':None},
+  {'date':'20 mar. 2026','km':'133.900 km','service':'Batería nueva','item':'Batería','icon':'bi-battery-charging','by':'Baterías MAC','note':'Garantía 18 meses.','expense':'$ 420.000'},
+  {'date':'5 feb. 2026','km':'133.010 km','service':'Cambio de aceite y filtro','item':'Cambio de aceite y filtro','icon':'bi-droplet','by':'Taller Autolab','note':'','expense':'$ 238.000'},
+  {'date':'10 dic. 2025','km':'130.200 km','service':'Pastillas de freno delanteras','item':'Pastillas de freno','icon':'bi-disc','by':'Taller Autolab','note':'Discos en buen estado.','expense':'$ 310.000'},
+  {'date':'12 oct. 2025','km':'128.900 km','service':'Cambio de aceite y filtro','item':'Cambio de aceite y filtro','icon':'bi-droplet','by':'Yo','note':'Aceite comprado en promoción, gasto registrado aparte.','expense':'$ 160.000'},
+  {'date':'25 sep. 2025','km':'128.100 km','service':'Revisión técnico-mecánica','item':'Revisión técnico-mecánica','icon':'bi-clipboard2-check','by':'CDA Pasto','note':'Aprobada sin observaciones.','expense':'$ 212.000'},
+  {'date':'2 sep. 2025','km':'127.600 km','service':'Limpieza de tapicería','item':'Limpieza de tapicería','icon':'bi-stars','by':'Yo','note':'','expense':None}
+] %}
+
+{#- Historial de lo ejecutado. Desde el plan llega filtrado por elemento (vehicle-map.js). -#}
+{% macro maintenance_history(rows) -%}
+{% call(zone) manage_card('vehicle-maint-history', 'Historial de mantenimiento', 'bi-clock-history', count='(' ~ rows|length ~ ' / 24)', total=24, search='Buscar servicio u observación', menu=[('Exportar CSV','bi-filetype-csv')], footer={'from':1,'to':rows|length,'total':24,'noun':'mantenimientos','page':1,'pages':3,'per_page':10}) %}{% if zone == 'filters' %}
+  <div class="lt-popover" id="vehicle-maint-history-filters" role="dialog" aria-labelledby="vehicle-maint-history-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
+    <div class="lt-popover__head"><h4 id="vehicle-maint-history-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="vehicle-maint-history-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+    <label class="lt-field"><span>Elemento del plan</span><select>{% for r in ['Todos','Cambio de aceite y filtro','Rotación de llantas','Pastillas de freno','Revisión técnico-mecánica','Batería','Sin plan (puntual)'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+    <label class="lt-field"><span>Realizado por</span><select>{% for r in ['Todos','Yo','Taller'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+    <label class="lt-field"><span>Gasto</span><select>{% for r in ['Todos','Con gasto vinculado','Sin gasto'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+    <label class="lt-field"><span>Periodo</span><select>{% for r in ['Desde la compra','Este año','Últimos 12 meses'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+    <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-clear-filters><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="vehicle-maint-history-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
+  </div>
+{% else %}
+  {{ plan_item_summary() }}
+  <div class="lt-maint-list">
+  {% for r in rows %}
+  <div class="lt-maint-row" data-item="{{ r.item or '' }}">
+    <span class="lt-care__icon"><i class="bi {{ r.icon }}" aria-hidden="true"></i></span>
+    <div class="lt-maint-row__main">
+      <strong>{{ r.service }}</strong>
+      <span>{{ r.date }} · {{ r.km }} · {% if r.by == 'Yo' %}<i class="bi bi-person" aria-hidden="true"></i> Lo hice yo{% else %}<i class="bi bi-shop" aria-hidden="true"></i> {{ r.by }}{% endif %}</span>
+      {% if r.note %}<p>{{ r.note }}</p>{% endif %}
+    </div>
+    <span class="lt-maint-row__item">{% if r.item %}<span class="lt-chip lt-chip--type lt-chip--info"><i class="bi bi-calendar2-check" aria-hidden="true"></i>{{ r.item }}</span>{% else %}<span class="lt-chip lt-chip--type lt-chip--neutral"><i class="bi bi-lightning" aria-hidden="true"></i>Puntual · sin plan</span>{% endif %}</span>
+    <span class="lt-maint-row__expense">{% if r.expense %}<a class="lt-link" href="#/vehicles-expenses" title="Abrir el gasto vinculado"><i class="bi bi-wallet2" aria-hidden="true"></i> {{ r.expense }}</a>{% else %}<span class="lt-maint-row__none">Sin gasto</span>{% endif %}</span>
+    <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="maint-{{ loop.index }}" aria-haspopup="menu" aria-expanded="false" aria-label="Opciones del mantenimiento"><i class="bi bi-three-dots-vertical"></i></button>
+      <div class="lt-menu lt-menu--down" id="maint-{{ loop.index }}" role="menu" hidden>
+        <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-pencil"></i> Editar mantenimiento</button>
+        {% if r.expense %}<a class="lt-menu__item" role="menuitem" href="#/vehicles-expenses"><i class="bi bi-wallet2"></i> Ver gasto</a><button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-link-45deg"></i> Desvincular gasto</button>{% else %}<button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-link-45deg"></i> Vincular o registrar gasto</button>{% endif %}
+        <hr class="lt-menu__divider"><button class="lt-menu__item lt-menu__item--danger" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-trash"></i> Eliminar</button>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  <p class="lt-care-empty" data-history-empty hidden>Aún no hay mantenimientos de este elemento. <button class="lt-link" type="button" data-lt-toggle="vehicle-maintenance-new">Registrar el primero</button></p>
+  </div>
+{% endif %}{% endcall %}
+{%- endmacro %}
+
+{#- Franja del elemento del plan cuando el historial está filtrado; vehicle-map.js la rellena desde la fila del plan. -#}
+{% macro plan_item_summary() -%}
+<div class="lt-plan-summary" data-history-filter hidden>
+  <span class="lt-care__icon"><i class="bi bi-calendar2-check" aria-hidden="true"></i></span>
+  <div class="lt-plan-summary__main"><small>Filtrado por elemento del plan</small><strong data-summary-name></strong><span data-summary-rule></span></div>
+  <div class="lt-plan-summary__actions">
+    <a class="lt-button lt-button--text" href="#/vehicles-maintenance"><i class="bi bi-calendar2-check"></i> Ver en el plan</a>
+    <button class="lt-button lt-button--text" type="button" data-lt-toggle="vehicle-plan-item-edit" aria-haspopup="dialog"><i class="bi bi-pencil"></i> Editar elemento</button>
+    <button class="lt-button lt-button--tonal" type="button" data-history-clear><i class="bi bi-x-lg"></i> Ver todo</button>
+  </div>
+</div>
+{%- endmacro %}

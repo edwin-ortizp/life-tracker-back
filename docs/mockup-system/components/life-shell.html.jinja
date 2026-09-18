@@ -47,7 +47,7 @@
 {%- endmacro %}
 
 {% macro vehicle_tabs(current) -%}
-{{ detail_nav([('Resumen','/vehicles-show','bi-speedometer2'),('Combustible','/vehicles-fuel','bi-fuel-pump'),('Mantenimientos','/vehicles-maintenance','bi-wrench-adjustable'),('Gastos','/vehicles-expenses','bi-wallet2')], current, '/vehicles-index', 'Volver al garaje') }}
+{{ detail_nav([('Resumen','/vehicles-show','bi-speedometer2'),('Combustible','/vehicles-fuel','bi-fuel-pump'),('Plan de mantenimiento','/vehicles-maintenance','bi-calendar2-check'),('Historial de mantenimiento','/vehicles-maintenance-history','bi-clock-history'),('Gastos','/vehicles-expenses','bi-wallet2')], current, '/vehicles-index', 'Volver al garaje') }}
 {%- endmacro %}
 
 {#- Sin encabezado dentro del contenido: la identidad vive en la barra superior y el regreso usa detail_nav o shell(back=…). -#}
@@ -125,17 +125,18 @@
 </article>
 {%- endmacro %}
 
-{# Acción por fila en vistas de gestión: split outline (principal + chevron con menú); en compacto, ⋮ con todas las acciones. #}
-{% macro row_split(id, label, actions, aria, action=None) -%}
+{# Acción por fila en vistas de gestión: split outline (principal + chevron con menú); en compacto, ⋮ con todas las acciones.
+   `actions` = [(label, icon, danger, action, dialog), ...]; `dialog` abre un diálogo con data-lt-toggle. #}
+{% macro row_split(id, label, actions, aria, action=None, dialog=None) -%}
 <div class="lt-menu-anchor lt-row-split">
   <div class="lt-split">
-    <button class="lt-button lt-split__main" type="button"{% if action %} data-lt-action="{{ action }}"{% else %} data-lt-static-nav{% endif %}>{{ label }}</button>
+    <button class="lt-button lt-split__main" type="button"{% if action %} data-lt-action="{{ action }}"{% elif dialog %} data-lt-toggle="{{ dialog }}" aria-haspopup="dialog"{% else %} data-lt-static-nav{% endif %}>{{ label }}</button>
     <button class="lt-button lt-split__toggle" type="button" data-lt-toggle="{{ id }}" aria-haspopup="menu" aria-expanded="false" aria-label="Más acciones de {{ aria }}"><i class="bi bi-chevron-down"></i></button>
   </div>
   <button class="lt-icon-button lt-row-more" type="button" data-lt-toggle="{{ id }}" aria-haspopup="menu" aria-expanded="false" aria-label="Acciones de {{ aria }}"><i class="bi bi-three-dots-vertical"></i></button>
   <div class="lt-menu lt-menu--down" id="{{ id }}" role="menu" hidden>
-    <button class="lt-menu__item lt-row-more__edit" role="menuitem" type="button"{% if action %} data-lt-action="{{ action }}"{% else %} data-lt-static-nav{% endif %}>{{ label }}</button>
-    {% for a in actions %}{% if a|length > 2 and a[2] %}<hr class="lt-menu__divider">{% endif %}<button class="lt-menu__item{% if a|length > 2 and a[2] %} lt-menu__item--danger{% endif %}" role="menuitem" type="button"{% if a|length > 3 and a[3] %} data-lt-action="{{ a[3] }}"{% else %} data-lt-static-nav{% endif %}><i class="bi {{ a[1] }}"></i> {{ a[0] }}</button>{% endfor %}
+    <button class="lt-menu__item lt-row-more__edit" role="menuitem" type="button"{% if action %} data-lt-action="{{ action }}"{% elif dialog %} data-lt-toggle="{{ dialog }}" aria-haspopup="dialog"{% else %} data-lt-static-nav{% endif %}>{{ label }}</button>
+    {% for a in actions %}{% if a|length > 2 and a[2] %}<hr class="lt-menu__divider">{% endif %}<button class="lt-menu__item{% if a|length > 2 and a[2] %} lt-menu__item--danger{% endif %}" role="menuitem" type="button"{% if a|length > 3 and a[3] %} data-lt-action="{{ a[3] }}"{% elif a|length > 4 and a[4] %} data-lt-toggle="{{ a[4] }}" aria-haspopup="dialog"{% else %} data-lt-static-nav{% endif %}><i class="bi {{ a[1] }}"></i> {{ a[0] }}</button>{% endfor %}
   </div>
 </div>
 {%- endmacro %}

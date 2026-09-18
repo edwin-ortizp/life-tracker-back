@@ -1,4 +1,4 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog, fab, manage_card %}
+{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, header, metric, dialog, fab, manage_card, row_split %}
 {% call shell('goals', 'Objetivos', 'bi-flag') %}
 {{ header('Objetivos', 'Resultados activos y próximos pasos.', 'bi-flag') }}
 {{ module_tabs([('Objetivos','/goals-index','bi-flag'),('Detalle','/goals-detail','bi-bullseye')], '/goals-index') }}
@@ -11,7 +11,7 @@
         <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="goals-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     {% else %}
-<div class="lt-list">{% for goal, progress in [('Correr 10K',68),('Certificación profesional',54),('Fondo de emergencia',72)] %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ goal }}</strong><div class="lt-progress"><span style="width:{{ progress }}%"></span></div></div><span class="lt-chip">{{ progress }} %</span></div>{% endfor %}</div>{% endif %}{% endcall %}<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-stars"></i><h3>Próximo hito</h3></div><div class="lt-panel__body"><strong>Completar 8 km sin pausa</strong><p class="lt-page-head__subtitle">Faltan dos entrenamientos para el siguiente avance.</p><div class="lt-route-links"><a class="lt-button" href="#/goals-detail">Ver detalle</a></div></div></article></section>
+<div class="lt-list">{% for goal, progress in [('Correr 10K',68),('Certificación profesional',54),('Fondo de emergencia',72)] %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ goal }}</strong><div class="lt-progress"><span style="width:{{ progress }}%"></span></div></div><span class="lt-chip">{{ progress }} %</span>{{ row_split('goal-menu-' ~ loop.index, 'Editar', [('Completar','bi-check-circle',false),('Abandonar','bi-x-circle',false),('Eliminar','bi-trash',true)], goal, dialog='goal-new') }}</div>{% endfor %}</div>{% endif %}{% endcall %}<article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-stars"></i><h3>Próximo hito</h3></div><div class="lt-panel__body"><strong>Completar 8 km sin pausa</strong><p class="lt-page-head__subtitle">Faltan dos entrenamientos para el siguiente avance.</p><div class="lt-route-links"><a class="lt-button" href="#/goals-detail">Ver detalle</a></div></div></article></section>
 {{ fab('Agregar objetivo', 'bi-flag', 'goal-new') }}
 {% call dialog('goal-new', 'Agregar objetivo', icon='bi-flag', sections=[('basic','Información básica','bi-flag'),('kpi','Indicador (KPI)','bi-graph-up-arrow')]) %}
 <section class="lt-dialog__section" data-section="basic">

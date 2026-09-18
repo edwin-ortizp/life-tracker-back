@@ -9,7 +9,7 @@
     $statusLabels = ['active' => 'Activos', 'completed' => 'Completados', 'abandoned' => 'Abandonados', 'all' => 'Todos'];
 @endphp
 
-<x-module-shell module="goals" x-data="{ openMenu: null }">
+<x-module-shell module="goals">
     <x-slot:actions>
         <x-module-actions :primary="['label' => 'Agregar objetivo', 'icon' => 'bi-flag', 'action' => 'openForm']" />
     </x-slot:actions>
@@ -55,42 +55,18 @@
                         </div>
 
                         <x-slot:trailing>
-                            <div class="md-chip-menu" :class="{ 'open': openMenu === '{{ $goal->id }}' }">
-                                <x-ui.icon-action icon="bi-three-dots-vertical" label="Acciones del objetivo {{ $goal->title }}"
-                                                  x-on:click="openMenu = openMenu === '{{ $goal->id }}' ? null : '{{ $goal->id }}'"
-                                                  x-bind:aria-expanded="openMenu === '{{ $goal->id }}'" aria-haspopup="menu" />
-
-                                <div x-show="openMenu === '{{ $goal->id }}'" @click.outside="openMenu = null" x-transition x-cloak
-                                     class="md-chip-menu__dropdown md-chip-menu--end" role="menu">
-                                    <button type="button" class="md-chip-menu__item" role="menuitem"
-                                            wire:click="openForm('{{ $goal->id }}')" @click="openMenu = null">
-                                        <i class="bi bi-pencil" aria-hidden="true"></i> Editar
-                                    </button>
-
-                                    @if ($goal->status === 'active')
-                                        <button type="button" class="md-chip-menu__item md-chip-menu__item--success" role="menuitem"
-                                                wire:click="updateStatus('{{ $goal->id }}', 'completed')" @click="openMenu = null">
-                                            <i class="bi bi-check-circle" aria-hidden="true"></i> Completar
-                                        </button>
-                                        <button type="button" class="md-chip-menu__item md-chip-menu__item--warning" role="menuitem"
-                                                wire:click="updateStatus('{{ $goal->id }}', 'abandoned')" @click="openMenu = null">
-                                            <i class="bi bi-x-circle" aria-hidden="true"></i> Abandonar
-                                        </button>
-                                    @else
-                                        <button type="button" class="md-chip-menu__item md-chip-menu__item--primary" role="menuitem"
-                                                wire:click="updateStatus('{{ $goal->id }}', 'active')" @click="openMenu = null">
-                                            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reactivar
-                                        </button>
-                                    @endif
-
-                                    <div class="md-divider"></div>
-
-                                    <button type="button" class="md-chip-menu__item md-chip-menu__item--danger" role="menuitem"
-                                            wire:click="delete('{{ $goal->id }}')" wire:confirm="¿Eliminar este objetivo?" @click="openMenu = null">
-                                        <i class="bi bi-trash" aria-hidden="true"></i> Eliminar
-                                    </button>
-                                </div>
-                            </div>
+                            <x-ui.row-actions :label="'Más acciones de '.$goal->title">
+                                <x-slot:primary wire:click="openForm('{{ $goal->id }}')">Editar</x-slot:primary>
+                                @if ($goal->status === 'active')
+                                    <x-ui.menu-item icon="bi-check-circle" wire:click="updateStatus('{{ $goal->id }}', 'completed')">Completar</x-ui.menu-item>
+                                    <x-ui.menu-item icon="bi-x-circle" wire:click="updateStatus('{{ $goal->id }}', 'abandoned')">Abandonar</x-ui.menu-item>
+                                @else
+                                    <x-ui.menu-item icon="bi-arrow-counterclockwise" wire:click="updateStatus('{{ $goal->id }}', 'active')">Reactivar</x-ui.menu-item>
+                                @endif
+                                <x-ui.menu-divider />
+                                <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete('{{ $goal->id }}')"
+                                                wire:confirm="¿Eliminar este objetivo?">Eliminar</x-ui.menu-item>
+                            </x-ui.row-actions>
                         </x-slot:trailing>
                     </x-ui.list-item>
                 @endforeach

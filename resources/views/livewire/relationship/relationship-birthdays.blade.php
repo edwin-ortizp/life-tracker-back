@@ -49,9 +49,10 @@
                     </div>
                 </div>
             </div>
-            <button wire:click="openTaskForm('{{ $row['relationship']->id }}')" class="md-btn-outlined">
-                <i class="bi bi-check2-square"></i> Crear tarea
-            </button>
+            <x-ui.row-actions :label="'Más acciones de '.$row['relationship']->full_name">
+                <x-slot:primary wire:click="openTaskForm('{{ $row['relationship']->id }}')">Crear tarea</x-slot:primary>
+                <x-ui.menu-item icon="bi-person" :href="route('relationships.show', $row['relationship']->id)" wire:navigate>Ver relación</x-ui.menu-item>
+            </x-ui.row-actions>
         </div>
     @empty
         <x-empty-state icon="bi-cake2" title="Sin cumpleaños registrados"

@@ -48,11 +48,12 @@
                                 {{ $action::moduleLabel() }}@if ($habit->action->mode === \App\Models\HabitAction::MODE_PROMPT) · pregunta @endif
                             </x-ui.badge>
                         @endif
-                        <x-ui.icon-action icon="bi-pencil" label="Editar {{ $habit->name }}" wire:click="openForm({{ $habit->id }})" />
-                        <x-ui.destructive-action label="Eliminar {{ $habit->name }}" :iconOnly="true"
-                                                 action="delete({{ $habit->id }})"
-                                                 title="Eliminar hábito"
-                                                 message="Se eliminará “{{ $habit->name }}” y su historial de completados." />
+                        <x-ui.row-actions :label="'Más acciones de '.$habit->name">
+                            <x-slot:primary wire:click="openForm({{ $habit->id }})">Editar</x-slot:primary>
+                            <x-ui.menu-divider />
+                            <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete({{ $habit->id }})"
+                                            wire:confirm="Se eliminará “{{ $habit->name }}” y su historial de completados.">Eliminar</x-ui.menu-item>
+                        </x-ui.row-actions>
                     </x-slot:trailing>
                 </x-ui.list-item>
             @empty

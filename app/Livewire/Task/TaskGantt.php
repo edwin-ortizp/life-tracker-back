@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Task;
 
+use App\Livewire\Task\Concerns\LoadsTaskCategories;
 use App\Models\Task;
 use App\Livewire\Concerns\InteractsWithTaskSchedule;
 use Carbon\Carbon;
@@ -14,6 +15,7 @@ use Livewire\Component;
 #[Title('Gantt de tareas')]
 class TaskGantt extends Component
 {
+    use LoadsTaskCategories;
     use InteractsWithTaskSchedule;
     public string $month;
 
@@ -41,24 +43,6 @@ class TaskGantt extends Component
 
     public bool $isPrivate = false;
 
-    public array $categories = [
-        'siigo' => 'Siigo',
-        'entreagiles' => 'EntreAgiles',
-        'gesthor' => 'Gesthor',
-        'certmind' => 'CertMind',
-        'unicauca' => 'Unicauca',
-        'personal' => 'Personal',
-        'salud' => 'Salud',
-        'finanzas' => 'Finanzas',
-        'educacion' => 'Educación',
-        'hogar' => 'Hogar',
-        'social' => 'Social',
-        'creatividad' => 'Creatividad',
-        'tecnologia' => 'Tecnología',
-        'compras' => 'Compras',
-        'tramites' => 'Trámites',
-        'otros' => 'Otros',
-    ];
 
     public array $priorities = [
         'urgent-important' => '🔴 Urgente e Importante',

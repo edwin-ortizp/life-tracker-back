@@ -31,7 +31,11 @@ use App\Mcp\Tools\Shopping\RemoveShoppingItemTool;
 use App\Mcp\Tools\Shopping\UpdateShoppingItemTool;
 use App\Mcp\Tools\Task\CompleteTaskTool;
 use App\Mcp\Tools\Task\CreateTaskTool;
+use App\Mcp\Tools\Task\GetTaskTool;
+use App\Mcp\Tools\Task\ListTaskCategoriesTool;
 use App\Mcp\Tools\Task\ListTasksTool;
+use App\Mcp\Tools\Task\ManageTaskCategoryTool;
+use App\Mcp\Tools\Task\UpdateTaskTool;
 use App\Mcp\Tools\Vehicle\ListVehiclesTool;
 use App\Mcp\Tools\Vehicle\LogVehicleFillupTool;
 use App\Mcp\Tools\Water\LogWaterIntakeTool;
@@ -42,13 +46,17 @@ use Laravel\Mcp\Server\Attributes\Version;
 
 #[Name('Life Tracker')]
 #[Version('0.6.0')]
-#[Instructions('Crea y completa tareas (incluyendo tareas recurrentes), hábitos y eventos de salud del usuario autenticado en Life Tracker, incluyendo seguimiento de evolución y recuperación. También gestiona sus contactos y relaciones -- cumpleaños, alias, círculos, datos de contacto (teléfonos, correos, redes, dirección, ciudad y documento) y eventos importantes --, los planes y lugares que quiere hacer con sus círculos o personas y las visitas cuando los hace, la lista de compras, su ánimo y energía, el ejercicio, la hidratación, y el repostaje y rendimiento de sus vehículos. Todas las acciones quedan restringidas a los datos de ese usuario.')]
+#[Instructions('Crea, consulta, edita y completa tareas (descripción markdown, fechas, recurrencia y categorías configurables), hábitos y eventos de salud del usuario autenticado en Life Tracker, incluyendo seguimiento de evolución y recuperación. También gestiona sus contactos y relaciones -- cumpleaños, alias, círculos, datos de contacto (teléfonos, correos, redes, dirección, ciudad y documento) y eventos importantes --, los planes y lugares que quiere hacer con sus círculos o personas y las visitas cuando los hace, la lista de compras, su ánimo y energía, el ejercicio, la hidratación, y el repostaje y rendimiento de sus vehículos. Todas las acciones quedan restringidas a los datos de ese usuario.')]
 class LifeTrackerServer extends Server
 {
     protected array $tools = [
         CreateTaskTool::class,
         CompleteTaskTool::class,
         ListTasksTool::class,
+        GetTaskTool::class,
+        UpdateTaskTool::class,
+        ListTaskCategoriesTool::class,
+        ManageTaskCategoryTool::class,
         CompleteHabitTool::class,
         ListHabitsTool::class,
         LogHealthEventTool::class,

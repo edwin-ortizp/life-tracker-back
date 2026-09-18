@@ -13,7 +13,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Marca una tarea del usuario autenticado como completada o pendiente. Si la tarea es recurrente, programa automáticamente la siguiente ocurrencia.')]
+#[Description('Marca una tarea del usuario autenticado como completada o pendiente. Si la tarea es recurrente se programa la siguiente ocurrencia: si el usuario no indicó cuándo, consulta get-task-tool para ver la fecha sugerida y pregúntale si le sirve o prefiere otra antes de completarla; luego envíala en next_occurrence_date.')]
 class CompleteTaskTool extends Tool
 {
     public function handle(Request $request, TaskGamificationService $gamification, TaskRecurrenceService $recurrence): Response

@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Task;
 
+use App\Livewire\Task\Concerns\LoadsTaskCategories;
+use App\Services\TaskRecurrenceService;
 use App\Livewire\Concerns\HandlesRecurringTaskCompletion;
 use App\Livewire\Concerns\InteractsWithTaskSchedule;
 use App\Models\Task;
@@ -18,6 +20,7 @@ use App\Livewire\Concerns\WithManagementCard;
 #[Title('Tareas')]
 class TaskList extends Component
 {
+    use LoadsTaskCategories;
     use HandlesRecurringTaskCompletion, InteractsWithTaskSchedule, WithManagementCard;
 
     #[Url(as: 'status', history: true, keep: true)]
@@ -76,24 +79,6 @@ class TaskList extends Component
     // campos del formulario (categoría, prioridad, tamaño, fechas, privacidad).
     public string $bulkTitles = '';
 
-    public array $categories = [
-        'siigo' => 'Siigo',
-        'entreagiles' => 'EntreAgiles',
-        'gesthor' => 'Gesthor',
-        'certmind' => 'CertMind',
-        'unicauca' => 'Unicauca',
-        'personal' => 'Personal',
-        'salud' => 'Salud',
-        'finanzas' => 'Finanzas',
-        'educacion' => 'Educación',
-        'hogar' => 'Hogar',
-        'social' => 'Social',
-        'creatividad' => 'Creatividad',
-        'tecnologia' => 'Tecnología',
-        'compras' => 'Compras',
-        'tramites' => 'Trámites',
-        'otros' => 'Otros',
-    ];
 
     public array $priorities = [
         'urgent-important' => '🔴 Urgente e Importante',
@@ -302,11 +287,7 @@ class TaskList extends Component
             'recurrence' => $this->isRecurrent
                 ? ($this->nativeRecurrenceRule !== '' && $this->editingId
                     ? Task::find($this->editingId)?->recurrence
-                    : [
-                        'pattern' => 'custom',
-                        'frequency' => 1,
-                        'customDays' => max(1, $this->recurrenceIntervalDays),
-                    ])
+                    : app(TaskRecurrenceService::class)->buildRecurrence('custom', $this->recurrenceIntervalDays))
                 : null,
         ];
 

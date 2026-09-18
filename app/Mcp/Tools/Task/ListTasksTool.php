@@ -11,7 +11,7 @@ use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Lista las tareas del usuario autenticado, con filtros opcionales de estado y categoría.')]
+#[Description('Lista las tareas del usuario autenticado, con filtros opcionales de estado, categoría (o sin categoría) y texto. Para leer la descripción completa de una tarea usa get-task-tool.')]
 class ListTasksTool extends Tool
 {
     public function handle(Request $request): ResponseFactory
@@ -19,6 +19,8 @@ class ListTasksTool extends Tool
         $data = $request->validate([
             'status' => ['nullable', 'string', Rule::in(['pending', 'completed', 'all'])],
             'category' => ['nullable', 'string'],
+            'uncategorized' => ['nullable', 'boolean'],
+            'search' => ['nullable', 'string', 'max:120'],
         ]);
 
         $query = Auth::user()->tasks()->chronological();
@@ -30,8 +32,14 @@ class ListTasksTool extends Tool
             $query->where('completed', true);
         }
 
-        if (! empty($data['category'])) {
+        if (! empty($data['uncategorized'])) {
+            $query->where(fn ($query) => $query->whereNull('category')->orWhere('category', ''));
+        } elseif (! empty($data['category'])) {
             $query->where('category', $data['category']);
+        }
+
+        if (filled($data['search'] ?? null)) {
+            $query->where('title', 'like', '%'.trim($data['search']).'%');
         }
 
         $tasks = $query->limit(30)->get();
@@ -46,6 +54,9 @@ class ListTasksTool extends Tool
                 'completed' => $task->completed,
                 'start_date' => $task->start_date?->toDateString(),
                 'end_date' => $task->end_date?->toDateString(),
+                'is_recurrent' => $task->is_recurrent,
+                'has_description' => filled($task->description),
+                'subtasks' => $task->subtask_progress,
             ])->all(),
         ]);
     }
@@ -57,7 +68,11 @@ class ListTasksTool extends Tool
                 ->enum(['pending', 'completed', 'all'])
                 ->description('Filtra por estado. Por defecto solo pendientes.'),
             'category' => $schema->string()
-                ->description('Filtra por categoría exacta.'),
+                ->description('Filtra por key de categoría exacta.'),
+            'uncategorized' => $schema->boolean()
+                ->description('Solo tareas sin categoría (útil para clasificarlas).'),
+            'search' => $schema->string()
+                ->description('Texto contenido en el título.'),
         ];
     }
 }

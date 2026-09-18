@@ -49,9 +49,12 @@
                         <td>{{ $log->unit_price !== null ? '$ '.number_format($log->unit_price, 0, ',', '.').' / '.$log->display_unit : '—' }}</td>
                         <td>{{ $log->cost !== null ? '$ '.number_format($log->cost, 0, ',', '.') : '—' }}</td>
                         <td><div class="d-flex">
-                            <x-ui.icon-action icon="bi-pencil" label="Editar registro del {{ $log->recorded_on->format('d/m/Y') }}" size="sm" wire:click="openEnergyForm('{{ $log->id }}')" />
-                            <x-ui.destructive-action label="Eliminar registro del {{ $log->recorded_on->format('d/m/Y') }}" :iconOnly="true" size="sm"
-                                                     action="deleteEnergyLog('{{ $log->id }}')" title="Eliminar registro" message="El registro se elimina y la lectura actual se recalcula." />
+                            <x-ui.row-actions :label="'Más acciones del registro del '.$log->recorded_on->format('d/m/Y')">
+                                <x-slot:primary wire:click="openEnergyForm('{{ $log->id }}')">Editar</x-slot:primary>
+                                <x-ui.menu-divider />
+                                <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="deleteEnergyLog('{{ $log->id }}')"
+                                                wire:confirm="El registro se elimina y la lectura actual se recalcula.">Eliminar</x-ui.menu-item>
+                            </x-ui.row-actions>
                         </div></td>
                     </tr>
                 @endforeach
@@ -61,9 +64,12 @@
                 @foreach ($energyLogs as $log)
                     <article class="md-card-outlined" wire:key="energy-card-{{ $log->id }}">
                         <header><time>{{ $log->recorded_on->translatedFormat('d M Y') }}</time><div>
-                            <x-ui.icon-action icon="bi-pencil" label="Editar registro del {{ $log->recorded_on->format('d/m/Y') }}" size="sm" wire:click="openEnergyForm('{{ $log->id }}')" />
-                            <x-ui.destructive-action label="Eliminar registro del {{ $log->recorded_on->format('d/m/Y') }}" :iconOnly="true" size="sm"
-                                                     action="deleteEnergyLog('{{ $log->id }}')" title="Eliminar registro" message="El registro se elimina y la lectura actual se recalcula." />
+                            <x-ui.row-actions :label="'Más acciones del registro del '.$log->recorded_on->format('d/m/Y')">
+                                <x-slot:primary wire:click="openEnergyForm('{{ $log->id }}')">Editar</x-slot:primary>
+                                <x-ui.menu-divider />
+                                <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="deleteEnergyLog('{{ $log->id }}')"
+                                                wire:confirm="El registro se elimina y la lectura actual se recalcula.">Eliminar</x-ui.menu-item>
+                            </x-ui.row-actions>
                         </div></header>
                         <strong>{{ number_format($log->display_quantity, 2, ',', '.') }} {{ $log->display_unit }}</strong>
                         <span class="text-capitalize">{{ $log->energy_source }} · {{ $log->is_full ? 'Completo' : 'Parcial' }}{{ $log->provider ? ' · '.$log->provider : '' }}</span>

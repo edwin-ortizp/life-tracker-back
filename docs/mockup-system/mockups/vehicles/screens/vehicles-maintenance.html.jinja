@@ -1,29 +1,43 @@
-{% from '@project/components/vehicle-dialogs.html.jinja' import maintenance_dialog, dialog %}
-{% from '@project/components/life-shell.html.jinja' import fab %}
-{% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs, tabs as module_tabs, header, metric %}
+{% from '@project/components/vehicle-dialogs.html.jinja' import maintenance_dialog, plan_item_dialog %}
+{% from '@project/components/vehicle-maintenance.html.jinja' import maintenance_rows %}
+{% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs, metric, fab, row_split, manage_card %}
 {% from '@project/components/vehicle-map.html.jinja' import vehicle_side, vehicle_top %}
-{# Planes ordenados por urgencia: la primera fila de cada zona es la más urgente. #}
+{#- Plan = qué debe atenderse. Cada elemento existe una vez; su historial está en la pestaña Historial de mantenimiento.
+    Elementos ordenados por urgencia: la primera fila de cada zona es la más urgente.
+    (mantenimiento, revisión, próximo, %, tono, zona, fecha último, km último, n.º registros, origen) -#}
 {% set plans = [
-  ('Filtro de aire acondicionado','Cada 15.000 km','Vencido hace 600 km',100,'over','cabin'),
-  ('Cambio de aceite y filtro','Cada 5.000 km','Faltan 400 km',92,'soon','engine'),
-  ('Revisión técnico-mecánica','Cada 12 meses','25 sep.',85,'soon','documents'),
-  ('Plumillas limpiaparabrisas','Cada 12 meses','30 sep.',88,'soon','glass'),
-  ('Escaneo OBD y sensores','Cada 12 meses','10 oct.',80,'soon','electronics'),
-  ('Filtro de combustible','Cada 40.000 km','Faltan 9.500 km',76,'ok','filters'),
-  ('Rotación de llantas','Cada 10.000 km','Faltan 3.380 km',66,'ok','tires'),
-  ('Cambio de aceite de transmisión','Cada 60.000 km','Faltan 21.000 km',65,'ok','transmission'),
-  ('Pastillas de freno','Cada 30.000 km','Faltan 11.400 km',62,'ok','brakes'),
-  ('Cambio de refrigerante','Cada 40.000 km','Faltan 18.200 km',55,'ok','cooling'),
-  ('Seguro todo riesgo','Cada 12 meses','14 feb. 2027',42,'ok','documents'),
-  ('Limpieza de tapicería','Cada 6 meses','12 dic.',40,'ok','interior'),
-  ('Batería','Cada 36 meses','Garantía hasta sep. 2027',30,'ok','battery')
+  ('Filtro de aire acondicionado','Cada 15.000 km','Vencido hace 600 km',100,'over','cabin','12 may. 2025','127.000 km',2,'plantilla'),
+  ('Cambio de aceite y filtro','Cada 5.000 km o 6 meses','Faltan 400 km',92,'soon','engine','14 jul. 2026','138.020 km',3,'plantilla'),
+  ('Revisión técnico-mecánica','Cada 12 meses','Vence 25 sep.',85,'soon','documents','25 sep. 2025','128.100 km',1,'plantilla'),
+  ('Plumillas limpiaparabrisas','Cada 12 meses','Vence 30 sep.',88,'soon','glass','15 abr. 2026','134.700 km',1,'plantilla'),
+  ('Escaneo OBD y sensores','Cada 12 meses','Vence 10 oct.',80,'soon','electronics',None,None,0,'plantilla'),
+  ('Filtro de combustible','Cada 40.000 km','Faltan 9.500 km',76,'ok','filters',None,None,0,'plantilla'),
+  ('Rotación de llantas','Cada 10.000 km','Faltan 3.380 km',66,'ok','tires','28 jun. 2026','137.450 km',1,'plantilla'),
+  ('Cambio de aceite de transmisión','Cada 60.000 km','Faltan 21.000 km',65,'ok','transmission',None,None,0,'plantilla'),
+  ('Pastillas de freno','Cada 30.000 km','Faltan 11.400 km',62,'ok','brakes','10 dic. 2025','130.200 km',1,'plantilla'),
+  ('Cambio de refrigerante','Cada 40.000 km o 24 meses','Faltan 18.200 km',55,'ok','cooling',None,None,0,'plantilla'),
+  ('Seguro todo riesgo','Cada 12 meses','Vence 14 feb. 2027',42,'ok','documents',None,None,0,'plantilla'),
+  ('Limpieza de tapicería','Cada 6 meses','Vence 12 dic.',40,'ok','interior','2 sep. 2025','127.600 km',1,'propio'),
+  ('Batería','Por condición · revisar cada 12 meses','Garantía hasta sep. 2027',30,'ok','battery','20 mar. 2026','133.900 km',1,'plantilla')
 ] %}
 {% set rank = {'over': 3, 'soon': 2, 'ok': 1} %}
 {% set tones = {} %}
 {% for p in plans %}{% if rank[p[4]] > rank.get(tones.get(p[5]), 0) %}{% set _ = tones.update({p[5]: p[4]}) %}{% endif %}{% endfor %}
 {% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
 {{ vehicle_tabs('/vehicles-maintenance') }}
-<section class="lt-metrics">{{ metric('Planes activos','13') }}{{ metric('Vencidos','1','warning') }}{{ metric('Gastado en 2026','$ 1.240.000') }}</section>
+<section class="lt-vehicle-bar">
+  <span class="lt-maint-bar__template"><i class="bi bi-fuel-pump" aria-hidden="true"></i> Plantilla <strong>Combustión · gasolina</strong></span>
+  <div class="lt-menu-anchor"><button class="lt-select-button" type="button" data-lt-toggle="maint-plan-menu" aria-haspopup="menu" aria-expanded="false"><i class="bi bi-sliders"></i> Plan <i class="bi bi-chevron-down"></i></button>
+    <div class="lt-menu lt-menu--down" id="maint-plan-menu" role="menu" hidden>
+      <button class="lt-menu__item" role="menuitem" type="button" data-lt-toggle="vehicle-plan-item-new" aria-haspopup="dialog"><i class="bi bi-plus-lg"></i> Crear elemento propio</button>
+      <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-collection"></i> Añadir desde el catálogo</button>
+      <hr class="lt-menu__divider">
+      {% for t, ic in [('Combustión','bi-fuel-pump'),('Eléctrico','bi-ev-front'),('Híbrido','bi-lightning-charge')] %}<button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav>{% if loop.first %}<i class="bi bi-check2"></i>{% else %}<i class="bi {{ ic }}"></i>{% endif %} Plantilla {{ t }}</button>{% endfor %}
+      <button class="lt-menu__item" role="menuitem" type="button" data-lt-static-nav><i class="bi bi-arrow-counterclockwise"></i> Restablecer plantilla</button>
+    </div>
+  </div>
+</section>
+<section class="lt-metrics">{{ metric('Elementos del plan','13') }}{{ metric('Vencidos','1','warning') }}{{ metric('Vencen pronto','4') }}</section>
 <section class="lt-grid-2 lt-car-layout">
   <article class="lt-panel lt-car-card">
     <div class="lt-panel__head"><i class="bi bi-car-front"></i><h3>Estado del vehículo</h3></div>
@@ -49,36 +63,44 @@
       {% for id, name, meta, icon in [('electronics','Sensores y electrónica','OBD, sensores, tablero','bi-cpu'),('filters','Otros filtros','Combustible y adicionales','bi-funnel'),('interior','Interior y confort','Sonido, tapicería, polarizado','bi-music-note-beamed')] %}
       <button class="lt-car-chip lt-tone-{{ tones.get(id, 'none') }}" type="button" data-zone="{{ id }}" data-label="{{ name }}"><i class="bi {{ icon }}" aria-hidden="true"></i><span><strong>{{ name }}</strong><small>{{ meta }}</small></span></button>
       {% endfor %}
-      <button class="lt-car-chip lt-car-chip--add" type="button" data-lt-static-nav><i class="bi bi-plus-lg" aria-hidden="true"></i><span><strong>Añadir categoría</strong><small>Otras partes a controlar</small></span></button>
     </div>
-    <ul class="lt-car-legend" aria-label="Estado de los planes">
-      {% for tone, text in [('over','Vencido'),('soon','Vence pronto'),('ok','Al día'),('none','Sin plan')] %}<li><span class="lt-heat-swatch lt-tone-{{ tone }}" aria-hidden="true"></span>{{ text }}</li>{% endfor %}
+    <ul class="lt-car-legend" aria-label="Estado de los elementos del plan">
+      {% for tone, text in [('over','Vencido'),('soon','Vence pronto'),('ok','Al día'),('none','Sin elementos')] %}<li><span class="lt-heat-swatch lt-tone-{{ tone }}" aria-hidden="true"></span>{{ text }}</li>{% endfor %}
     </ul>
     <div class="lt-body-detail" data-car-detail hidden>
       <span class="lt-body-detail__dot" aria-hidden="true"></span>
       <div class="lt-body-detail__text"><strong data-detail-name></strong><span data-detail-meta></span></div>
     </div>
-    <p class="lt-body-card__hint" data-car-hint><i class="bi bi-hand-index" aria-hidden="true"></i> Toca una pieza, una etiqueta o un chip para filtrar su plan. Cambia a "Superior" para ver motor, transmisión, batería y refrigeración.</p>
+    <p class="lt-body-card__hint" data-car-hint><i class="bi bi-hand-index" aria-hidden="true"></i> Toca una pieza o un chip para ver solo sus elementos del plan. Cambia a «Superior» para motor, transmisión, batería y refrigeración.</p>
   </article>
-  <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-calendar2-check"></i><h3>Plan de cuidados</h3><button class="lt-button lt-button--text" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Añadir plan</button></div><div class="lt-panel__body">
-    <div class="lt-car-filter" data-care-filter hidden><i class="bi bi-funnel-fill" aria-hidden="true"></i><span data-care-filter-label></span><button class="lt-link" type="button" data-care-clear>Ver todos</button></div>
-    <div class="lt-list">
-    {% for task, rule, remaining, pct, tone, zone in plans %}
-    <div class="lt-list-item lt-care-row lt-tone-{{ tone }}" data-zone="{{ zone }}"><span class="lt-care-row__dot" aria-hidden="true"></span><div class="lt-list-item__body"><strong>{{ task }}</strong><span>{{ rule }} · {{ remaining }}</span><div class="lt-progress"><span style="width:{{ pct }}%"></span></div></div><button class="lt-button lt-button--tonal" type="button" data-lt-toggle="vehicle-maintenance-new" aria-haspopup="dialog">Registrar</button></div>
-    {% endfor %}
-    <p class="lt-care-empty" data-care-empty hidden>Esta zona no tiene planes. <button class="lt-link" type="button" data-lt-static-nav>Añadir plan</button></p>
+  {% call(zone) manage_card('vehicle-plan-items', 'Elementos del plan', 'bi-calendar2-check', count='(13 / 13)', total=13, search='Buscar mantenimiento', menu=[('Añadir elemento','bi-plus-lg','vehicle-plan-item-new'),('Añadir desde el catálogo','bi-collection')], sort=[('due','Más urgente','bi-exclamation-circle'),('name','Nombre (A–Z)','bi-sort-alpha-down'),('last','Último registro','bi-clock-history')]) %}{% if zone == 'filters' %}
+    <div class="lt-popover" id="vehicle-plan-items-filters" role="dialog" aria-labelledby="vehicle-plan-items-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
+      <div class="lt-popover__head"><h4 id="vehicle-plan-items-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="vehicle-plan-items-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+      <label class="lt-field"><span>Estado</span><select>{% for r in ['Todos','Vencido','Vence pronto','Al día'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+      <label class="lt-field"><span>Sistema</span><select>{% for r in ['Todos','Motor','Transmisión','Refrigeración','Frenos','Llantas','Batería','Cabina','Vidrios','Sensores y electrónica','Documentos'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+      <label class="lt-field"><span>Registros</span><select>{% for r in ['Todos','Con registros','Sin registros'] %}<option>{{ r }}</option>{% endfor %}</select></label>
+      <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-clear-filters><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="vehicle-plan-items-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
     </div>
-  </div></article>
-</section>
-<section class="lt-stack">
-  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-clock-history"></i><h3>Historial de servicios</h3></div><div class="lt-panel__body">
-    <div class="lt-timeline">
-      {% for title, meta, note in [('Cambio de aceite y filtro','14 jul. · 138.020 km · $ 245.000','Taller Autolab · aceite 0W-20 sintético.'),('Alineación y balanceo','2 jun. · 136.800 km · $ 90.000','Vibración al frenar resuelta.'),('Batería nueva','20 mar. · 133.900 km · $ 420.000','Garantía 18 meses.'),('Cambio de aceite y filtro','5 feb. · 133.010 km · $ 238.000','')] %}
-      <div class="lt-timeline__item"><span class="lt-timeline__dot"></span><div><strong>{{ title }}</strong><span>{{ meta }}</span>{% if note %}<p>{{ note }}</p>{% endif %}</div></div>
+  {% else %}
+    <div class="lt-chip-row lt-applied-filters" aria-label="Filtros aplicados" data-plan-applied hidden></div>
+    <table class="lt-mtable lt-mtable--plan">
+      <thead><tr><th scope="col">Mantenimiento</th><th scope="col">Próximo</th><th scope="col">Último registro</th><th scope="col" class="lt-mtable__actions"><span class="lt-sr-only">Acciones</span></th></tr></thead>
+      <tbody>
+      {% for task, rule, next, pct, tone, zone, last_date, last_km, count, origin in plans %}
+      <tr class="lt-care-row lt-tone-{{ tone }}" data-zone="{{ zone }}">
+        <td class="lt-mtable__title"><span class="lt-care-row__dot" aria-hidden="true"></span><div><strong data-plan-name>{{ task }}</strong>{% if origin == 'propio' %} <span class="lt-badge-soft">Propio</span>{% endif %}<small data-plan-rule>{{ rule }}</small></div></td>
+        <td class="lt-plan-next"><span data-plan-next>{{ next }}</span><div class="lt-progress"><span style="width:{{ pct }}%"></span></div></td>
+        <td class="lt-plan-last">{% if last_date %}<span>{{ last_date }} · {{ last_km }}</span>{% endif %}<button class="lt-link" type="button" data-history-item="{{ task }}">{% if count %}{{ count }} {{ 'registro' if count == 1 else 'registros' }}{% else %}Sin registros todavía{% endif %}</button></td>
+        <td class="lt-mtable__actions">{{ row_split('plan-row-' ~ loop.index, 'Registrar', [('Ver historial','bi-clock-history',false,'history'),('Editar elemento','bi-pencil',false,None,'vehicle-plan-item-edit'),('Pausar','bi-pause-circle'),('Quitar del plan','bi-trash',true)], task, dialog='vehicle-maintenance-new') }}</td>
+      </tr>
       {% endfor %}
-    </div>
-  </div></article>
+      <tr class="lt-plan-empty" data-care-empty hidden><td colspan="4">Esta zona no tiene elementos. <button class="lt-link" type="button" data-lt-toggle="vehicle-plan-item-new">Añadir elemento</button></td></tr>
+      </tbody>
+    </table>
+  {% endif %}{% endcall %}
 </section>
 {{ fab('Registrar mantenimiento', 'bi-plus-lg', 'vehicle-maintenance-new') }}
 {{ maintenance_dialog() }}
+{{ plan_item_dialog() }}
+{{ plan_item_dialog('vehicle-plan-item-edit', 'Editar elemento del plan', {'name':'Cambio de aceite y filtro','system':'Motor','applies':'Combustión','km':5000,'months':6,'notes':'Aceite 5W-30 sintético, filtro ACDelco.'}) }}
 {% endcall %}

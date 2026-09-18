@@ -26,7 +26,17 @@ class WaterDaily extends Component
     use WithManagementCard;
     use WithDefaultDateFilter;
 
+    public const SORTS = [
+        'recent' => 'Más reciente',
+        'oldest' => 'Más antiguo',
+        'amount' => 'Mayor cantidad',
+        'hydration' => 'Mayor hidratación',
+    ];
+
     public int $dailyGoal = 2500;
+
+    #[Url(as: 'sort', history: true, except: 'recent')]
+    public string $sort = 'recent';
 
     #[Url(as: 'q', history: true, except: '')]
     public string $search = '';
@@ -63,6 +73,12 @@ class WaterDaily extends Component
 
     public function updatedSearch(): void
     {
+        $this->resetPage();
+    }
+
+    public function updatedSort(): void
+    {
+        $this->sort = array_key_exists($this->sort, self::SORTS) ? $this->sort : 'recent';
         $this->resetPage();
     }
 
@@ -303,8 +319,10 @@ class WaterDaily extends Component
         $logs = $this->applyDateScope(DrinkLog::query())
             ->when($search !== '', fn ($q) => $q->where('drink_type', 'like', '%'.$search.'%'))
             ->when($this->drinkFilter !== '', fn ($q) => $q->where('drink_type_id', $this->drinkFilter))
-            ->orderByDesc('date')
-            ->orderByDesc('timestamp')
+            ->when(in_array($this->sort, ['amount', 'hydration'], true),
+                fn ($q) => $q->orderByDesc($this->sort === 'amount' ? 'amount' : 'hydration_value'))
+            ->orderBy('date', $this->sort === 'oldest' ? 'asc' : 'desc')
+            ->orderBy('timestamp', $this->sort === 'oldest' ? 'asc' : 'desc')
             ->paginate($this->perPage());
 
         // El progreso del día se calcula sobre todos los registros, no solo la página visible.
@@ -321,6 +339,7 @@ class WaterDaily extends Component
 
         return view('livewire.water.water-daily', [
             'logs' => $logs,
+            'sorts' => self::SORTS,
             'totalLogs' => DrinkLog::count(),
             'activeFilters' => $activeFilters,
             'dateScopes' => $this->dateScopeOptions(),

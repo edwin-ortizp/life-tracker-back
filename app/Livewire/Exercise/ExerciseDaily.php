@@ -24,6 +24,16 @@ class ExerciseDaily extends Component
     use WithManagementCard;
     use WithDefaultDateFilter;
 
+    public const SORTS = [
+        'recent' => 'Más reciente',
+        'oldest' => 'Más antiguo',
+        'duration' => 'Mayor duración',
+        'calories' => 'Más calorías',
+    ];
+
+    #[Url(as: 'sort', history: true, except: 'recent')]
+    public string $sort = 'recent';
+
     #[Url(as: 'q', history: true, except: '')]
     public string $search = '';
 
@@ -54,6 +64,12 @@ class ExerciseDaily extends Component
         $this->setDateScope($this->dateScope);
         $this->calendarMonth = $this->normalizeCalendarMonth($this->calendarMonth);
         $this->dailyGoal = auth()->user()->daily_exercise_minutes ?: ExerciseProgress::DEFAULT_DAILY_MINUTES;
+    }
+
+    public function updatedSort(): void
+    {
+        $this->sort = array_key_exists($this->sort, self::SORTS) ? $this->sort : 'recent';
+        $this->resetPage();
     }
 
     public function updatedSearch(): void
@@ -236,8 +252,10 @@ class ExerciseDaily extends Component
                 ->whereHas('exerciseType', fn ($type) => $type->where('name', 'like', '%'.$search.'%'))
                 ->orWhere('notes', 'like', '%'.$search.'%')))
             ->when($this->typeFilter !== '', fn ($q) => $q->where('exercise_type_id', $this->typeFilter))
-            ->orderByDesc('date')
-            ->orderByDesc('created_at')
+            ->when(in_array($this->sort, ['duration', 'calories'], true), fn ($q) => $q->orderByDesc($this->sort))
+            // Sin columna de hora: el momento del registro es fecha + created_at.
+            ->orderBy('date', $this->sort === 'oldest' ? 'asc' : 'desc')
+            ->orderBy('created_at', $this->sort === 'oldest' ? 'asc' : 'desc')
             ->paginate($this->perPage());
 
         $exerciseTypes = ExerciseType::orderBy('name')->get();
@@ -254,6 +272,7 @@ class ExerciseDaily extends Component
 
         return view('livewire.exercise.exercise-daily', [
             'logs' => $logs,
+            'sorts' => self::SORTS,
             'totalLogs' => ExerciseLog::count(),
             'activeFilters' => $activeFilters,
             'dateScopes' => $this->dateScopeOptions(),

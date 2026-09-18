@@ -12,6 +12,7 @@
         "vehicles-show",
         "vehicles-fuel",
         "vehicles-maintenance",
+        "vehicles-maintenance-history",
         "vehicles-expenses"
       ],
       "output": "vehicles.html"
@@ -35,7 +36,12 @@
     },
     "vehicles-maintenance": {
       "template": "screens/vehicles-maintenance.html.jinja",
-      "title": "Mantenimiento",
+      "title": "Plan de mantenimiento",
+      "bodyClass": ""
+    },
+    "vehicles-maintenance-history": {
+      "template": "screens/vehicles-maintenance-history.html.jinja",
+      "title": "Historial de mantenimiento",
       "bodyClass": ""
     },
     "vehicles-expenses": {
@@ -60,6 +66,10 @@
     {
       "path": "/vehicles-maintenance",
       "screen": "vehicles-maintenance"
+    },
+    {
+      "path": "/vehicles-maintenance-history",
+      "screen": "vehicles-maintenance-history"
     },
     {
       "path": "/vehicles-expenses",

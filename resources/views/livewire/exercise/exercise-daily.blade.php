@@ -17,6 +17,7 @@
 
     <x-ui.management-card id="exercise-day-logs" title="Actividades del día" icon="bi-list-ul"
                           :count="'('.$logs->total().' / '.$totalLogs.')'" search="search" search-placeholder="Buscar actividades"
+                          sort-model="sort" :sort-options="$sorts" :sort-value="$sort"
                           :active-filters="count($activeFilters)" :paginator="$logs" noun="registros"
                           alpine="draftScope: 'day', draftType: ''"
                           on-filters-open="draftScope = $wire.dateScope; draftType = $wire.typeFilter">

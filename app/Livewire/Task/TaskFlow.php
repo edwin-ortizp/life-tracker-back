@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Task;
 
+use App\Livewire\Task\Concerns\LoadsTaskCategories;
 use App\Livewire\Concerns\HandlesRecurringTaskCompletion;
 use App\Livewire\Concerns\InteractsWithTaskSchedule;
 use App\Models\Task;
@@ -15,6 +16,7 @@ use Livewire\Component;
 #[Title('Flujo de tareas')]
 class TaskFlow extends Component
 {
+    use LoadsTaskCategories;
     use HandlesRecurringTaskCompletion, InteractsWithTaskSchedule;
 
     private const INITIAL_LANE_LIMIT = 30;
@@ -47,24 +49,6 @@ class TaskFlow extends Component
 
     public bool $completed = false;
 
-    public array $categories = [
-        'siigo' => 'Siigo',
-        'entreagiles' => 'EntreAgiles',
-        'gesthor' => 'Gesthor',
-        'certmind' => 'CertMind',
-        'unicauca' => 'Unicauca',
-        'personal' => 'Personal',
-        'salud' => 'Salud',
-        'finanzas' => 'Finanzas',
-        'educacion' => 'Educación',
-        'hogar' => 'Hogar',
-        'social' => 'Social',
-        'creatividad' => 'Creatividad',
-        'tecnologia' => 'Tecnología',
-        'compras' => 'Compras',
-        'tramites' => 'Trámites',
-        'otros' => 'Otros',
-    ];
 
     public array $priorities = [
         'urgent-important' => '🔴 Urgente e Importante',
