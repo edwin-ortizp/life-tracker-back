@@ -33,6 +33,21 @@ class RelationshipIndex extends Component
     #[Url(as: 'archived', history: true, keep: true)]
     public bool $showArchived = false;
 
+    public const SORTS = [
+        'name' => 'Nombre (A–Z)',
+        'last' => 'Último contacto',
+        'next' => 'Próximo contacto',
+    ];
+
+    #[Url(as: 'sort', history: true, except: 'name')]
+    public string $sort = 'name';
+
+    public function updatedSort(): void
+    {
+        $this->sort = array_key_exists($this->sort, self::SORTS) ? $this->sort : 'name';
+        $this->resetPage();
+    }
+
     // Person form
     public bool $showForm = false;
 
@@ -345,6 +360,9 @@ class RelationshipIndex extends Component
 
         $relationships = $this->filteredQuery()
             ->with(['circle', 'tags', 'contactMethods'])
+            // Las personas sin fecha de contacto van al final.
+            ->when($this->sort === 'last', fn ($q) => $q->orderByRaw('CASE WHEN last_contact_at IS NULL THEN 1 ELSE 0 END')->orderByDesc('last_contact_at'))
+            ->when($this->sort === 'next', fn ($q) => $q->orderByRaw('CASE WHEN next_contact_suggested_at IS NULL THEN 1 ELSE 0 END')->orderBy('next_contact_suggested_at'))
             ->orderBy('full_name')
             ->paginate($this->perPage());
 
@@ -352,6 +370,7 @@ class RelationshipIndex extends Component
             'circles' => $circles,
             'tags' => $tags,
             'relationships' => $relationships,
+            'sorts' => self::SORTS,
             'activeCount' => Relationship::active()->count(),
             'archivedCount' => Relationship::archived()->count(),
             'dueFollowUps' => $this->dueFollowUps(),

@@ -29,6 +29,21 @@ class VehicleExpenses extends Component
     #[Url(as: 'q', history: true, except: '')]
     public string $expenseSearch = '';
 
+    public const SORTS = [
+        'recent' => 'Más reciente',
+        'oldest' => 'Más antiguo',
+        'amount' => 'Mayor monto',
+    ];
+
+    #[Url(as: 'xsort', history: true, except: 'recent')]
+    public string $expenseSort = 'recent';
+
+    public function updatedExpenseSort(): void
+    {
+        $this->expenseSort = array_key_exists($this->expenseSort, self::SORTS) ? $this->expenseSort : 'recent';
+        $this->resetPage();
+    }
+
     #[Url(as: 'period', history: true, except: '')]
     public string $expensePeriod = '';
 
@@ -61,7 +76,8 @@ class VehicleExpenses extends Component
         $totalCount = VehicleExpense::query()->where('vehicle_id', $vehicle->id)->count();
         $expenses = $this->filteredExpenses($vehicle->id)
             ->with('category')
-            ->orderByDesc('spent_on')->orderByDesc('created_at')
+            ->when(in_array($this->expenseSort, ['amount'], true), fn (Builder $query) => $query->orderByDesc($this->expenseSort))
+            ->orderBy('spent_on', $this->expenseSort === 'oldest' ? 'asc' : 'desc')->orderBy('created_at', $this->expenseSort === 'oldest' ? 'asc' : 'desc')
             ->paginate($this->perPage());
         $filteredAmount = (float) $this->filteredExpenses($vehicle->id)->sum('amount');
         $top = $this->filteredExpenses($vehicle->id)
@@ -72,7 +88,9 @@ class VehicleExpenses extends Component
         $periodOptions = static::periodOptions();
         $energyUi = $this->energyUi($vehicle);
 
-        return view('livewire.vehicle.vehicle-expenses', compact(
+        $sorts = self::SORTS;
+
+        return view('livewire.vehicle.vehicle-expenses', compact('sorts', 
             'vehicle', 'categories', 'categoryOptions', 'totalCount', 'expenses', 'filteredAmount', 'topCategory', 'deletingCategory', 'periodOptions', 'energyUi',
         ));
     }

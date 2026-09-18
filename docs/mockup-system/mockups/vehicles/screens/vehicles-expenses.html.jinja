@@ -19,8 +19,8 @@
 </section>
 
 <section class="lt-expense-layout">
-  <article class="lt-panel lt-vehicle-notes">
-    <div class="lt-panel__head"><i class="bi bi-receipt"></i><h3>Historial de gastos</h3><small>12 registros</small></div>
+  <article class="lt-panel lt-vehicle-notes" id="expense-history">
+    <div class="lt-panel__head"><i class="bi bi-receipt"></i><h3>Historial de gastos</h3><small>12 registros</small><div class="lt-menu-anchor lt-mcard__sort lt-panel__sort"><button class="lt-button lt-button--text lt-filter-button lt-sort-button" type="button" data-lt-toggle="expense-history-sort" aria-haspopup="menu" aria-expanded="false" aria-label="Ordenar por Más reciente"><i class="bi bi-sort-down"></i><span class="lt-filter-button__label" data-lt-sort-label>Más reciente</span></button><div class="lt-menu lt-menu--down" id="expense-history-sort" role="menu" hidden><button class="lt-menu__item" role="menuitem" type="button" data-lt-sort="recent" aria-checked="true"><i class="bi bi-sort-down"></i> Más reciente</button><button class="lt-menu__item" role="menuitem" type="button" data-lt-sort="oldest"><i class="bi bi-sort-up"></i> Más antiguo</button><button class="lt-menu__item" role="menuitem" type="button" data-lt-sort="amount"><i class="bi bi-cash-stack"></i> Mayor monto</button></div></div></div>
     <div class="lt-panel__body">
       <div class="lt-expense-filters">
         {% for label, on in [('Todos',true),('Seguros',false),('Mantenimiento',false),('Llantas',false),('Pintura y latonería',false),('Accesorios y lujos',false),('Trámites y peajes',false)] %}<button class="lt-chip lt-chip--filter{% if on %} is-selected{% endif %}" type="button" data-lt-static-nav>{% if on %}<i class="bi bi-check2"></i>{% endif %}{{ label }}</button>{% endfor %}
@@ -36,8 +36,10 @@
         ('18 jun. 2026','Peajes viaje a Popayán','Trámites y peajes','lt-c-fees','bi-sign-turn-right','Ida y regreso','$ 32.200'),
         ('2 jun. 2026','Alineación y balanceo · Serviteca La 5','Mantenimiento','lt-c-maint','bi-wrench-adjustable','maint','$ 90.000')
       ] %}
+      {% set months = {'jun.':'06','jul.':'07','ago.':'08','sep.':'09'} %}
+      <div data-lt-sort-rows>
       {% for date, concept, cat, cls, ic, detail, cost in rows %}
-      <div class="lt-expense-row">
+      {% set d = date.split(' ') %}<div class="lt-expense-row" data-sort-at="{{ d[2] }}-{{ months[d[1]] }}-{{ '%02d'|format(d[0]|int) }}" data-sort-amount="{{ cost|replace('$ ','')|replace('.','') }}">
         <span class="lt-care__icon"><i class="bi {{ ic }}"></i></span>
         <div><strong>{{ concept }}</strong>{% if detail == 'maint' %}<span>{{ date }} · <a class="lt-link lt-expense-link" href="#/vehicles-maintenance-history"><i class="bi bi-link-45deg" aria-hidden="true"></i> Vinculado a mantenimiento</a></span>{% else %}<span>{{ date }} · {{ detail }}</span>{% endif %}</div>
         <span class="lt-expense-cat"><i class="lt-dot {{ cls }}"></i>{{ cat }}</span>
@@ -47,6 +49,7 @@
         </div>
       </div>
       {% endfor %}
+      </div>
       <div class="lt-route-links"><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Cargar más</button></div>
     </div>
   </article>

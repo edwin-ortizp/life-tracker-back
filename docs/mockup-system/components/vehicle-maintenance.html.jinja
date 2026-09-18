@@ -17,7 +17,7 @@
 
 {#- Historial de lo ejecutado. Desde el plan llega filtrado por elemento (vehicle-map.js). -#}
 {% macro maintenance_history(rows) -%}
-{% call(zone) manage_card('vehicle-maint-history', 'Historial de mantenimiento', 'bi-clock-history', count='(' ~ rows|length ~ ' / 24)', total=24, search='Buscar servicio u observación', menu=[('Exportar CSV','bi-filetype-csv')], footer={'from':1,'to':rows|length,'total':24,'noun':'mantenimientos','page':1,'pages':3,'per_page':10}) %}{% if zone == 'filters' %}
+{% call(zone) manage_card('vehicle-maint-history', 'Historial de mantenimiento', 'bi-clock-history', count='(' ~ rows|length ~ ' / 24)', total=24, search='Buscar servicio u observación', menu=[('Exportar CSV','bi-filetype-csv')], footer={'from':1,'to':rows|length,'total':24,'noun':'mantenimientos','page':1,'pages':3,'per_page':10}, sort=[('recent','Más reciente','bi-sort-down'),('oldest','Más antiguo','bi-sort-up'),('cost','Mayor costo','bi-cash-stack')]) %}{% if zone == 'filters' %}
   <div class="lt-popover" id="vehicle-maint-history-filters" role="dialog" aria-labelledby="vehicle-maint-history-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
     <div class="lt-popover__head"><h4 id="vehicle-maint-history-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="vehicle-maint-history-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
     <label class="lt-field"><span>Elemento del plan</span><select>{% for r in ['Todos','Cambio de aceite y filtro','Rotación de llantas','Pastillas de freno','Revisión técnico-mecánica','Batería','Sin plan (puntual)'] %}<option>{{ r }}</option>{% endfor %}</select></label>

@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use App\Livewire\Concerns\WithManagementCard;
 
@@ -38,9 +39,39 @@ class MoodTracker extends Component
 
     public bool $showEnergyForm = false;
 
+    public const MOOD_SORTS = [
+        'recent' => 'Más reciente',
+        'oldest' => 'Más antiguo',
+        'intensity' => 'Mayor intensidad',
+    ];
+
+    public const ENERGY_SORTS = [
+        'recent' => 'Más reciente',
+        'oldest' => 'Más antiguo',
+        'level' => 'Mayor nivel',
+    ];
+
+    #[Url(as: 'msort', history: true, except: 'recent')]
+    public string $moodSort = 'recent';
+
+    #[Url(as: 'esort', history: true, except: 'recent')]
+    public string $energySort = 'recent';
+
     public function mount()
     {
         $this->initializeSelectedDate();
+    }
+
+    public function updatedMoodSort(): void
+    {
+        $this->moodSort = array_key_exists($this->moodSort, self::MOOD_SORTS) ? $this->moodSort : 'recent';
+        $this->resetPage('moodPage');
+    }
+
+    public function updatedEnergySort(): void
+    {
+        $this->energySort = array_key_exists($this->energySort, self::ENERGY_SORTS) ? $this->energySort : 'recent';
+        $this->resetPage('energyPage');
     }
 
     public function previousDay()
@@ -151,11 +182,13 @@ class MoodTracker extends Component
     {
         $moodEntries = MoodEntry::whereDate('date', $this->selectedDate)
             ->with(['reflection', 'relationships'])
-            ->orderByDesc('timestamp')
+            ->when($this->moodSort === 'intensity', fn ($q) => $q->orderByDesc('intensity'))
+            ->orderBy('timestamp', $this->moodSort === 'oldest' ? 'asc' : 'desc')
             ->paginate($this->perPage(), ['*'], 'moodPage');
 
         $energyEntries = EnergyEntry::whereDate('date', $this->selectedDate)
-            ->orderByDesc('timestamp')
+            ->when($this->energySort === 'level', fn ($q) => $q->orderByDesc('level'))
+            ->orderBy('timestamp', $this->energySort === 'oldest' ? 'asc' : 'desc')
             ->paginate($this->perPage(), ['*'], 'energyPage');
 
         // El promedio del día usa todos los registros, no solo la página visible.
@@ -164,6 +197,8 @@ class MoodTracker extends Component
         return view('livewire.mood.mood-tracker', [
             'moodEntries' => $moodEntries,
             'energyEntries' => $energyEntries,
+            'moodSorts' => self::MOOD_SORTS,
+            'energySorts' => self::ENERGY_SORTS,
             'moodStates' => $this->moodLogger()->catalog(),
             'prioritizedStates' => $this->moodLogger()->prioritizedStates(),
             'avgEnergy' => $avgEnergy,

@@ -16,7 +16,7 @@
 ] %}
 <section class="lt-grid-main">
   <div class="lt-stack">
-    {% call(zone) manage_card('plans', 'Planes', 'bi-map', count='(10 / 28)', total=28, search='Buscar planes', menu=[('Sorpréndeme', 'bi-shuffle'), ('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':10,'total':28,'noun':'planes','page':1,'pages':2,'per_page':25}) %}{% if zone == 'filters' %}
+    {% call(zone) manage_card('plans', 'Planes', 'bi-map', count='(10 / 28)', total=28, search='Buscar planes', menu=[('Sorpréndeme', 'bi-shuffle'), ('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':10,'total':28,'noun':'planes','page':1,'pages':2,'per_page':25}, sort=[('recent','Más recientes','bi-clock-history'),('stale','Hace más tiempo sin ir','bi-hourglass-split'),('popular','Más visitados','bi-star'),('upcoming','Fecha próxima','bi-calendar-event'),('name','Nombre','bi-sort-alpha-down')]) %}{% if zone == 'filters' %}
       <div class="lt-popover" id="plans-filters" role="dialog" aria-labelledby="plans-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="plans-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="plans-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <div class="lt-field"><span>Grupo</span><div class="lt-chip-row" aria-label="Grupos de planes">{% for label, n, icon, sel in [('Todos',28,'bi-grid',true),('Lugares',12,'bi-geo-alt',false),('Actividades',6,'bi-stars',false),('Eventos',4,'bi-calendar-event',false),('Viajes',4,'bi-airplane',false),('Otros',2,'bi-three-dots',false)] %}<button class="lt-chip lt-chip--filter{% if sel %} is-selected{% endif %}" type="button" data-lt-static-nav{% if sel %} aria-pressed="true"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i> {{ label }} ({{ n }})</button>{% endfor %}</div></div>
@@ -39,7 +39,6 @@
             <div class="lt-multiselect__panel" id="plans-people-options" role="listbox" aria-multiselectable="true" hidden>{% for r in ['Camila Rojas','María Ortiz','Julián Ortiz','Daniel Pérez','Laura Gómez'] %}<label class="lt-multiselect__option"><input type="checkbox"> {{ r }}</label>{% endfor %}</div>
           </div>
         </div>
-        <label class="lt-field"><span>Ordenar por</span><select>{% for r in ['Más recientes','Hace más tiempo sin ir','Más visitados','Fecha próxima','Nombre'] %}<option>{{ r }}</option>{% endfor %}</select></label>
         <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="plans-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     {% else %}

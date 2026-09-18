@@ -23,7 +23,7 @@
 
     <x-ui.management-card id="vehicle-expense-history" title="Historial de gastos" icon="bi-receipt"
                           :count="'('.$expenses->total().' / '.$totalCount.')'" search="expenseSearch" search-placeholder="Buscar descripción o proveedor"
-                          :active-filters="$expenseActive" :paginator="$expenses" noun="gastos" alpine="openMenu: null" class="vehicle-history-section" flush>
+                          :active-filters="$expenseActive" :paginator="$expenses" sort-model="expenseSort" :sort-options="$sorts" :sort-value="$expenseSort" noun="gastos" alpine="openMenu: null" class="vehicle-history-section" flush>
         <x-slot:filters>
             <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros de gastos" @click.outside="openMenu = null">
                 <x-ui.filter-menu name="expensePeriod" label="Periodo" allLabel="Todo el historial" :options="$periodOptions" :selected="$expensePeriod" />

@@ -5,7 +5,8 @@
 
     <x-ui.management-card id="plans" title="Tus planes" icon="bi-map" :count="'('.$plans->total().' / '.$total.')'"
                           search="q" search-placeholder="Buscar planes" :active-filters="count($activeFilters)"
-                          :paginator="$plans" noun="planes" class="plans-section">
+                          :paginator="$plans" noun="planes" class="plans-section"
+                          sort-model="sort" :sort-options="$sorts" :sort-value="$sort">
         <x-slot:filters>
             <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Grupos de planes">
             <x-ui.chip variant="filter" icon="bi-grid" :selected="$group === ''" wire:click="setGroup('')">Todos ({{ $total }})</x-ui.chip>
@@ -18,7 +19,6 @@
                     <x-ui.multi-select name="types" label="Tipo de plan" :options="$typeOptions" all-label="Todos los tipos" icon="bi-tag" />
                     <x-ui.multi-select name="circles" label="Círculo" :options="$circleOptions" all-label="Todos los círculos" icon="bi-diagram-3" />
                     <x-ui.multi-select name="people" label="Persona" :options="$peopleOptions" all-label="Todas las personas" icon="bi-people" />
-            <x-ui.select name="sort" label="Ordenar por" :options="$sorts" :selected="$sort" icon="bi-sort-down" wire:model.live="sort" />
         </x-slot:filters>
         <x-slot:filterActions>
             <x-ui.action variant="outlined" icon="bi-eraser" wire:click="clearFilters">Limpiar</x-ui.action>

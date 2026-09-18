@@ -52,7 +52,8 @@
         </x-ui.metric-grid>
     </x-ui.section>
 
-    <x-ui.management-card id="mood-day-entries" title="Estados del día" icon="bi-emoji-smile" :count="'('.$moodEntries->total().')'" :paginator="$moodEntries" noun="registros">
+    <x-ui.management-card id="mood-day-entries" title="Estados del día" icon="bi-emoji-smile" :count="'('.$moodEntries->total().')'" :paginator="$moodEntries" noun="registros"
+                          sort-model="moodSort" :sort-options="$moodSorts" :sort-value="$moodSort">
         @if ($moodState === DataState::CONTENT)
             <x-ui.list label="Estados del día">
                 @foreach ($moodEntries as $entry)
@@ -104,7 +105,8 @@
         @endif
     </x-ui.management-card>
 
-    <x-ui.management-card id="energy-day-entries" title="Energía del día" icon="bi-lightning-charge" :count="'('.$energyEntries->total().')'" :paginator="$energyEntries" noun="registros">
+    <x-ui.management-card id="energy-day-entries" title="Energía del día" icon="bi-lightning-charge" :count="'('.$energyEntries->total().')'" :paginator="$energyEntries" noun="registros"
+                          sort-model="energySort" :sort-options="$energySorts" :sort-value="$energySort">
         @if ($energyState === DataState::CONTENT)
             <x-ui.list label="Energía del día">
                 @foreach ($energyEntries as $entry)

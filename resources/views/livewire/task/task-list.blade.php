@@ -9,6 +9,7 @@
     @endphp
     <x-ui.management-card id="task-list" title="Tareas" icon="bi-list-task" :count="'('.$tasks->total().')'"
                           search="search" search-placeholder="Buscar tareas" :active-filters="$activeFilterCount"
+                          sort-model="sort" :sort-options="$sorts" :sort-value="$sort"
                           :paginator="$tasks" noun="tareas" flush>
         <x-slot:filters>
             <div class="ltm-section">

@@ -24,6 +24,22 @@ class VehicleFuel extends Component
     #[Url(as: 'q', history: true, except: '')]
     public string $fuelSearch = '';
 
+    public const SORTS = [
+        'recent' => 'Más reciente',
+        'oldest' => 'Más antiguo',
+        'cost' => 'Mayor costo',
+        'quantity' => 'Mayor cantidad',
+    ];
+
+    #[Url(as: 'fsort', history: true, except: 'recent')]
+    public string $fuelSort = 'recent';
+
+    public function updatedFuelSort(): void
+    {
+        $this->fuelSort = array_key_exists($this->fuelSort, self::SORTS) ? $this->fuelSort : 'recent';
+        $this->resetPage();
+    }
+
     #[Url(as: 'period', history: true, except: '')]
     public string $fuelPeriod = '';
 
@@ -65,11 +81,14 @@ class VehicleFuel extends Component
             ->when(in_array($this->fuelSource, $energySources, true), fn (Builder $query) => $query->where('energy_source', $this->fuelSource))
             ->when($term !== '', fn (Builder $query) => $query->where(fn (Builder $match) => $match
                 ->where('provider', 'like', "%{$term}%")->orWhere('notes', 'like', "%{$term}%")))
-            ->orderByDesc('recorded_on')->orderByDesc('created_at')
+            ->when(in_array($this->fuelSort, ['cost', 'quantity'], true), fn (Builder $query) => $query->orderByDesc($this->fuelSort))
+            ->orderBy('recorded_on', $this->fuelSort === 'oldest' ? 'asc' : 'desc')->orderBy('created_at', $this->fuelSort === 'oldest' ? 'asc' : 'desc')
             ->paginate($this->perPage());
         VehicleEnergyAnalytics::annotate($energyLogs->getCollection(), $vehicle);
         $periodOptions = static::periodOptions();
 
-        return view('livewire.vehicle.vehicle-fuel', compact('vehicle', 'energyUi', 'energySources', 'energyAnalytics', 'energyLogs', 'totalCount', 'periodOptions'));
+        $sorts = self::SORTS;
+
+        return view('livewire.vehicle.vehicle-fuel', compact('sorts', 'vehicle', 'energyUi', 'energySources', 'energyAnalytics', 'energyLogs', 'totalCount', 'periodOptions'));
     }
 }

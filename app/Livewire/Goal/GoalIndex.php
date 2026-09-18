@@ -17,6 +17,16 @@ class GoalIndex extends Component
     use WithManagementCard;
     #[Url(as: 'status', history: true, keep: true)]
     public string $statusFilter = 'active'; // active, completed, abandoned, all
+
+    public const SORTS = [
+        'recent' => 'Más recientes',
+        'due' => 'Fecha límite próxima',
+        'title' => 'Título (A–Z)',
+    ];
+
+    #[Url(as: 'sort', history: true, except: 'recent')]
+    public string $sort = 'recent';
+
     public bool $showForm = false;
     public ?string $editingId = null;
 
@@ -36,6 +46,12 @@ class GoalIndex extends Component
     public function mount(): void
     {
         $this->normalizeStatusFilter();
+    }
+
+    public function updatedSort(): void
+    {
+        $this->sort = array_key_exists($this->sort, self::SORTS) ? $this->sort : 'recent';
+        $this->resetPage();
     }
 
     public function updatedStatusFilter(): void
@@ -177,12 +193,20 @@ class GoalIndex extends Component
             $query->where('status', $this->statusFilter);
         }
 
+        match ($this->sort) {
+            // Los objetivos sin fecha límite van al final.
+            'due' => $query->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')->orderBy('due_date'),
+            'title' => $query->orderBy('title'),
+            default => null,
+        };
+
         $goals = $query->orderByDesc('created_at')->paginate($this->perPage());
         $activeCount = Goal::where('status', 'active')->count();
         $completedCount = Goal::where('status', 'completed')->count();
 
         return view('livewire.goal.goal-index', [
             'goals' => $goals,
+            'sorts' => self::SORTS,
             'activeCount' => $activeCount,
             'completedCount' => $completedCount,
         ]);

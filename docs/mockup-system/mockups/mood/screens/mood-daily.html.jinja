@@ -5,15 +5,17 @@
 <section class="lt-metrics">{{ metric('Ánimo actual','Bien','success') }}{{ metric('Energía','7 de 10','warning') }}{{ metric('Registros esta semana','5') }}</section>
 <section class="lt-grid-2"><article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-emoji-smile"></i><h3>Ánimo de hoy</h3></div><div class="lt-panel__body"><div class="lt-route-links">{% for face, label in [('😞','Bajo'),('😐','Neutral'),('🙂','Bien'),('😁','Muy bien')] %}<button class="lt-button lt-button--tonal" type="button" data-lt-static-nav>{{ face }} {{ label }}</button>{% endfor %}</div></div></article><article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-lightning-charge"></i><h3>Energía</h3><small>7/10</small></div><div class="lt-panel__body"><div class="lt-progress"><span style="width:70%"></span></div><p class="lt-page-head__subtitle">Tu energía aumenta después de caminar y dormir temprano.</p></div></article></section>
 <section class="lt-stack">
-{% call(zone) manage_card('mood-day-entries', 'Estados del día', 'bi-emoji-smile', count='(2 / 58)', total=58, search='Buscar estados', filters=1, menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':2,'total':2,'noun':'registros','page':1,'pages':1,'per_page':25}, footer_all={'to':25,'total':58,'pages':3}) %}{% if zone == 'filters' %}
+{% call(zone) manage_card('mood-day-entries', 'Estados del día', 'bi-emoji-smile', count='(2 / 58)', total=58, search='Buscar estados', filters=1, menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':2,'total':2,'noun':'registros','page':1,'pages':1,'per_page':25}, footer_all={'to':25,'total':58,'pages':3}, sort=[('recent','Más reciente','bi-sort-down'),('oldest','Más antiguo','bi-sort-up'),('intensity','Mayor intensidad','bi-sort-numeric-down-alt')]) %}{% if zone == 'filters' %}
   {% call date_filters('mood-day-entries') %}<label class="lt-field"><span>Estado</span><select><option>Todos</option><option>Muy bien</option><option>Bien</option><option>Neutral</option><option>Bajo</option></select></label>{% endcall %}
 {% else %}
   {{ applied_filters([('bi-calendar-event','Fecha: Hoy')]) }}
   <table class="lt-mtable">
     <thead><tr><th scope="col">Fecha</th><th scope="col">Hora</th><th scope="col">Estado</th><th scope="col">Situación</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead>
     <tbody>
+    {% set iso = {'Hoy':'2026-09-13','12 sep.':'2026-09-12','11 sep.':'2026-09-11'} %}
+    {% set intensity = {'😁 Muy bien':5,'🙂 Bien':4,'😐 Neutral':3,'😞 Bajo':2} %}
     {% for date, time, mood, note, old in [('Hoy','20:10','🙂 Bien','Cena tranquila en casa.',false),('Hoy','13:30','😐 Neutral','Reunión larga antes del almuerzo.',false),('12 sep.','21:00','😁 Muy bien','Salí a correr y cociné con Laura.',true),('11 sep.','18:40','😞 Bajo','Día pesado en el trabajo.',true)] %}
-      <tr{% if old %} data-lt-outside-filter{% endif %}>
+      <tr data-sort-at="{{ iso[date] }}T{{ time }}" data-sort-intensity="{{ intensity[mood] }}"{% if old %} data-lt-outside-filter{% endif %}>
         <td class="lt-mtable__date" data-label="Fecha">{{ date }}</td>
         <td class="lt-mtable__time" data-label="Hora">{{ time }}</td>
         <td data-label="Estado"><span class="lt-mood-chip lt-mood-chip--static">{{ mood }}</span></td>
@@ -24,15 +26,16 @@
     </tbody>
   </table>
 {% endif %}{% endcall %}
-{% call(zone) manage_card('energy-day-entries', 'Energía del día', 'bi-lightning-charge', count='(2 / 61)', total=61, search='Buscar registros de energía', filters=1, menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':2,'total':2,'noun':'registros','page':1,'pages':1,'per_page':25}, footer_all={'to':25,'total':61,'pages':3}) %}{% if zone == 'filters' %}
+{% call(zone) manage_card('energy-day-entries', 'Energía del día', 'bi-lightning-charge', count='(2 / 61)', total=61, search='Buscar registros de energía', filters=1, menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':2,'total':2,'noun':'registros','page':1,'pages':1,'per_page':25}, footer_all={'to':25,'total':61,'pages':3}, sort=[('recent','Más reciente','bi-sort-down'),('oldest','Más antiguo','bi-sort-up'),('level','Mayor nivel','bi-sort-numeric-down-alt')]) %}{% if zone == 'filters' %}
   {% call date_filters('energy-day-entries') %}<label class="lt-field"><span>Nivel</span><select><option>Todos</option><option>Alto (8–10)</option><option>Medio (5–7)</option><option>Bajo (1–4)</option></select></label>{% endcall %}
 {% else %}
   {{ applied_filters([('bi-calendar-event','Fecha: Hoy')]) }}
   <table class="lt-mtable">
     <thead><tr><th scope="col">Fecha</th><th scope="col">Hora</th><th scope="col">Nivel</th><th scope="col">Comentario</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead>
     <tbody>
+    {% set iso = {'Hoy':'2026-09-13','12 sep.':'2026-09-12','11 sep.':'2026-09-11'} %}
     {% for date, time, value, note, old in [('Hoy','19:00',7,'Después de caminar.',false),('Hoy','08:20',6,'Dormí 6 horas.',false),('12 sep.','17:30',8,'Tarde productiva.',true),('11 sep.','15:10',4,'Bajón después del almuerzo.',true)] %}
-      <tr{% if old %} data-lt-outside-filter{% endif %}>
+      <tr data-sort-at="{{ iso[date] }}T{{ time }}" data-sort-level="{{ value }}"{% if old %} data-lt-outside-filter{% endif %}>
         <td class="lt-mtable__date" data-label="Fecha">{{ date }}</td>
         <td class="lt-mtable__time" data-label="Hora">{{ time }}</td>
         <td class="lt-mtable__value" data-label="Nivel"><span class="lt-mtable__score">{{ value }}/10</span><div class="lt-progress lt-mtable__bar" role="img" aria-label="Energía {{ value }} de 10"><span style="width:{{ value * 10 }}%"></span></div></td>

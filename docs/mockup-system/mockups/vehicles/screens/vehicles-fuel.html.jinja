@@ -5,7 +5,7 @@
 {{ vehicle_tabs('/vehicles-fuel') }}
 <section class="lt-metrics">{{ metric('Rendimiento último tanque','14,8 km/gal','success') }}{{ metric('Gasto del mes','$ 412.000') }}{{ metric('Precio promedio','$ 15.980 / gal','warning') }}</section>
 <section>
-  {% call(zone) manage_card('fuel', 'Historial de repostajes', 'bi-fuel-pump', count='(4 / 32)', total=32, search='Buscar estación o fecha', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':4,'total':32,'noun':'repostajes','page':1,'pages':2,'per_page':25}) %}{% if zone == 'filters' %}
+  {% call(zone) manage_card('fuel', 'Historial de repostajes', 'bi-fuel-pump', count='(4 / 32)', total=32, search='Buscar estación o fecha', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':4,'total':32,'noun':'repostajes','page':1,'pages':2,'per_page':25}, sort=[('recent','Más reciente','bi-sort-down'),('oldest','Más antiguo','bi-sort-up'),('cost','Mayor costo','bi-cash-stack'),('quantity','Mayor cantidad','bi-fuel-pump')]) %}{% if zone == 'filters' %}
       <div class="lt-popover" id="fuel-filters" role="dialog" aria-labelledby="fuel-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="fuel-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="fuel-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <label class="lt-field"><span>Periodo</span><select><option>Último mes</option><option selected>Últimos 3 meses</option><option>Último año</option><option>Todo el historial</option></select></label>
@@ -14,9 +14,10 @@
         <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="fuel-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     {% else %}
-<div class="lt-list">
+<div class="lt-list" data-lt-sort-rows>
+    {% set months = {'jul.':'07','ago.':'08','sep.':'09'} %}
     {% for date, place, liters, cost, km, perf, full in [('6 sep.','Terpel Av. 68','10,1 gal','$ 161.400','142.410 km','14,8 km/gal',true),('27 ago.','Esso Calle 80','9,2 gal','$ 147.900','141.845 km','14,1 km/gal',true),('19 ago.','Terpel Av. 68','4,9 gal','$ 78.200','141.350 km','—',false),('9 ago.','Primax Autopista','10,6 gal','$ 169.400','140.990 km','13,9 km/gal',true)] %}
-    <div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-fuel-pump"></i></span><div class="lt-list-item__body"><strong>{{ date }} · {{ liters }} · {{ cost }}</strong><span>{{ place }} · {{ km }}{% if not full %} · tanque parcial{% endif %}</span></div><div class="lt-list-item__meta"><span class="lt-chip{% if full %} lt-chip--success{% else %} lt-chip--neutral{% endif %}">{{ perf }}</span></div>{{ row_split('fuel-menu-' ~ loop.index, 'Editar', [('Eliminar','bi-trash',true)], 'repostaje del ' ~ date, dialog='vehicle-fuel-new') }}</div>
+    {% set d = date.split(' ') %}<div class="lt-list-item" data-sort-at="2026-{{ months[d[1]] }}-{{ '%02d'|format(d[0]|int) }}" data-sort-cost="{{ cost|replace('$ ','')|replace('.','') }}" data-sort-quantity="{{ liters|replace(' gal','')|replace(',','.') }}"><span class="lt-list-item__icon"><i class="bi bi-fuel-pump"></i></span><div class="lt-list-item__body"><strong>{{ date }} · {{ liters }} · {{ cost }}</strong><span>{{ place }} · {{ km }}{% if not full %} · tanque parcial{% endif %}</span></div><div class="lt-list-item__meta"><span class="lt-chip{% if full %} lt-chip--success{% else %} lt-chip--neutral{% endif %}">{{ perf }}</span></div>{{ row_split('fuel-menu-' ~ loop.index, 'Editar', [('Eliminar','bi-trash',true)], 'repostaje del ' ~ date, dialog='vehicle-fuel-new') }}</div>
     {% endfor %}
   </div>{% endif %}{% endcall %}
 </section>

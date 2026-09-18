@@ -20,7 +20,8 @@
     </x-ui.metric-grid>
 
     <x-ui.management-card id="goals" title="Objetivos" icon="bi-flag" :count="'('.$goals->total().')'"
-                          :active-filters="$statusFilter !== 'active' ? 1 : 0" :paginator="$goals" noun="objetivos">
+                          :active-filters="$statusFilter !== 'active' ? 1 : 0" :paginator="$goals" noun="objetivos"
+                          sort-model="sort" :sort-options="$sorts" :sort-value="$sort">
         <x-slot:filters>
             <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Estado de los objetivos">
                 @foreach ($statusLabels as $value => $label)

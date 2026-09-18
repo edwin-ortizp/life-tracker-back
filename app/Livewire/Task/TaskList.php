@@ -41,6 +41,16 @@ class TaskList extends Component
     #[Url(as: 'q', history: true, keep: true)]
     public string $search = '';
 
+    public const SORTS = [
+        'chronological' => 'Cronológico',
+        'priority' => 'Prioridad',
+        'recent' => 'Más recientes',
+        'title' => 'Título (A–Z)',
+    ];
+
+    #[Url(as: 'sort', history: true, except: 'chronological')]
+    public string $sort = 'chronological';
+
     #[Url(as: 'edit')]
     public ?string $editTask = null;
 
@@ -128,6 +138,12 @@ class TaskList extends Component
     public function updatedSizeFilter(): void
     {
         $this->normalizeFilters();
+        $this->resetPage();
+    }
+
+    public function updatedSort(): void
+    {
+        $this->sort = array_key_exists($this->sort, self::SORTS) ? $this->sort : 'chronological';
         $this->resetPage();
     }
 
@@ -421,6 +437,13 @@ class TaskList extends Component
             );
         }
 
+        match ($this->sort) {
+            'priority' => $query->orderByRaw("CASE WHEN priority = 'urgent-important' THEN 1 WHEN priority = 'not-urgent-important' THEN 2 WHEN priority = 'urgent-not-important' THEN 3 ELSE 4 END"),
+            'recent' => $query->orderByDesc('created_at'),
+            'title' => $query->orderBy('title'),
+            default => null,
+        };
+
         $tasks = $query->chronological()
             ->paginate($this->perPage());
 
@@ -446,6 +469,7 @@ class TaskList extends Component
 
         return view('livewire.task.task-list', [
             'tasks' => $tasks,
+            'sorts' => self::SORTS,
             'pendingCount' => (int) $stats->pending_count,
             'completedCount' => (int) $stats->completed_count,
             'completedToday' => (int) $stats->completed_today,

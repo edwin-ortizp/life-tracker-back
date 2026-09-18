@@ -19,7 +19,7 @@
 
     <x-ui.management-card id="vehicle-energy-history" :title="'Historial de '.strtolower($energyUi['tab'])" icon="bi-fuel-pump"
                           :count="'('.$energyLogs->total().' / '.$totalCount.')'" search="fuelSearch" search-placeholder="Buscar estación o nota"
-                          :active-filters="$fuelActive" :paginator="$energyLogs" noun="registros" alpine="openMenu: null" class="vehicle-history-section" flush>
+                          :active-filters="$fuelActive" :paginator="$energyLogs" sort-model="fuelSort" :sort-options="$sorts" :sort-value="$fuelSort" noun="registros" alpine="openMenu: null" class="vehicle-history-section" flush>
         <x-slot:filters>
             <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros del historial" @click.outside="openMenu = null">
                 <x-ui.filter-menu name="fuelPeriod" label="Periodo" allLabel="Todo el historial" :options="$periodOptions" :selected="$fuelPeriod" />

@@ -27,6 +27,21 @@ class VehicleServices extends Component
     #[Url(as: 'q', history: true, except: '')]
     public string $serviceSearch = '';
 
+    public const SORTS = [
+        'recent' => 'Más reciente',
+        'oldest' => 'Más antiguo',
+        'cost' => 'Mayor costo',
+    ];
+
+    #[Url(as: 'ssort', history: true, except: 'recent')]
+    public string $serviceSort = 'recent';
+
+    public function updatedServiceSort(): void
+    {
+        $this->serviceSort = array_key_exists($this->serviceSort, self::SORTS) ? $this->serviceSort : 'recent';
+        $this->resetPage();
+    }
+
     #[Url(as: 'period', history: true, except: '')]
     public string $servicePeriod = '';
 
@@ -59,14 +74,17 @@ class VehicleServices extends Component
         $totalCount = VehicleMaintenanceLog::query()->where('vehicle_id', $vehicle->id)->count();
         $maintenanceLogs = $this->filteredLogs($vehicle->id)
             ->with('plan.template')
-            ->orderByDesc('performed_on')->orderByDesc('created_at')
+            ->when(in_array($this->serviceSort, ['cost'], true), fn (Builder $query) => $query->orderByDesc($this->serviceSort))
+            ->orderBy('performed_on', $this->serviceSort === 'oldest' ? 'asc' : 'desc')->orderBy('created_at', $this->serviceSort === 'oldest' ? 'asc' : 'desc')
             ->paginate($this->perPage());
         $filteredCost = (float) $this->filteredLogs($vehicle->id)->sum('cost');
         $latestService = $totalCount > 0 ? VehicleMaintenanceLog::query()->where('vehicle_id', $vehicle->id)->max('performed_on') : null;
         $periodOptions = static::periodOptions();
         $energyUi = $this->energyUi($vehicle);
 
-        return view('livewire.vehicle.vehicle-services', compact('vehicle', 'planOptions', 'totalCount', 'maintenanceLogs', 'filteredCost', 'latestService', 'periodOptions', 'energyUi'));
+        $sorts = self::SORTS;
+
+        return view('livewire.vehicle.vehicle-services', compact('sorts', 'vehicle', 'planOptions', 'totalCount', 'maintenanceLogs', 'filteredCost', 'latestService', 'periodOptions', 'energyUi'));
     }
 
     private function filteredLogs(string $vehicleId): Builder

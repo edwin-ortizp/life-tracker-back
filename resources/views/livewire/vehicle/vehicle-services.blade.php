@@ -25,7 +25,7 @@
 
     <x-ui.management-card id="vehicle-maintenance-history" title="Historial de servicios" icon="bi-clock-history"
                           :count="'('.$maintenanceLogs->total().' / '.$totalCount.')'" search="serviceSearch" search-placeholder="Buscar servicio, taller o nota"
-                          :active-filters="$serviceActive" :paginator="$maintenanceLogs" noun="servicios" alpine="openMenu: null" class="vehicle-history-section" flush>
+                          :active-filters="$serviceActive" :paginator="$maintenanceLogs" sort-model="serviceSort" :sort-options="$sorts" :sort-value="$serviceSort" noun="servicios" alpine="openMenu: null" class="vehicle-history-section" flush>
         <x-slot:filters>
             <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros del historial de servicios" @click.outside="openMenu = null">
                 <x-ui.filter-menu name="servicePeriod" label="Periodo" allLabel="Todo el historial" :options="$periodOptions" :selected="$servicePeriod" />

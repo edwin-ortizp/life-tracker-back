@@ -13,7 +13,8 @@
     @php($activeFilterCount = collect([$showArchived, $circleFilter, $tagFilter])->filter()->count())
     <x-ui.management-card id="relationship-people" title="Personas" icon="bi-people" :count="'('.$relationships->total().' / '.($activeCount + $archivedCount).')'"
                           search="search" search-placeholder="Buscar por nombre, apodo, teléfono o correo" :active-filters="$activeFilterCount"
-                          :paginator="$relationships" noun="personas" alpine="openMenu: null">
+                          :paginator="$relationships" noun="personas" alpine="openMenu: null"
+                          sort-model="sort" :sort-options="$sorts" :sort-value="$sort">
         <x-slot:filters>
             <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros de relaciones" @click.outside="openMenu = null">
         
