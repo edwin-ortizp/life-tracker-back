@@ -12,7 +12,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Actualiza una tarea existente: título, descripción markdown (reemplazar o añadir al final), categoría, prioridad, tamaño, fechas, tiempo estimado, privacidad y recurrencia (asignarla, cambiarla o quitarla con recurrence=none). Solo se modifican los campos enviados; enviar null limpia el valor. Antes de reescribir la descripción, léela con get-task-tool.')]
+#[Description('Actualiza una tarea existente: título, descripción markdown (reemplazar o añadir al final), referencias externas (añadir o quitar), categoría, prioridad, tamaño, fechas, tiempo estimado, privacidad y recurrencia (asignarla, cambiarla o quitarla con recurrence=none). Solo se modifican los campos enviados; enviar null limpia el valor. Antes de reescribir la descripción, léela con get-task-tool.')]
 class UpdateTaskTool extends Tool
 {
     use InteractsWithTaskFields;
@@ -23,6 +23,10 @@ class UpdateTaskTool extends Tool
             'task_id' => ['required', 'string'],
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'append_description' => ['nullable', 'string'],
+            'remove_external_refs' => ['nullable', 'array', 'max:20'],
+            'remove_external_refs.*.provider' => ['required', 'string', 'max:40'],
+            'remove_external_refs.*.type' => ['required', 'string', 'max:40'],
+            'remove_external_refs.*.id' => ['required', 'string', 'max:255'],
             ...$this->fieldRules(),
         ]);
 
@@ -45,6 +49,13 @@ class UpdateTaskTool extends Tool
         if (filled($data['append_description'] ?? null)) {
             $current = rtrim((string) (array_key_exists('description', $attributes) ? $attributes['description'] : $task->description));
             $attributes['description'] = ltrim($current."\n\n".trim($data['append_description']));
+        }
+
+        if (filled($data['add_external_refs'] ?? null) || filled($data['remove_external_refs'] ?? null)) {
+            $attributes['external_refs'] = $task->mergeExternalRefs(
+                $data['add_external_refs'] ?? [],
+                $data['remove_external_refs'] ?? [],
+            );
         }
 
         if ($attributes === []) {
@@ -80,6 +91,7 @@ class UpdateTaskTool extends Tool
                 ->description('Reemplaza toda la descripción markdown. Para agregar sin perder lo existente usa append_description.'),
             'append_description' => $schema->string()
                 ->description('Markdown que se añade al final de la descripción actual (notas, subtareas "- [ ] ...").'),
+            'remove_external_refs' => $this->externalRefsSchema($schema, 'Referencias externas a quitar (por provider + type + id).', false),
         ];
     }
 }

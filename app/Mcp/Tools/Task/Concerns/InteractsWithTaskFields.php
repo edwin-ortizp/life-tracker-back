@@ -36,7 +36,30 @@ trait InteractsWithTaskFields
             'recurrence' => ['nullable', 'string', Rule::in(['none', ...TaskRecurrenceService::PATTERNS])],
             'recurrence_interval' => ['nullable', 'integer', 'min:1', 'max:365'],
             'rrule' => ['nullable', 'string', 'max:255'],
+            'add_external_refs' => ['nullable', 'array', 'max:20'],
+            'add_external_refs.*.provider' => ['required', 'string', 'max:40'],
+            'add_external_refs.*.type' => ['required', 'string', 'max:40'],
+            'add_external_refs.*.id' => ['required', 'string', 'max:255'],
+            'add_external_refs.*.url' => ['nullable', 'string', 'max:2048'],
+            'add_external_refs.*.label' => ['nullable', 'string', 'max:255'],
         ];
+    }
+
+    /** Esquema de un arreglo de referencias externas. */
+    protected function externalRefsSchema(JsonSchema $schema, string $description, bool $withDetails = true): mixed
+    {
+        $properties = [
+            'provider' => $schema->string()->description('Sistema externo en minúsculas: jira, google_calendar, gesthor...')->required(),
+            'type' => $schema->string()->description('Tipo de elemento: issue, event, task...')->required(),
+            'id' => $schema->string()->description('Identificador en ese sistema, p. ej. "SGX-323".')->required(),
+        ];
+
+        if ($withDetails) {
+            $properties['url'] = $schema->string()->description('Enlace opcional al elemento.');
+            $properties['label'] = $schema->string()->description('Etiqueta opcional.');
+        }
+
+        return $schema->array()->items($schema->object($properties))->description($description);
     }
 
     /** Busca la categoría por key o por nombre (sin distinguir mayúsculas). */
@@ -142,6 +165,7 @@ trait InteractsWithTaskFields
                 ->description('Cada cuántos días/semanas/meses se repite (por defecto 1).'),
             'rrule' => $schema->string()
                 ->description('Regla iCalendar avanzada, p. ej. "FREQ=WEEKLY;BYDAY=MO,TH" o "FREQ=MONTHLY;BYMONTHDAY=5". Tiene prioridad sobre recurrence.'),
+            'add_external_refs' => $this->externalRefsSchema($schema, 'Referencias a elementos equivalentes en sistemas externos (p. ej. [{"provider":"jira","type":"issue","id":"SGX-323"}]). No se duplican; Life Tracker no se conecta a esos sistemas.'),
         ];
     }
 }

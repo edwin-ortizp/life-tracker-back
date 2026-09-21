@@ -11,7 +11,7 @@ use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Devuelve el detalle completo de una tarea: descripción en markdown, progreso de subtareas, categoría, fechas, estimación y recurrencia con la próxima fecha sugerida. Úsala para leer el contenido antes de recomendar, editar o completar una tarea recurrente.')]
+#[Description('Devuelve el detalle completo de una tarea: descripción en markdown, progreso de subtareas, referencias externas, categoría, fechas, estimación y recurrencia con la próxima fecha sugerida. Úsala para leer el contenido antes de recomendar, editar o completar una tarea recurrente.')]
 class GetTaskTool extends Tool
 {
     public function handle(Request $request, TaskRecurrenceService $recurrence): Response|ResponseFactory
@@ -33,6 +33,7 @@ class GetTaskTool extends Tool
             'title' => $task->title,
             'description' => $task->description,
             'subtasks' => $task->subtask_progress,
+            'external_refs' => $task->external_refs ?? [],
             'category' => $task->category,
             'category_name' => $category?->name,
             'priority' => $task->priority,
@@ -50,6 +51,7 @@ class GetTaskTool extends Tool
                 'suggested_next_date' => $task->completed ? null : $recurrence->suggestedNextDate($task)->toDateString(),
             ] : null,
             'created_at' => $task->created_at?->toIso8601String(),
+            'updated_at' => $task->updated_at?->toIso8601String(),
         ]);
     }
 

@@ -164,4 +164,95 @@ class LifeTrackerTaskMcpTest extends TestCase
         $this->assertSame('hogar', $task->fresh()->category);
         $this->assertFalse(TaskCategory::withoutGlobalScopes()->where('user_id', $user->id)->where('key', 'compras')->exists());
     }
+
+    public function test_update_task_adds_and_removes_external_refs_without_duplicates(): void
+    {
+        $user = $this->userWithCategories();
+        $task = $this->taskFor($user);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(UpdateTaskTool::class, [
+                'task_id' => $task->id,
+                'add_external_refs' => [
+                    ['provider' => 'Jira', 'type' => 'issue', 'id' => 'sgx-323'],
+                    ['provider' => 'gesthor', 'type' => 'task', 'id' => 'G-1'],
+                ],
+            ])
+            ->assertOk();
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(UpdateTaskTool::class, [
+                'task_id' => $task->id,
+                'add_external_refs' => [['provider' => 'jira', 'type' => 'issue', 'id' => 'SGX-323', 'url' => 'https://jira/SGX-323']],
+                'remove_external_refs' => [['provider' => 'gesthor', 'type' => 'task', 'id' => 'G-1']],
+            ])
+            ->assertOk();
+
+        $this->assertSame(
+            [['provider' => 'jira', 'type' => 'issue', 'id' => 'SGX-323', 'url' => 'https://jira/SGX-323']],
+            $task->fresh()->external_refs,
+        );
+    }
+
+    public function test_create_task_accepts_external_refs(): void
+    {
+        $user = $this->userWithCategories();
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(CreateTaskTool::class, [
+                'title' => 'Revisar listas de precios',
+                'add_external_refs' => [['provider' => 'jira', 'type' => 'issue', 'id' => 'SGX-10']],
+            ])
+            ->assertOk();
+
+        $task = Task::withoutGlobalScopes()->where('user_id', $user->id)->firstOrFail();
+        $this->assertSame([['provider' => 'jira', 'type' => 'issue', 'id' => 'SGX-10']], $task->external_refs);
+    }
+
+    public function test_list_tasks_finds_exact_external_ref(): void
+    {
+        $user = $this->userWithCategories();
+        $this->taskFor($user, ['title' => 'Listas de precios', 'external_refs' => [['provider' => 'jira', 'type' => 'issue', 'id' => 'SGX-323']]]);
+        $this->taskFor($user, ['title' => 'Otra', 'external_refs' => [['provider' => 'jira', 'type' => 'issue', 'id' => 'SGX-3230']]]);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(ListTasksTool::class, ['external_ref' => 'sgx-323'])
+            ->assertOk()
+            ->assertSee('Listas de precios')
+            ->assertDontSee('Otra');
+    }
+
+    public function test_list_tasks_search_includes_description(): void
+    {
+        $user = $this->userWithCategories();
+        $this->taskFor($user, ['title' => 'Terminar diagrama', 'description' => 'BPMN del ciclo de factura']);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(ListTasksTool::class, ['search' => 'ciclo de factura'])
+            ->assertOk()
+            ->assertSee('Terminar diagrama');
+    }
+
+    public function test_list_tasks_filters_by_updated_since(): void
+    {
+        $user = $this->userWithCategories();
+        $old = $this->taskFor($user, ['title' => 'Tarea vieja']);
+        $old->timestamps = false;
+        $old->forceFill(['updated_at' => now()->subDays(10)])->save();
+        $this->taskFor($user, ['title' => 'Tarea reciente']);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(ListTasksTool::class, ['updated_since' => now()->subDay()->toDateString()])
+            ->assertOk()
+            ->assertSee('Tarea reciente')
+            ->assertDontSee('Tarea vieja');
+    }
+
+    public function test_follow_up_lines_do_not_count_as_subtasks(): void
+    {
+        $user = $this->userWithCategories();
+        $task = $this->taskFor($user, ['description' => "Contexto.\n\n## Pendientes\n\n- [x] Reunión\n- [ ] Ajustar alternativas\n\n## Seguimiento\n\n- 21 sep 2026 · 10:30 — Reunión realizada.\n- 20 sep 2026 — Primera versión."]);
+
+        $this->assertSame(['completed' => 1, 'total' => 2], $task->subtask_progress);
+    }
 }

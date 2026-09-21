@@ -37,6 +37,7 @@ class CreateTaskTool extends Tool
             'title' => trim($data['title']),
             'is_private' => false,
             ...$attributes,
+            'external_refs' => (new Task)->mergeExternalRefs($data['add_external_refs'] ?? []),
         ]);
 
         $message = "Tarea creada: \"{$task->title}\" (id: {$task->id}).";

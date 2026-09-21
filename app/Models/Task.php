@@ -21,6 +21,7 @@ class Task extends Model
         'caldav_revision',
         'title',
         'description',
+        'external_refs',
         'completed',
         'completed_at',
         'completion_xp',
@@ -58,6 +59,7 @@ class Task extends Model
             'timer_active' => 'boolean',
             'estimated_time' => 'integer',
             'recurrence' => 'array',
+            'external_refs' => 'array',
             'caldav_revision' => 'integer',
             'start_is_date' => 'boolean',
             'end_is_date' => 'boolean',
@@ -84,6 +86,64 @@ class Task extends Model
         $completed = count(array_filter($matches[1], fn ($m) => strtolower($m) === 'x'));
 
         return ['completed' => $completed, 'total' => $total];
+    }
+
+    /**
+     * Normaliza una referencia externa: provider/type en minúsculas y, para Jira, la clave en mayúsculas.
+     *
+     * @return array{provider: string, type: string, id: string, url?: string, label?: string}
+     */
+    public static function normalizeExternalRef(array $ref): array
+    {
+        $provider = mb_strtolower(trim((string) ($ref['provider'] ?? '')));
+        $id = trim((string) ($ref['id'] ?? ''));
+
+        return array_filter([
+            'provider' => $provider,
+            'type' => mb_strtolower(trim((string) ($ref['type'] ?? ''))),
+            'id' => $provider === 'jira' ? mb_strtoupper($id) : $id,
+            'url' => filled($ref['url'] ?? null) ? trim($ref['url']) : null,
+            'label' => filled($ref['label'] ?? null) ? trim($ref['label']) : null,
+        ], fn ($value) => $value !== null);
+    }
+
+    /** Añade y quita referencias externas sin duplicar la combinación provider+type+id. */
+    public function mergeExternalRefs(array $add = [], array $remove = []): ?array
+    {
+        $key = fn (array $ref) => $ref['provider'].'|'.$ref['type'].'|'.mb_strtolower($ref['id']);
+        $refs = collect($this->external_refs ?? [])->keyBy($key);
+
+        foreach ($remove as $ref) {
+            $refs->forget($key(static::normalizeExternalRef($ref)));
+        }
+
+        foreach ($add as $ref) {
+            $ref = static::normalizeExternalRef($ref);
+            $refs->put($key($ref), [...($refs->get($key($ref)) ?? []), ...$ref]);
+        }
+
+        return $refs->isEmpty() ? null : $refs->values()->all();
+    }
+
+    /** Filtra tareas que tengan una referencia externa con ese id (y opcionalmente proveedor). */
+    public function scopeWithExternalRef(Builder $query, string $id, ?string $provider = null): Builder
+    {
+        $id = trim($id);
+        // Prefiltro portable (MySQL y SQLite) por texto; la coincidencia exacta se valida después.
+        $query->where('external_refs', 'like', '%'.addcslashes($id, '%_').'%');
+
+        if ($provider) {
+            $query->where('external_refs', 'like', '%'.addcslashes(mb_strtolower($provider), '%_').'%');
+        }
+
+        return $query;
+    }
+
+    public function hasExternalRef(string $id, ?string $provider = null): bool
+    {
+        return collect($this->external_refs ?? [])->contains(fn ($ref) =>
+            mb_strtolower($ref['id'] ?? '') === mb_strtolower(trim($id))
+            && (! $provider || ($ref['provider'] ?? null) === mb_strtolower($provider)));
     }
 
     public function getEstimatedTimeLabelAttribute(): ?string
