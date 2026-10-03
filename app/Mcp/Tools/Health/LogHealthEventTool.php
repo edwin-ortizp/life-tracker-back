@@ -28,6 +28,7 @@ class LogHealthEventTool extends Tool
             'body_areas' => ['nullable', 'string', 'max:500'],
             'provider' => ['nullable', 'string', 'max:120'],
             'facility' => ['nullable', 'string', 'max:120'],
+            'is_sensitive' => ['nullable', 'boolean'],
         ]);
 
         $areas = array_values(array_unique(array_filter(array_map('trim', explode(',', $data['body_areas'] ?? '')))));
@@ -46,6 +47,7 @@ class LogHealthEventTool extends Tool
             'title' => trim($data['title']),
             'event_date' => $data['event_date'],
             'notes' => $data['notes'] ?? null,
+            'is_sensitive' => (bool) ($data['is_sensitive'] ?? false),
             'details' => array_filter([
                 'body_areas' => in_array($data['type'], HealthEvent::BODY_AREA_TYPES, true) && $areas !== [] ? $areas : null,
                 'provider' => trim($data['provider'] ?? '') ?: null,
@@ -86,6 +88,8 @@ class LogHealthEventTool extends Tool
                 ->description('Profesional o cirujano (citas, chequeos y procedimientos).'),
             'facility' => $schema->string()
                 ->description('Centro o clínica (citas, chequeos y procedimientos).'),
+            'is_sensitive' => $schema->boolean()
+                ->description('Marca el evento como íntimo: las consultas amplias lo omiten salvo que se pida explícitamente.'),
         ];
     }
 }

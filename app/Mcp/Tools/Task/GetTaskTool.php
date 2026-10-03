@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Tools\Task;
 
+use App\Models\Task;
 use App\Services\TaskRecurrenceService;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\Auth;
@@ -50,9 +51,24 @@ class GetTaskTool extends Tool
                 'rule' => $task->recurrence,
                 'suggested_next_date' => $task->completed ? null : $recurrence->suggestedNextDate($task)->toDateString(),
             ] : null,
+            'linked' => $this->linked($task),
             'created_at' => $task->created_at?->toIso8601String(),
             'updated_at' => $task->updated_at?->toIso8601String(),
         ]);
+    }
+
+    /** Personas, eventos de salud y metas vinculados (link-task-tool). */
+    private function linked(Task $task): ?array
+    {
+        $task->loadMissing(['relationships', 'healthEvents', 'goals']);
+
+        $linked = array_filter([
+            'contacts' => $task->relationships->map(fn ($person) => ['id' => $person->id, 'name' => $person->displayName()])->all(),
+            'health_events' => $task->healthEvents->map(fn ($event) => ['id' => $event->id, 'title' => $event->title, 'date' => $event->event_date->toDateString()])->all(),
+            'goals' => $task->goals->map(fn ($goal) => ['id' => $goal->id, 'title' => $goal->title])->all(),
+        ]);
+
+        return $linked ?: null;
     }
 
     public function schema(JsonSchema $schema): array

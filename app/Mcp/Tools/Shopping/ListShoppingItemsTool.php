@@ -10,7 +10,7 @@ use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Lista los ítems de la lista de compras del usuario autenticado (pendientes por comprar), con sus precios por tienda.')]
+#[Description('Lista los ítems pendientes de la lista de compras del usuario con sus precios por tienda. Úsala cuando hable de mercado, compras o antes de agregar un ítem, para no duplicarlo.')]
 class ListShoppingItemsTool extends Tool
 {
     public function handle(Request $request): ResponseFactory

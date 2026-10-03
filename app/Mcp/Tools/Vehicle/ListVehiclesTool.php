@@ -11,7 +11,7 @@ use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Lista los vehículos del usuario autenticado con su estado y rendimiento reciente.')]
+#[Description('Lista los vehículos del usuario con kilometraje, capacidad del tanque, precio reciente del combustible y último rendimiento. Úsala cuando mencione su carro o moto, un viaje en él o gastos de combustible; para el historial de tanqueos y mantenimientos usa list-vehicle-fillups-tool.')]
 class ListVehiclesTool extends Tool
 {
     public function handle(Request $request): ResponseFactory

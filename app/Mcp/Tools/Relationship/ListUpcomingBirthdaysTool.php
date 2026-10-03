@@ -10,7 +10,7 @@ use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Lista los próximos cumpleaños de los contactos del usuario autenticado, ordenados por cercanía.')]
+#[Description('Lista los próximos cumpleaños de los contactos del usuario, ordenados por cercanía. Úsala cuando hable de fechas próximas, regalos o planes con alguien, o al resumir la semana.')]
 class ListUpcomingBirthdaysTool extends Tool
 {
     public function handle(Request $request): ResponseFactory

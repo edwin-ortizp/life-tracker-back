@@ -13,7 +13,7 @@ use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Lista las tareas del usuario autenticado, con filtros opcionales de estado, categoría (o sin categoría), texto (título, descripción y referencias), referencia externa exacta y fecha de última modificación. Para leer la descripción completa de una tarea usa get-task-tool.')]
+#[Description('Lista las tareas del usuario (pendientes por defecto) con filtros de estado, categoría (o sin categoría), texto (título, descripción y referencias), referencia externa exacta y fecha de última modificación. Úsala cuando hable de pendientes, trabajo, un proyecto o qué hizo últimamente (updated_since). Para leer la descripción completa de una tarea usa get-task-tool.')]
 class ListTasksTool extends Tool
 {
     public function handle(Request $request): ResponseFactory

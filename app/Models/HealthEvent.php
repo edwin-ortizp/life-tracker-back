@@ -91,11 +91,11 @@ class HealthEvent extends Model
         'other' => 'Otra enfermedad',
     ];
 
-    protected $fillable = ['type', 'title', 'event_date', 'end_date', 'notes', 'details'];
+    protected $fillable = ['type', 'title', 'event_date', 'end_date', 'notes', 'details', 'is_sensitive'];
 
     protected function casts(): array
     {
-        return ['event_date' => 'date', 'end_date' => 'date', 'details' => 'array'];
+        return ['event_date' => 'date', 'end_date' => 'date', 'details' => 'array', 'is_sensitive' => 'boolean'];
     }
 
     protected static function booted(): void
