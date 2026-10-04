@@ -5,7 +5,7 @@
     </x-slot:actions>
 
     <x-ui.management-card id="meal-ingredients" title="Catálogo de ingredientes" icon="bi-basket" :count="'('.$ingredients->total().' / '.$catalogTotal.')'"
-                          search="search" search-placeholder="Buscar ingredientes" :active-filters="$categoryFilter !== '' ? 1 : 0"
+                          search="search" search-placeholder="Buscar ingredientes" :active-filters="$activeFilters"
                           :paginator="$ingredients" noun="ingredientes" alpine="openMenu: null">
         <x-slot:filters>
             <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros de ingredientes" @click.outside="openMenu = null">
@@ -26,13 +26,69 @@
                     @endforeach
                 </div>
             </div>
+
+            <div class="md-chip-menu" :class="{ 'open': openMenu === 'store' }">
+                <button @click="openMenu = openMenu === 'store' ? null : 'store'"
+                        class="md-chip md-chip-filter {{ $storeFilter ? 'selected' : '' }}">
+                    <i class="bi bi-shop"></i> {{ $storeFilter === '__none' ? 'Sin tienda' : ($storeFilter ?: 'Tienda') }}
+                    <i class="bi bi-chevron-down md-chip-menu__arrow"></i>
+                </button>
+                <div x-show="openMenu === 'store'" x-transition x-cloak class="md-chip-menu__dropdown">
+                    <button wire:click="$set('storeFilter', '')" @click="openMenu = null"
+                            class="md-chip-menu__item {{ $storeFilter === '' ? 'active' : '' }}">Todas</button>
+                    <button wire:click="$set('storeFilter', '__none')" @click="openMenu = null"
+                            class="md-chip-menu__item {{ $storeFilter === '__none' ? 'active' : '' }}">Sin tienda</button>
+                    @foreach ($stores as $store)
+                        <button wire:click="$set('storeFilter', @js($store))" @click="openMenu = null"
+                                class="md-chip-menu__item {{ $storeFilter === $store ? 'active' : '' }}">{{ $store }}</button>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="md-chip-menu" :class="{ 'open': openMenu === 'price' }">
+                <button @click="openMenu = openMenu === 'price' ? null : 'price'"
+                        class="md-chip md-chip-filter {{ $priceFilter ? 'selected' : '' }}">
+                    <i class="bi bi-currency-dollar"></i> {{ ['with' => 'Con precio', 'without' => 'Sin precio'][$priceFilter] ?? 'Precio' }}
+                    <i class="bi bi-chevron-down md-chip-menu__arrow"></i>
+                </button>
+                <div x-show="openMenu === 'price'" x-transition x-cloak class="md-chip-menu__dropdown">
+                    <button wire:click="$set('priceFilter', '')" @click="openMenu = null"
+                            class="md-chip-menu__item {{ $priceFilter === '' ? 'active' : '' }}">Todos</button>
+                    <button wire:click="$set('priceFilter', 'with')" @click="openMenu = null"
+                            class="md-chip-menu__item {{ $priceFilter === 'with' ? 'active' : '' }}">Con precio</button>
+                    <button wire:click="$set('priceFilter', 'without')" @click="openMenu = null"
+                            class="md-chip-menu__item {{ $priceFilter === 'without' ? 'active' : '' }}">Sin precio</button>
+                </div>
+            </div>
+
+            <div class="md-chip-menu" :class="{ 'open': openMenu === 'cart' }">
+                <button @click="openMenu = openMenu === 'cart' ? null : 'cart'"
+                        class="md-chip md-chip-filter {{ $cartFilter ? 'selected' : '' }}">
+                    <i class="bi bi-cart3"></i> {{ ['yes' => 'En la lista', 'no' => 'Fuera de la lista'][$cartFilter] ?? 'Compras' }}
+                    <i class="bi bi-chevron-down md-chip-menu__arrow"></i>
+                </button>
+                <div x-show="openMenu === 'cart'" x-transition x-cloak class="md-chip-menu__dropdown">
+                    <button wire:click="$set('cartFilter', '')" @click="openMenu = null"
+                            class="md-chip-menu__item {{ $cartFilter === '' ? 'active' : '' }}">Todos</button>
+                    <button wire:click="$set('cartFilter', 'yes')" @click="openMenu = null"
+                            class="md-chip-menu__item {{ $cartFilter === 'yes' ? 'active' : '' }}">En la lista</button>
+                    <button wire:click="$set('cartFilter', 'no')" @click="openMenu = null"
+                            class="md-chip-menu__item {{ $cartFilter === 'no' ? 'active' : '' }}">Fuera de la lista</button>
+                </div>
+            </div>
+
+            @if ($activeFilters > 0)
+                <button wire:click="clearFilters" class="md-chip md-chip-assist">
+                    <i class="bi bi-x-lg"></i> Limpiar
+                </button>
+            @endif
             </div>
         </x-slot:filters>
     @if ($grouped->isEmpty())
         <div class="md-card-elevated p-4 text-center">
             <i class="bi bi-basket" style="font-size: 2rem; color: var(--md-sys-color-outline);"></i>
             <p class="md-body-large mt-2" style="color: var(--md-sys-color-on-surface-variant);">
-                {{ $search || $categoryFilter ? 'No se encontraron ingredientes con esos filtros.' : 'Aún no tienes ingredientes. ¡Agrega el primero!' }}
+                {{ $search || $activeFilters ? 'No se encontraron ingredientes con esos filtros.' : 'Aún no tienes ingredientes. ¡Agrega el primero!' }}
             </p>
         </div>
     @else

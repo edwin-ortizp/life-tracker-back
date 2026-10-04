@@ -52,7 +52,29 @@
                     </tr>
                 @endforeach
             </tbody>
+            <tfoot>
+                <tr class="meal-week-grid__totals">
+                    <th scope="row" class="md-label-large meal-week-grid__type">Total del día</th>
+                    @foreach ($weekDates as $date)
+                        @php $dayCalories = $dailyCalories->get($date->format('Y-m-d'), 0); @endphp
+                        <td class="text-center {{ $date->isToday() ? 'is-today' : '' }}">
+                            @if ($dayCalories > 0)
+                                <strong>{{ number_format($dayCalories, 0, ',', '.') }}</strong> <small>kcal</small>
+                            @else
+                                <span class="meal-slot__empty">—</span>
+                            @endif
+                        </td>
+                    @endforeach
+                </tr>
+            </tfoot>
         </table>
+        @if ($plannedDays > 0)
+            <p class="md-body-small meal-week-grid__summary mb-0">
+                Semana: <strong>{{ number_format($weekCalories, 0, ',', '.') }} kcal</strong>
+                · promedio <strong>{{ number_format($weekCalories / $plannedDays, 0, ',', '.') }} kcal/día</strong>
+                en {{ $plannedDays }} {{ $plannedDays === 1 ? 'día planificado' : 'días planificados' }}
+            </p>
+        @endif
     </div>
 
     <template x-if="showDialog">

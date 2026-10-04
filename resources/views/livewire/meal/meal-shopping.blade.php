@@ -49,6 +49,24 @@
             </div>
         </x-slot:filters>
 
+    {{-- Estimated cost of the next purchase --}}
+    @if ($totalItems > 0)
+        <div class="shopping-estimate mb-3">
+            <span class="shopping-estimate__icon"><i class="bi bi-cash-coin"></i></span>
+            <span>
+                <small>Total estimado{{ $placeFilter ? ' en '.$placeFilter : '' }}</small>
+                <strong>${{ number_format($estimatedTotal, 0, ',', '.') }}</strong>
+            </span>
+            <small class="shopping-estimate__note">
+                @if ($unpricedCount > 0)
+                    <i class="bi bi-exclamation-circle"></i> {{ $unpricedCount }} {{ $unpricedCount === 1 ? 'artículo sin precio' : 'artículos sin precio' }}
+                @else
+                    {{ $placeFilter ? 'Precios de esta tienda' : 'Usando el precio más barato de cada artículo' }}
+                @endif
+            </small>
+        </div>
+    @endif
+
     {{-- Needed from meal plan --}}
     @if ($neededItems->isNotEmpty())
         <details class="shopping-needed mb-3">
@@ -123,6 +141,12 @@
                 <span style="font-size: 2rem; font-weight: 700; color: var(--md-sys-color-primary);">{{ $totalItems }}</span>
                 <span class="md-body-small d-block" style="color: var(--md-sys-color-on-surface-variant);">por comprar</span>
             </div>
+            <dl class="md-context-list">
+                <div><dt>Total estimado</dt><dd>${{ number_format($estimatedTotal, 0, ',', '.') }}</dd></div>
+                @if ($unpricedCount > 0)
+                    <div><dt>Sin precio</dt><dd>{{ $unpricedCount }}</dd></div>
+                @endif
+            </dl>
             @if ($neededCount > 0)
                 <dl class="md-context-list">
                     <div><dt>Necesarios (recetas)</dt><dd>{{ $neededCount }}</dd></div>

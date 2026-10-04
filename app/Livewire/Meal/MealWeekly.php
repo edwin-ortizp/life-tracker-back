@@ -246,8 +246,15 @@ class MealWeekly extends Component
         $weekDates = collect(range(0, 6))->map(fn ($day) => $weekStart->copy()->addDays($day));
         $entries = MealPlanEntry::with('items.recipe')
             ->whereBetween('date', [$weekStart->toDateString(), $weekStart->copy()->endOfWeek()->toDateString()])
-            ->get()
-            ->groupBy(fn ($entry) => $entry->date->format('Y-m-d').'|'.$entry->meal_type);
+            ->get();
+
+        // Calorías totales por día, sumando todas las comidas planificadas.
+        $dailyCalories = $entries->groupBy(fn ($entry) => $entry->date->format('Y-m-d'))
+            ->map(fn ($dayEntries) => $dayEntries->sum('effective_calories'));
+        $plannedDays = $dailyCalories->filter()->count();
+        $weekCalories = $dailyCalories->sum();
+
+        $entries = $entries->groupBy(fn ($entry) => $entry->date->format('Y-m-d').'|'.$entry->meal_type);
 
         $selectedRecipeIds = collect($this->formItems)->pluck('recipe_id')->filter();
         $recipeResults = collect();
@@ -264,7 +271,7 @@ class MealWeekly extends Component
         }
 
         return view('livewire.meal.meal-weekly', compact(
-            'weekDates', 'entries', 'weekStart', 'recipeResults'
+            'weekDates', 'entries', 'weekStart', 'recipeResults', 'dailyCalories', 'plannedDays', 'weekCalories'
         ));
     }
 }

@@ -21,6 +21,13 @@
                 <span class="shopping-row__quantity">×{{ $item->to_buy }}</span>
             @endif
 
+            @php $subtotal = $item->estimatedSubtotal($placeFilter ?: null); @endphp
+            @if ($subtotal !== null)
+                <span class="shopping-row__price" title="Subtotal estimado">${{ number_format($subtotal, 0, ',', '.') }}</span>
+            @else
+                <span class="shopping-row__price is-missing" title="Sin precio registrado">sin precio</span>
+            @endif
+
             @if ($neededItemIds->contains($item->id))
                 <span class="shopping-row__recipe" title="Necesario por una receta" aria-label="Necesario por una receta">
                     <i class="bi bi-calendar-week"></i>

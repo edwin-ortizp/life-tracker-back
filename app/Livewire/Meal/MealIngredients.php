@@ -3,6 +3,7 @@
 namespace App\Livewire\Meal;
 
 use App\Models\ShoppingItem;
+use App\Models\ShoppingItemVariant;
 use App\Services\Meal\IngredientImportService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -24,6 +25,18 @@ class MealIngredients extends Component
     #[Url(as: 'category', history: true, keep: true)]
     public string $categoryFilter = '';
 
+    // '' todas, '__none' sin tienda, o el nombre de la tienda.
+    #[Url(as: 'store', history: true, keep: true)]
+    public string $storeFilter = '';
+
+    // '' todos, 'with' con precio, 'without' sin precio.
+    #[Url(as: 'price', history: true, keep: true)]
+    public string $priceFilter = '';
+
+    // '' todos, 'yes' en lista de compras, 'no' fuera de la lista.
+    #[Url(as: 'cart', history: true, keep: true)]
+    public string $cartFilter = '';
+
     public bool $showForm = false;
     public ?string $editingId = null;
 
@@ -43,22 +56,7 @@ class MealIngredients extends Component
     // Alternative names used by the bulk import assistant
     public array $aliases = [];
 
-    public array $categoryOptions = [
-        'frutas_verduras' => 'Frutas y verduras',
-        'carnes' => 'Carnes y pescados',
-        'lacteos' => 'Lácteos y huevos',
-        'panaderia' => 'Panadería',
-        'cereales' => 'Cereales y granos',
-        'enlatados' => 'Enlatados y conservas',
-        'condimentos' => 'Condimentos y salsas',
-        'bebidas' => 'Bebidas',
-        'congelados' => 'Congelados',
-        'snacks' => 'Snacks y dulces',
-        'limpieza' => 'Limpieza',
-        'higiene' => 'Higiene personal',
-        'mascotas' => 'Mascotas',
-        'otros' => 'Otros',
-    ];
+    public array $categoryOptions = ShoppingItem::CATEGORIES;
 
     public function updatedSearch(): void
     {
@@ -67,6 +65,27 @@ class MealIngredients extends Component
 
     public function updatedCategoryFilter(): void
     {
+        $this->resetPage();
+    }
+
+    public function updatedStoreFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPriceFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCartFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset(['categoryFilter', 'storeFilter', 'priceFilter', 'cartFilter']);
         $this->resetPage();
     }
 
@@ -236,7 +255,13 @@ class MealIngredients extends Component
     {
         $base = ShoppingItem::query()
             ->when($this->search, fn($q, $s) => $q->where('name', 'like', "%{$s}%"))
-            ->when($this->categoryFilter, fn($q, $c) => $q->where('category', $c));
+            ->when($this->categoryFilter, fn($q, $c) => $q->where('category', $c))
+            ->when($this->storeFilter === '__none', fn ($q) => $q->whereDoesntHave('variants', fn ($vq) => $vq->whereNotNull('place')))
+            ->when($this->storeFilter !== '' && $this->storeFilter !== '__none', fn ($q) => $q->whereHas('variants', fn ($vq) => $vq->where('place', $this->storeFilter)))
+            ->when($this->priceFilter === 'with', fn ($q) => $q->whereHas('variants', fn ($vq) => $vq->whereNotNull('price')))
+            ->when($this->priceFilter === 'without', fn ($q) => $q->whereDoesntHave('variants', fn ($vq) => $vq->whereNotNull('price')))
+            ->when($this->cartFilter === 'yes', fn ($q) => $q->where('next_purchase', true))
+            ->when($this->cartFilter === 'no', fn ($q) => $q->where('next_purchase', false));
 
         // La página se agrupa por categoría; los totales del resumen siguen calculándose sobre todo el resultado.
         $ingredients = (clone $base)->with('variants')->withCount('variants')
@@ -257,6 +282,8 @@ class MealIngredients extends Component
             'byCategory' => $byCategory,
             'nextPurchaseCount' => $nextPurchaseCount,
             'lowStockCount' => $lowStockCount,
+            'stores' => ShoppingItemVariant::whereNotNull('place')->distinct()->orderBy('place')->pluck('place'),
+            'activeFilters' => collect([$this->categoryFilter, $this->storeFilter, $this->priceFilter, $this->cartFilter])->filter()->count(),
         ]);
     }
 }

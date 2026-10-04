@@ -60,41 +60,48 @@
             </p>
         </div>
     @else
-        <div class="row g-3">
-            @foreach ($recipes as $recipe)
-                <div class="col-12 col-sm-6 col-lg-4">
-                    <div class="md-card-elevated p-3 h-100" style="cursor: pointer;" wire:click="openForm('{{ $recipe->id }}')">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h3 class="md-title-medium mb-0" style="color: var(--md-sys-color-on-surface);">{{ $recipe->name }}</h3>
-                            <button wire:click.stop="toggleFavorite('{{ $recipe->id }}')" class="md-btn-icon md-btn-icon--small">
+        <table class="md-table md-table--stack">
+            <thead>
+                <tr>
+                    <th scope="col">Receta</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Dificultad</th>
+                    <th scope="col">Tiempo</th>
+                    <th scope="col">Ingredientes</th>
+                    <th scope="col">Calorías</th>
+                    <th scope="col" class="md-table__actions"><span class="visually-hidden">Acciones</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($recipes as $recipe)
+                    <tr wire:key="recipe-{{ $recipe->id }}">
+                        <td class="md-table__title">
+                            <button wire:click="toggleFavorite('{{ $recipe->id }}')" class="md-btn-icon md-btn-icon--small"
+                                    title="{{ $recipe->favorite ? 'Quitar de favoritos' : 'Marcar como favorita' }}"
+                                    aria-label="{{ $recipe->favorite ? 'Quitar de favoritos' : 'Marcar como favorita' }}">
                                 <i class="bi bi-heart{{ $recipe->favorite ? '-fill' : '' }}" style="{{ $recipe->favorite ? 'color: var(--md-sys-color-error);' : '' }}"></i>
                             </button>
-                        </div>
-
-                        <div class="d-flex flex-wrap gap-1 mb-2">
-                            <span class="md-chip md-chip--small">{{ $this->mealTypes[$recipe->meal_type] ?? $recipe->meal_type }}</span>
-                            <span class="md-chip md-chip--small">{{ $this->difficulties[$recipe->difficulty] ?? $recipe->difficulty }}</span>
-                            @if ($recipe->prep_time)
-                                <span class="md-chip md-chip--small"><i class="bi bi-clock"></i> {{ $recipe->prep_time }} min</span>
-                            @endif
-                        </div>
-
-                        @if ($recipe->description)
-                            <p class="md-body-small mb-2" style="color: var(--md-sys-color-on-surface-variant); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                {{ $recipe->description }}
-                            </p>
-                        @endif
-
-                        <div class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);">
-                            <i class="bi bi-basket"></i> {{ $recipe->recipe_ingredients_count }} ingredientes
-                            @if ($recipe->nutrition && isset($recipe->nutrition['calories']))
-                                &middot; {{ $recipe->nutrition['calories'] }} kcal
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
+                            <a href="#" wire:click.prevent="openForm('{{ $recipe->id }}')" class="md-link">{{ $recipe->name }}</a>
+                            @if ($recipe->description)<span class="md-table__meta">{{ \Illuminate\Support\Str::limit($recipe->description, 90) }}</span>@endif
+                        </td>
+                        <td><span class="md-chip md-chip--small">{{ $this->mealTypes[$recipe->meal_type] ?? $recipe->meal_type }}</span></td>
+                        <td><span class="md-chip md-chip--small">{{ $this->difficulties[$recipe->difficulty] ?? $recipe->difficulty }}</span></td>
+                        <td class="md-table__nowrap">{{ $recipe->prep_time ? $recipe->prep_time.' min' : '—' }}</td>
+                        <td class="md-table__nowrap">{{ $recipe->recipe_ingredients_count }}</td>
+                        <td class="md-table__nowrap">{{ isset($recipe->nutrition['calories']) ? number_format((float) $recipe->nutrition['calories'], 0, ',', '.').' kcal' : '—' }}</td>
+                        <td class="md-table__actions">
+                            <x-ui.row-actions :label="'Más acciones de la receta '.$recipe->name">
+                                <x-slot:primary wire:click="openForm('{{ $recipe->id }}')">Editar</x-slot:primary>
+                                <x-ui.menu-item icon="bi-heart" wire:click="toggleFavorite('{{ $recipe->id }}')">{{ $recipe->favorite ? 'Quitar de favoritos' : 'Marcar como favorita' }}</x-ui.menu-item>
+                                <x-ui.menu-divider />
+                                <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete('{{ $recipe->id }}')"
+                                                wire:confirm="La receta se elimina de forma permanente.">Eliminar</x-ui.menu-item>
+                            </x-ui.row-actions>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
     @endif
     </x-ui.management-card>
 

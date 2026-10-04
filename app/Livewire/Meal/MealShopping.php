@@ -31,22 +31,7 @@ class MealShopping extends Component
     #[Url(as: 'view', history: true, keep: true)]
     public string $viewMode = 'compact'; // 'compact' or 'grouped'
 
-    public array $categoryOptions = [
-        'frutas_verduras' => 'Frutas y verduras',
-        'carnes' => 'Carnes y pescados',
-        'lacteos' => 'Lácteos y huevos',
-        'panaderia' => 'Panadería',
-        'cereales' => 'Cereales y granos',
-        'enlatados' => 'Enlatados y conservas',
-        'condimentos' => 'Condimentos y salsas',
-        'bebidas' => 'Bebidas',
-        'congelados' => 'Congelados',
-        'snacks' => 'Snacks y dulces',
-        'limpieza' => 'Limpieza',
-        'higiene' => 'Higiene personal',
-        'mascotas' => 'Mascotas',
-        'otros' => 'Otros',
-    ];
+    public array $categoryOptions = ShoppingItem::CATEGORIES;
 
     public bool $showForm = false;
 
@@ -181,6 +166,12 @@ class MealShopping extends Component
             ->when($this->placeFilter, fn ($q, $p) => $q->whereHas('variants', fn ($vq) => $vq->where('place', $p)))
             ->orderBy('name');
 
+        // El total estimado se calcula sobre toda la lista, no solo la página visible.
+        $place = $this->placeFilter ?: null;
+        $allItems = (clone $query)->get();
+        $estimatedTotal = $allItems->sum(fn ($item) => $item->estimatedSubtotal($place) ?? 0);
+        $unpricedCount = $allItems->filter(fn ($item) => $item->estimatedPrice($place) === null)->count();
+
         // Paginación de la Card de gestión: se agrupa la página visible.
         $items = $query->paginate($this->perPage());
         $pageItems = $items->getCollection();
@@ -248,6 +239,8 @@ class MealShopping extends Component
             'places' => $places,
             'totalItems' => $items->total(),
             'neededCount' => $neededCount,
+            'estimatedTotal' => $estimatedTotal,
+            'unpricedCount' => $unpricedCount,
             'catalogNames' => auth()->user()->shoppingItems()->orderBy('name')->pluck('name'),
         ]);
     }
