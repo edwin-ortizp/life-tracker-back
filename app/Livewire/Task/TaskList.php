@@ -338,7 +338,8 @@ class TaskList extends Component
 
     public function delete(string $id)
     {
-        Task::where('id', $id)->delete();
+        // Por modelo, no masivo: así corren el observer de CalDAV y la limpieza de vínculos.
+        Task::query()->find($id)?->delete();
     }
 
     private function resetForm()

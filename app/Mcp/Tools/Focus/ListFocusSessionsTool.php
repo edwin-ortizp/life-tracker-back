@@ -64,6 +64,7 @@ class ListFocusSessionsTool extends Tool
             ],
             'by_day' => $days->all(),
             'sessions' => empty($data['include_sessions']) ? null : $sessions->take(60)->map(fn (PomodoroSession $session) => McpOutput::compact([
+                'id' => $session->id,
                 'date' => $session->date->toDateString(),
                 'start' => isset($session->start_time['timestamp']) ? Carbon::createFromTimestamp($session->start_time['timestamp'], $timezone)->format('H:i') : null,
                 'end' => isset($session->end_time['timestamp']) ? Carbon::createFromTimestamp($session->end_time['timestamp'], $timezone)->format('H:i') : null,

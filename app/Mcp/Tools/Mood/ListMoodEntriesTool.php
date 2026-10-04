@@ -63,6 +63,7 @@ class ListMoodEntriesTool extends Tool
                     ->sortByDesc('count')->take(5)->values()->all(),
             ],
             'entries' => ! empty($data['summary_only']) ? null : $entries->take($data['limit'] ?? 60)->map(fn (MoodEntry $entry) => [
+                'id' => $entry->id,
                 'date' => $entry->date->toDateString(),
                 'time' => $entry->time,
                 'emotion' => trim($entry->emoji.' '.$entry->text),

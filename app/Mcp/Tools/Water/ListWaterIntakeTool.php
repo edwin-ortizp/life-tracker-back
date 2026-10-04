@@ -46,6 +46,7 @@ class ListWaterIntakeTool extends Tool
             ->limit(100)
             ->get()
             ->map(fn (DrinkLog $log) => [
+                'id' => $log->id,
                 'date' => $log->date->toDateString(),
                 'time' => $log->time,
                 'drink' => $log->drinkType?->name ?? $log->drink_type,

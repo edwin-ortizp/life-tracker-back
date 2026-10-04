@@ -45,6 +45,7 @@ class ListEnergyEntriesTool extends Tool
                 ->map(fn ($day, $date) => ['date' => $date, 'average_level' => round($day->avg('level'), 2), 'entries' => $day->count()])
                 ->values()->all(),
             'entries' => ! empty($data['summary_only']) ? null : $entries->take(60)->map(fn (EnergyEntry $entry) => [
+                'id' => $entry->id,
                 'date' => $entry->date->toDateString(),
                 'time' => $entry->time,
                 'level' => (int) $entry->level,

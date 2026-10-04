@@ -53,6 +53,7 @@ class ListNegativeHabitsTool extends Tool
                     'last_on' => $lastAt?->toDateString(),
                     'days_since_last' => $lastAt ? (int) $lastAt->copy()->startOfDay()->diffInDays(Carbon::today($timezone)) : null,
                     'logs' => empty($data['include_logs']) || $current->isEmpty() ? null : $current->take(30)->map(fn (NegativeHabitLog $log) => McpOutput::compact([
+                        'id' => $log->id,
                         'at' => Carbon::createFromTimestamp((int) $log->timestamp, $timezone)->format('Y-m-d H:i'),
                         'note' => $log->note,
                     ]))->values()->all(),

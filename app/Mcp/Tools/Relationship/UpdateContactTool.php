@@ -11,7 +11,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Actualiza datos de un contacto existente: nombre, apodo, círculo, cumpleaños, ocupación, dirección, ciudad, documento o notas. Para teléfonos, correos y redes usa add-contact-method-tool y remove-contact-method-tool.')]
+#[Description('Actualiza datos de un contacto existente: nombre, apodo, círculo, cumpleaños, ocupación, dirección, ciudad, documento o notas; también lo archiva o registra que hablaron hoy. Para teléfonos, correos y redes usa add-contact-method-tool y remove-contact-method-tool.')]
 class UpdateContactTool extends Tool
 {
     use ResolvesContact;
@@ -41,6 +41,8 @@ class UpdateContactTool extends Tool
             'city' => ['sometimes', 'nullable', 'string', 'max:120'],
             'document_type' => ['sometimes', 'nullable', 'string', 'in:'.implode(',', array_keys(Relationship::DOCUMENT_TYPES))],
             'document_number' => ['sometimes', 'nullable', 'string', 'max:40'],
+            'archived' => ['sometimes', 'nullable', 'boolean'],
+            'mark_contacted' => ['sometimes', 'nullable', 'boolean'],
         ]);
 
         $relationship = $this->resolveContact($data['contact_id'] ?? null, $data['name'] ?? null);
@@ -71,6 +73,15 @@ class UpdateContactTool extends Tool
             $updates['circle_id'] = $circleId;
         }
 
+        if (isset($data['archived'])) {
+            $updates['is_archived'] = (bool) $data['archived'];
+            $updates['archived_at'] = $data['archived'] ? now() : null;
+        }
+
+        if (! empty($data['mark_contacted'])) {
+            $updates['last_contact_at'] = now();
+        }
+
         if ($updates === []) {
             return Response::error('No se indicó ningún campo para actualizar.');
         }
@@ -90,6 +101,10 @@ class UpdateContactTool extends Tool
     public function schema(JsonSchema $schema): array
     {
         return [
+            'archived' => $schema->boolean()
+                ->description('true archiva el contacto (deja de aparecer en listas y búsquedas); false lo restaura.'),
+            'mark_contacted' => $schema->boolean()
+                ->description('true registra que el usuario habló con esta persona hoy (última vez en contacto).'),
             'contact_id' => $schema->string()
                 ->description('Identificador (UUID) del contacto. Alternativa a "name".'),
             'name' => $schema->string()

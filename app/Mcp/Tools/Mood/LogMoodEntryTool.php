@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Tools\Mood;
 
+use App\Mcp\Tools\Relationship\Concerns\ResolvesContact;
 use App\Models\MoodState;
 use App\Support\MoodLogger;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -14,6 +15,8 @@ use Laravel\Mcp\Server\Tool;
 #[Description('Registra un estado de ánimo del usuario autenticado, eligiendo de su catálogo de emociones por id o por texto/emoji aproximado.')]
 class LogMoodEntryTool extends Tool
 {
+    use ResolvesContact;
+
     public function handle(Request $request, MoodLogger $logger): Response
     {
         $data = $request->validate([
@@ -22,7 +25,18 @@ class LogMoodEntryTool extends Tool
             'date' => ['nullable', 'date'],
             'intensity' => ['nullable', 'integer', 'between:1,5'],
             'situation' => ['nullable', 'string', 'max:500'],
+            'people' => ['nullable', 'array', 'max:10'],
+            'people.*' => ['string', 'max:120'],
         ]);
+
+        $people = [];
+        foreach ($data['people'] ?? [] as $name) {
+            $person = $this->resolveContact(null, $name);
+            if ($person instanceof Response) {
+                return $person;
+            }
+            $people[$person->id] = $person->displayName();
+        }
 
         $state = $this->resolveMoodState($data['mood_state_id'] ?? null, $data['mood'] ?? null);
         if ($state instanceof Response) {
@@ -40,7 +54,12 @@ class LogMoodEntryTool extends Tool
             $entry->update($context);
         }
 
-        return Response::text("Ánimo registrado: {$entry->emoji} {$entry->text} el {$entry->date->toDateString()}.");
+        if ($people !== []) {
+            $entry->syncRelationships(array_keys($people));
+        }
+
+        return Response::text("Ánimo registrado: {$entry->emoji} {$entry->text} el {$entry->date->toDateString()}"
+            .($people !== [] ? ', con '.implode(', ', $people) : '').'.');
     }
 
     private function resolveMoodState(?string $moodStateId, ?string $mood): MoodState|Response
@@ -85,6 +104,8 @@ class LogMoodEntryTool extends Tool
                 ->description('Intensidad del ánimo (1-5).'),
             'situation' => $schema->string()
                 ->description('Breve contexto o situación asociada.'),
+            'people' => $schema->array()->items($schema->string())
+                ->description('Personas relacionadas con esta emoción (nombre, apodo o alias). Así aparece en el contexto de esa persona.'),
         ];
     }
 }

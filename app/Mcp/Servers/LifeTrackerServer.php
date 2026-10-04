@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Servers;
 
+use App\Mcp\Tools\Common\DeleteEntryTool;
 use App\Mcp\Tools\Context\GetHealthContextTool;
 use App\Mcp\Tools\Context\GetPersonContextTool;
 use App\Mcp\Tools\Context\GetRecentActivityTool;
@@ -26,6 +27,7 @@ use App\Mcp\Tools\Meal\CreateRecipeTool;
 use App\Mcp\Tools\Meal\ListMealPlanTool;
 use App\Mcp\Tools\Meal\ListRecipesTool;
 use App\Mcp\Tools\Meal\PlanMealTool;
+use App\Mcp\Tools\Meal\UpdateRecipeTool;
 use App\Mcp\Tools\Mood\ListEnergyEntriesTool;
 use App\Mcp\Tools\Mood\ListMoodEntriesTool;
 use App\Mcp\Tools\Mood\LogEnergyEntryTool;
@@ -47,6 +49,7 @@ use App\Mcp\Tools\Relationship\ListUpcomingBirthdaysTool;
 use App\Mcp\Tools\Relationship\LogRelationshipEventTool;
 use App\Mcp\Tools\Relationship\RemoveContactMethodTool;
 use App\Mcp\Tools\Relationship\UpdateContactTool;
+use App\Mcp\Tools\Relationship\UpdateRelationshipEventTool;
 use App\Mcp\Tools\Shopping\AddShoppingItemTool;
 use App\Mcp\Tools\Shopping\ListShoppingItemsTool;
 use App\Mcp\Tools\Shopping\RemoveShoppingItemTool;
@@ -63,6 +66,7 @@ use App\Mcp\Tools\Vehicle\ListVehicleFillupsTool;
 use App\Mcp\Tools\Vehicle\ListVehiclesTool;
 use App\Mcp\Tools\Vehicle\LogVehicleExpenseTool;
 use App\Mcp\Tools\Vehicle\LogVehicleFillupTool;
+use App\Mcp\Tools\Vehicle\LogVehicleMaintenanceTool;
 use App\Mcp\Tools\Water\ListWaterIntakeTool;
 use App\Mcp\Tools\Water\LogWaterIntakeTool;
 use Laravel\Mcp\Server;
@@ -71,7 +75,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Version;
 
 #[Name('Life Tracker')]
-#[Version('0.8.0')]
+#[Version('0.9.0')]
 #[Instructions(<<<'TXT'
 Life Tracker es la fuente de verdad de la vida personal del usuario: personas y relaciones, planes y lugares, salud, ánimo, energía, ejercicio, hidratación, hábitos (positivos y negativos), metas, diario, comidas y recetas, tiempo de foco, tareas, compras y vehículos. Úsalo como contexto para responder con su historia real, no solo cuando pida registrar o consultar algo. Todo queda restringido a los datos del usuario autenticado.
 
@@ -110,6 +114,7 @@ Los eventos de salud y de personas marcados como sensibles se omiten por defecto
 
 ## Al escribir
 Antes de crear un contacto, plan, tarea, meta, receta o evento, busca si ya existe para no duplicarlo. Escribe en el diario solo cuando el usuario lo pida y con sus palabras. Si el usuario no pidió registrar algo de forma explícita, confirma en una línea lo que vas a guardar. Vincula con link-task-tool las tareas que nacen de una persona o de un evento de salud.
+Para corregir un error, prefiere las herramientas update-*; si hay que borrar, usa delete-entry-tool solo cuando el usuario lo pida: primero sin confirm para mostrarle qué se borraría y luego con confirm=true tras su confirmación.
 TXT)]
 class LifeTrackerServer extends Server
 {
@@ -135,6 +140,7 @@ class LifeTrackerServer extends Server
         ListContactsTool::class,
         LogRelationshipEventTool::class,
         ListRelationshipEventsTool::class,
+        UpdateRelationshipEventTool::class,
         GetPersonContextTool::class,
         ListUpcomingBirthdaysTool::class,
         AddContactAliasTool::class,
@@ -150,6 +156,7 @@ class LifeTrackerServer extends Server
         ListVehiclesTool::class,
         ListVehicleFillupsTool::class,
         LogVehicleExpenseTool::class,
+        LogVehicleMaintenanceTool::class,
         AddShoppingItemTool::class,
         UpdateShoppingItemTool::class,
         RemoveShoppingItemTool::class,
@@ -163,6 +170,7 @@ class LifeTrackerServer extends Server
         LogWaterIntakeTool::class,
         ListWaterIntakeTool::class,
         GetRecentActivityTool::class,
+        DeleteEntryTool::class,
         ListGoalsTool::class,
         CreateGoalTool::class,
         UpdateGoalTool::class,
@@ -173,6 +181,7 @@ class LifeTrackerServer extends Server
         PlanMealTool::class,
         ListRecipesTool::class,
         CreateRecipeTool::class,
+        UpdateRecipeTool::class,
         ListNegativeHabitsTool::class,
         LogNegativeHabitTool::class,
         ListFocusSessionsTool::class,

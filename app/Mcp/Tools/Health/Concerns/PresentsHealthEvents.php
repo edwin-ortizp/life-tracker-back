@@ -98,6 +98,7 @@ trait PresentsHealthEvents
             'is_sensitive' => $event->is_sensitive ? true : null,
             'notes' => $full ? $event->notes : McpOutput::excerpt($event->notes, 200),
             'follow_ups' => $logs->isEmpty() ? null : $logs->sortByDesc('date')->take($followUps)->map(fn (HealthLog $log) => McpOutput::compact([
+                'id' => $log->id,
                 'date' => $log->date->toDateString(),
                 'intensity' => $log->intensity,
                 'notes' => $log->notes,

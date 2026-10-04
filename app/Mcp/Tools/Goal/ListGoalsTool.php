@@ -76,11 +76,13 @@ class ListGoalsTool extends Tool
             ...$this->presentGoal($goal),
             'description' => $goal->description,
             'entries' => $goal->goalEntries->take($limit)->map(fn (GoalEntry $entry) => McpOutput::compact([
+                'id' => $entry->id,
                 'date' => $entry->date->toDateString(),
                 'text' => $entry->text,
                 'milestone' => $entry->is_milestone ? true : null,
             ]))->values()->all(),
             'indicator_history' => $goal->goalNumericEntries->isEmpty() ? null : $goal->goalNumericEntries->take($limit)->map(fn (GoalNumericEntry $entry) => McpOutput::compact([
+                'id' => $entry->id,
                 'date' => $entry->date->toDateString(),
                 'value' => (float) $entry->value,
                 'note' => $entry->note,

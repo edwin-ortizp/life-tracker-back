@@ -57,6 +57,7 @@ class ListExerciseSessionsTool extends Tool
                 ->sortByDesc('sessions')->values()->all(),
             'last_session_on' => $sessions->first()?->date->toDateString(),
             'sessions' => ! empty($data['summary_only']) ? null : $sessions->take($data['limit'] ?? 50)->map(fn (ExerciseLog $log) => [
+                'id' => $log->id,
                 'date' => $log->date->toDateString(),
                 'type' => $log->exerciseType?->name,
                 'duration_min' => $log->duration,

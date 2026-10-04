@@ -118,7 +118,8 @@ class GoalIndex extends Component
 
     public function delete(string $id)
     {
-        Goal::where('id', $id)->delete();
+        // Por modelo, no masivo: así se limpian los vínculos con tareas.
+        Goal::query()->find($id)?->delete();
     }
 
     private function resetForm()

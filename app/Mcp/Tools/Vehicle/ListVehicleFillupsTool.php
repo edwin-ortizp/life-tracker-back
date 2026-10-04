@@ -54,6 +54,7 @@ class ListVehicleFillupsTool extends Tool
             ->limit($data['limit'] ?? 20)
             ->get()
             ->map(fn (VehicleMaintenanceLog $log) => [
+                'id' => $log->id,
                 'performed_on' => $log->performed_on->toDateString(),
                 'maintenance' => $log->plan?->template?->name,
                 'usage_reading' => $log->usage_reading !== null ? (float) $log->usage_reading : null,
@@ -77,6 +78,7 @@ class ListVehicleFillupsTool extends Tool
                 'total_quantity' => round((float) $fillups->sum('quantity'), 2) ?: null,
             ],
             'fillups' => $fillups->map(fn (VehicleEnergyLog $log) => [
+                'id' => $log->id,
                 'recorded_on' => $log->recorded_on->toDateString(),
                 'energy_source' => $log->energy_source,
                 'quantity' => $log->quantity !== null ? (float) $log->quantity : null,
@@ -90,6 +92,7 @@ class ListVehicleFillupsTool extends Tool
             ])->all(),
             'maintenance' => $maintenance,
             'expenses' => $expenses?->map(fn (VehicleExpense $expense) => McpOutput::compact([
+                'id' => $expense->id,
                 'spent_on' => $expense->spent_on->toDateString(),
                 'category' => $expense->category?->name,
                 'amount' => (float) $expense->amount,

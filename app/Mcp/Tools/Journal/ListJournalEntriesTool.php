@@ -51,6 +51,7 @@ class ListJournalEntriesTool extends Tool
             'period' => $window->toArray(),
             'days_written' => $entries->count(),
             'entries' => $entries->map(fn (JournalEntry $entry) => McpOutput::compact([
+                'id' => $entry->id,
                 'date' => $entry->date->toDateString(),
                 'summary' => $entry->summary,
                 'text' => match ($detail) {
