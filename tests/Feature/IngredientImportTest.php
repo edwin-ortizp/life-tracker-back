@@ -8,6 +8,7 @@ use App\Livewire\Meal\MealShopping;
 use App\Models\ShoppingItem;
 use App\Models\ShoppingItemAlias;
 use App\Models\User;
+use App\Services\Meal\CatalogNames;
 use App\Services\Meal\IngredientImportService;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -73,7 +74,9 @@ class IngredientImportTest extends TestCase
             'status' => 'available',
             'next_purchase' => true,
         ]);
-        $item->variants()->create(['place' => 'D1', 'price' => 4200]);
+        $item->variants()->create([])->prices()->create([
+            'store_id' => CatalogNames::store('D1')->id, 'amount' => 4200, 'observed_on' => now()->toDateString(), 'source' => 'manual',
+        ]);
 
         Livewire::test(MealShopping::class)
             ->assertSeeHtml('shopping-row__details-toggle')
@@ -147,7 +150,7 @@ class IngredientImportTest extends TestCase
             ->set('rows.1.action', 'create')
             ->set('rows.1.new_name', 'Pan')
             ->set('rows.1.category', 'panaderia')
-            ->set('rows.1.unit', 'unidad')
+            ->set('rows.1.unit', 'unit')
             ->call('confirm')
             ->assertHasNoErrors()
             ->assertSet('result.found', 1)
@@ -162,7 +165,7 @@ class IngredientImportTest extends TestCase
         $this->assertDatabaseHas('shopping_items', [
             'name' => 'Pan',
             'category' => 'panaderia',
-            'unit' => 'unidad',
+            'base_unit' => 'unit',
             'next_purchase' => true,
             'to_buy' => 0,
         ]);
@@ -180,7 +183,7 @@ class IngredientImportTest extends TestCase
             ->set('rows.0.action', 'create')
             ->set('rows.0.new_name', 'Huevos')
             ->set('rows.0.category', 'lacteos')
-            ->set('rows.0.unit', 'unidad')
+            ->set('rows.0.unit', 'unit')
             ->call('confirm')
             ->assertHasNoErrors();
 
@@ -227,8 +230,8 @@ class IngredientImportTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user);
-        ShoppingItem::create(['name' => 'Arroz', 'status' => 'available']);
-        $riceMilk = ShoppingItem::create(['name' => 'Leche de arroz', 'status' => 'available']);
+        ShoppingItem::create(['name' => 'Arroz', 'base_unit' => 'g', 'status' => 'available']);
+        $riceMilk = ShoppingItem::create(['name' => 'Leche de arroz', 'base_unit' => 'ml', 'status' => 'available']);
 
         Livewire::test(MealIngredients::class)
             ->call('openForm', $riceMilk->id)
@@ -244,7 +247,7 @@ class IngredientImportTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user);
-        $item = ShoppingItem::create(['name' => 'Arroz blanco', 'status' => 'available']);
+        $item = ShoppingItem::create(['name' => 'Arroz blanco', 'base_unit' => 'g', 'status' => 'available']);
 
         Livewire::test(MealIngredients::class)
             ->call('openForm', $item->id)

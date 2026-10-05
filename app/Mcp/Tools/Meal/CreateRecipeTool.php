@@ -3,7 +3,8 @@
 namespace App\Mcp\Tools\Meal;
 
 use App\Mcp\Tools\Meal\Concerns\InteractsWithMeals;
-use App\Models\ShoppingItem;
+use App\Services\Meal\RecipeCalculator;
+use App\Services\Meal\RecipeIngredientData;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -27,14 +28,15 @@ class CreateRecipeTool extends Tool
             'difficulty' => ['nullable', 'string', Rule::in(self::DIFFICULTIES)],
             'prep_time' => ['nullable', 'integer', 'min:0', 'max:1440'],
             'instructions' => ['nullable', 'string', 'max:20000'],
-            'calories' => ['nullable', 'integer', 'min:0'],
+            'servings' => ['nullable', 'numeric', 'gt:0', 'max:999'],
+            'calories' => ['nullable', 'numeric', 'min:0'],
             'protein' => ['nullable', 'numeric', 'min:0'],
             'carbs' => ['nullable', 'numeric', 'min:0'],
             'fat' => ['nullable', 'numeric', 'min:0'],
             'favorite' => ['nullable', 'boolean'],
             'ingredients' => ['nullable', 'array', 'max:60'],
             'ingredients.*.name' => ['required', 'string', 'max:255'],
-            'ingredients.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999.99'],
+            'ingredients.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999.999'],
             'ingredients.*.unit' => ['nullable', 'string', 'max:50'],
             'ingredients.*.notes' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -56,6 +58,7 @@ class CreateRecipeTool extends Tool
                 'description' => trim($data['description'] ?? '') ?: null,
                 'difficulty' => $data['difficulty'] ?? 'facil',
                 'prep_time' => $data['prep_time'] ?? null,
+                'servings' => $data['servings'] ?? 1,
                 'meal_type' => $data['meal_type'] ?? 'comida',
                 'instructions' => trim($data['instructions'] ?? '') ?: null,
                 'nutrition' => $nutrition ?: null,
@@ -63,18 +66,18 @@ class CreateRecipeTool extends Tool
             ]);
 
             foreach ($data['ingredients'] ?? [] as $ingredient) {
-                $item = ShoppingItem::firstOrCreate(
-                    ['name' => trim($ingredient['name'])],
-                    ['status' => 'available', 'stock' => 0, 'to_buy' => 0],
-                );
+                $item = RecipeIngredientData::product($ingredient['name'], $ingredient['unit'] ?? null);
+                [$quantity, $unit] = RecipeIngredientData::quantity($item, (float) $ingredient['quantity'], $ingredient['unit'] ?? null);
 
                 $recipe->recipeIngredients()->create([
                     'shopping_item_id' => $item->id,
-                    'quantity' => $ingredient['quantity'],
-                    'unit' => filled($ingredient['unit'] ?? null) ? trim($ingredient['unit']) : null,
+                    'quantity' => $quantity,
+                    'unit' => $unit,
                     'notes' => filled($ingredient['notes'] ?? null) ? trim($ingredient['notes']) : null,
                 ]);
             }
+
+            app(RecipeCalculator::class)->refreshNutrition($recipe->refresh());
 
             return $recipe;
         });
@@ -91,7 +94,8 @@ class CreateRecipeTool extends Tool
             'difficulty' => $schema->string()->enum(self::DIFFICULTIES)->description('Dificultad (por defecto facil).'),
             'prep_time' => $schema->integer()->description('Tiempo de preparación en minutos.'),
             'instructions' => $schema->string()->description('Pasos de preparación.'),
-            'calories' => $schema->integer()->description('Calorías por porción.'),
+            'servings' => $schema->number()->description('Porciones que rinde (por defecto 1). Las cantidades de ingredientes son para ese total.'),
+            'calories' => $schema->number()->description('Calorías por porción (estimación manual; se reemplaza por el cálculo cuando todos los ingredientes tienen nutrición).'),
             'protein' => $schema->number()->description('Proteína por porción (g).'),
             'carbs' => $schema->number()->description('Carbohidratos por porción (g).'),
             'fat' => $schema->number()->description('Grasa por porción (g).'),
@@ -99,7 +103,7 @@ class CreateRecipeTool extends Tool
             'ingredients' => $schema->array()->items($schema->object([
                 'name' => $schema->string()->description('Nombre del ingrediente, p. ej. "Pechuga de pollo".')->required(),
                 'quantity' => $schema->number()->description('Cantidad.')->required(),
-                'unit' => $schema->string()->description('Unidad, p. ej. "g", "taza".'),
+                'unit' => $schema->string()->description('Unidad: g, kg, ml, L, unidades, libra o docena. Se convierte a la unidad base del producto.'),
                 'notes' => $schema->string()->description('Notas, p. ej. "picado".'),
             ]))->description('Ingredientes de la receta.'),
         ];

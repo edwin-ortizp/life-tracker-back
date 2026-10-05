@@ -97,7 +97,7 @@ class BulkIngredientAssistant extends Component
             'rows.*.action' => ['required', Rule::in(['match', 'create', 'link', 'ignore'])],
             'rows.*.new_name' => ['nullable', 'string', 'max:255'],
             'rows.*.category' => ['nullable', Rule::in(array_keys($this->categoryOptions))],
-            'rows.*.unit' => ['nullable', 'string', 'max:50'],
+            'rows.*.unit' => ['nullable', 'string', 'in:g,ml,unit'],
             'rows.*.link_item_id' => ['nullable', 'uuid'],
         ], [
             'rows.*.action.required' => 'Elige qué hacer con este término.',

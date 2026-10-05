@@ -20,6 +20,7 @@ use App\Livewire\Journal\JournalLifeWeek;
 use App\Livewire\Journal\JournalSummary;
 use App\Livewire\Meal\MealIngredients;
 use App\Livewire\Meal\MealRecipes;
+use App\Livewire\Meal\MealProductCompare;
 use App\Livewire\Meal\MealShopping;
 use App\Livewire\Meal\MealWeekly;
 use App\Livewire\Mood\MoodSettings;
@@ -120,6 +121,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/meals/recipes', MealRecipes::class)->name('meals.recipes');
     Route::get('/meals/ingredients', MealIngredients::class)->name('meals.ingredients');
     Route::get('/meals/shopping', MealShopping::class)->name('meals.shopping');
+    Route::get('/meals/ingredients/{item}/compare', MealProductCompare::class)->name('meals.compare');
     Route::redirect('/tasks', '/tasks/list')->name('tasks');
     Route::get('/tasks/list', TaskList::class)->name('tasks.list');
     Route::get('/tasks/gantt', TaskGantt::class)->name('tasks.gantt');

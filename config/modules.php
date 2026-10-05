@@ -131,7 +131,7 @@ return [
         'tabs' => [
             ['label' => 'Planificación', 'route' => 'meals.weekly', 'icon' => 'bi-calendar-week', 'active' => ['meals.weekly']],
             ['label' => 'Recetas', 'route' => 'meals.recipes', 'icon' => 'bi-book', 'active' => ['meals.recipes']],
-            ['label' => 'Ingredientes', 'route' => 'meals.ingredients', 'icon' => 'bi-basket', 'active' => ['meals.ingredients']],
+            ['label' => 'Ingredientes', 'route' => 'meals.ingredients', 'icon' => 'bi-basket', 'active' => ['meals.ingredients', 'meals.compare']],
             ['label' => 'Compras', 'route' => 'meals.shopping', 'icon' => 'bi-cart3', 'active' => ['meals.shopping']],
         ],
     ],

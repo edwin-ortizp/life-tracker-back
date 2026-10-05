@@ -15,9 +15,11 @@ class Recipe extends Model
         'description',
         'difficulty',
         'prep_time',
+        'servings',
         'meal_type',
         'instructions',
         'nutrition',
+        'nutrition_source',
         'favorite',
     ];
 
@@ -26,6 +28,7 @@ class Recipe extends Model
         return [
             'nutrition' => 'array',
             'favorite' => 'boolean',
+            'servings' => 'float',
         ];
     }
 

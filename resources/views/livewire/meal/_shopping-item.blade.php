@@ -1,8 +1,12 @@
+@php
+    $offers = $item->offers($placeFilter ?: null)->sortBy(fn ($offer) => $offer['per_base'] ?? PHP_FLOAT_MAX);
+    $subtotal = $item->estimatedSubtotal($placeFilter ?: null);
+@endphp
 <div x-data="{ detailsOpen: false }"
      wire:key="shopping-item-{{ $rowKey ?? $item->id }}"
      class="shopping-row">
     <div class="shopping-row__main">
-        <button wire:click="toggleNextPurchase('{{ $item->id }}')"
+        <button wire:click="openPurchase('{{ $item->id }}')"
                 class="shopping-row__check"
                 title="Marcar como comprado"
                 aria-label="Marcar {{ $item->name }} como comprado">
@@ -11,17 +15,16 @@
 
         <div class="shopping-row__content">
             <span class="shopping-row__name">{{ $item->name }}</span>
-            @if ($item->unit)
-                <span class="shopping-row__unit">{{ $item->unit }}</span>
+            @if ($item->base_unit)
+                <span class="shopping-row__unit">{{ $item->baseUnitLabel() }}</span>
             @endif
         </div>
 
         <div class="shopping-row__trailing">
             @if ($item->to_buy > 0)
-                <span class="shopping-row__quantity">×{{ $item->to_buy }}</span>
+                <span class="shopping-row__quantity">×{{ rtrim(rtrim(number_format($item->to_buy, 3, ',', ''), '0'), ',') }}</span>
             @endif
 
-            @php $subtotal = $item->estimatedSubtotal($placeFilter ?: null); @endphp
             @if ($subtotal !== null)
                 <span class="shopping-row__price" title="Subtotal estimado">${{ number_format($subtotal, 0, ',', '.') }}</span>
             @else
@@ -34,7 +37,7 @@
                 </span>
             @endif
 
-            @if ($item->variants->isNotEmpty())
+            @if ($offers->isNotEmpty())
                 <button type="button"
                         @click="detailsOpen = !detailsOpen"
                         class="shopping-row__details-toggle"
@@ -42,22 +45,26 @@
                         :aria-expanded="detailsOpen"
                         title="Ver tiendas y precios">
                     <i class="bi bi-shop"></i>
-                    <span>{{ $item->variants->count() }}</span>
+                    <span>{{ $offers->count() }}</span>
                     <i class="bi bi-chevron-down"></i>
                 </button>
             @endif
         </div>
     </div>
 
-    @if ($item->variants->isNotEmpty())
+    @if ($offers->isNotEmpty())
         <div x-show="detailsOpen" x-transition.opacity.duration.150ms x-cloak class="shopping-row__details">
-            @foreach ($item->variants as $variant)
+            @foreach ($offers as $offer)
                 <span class="shopping-variant">
-                    @if ($variant->place)<strong>{{ $variant->place }}</strong>@endif
-                    @if ($variant->presentation)<span>{{ $variant->presentation }}</span>@endif
-                    @if ($variant->price)<span>${{ number_format($variant->price, 2) }}</span>@endif
+                    <strong>{{ $offer['price']->store?->name }}</strong>
+                    <span>{{ $offer['variant']->label($item->base_unit) }}</span>
+                    <span>${{ number_format($offer['price']->amount, 0, ',', '.') }}</span>
+                    @if ($offer['per_base'] !== null)
+                        <span>${{ number_format($offer['per_base'], 0, ',', '.') }}/{{ \App\Services\Meal\UnitConverter::comparisonLabel($item->base_unit) }}</span>
+                    @endif
                 </span>
             @endforeach
+            <a href="{{ route('meals.compare', $item) }}" wire:navigate class="md-link md-label-medium">Comparar</a>
         </div>
     @endif
 </div>

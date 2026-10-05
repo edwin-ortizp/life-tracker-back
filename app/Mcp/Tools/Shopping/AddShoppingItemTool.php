@@ -2,7 +2,10 @@
 
 namespace App\Mcp\Tools\Shopping;
 
+use App\Mcp\Tools\Shopping\Concerns\RecordsVariantPrices;
 use App\Mcp\Tools\Shopping\Concerns\ResolvesShoppingItem;
+use App\Models\ShoppingItem;
+use App\Services\Meal\CatalogNames;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -11,27 +14,19 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Añade un ítem a la lista de compras del usuario autenticado. Si el ítem ya existe en el catálogo lo agrega a la lista y opcionalmente actualiza su cantidad; si no existe, lo crea.')]
+#[Description('Añade un producto a la lista de compras del usuario autenticado. Si el producto ya existe en el catálogo lo agrega a la lista; si no existe, lo crea (requiere base_unit). Opcionalmente registra una variante (marca, empaque, contenido) y su precio con tienda, fecha y fuente. El nombre del producto va sin marca ni tamaño.')]
 class AddShoppingItemTool extends Tool
 {
-    use ResolvesShoppingItem;
-
-    private const CATEGORIES = [
-        'frutas_verduras', 'carnes', 'lacteos', 'panaderia', 'cereales', 'enlatados',
-        'condimentos', 'bebidas', 'congelados', 'snacks', 'limpieza', 'higiene', 'mascotas', 'otros',
-    ];
+    use RecordsVariantPrices, ResolvesShoppingItem;
 
     public function handle(Request $request): Response
     {
         $data = $request->validate([
             'item_id' => ['nullable', 'string'],
             'name' => ['nullable', 'string', 'max:255'],
-            'quantity' => ['nullable', 'integer', 'min:1'],
-            'unit' => ['nullable', 'string', 'max:60'],
-            'category' => ['nullable', 'string', Rule::in(self::CATEGORIES)],
-            'store' => ['nullable', 'string', 'max:255', 'required_with:price'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'notes' => ['nullable', 'string', 'max:2000'],
+            'quantity' => ['nullable', 'numeric', 'gt:0'],
+            'category' => ['nullable', 'string', Rule::in(array_keys(ShoppingItem::CATEGORIES))],
+            ...$this->variantPriceRules(),
         ]);
 
         if (empty($data['item_id']) && empty($data['name'])) {
@@ -40,6 +35,10 @@ class AddShoppingItemTool extends Tool
 
         $item = null;
         $created = false;
+        $baseUnit = $this->resolveBaseUnit($data['base_unit'] ?? null);
+        if (filled($data['base_unit'] ?? null) && ! $baseUnit) {
+            return Response::error('base_unit debe ser g, ml o unit.');
+        }
 
         if (! empty($data['item_id'])) {
             $item = Auth::user()->shoppingItems()->find($data['item_id']);
@@ -59,19 +58,26 @@ class AddShoppingItemTool extends Tool
             if (isset($data['quantity'])) {
                 $updates['to_buy'] = $data['quantity'];
             }
-            if (isset($data['unit'])) {
-                $updates['unit'] = $data['unit'];
-            }
             if (isset($data['category'])) {
                 $updates['category'] = $data['category'];
             }
+            if ($baseUnit && ! $item->base_unit) {
+                $updates['base_unit'] = $baseUnit;
+            }
             $item->update($updates);
         } else {
+            if (! $baseUnit) {
+                $similar = CatalogNames::similar($data['name'], Auth::user()->shoppingItems()->pluck('name'));
+
+                return Response::error('Para crear un producto nuevo indica base_unit (g, ml o unit).'
+                    .($similar->isNotEmpty() ? ' ¿Quizás es uno de estos? '.$similar->implode(', ') : ''));
+            }
+
             $item = Auth::user()->shoppingItems()->create([
                 'name' => trim($data['name']),
+                'base_unit' => $baseUnit,
                 'stock' => 0,
                 'to_buy' => $data['quantity'] ?? 1,
-                'unit' => $data['unit'] ?? null,
                 'category' => $data['category'] ?? null,
                 'status' => 'available',
                 'next_purchase' => true,
@@ -79,23 +85,10 @@ class AddShoppingItemTool extends Tool
             $created = true;
         }
 
-        if (! empty($data['store'])) {
-            $variant = $item->variants()->where('place', $data['store'])->first();
-            $variantAttributes = array_filter([
-                'price' => $data['price'] ?? null,
-                'notes' => $data['notes'] ?? null,
-            ], fn ($value) => $value !== null);
-
-            if ($variant) {
-                $variant->update($variantAttributes);
-            } else {
-                $item->variants()->create(['place' => $data['store'], ...$variantAttributes]);
-            }
-        }
-
+        $recorded = $this->recordVariantPrice($item, $data);
         $verb = $created ? 'creado y añadido' : 'añadido';
 
-        return Response::text("Ítem \"{$item->name}\" {$verb} a la lista de compras (id: {$item->id}).");
+        return Response::text("Ítem \"{$item->name}\" {$verb} a la lista de compras (id: {$item->id})".($recorded ? "; {$recorded}" : '').'.');
     }
 
     public function schema(JsonSchema $schema): array
@@ -104,20 +97,13 @@ class AddShoppingItemTool extends Tool
             'item_id' => $schema->string()
                 ->description('Identificador (UUID) de un ítem ya existente en el catálogo. Alternativa a "name".'),
             'name' => $schema->string()
-                ->description('Nombre del ítem. Alternativa a "item_id". Si ya existe un ítem con ese nombre, se reutiliza en vez de crear uno duplicado.'),
-            'quantity' => $schema->integer()
-                ->description('Cantidad a comprar.'),
-            'unit' => $schema->string()
-                ->description('Unidad (kg, unidades, litros, etc.).'),
+                ->description('Nombre genérico del producto, en singular y sin marca ni tamaño. Alternativa a "item_id". Si ya existe, se reutiliza.'),
+            'quantity' => $schema->number()
+                ->description('Cantidad de paquetes a comprar (admite decimales).'),
             'category' => $schema->string()
-                ->enum(self::CATEGORIES)
+                ->enum(array_keys(ShoppingItem::CATEGORIES))
                 ->description('Categoría del ítem.'),
-            'store' => $schema->string()
-                ->description('Tienda donde se consigue, para registrar o actualizar su precio en ese lugar.'),
-            'price' => $schema->number()
-                ->description('Precio en la tienda indicada. Requiere "store".'),
-            'notes' => $schema->string()
-                ->description('Notas sobre esa tienda/presentación.'),
+            ...$this->variantPriceSchema($schema),
         ];
     }
 }

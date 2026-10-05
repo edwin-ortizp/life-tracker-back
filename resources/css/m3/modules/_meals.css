@@ -199,3 +199,23 @@
 .meal-week-grid__totals th, .meal-week-grid__totals td { background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .meal-week-grid__totals small { color: var(--md-sys-color-on-surface-variant); }
 .meal-week-grid__summary { padding: 10px 12px; color: var(--md-sys-color-on-surface-variant); }
+
+/* Catálogo de productos: variantes, precios y pendientes */
+.ingredient-variant-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--md-sys-shape-corner-small); background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); font-size: .72rem; }
+.ingredient-variant-chip.is-pending { border: 1px dashed var(--md-sys-color-outline); background: transparent; }
+.ingredient-variant-chip .bi-star-fill { color: var(--md-sys-color-tertiary); }
+.ingredient-flag { color: var(--md-sys-color-error); }
+.ingredient-similar { color: var(--md-sys-color-tertiary); }
+.ingredient-prices { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--md-sys-color-outline-variant); }
+.ingredient-price-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 8px; border-radius: var(--md-sys-shape-corner-medium); background: var(--md-sys-color-surface-container-low); }
+.ingredient-price-row__actions { display: flex; align-items: center; justify-content: space-between; grid-column: 1 / -1; }
+.compare-header { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.meal-muted { color: var(--md-sys-color-on-surface-variant); }
+.compare-row--best td { background: var(--md-sys-color-primary-container); }
+.compare-best { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+.compare-warning { color: var(--md-sys-color-error); }
+.compare-pending ul { padding-left: 1.2rem; color: var(--md-sys-color-on-surface-variant); }
+.recipe-calculation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 12px; border-radius: var(--md-sys-shape-corner-medium); background: var(--md-sys-color-surface-container); }
+.recipe-calculation strong { display: block; font-size: 1.1rem; }
+.recipe-calculation p { grid-column: 1 / -1; color: var(--md-sys-color-on-surface-variant); }
+.compare-history__summary { cursor: pointer; }

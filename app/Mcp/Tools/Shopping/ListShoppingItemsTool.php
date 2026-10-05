@@ -20,7 +20,7 @@ class ListShoppingItemsTool extends Tool
             'only_pending' => ['nullable', 'boolean'],
         ]);
 
-        $query = Auth::user()->shoppingItems()->with('variants');
+        $query = Auth::user()->shoppingItems()->withOffers();
 
         if (($data['only_pending'] ?? true) !== false) {
             $query->where('next_purchase', true);
@@ -37,12 +37,20 @@ class ListShoppingItemsTool extends Tool
             'items' => $items->map(fn ($item) => [
                 'id' => $item->id,
                 'name' => $item->name,
+                'base_unit' => $item->base_unit,
                 'quantity' => $item->to_buy,
-                'unit' => $item->unit,
+                'stock' => $item->stock,
+                'min_stock' => $item->min_stock,
                 'category' => $item->category,
-                'stores' => $item->variants->map(fn ($variant) => [
-                    'place' => $variant->place,
-                    'price' => $variant->price,
+                'estimated_price' => $item->estimatedPrice(),
+                'offers' => $item->offers()->map(fn ($offer) => [
+                    'variant' => $offer['variant']->label($item->base_unit),
+                    'store' => $offer['price']->store?->name,
+                    'price' => (float) $offer['price']->amount,
+                    'date' => $offer['price']->observed_on->toDateString(),
+                    'source' => $offer['price']->source,
+                    'verified' => $offer['price']->isVerified(),
+                    'price_per_base' => $offer['per_base'] !== null ? round($offer['per_base'], 2) : null,
                 ])->all(),
             ])->all(),
         ]);

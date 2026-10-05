@@ -170,11 +170,11 @@ class IngredientImportService
                     $item = ShoppingItem::create([
                         'name' => $name,
                         'stock' => 0,
-                        'to_buy' => $context === 'shopping' && $row['quantity'] !== null ? (int) $row['quantity'] : 0,
+                        'to_buy' => $context === 'shopping' && $row['quantity'] !== null ? (float) $row['quantity'] : 0,
                         'category' => $category,
                         'status' => 'available',
                         'next_purchase' => $context === 'shopping',
-                        'unit' => trim((string) ($row['unit'] ?? '')) ?: null,
+                        'base_unit' => UnitConverter::baseUnitOf($row['unit'] ?? null),
                     ]);
 
                     if ($this->normalize($name) !== $row['normalized']) {
@@ -269,7 +269,7 @@ class IngredientImportService
 
         $changes = ['next_purchase' => true];
         if (($row['quantity'] ?? null) !== null) {
-            $changes['to_buy'] = (int) $row['quantity'];
+            $changes['to_buy'] = (float) $row['quantity'];
         }
         $item->update($changes);
     }

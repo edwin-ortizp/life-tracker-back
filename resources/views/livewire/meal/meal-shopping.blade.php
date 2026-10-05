@@ -33,15 +33,15 @@
                 <div class="md-chip-menu" :class="{ 'open': openMenu === 'place' }">
                     <button @click="openMenu = openMenu === 'place' ? null : 'place'"
                             class="md-chip md-chip-filter {{ $placeFilter ? 'selected' : '' }}">
-                        {{ $placeFilter ?: 'Tienda' }}
+                        {{ $places[$placeFilter] ?? 'Tienda' }}
                         <i class="bi bi-chevron-down md-chip-menu__arrow"></i>
                     </button>
                     <div x-show="openMenu === 'place'" x-transition x-cloak class="md-chip-menu__dropdown">
                         <button wire:click="$set('placeFilter', '')" @click="openMenu = null"
                                 class="md-chip-menu__item {{ $placeFilter === '' ? 'active' : '' }}">Todas</button>
-                        @foreach ($places as $p)
-                            <button wire:click="$set('placeFilter', '{{ $p }}')" @click="openMenu = null"
-                                    class="md-chip-menu__item {{ $placeFilter === $p ? 'active' : '' }}">{{ $p }}</button>
+                        @foreach ($places as $storeId => $storeName)
+                            <button wire:click="$set('placeFilter', '{{ $storeId }}')" @click="openMenu = null"
+                                    class="md-chip-menu__item {{ $placeFilter === $storeId ? 'active' : '' }}">{{ $storeName }}</button>
                         @endforeach
                     </div>
                 </div>
@@ -54,14 +54,14 @@
         <div class="shopping-estimate mb-3">
             <span class="shopping-estimate__icon"><i class="bi bi-cash-coin"></i></span>
             <span>
-                <small>Total estimado{{ $placeFilter ? ' en '.$placeFilter : '' }}</small>
+                <small>Total estimado{{ $placeFilter ? ' en '.($places[$placeFilter] ?? '') : '' }}</small>
                 <strong>${{ number_format($estimatedTotal, 0, ',', '.') }}</strong>
             </span>
             <small class="shopping-estimate__note">
                 @if ($unpricedCount > 0)
                     <i class="bi bi-exclamation-circle"></i> {{ $unpricedCount }} {{ $unpricedCount === 1 ? 'artículo sin precio' : 'artículos sin precio' }}
                 @else
-                    {{ $placeFilter ? 'Precios de esta tienda' : 'Usando el precio más barato de cada artículo' }}
+                    {{ $placeFilter ? 'Precios de esta tienda' : 'Variante preferida o la más barata de cada artículo' }}
                 @endif
             </small>
         </div>
@@ -72,23 +72,54 @@
         <details class="shopping-needed mb-3">
             <summary>
                 <span class="shopping-needed__icon"><i class="bi bi-calendar-week"></i></span>
-                <span><strong>{{ $neededCount }} necesarios esta semana</strong><small>Calculados desde tus recetas</small></span>
+                <span>
+                    <strong>{{ $neededCount }} necesarios esta semana</strong>
+                    <small>Calculados desde tus recetas, descontando lo que tienes en casa{{ $neededCost > 0 ? ' · faltante ≈ $'.number_format($neededCost, 0, ',', '.') : '' }}</small>
+                </span>
                 <i class="bi bi-chevron-down shopping-needed__arrow"></i>
             </summary>
             <div class="shopping-needed__content">
                 @foreach ($neededItems as $needed)
                     @php $item = $needed['shopping_item']; @endphp
-                    @if ($item)
-                        <span class="shopping-needed__item {{ $item->next_purchase ? 'is-added' : '' }}">
-                            {{ $item->name }}
-                            <small>{{ $needed['quantity'] !== null ? rtrim(rtrim(number_format($needed['quantity'], 2, '.', ''), '0'), '.') : '?' }} {{ $needed['unit'] ?? '' }}</small>
-                            @if (!$item->next_purchase)
-                                <button wire:click="toggleNextPurchase('{{ $item->id }}')" title="Agregar a compras" aria-label="Agregar {{ $item->name }} a compras">
-                                    <i class="bi bi-plus-circle"></i>
-                                </button>
+                    <span class="shopping-needed__item {{ $item->next_purchase || $needed['missing'] === 0.0 ? 'is-added' : '' }}">
+                        {{ $item->name }}
+                        <small>
+                            @if ($needed['quantity'] === null)
+                                ?
+                            @elseif ($needed['missing'] > 0)
+                                faltan {{ $item->formatQuantity($needed['missing']) }}
+                            @else
+                                cubierto ({{ $item->formatQuantity($needed['quantity']) }})
                             @endif
-                        </span>
-                    @endif
+                        </small>
+                        @if (! $item->next_purchase && $needed['missing'] !== 0.0)
+                            <button wire:click="addSuggested('{{ $item->id }}')" title="Agregar a compras" aria-label="Agregar {{ $item->name }} a compras">
+                                <i class="bi bi-plus-circle"></i>
+                            </button>
+                        @endif
+                    </span>
+                @endforeach
+            </div>
+        </details>
+    @endif
+
+    {{-- Below minimum stock --}}
+    @if ($belowMinimum->isNotEmpty())
+        <details class="shopping-needed shopping-needed--stock mb-3">
+            <summary>
+                <span class="shopping-needed__icon"><i class="bi bi-box-seam"></i></span>
+                <span><strong>{{ $belowMinimum->count() }} bajo el mínimo</strong><small>Productos con stock en casa por debajo de su mínimo</small></span>
+                <i class="bi bi-chevron-down shopping-needed__arrow"></i>
+            </summary>
+            <div class="shopping-needed__content">
+                @foreach ($belowMinimum as $item)
+                    <span class="shopping-needed__item">
+                        {{ $item->name }}
+                        <small>{{ $item->formatQuantity($item->stock) }} / mín. {{ $item->formatQuantity($item->min_stock) }}</small>
+                        <button wire:click="addSuggested('{{ $item->id }}')" title="Agregar a compras" aria-label="Agregar {{ $item->name }} a compras">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                    </span>
                 @endforeach
             </div>
         </details>
@@ -165,7 +196,7 @@
     <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="shopping-item-dialog"
                       title="Agregar a compras" icon="bi-cart-plus"
                       :sections="[
-                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-cart3', 'error' => $errors->hasAny(['itemName', 'itemQuantity'])],
+                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-cart3', 'error' => $errors->hasAny(['itemName', 'itemQuantity', 'itemBaseUnit'])],
                           'store' => ['label' => 'Tienda y precio', 'icon' => 'bi-shop', 'error' => $errors->hasAny(['itemStore', 'itemPrice'])],
                       ]">
         <x-ui.form-dialog-section name="basic" title="Información básica" description="Si el ítem ya existe en tus ingredientes se reutiliza.">
@@ -177,8 +208,9 @@
                     @endforeach
                 </datalist>
                 <div class="md-field-pair">
-                    <x-ui.field name="itemQuantity" label="Cantidad" type="number" min="1" wire:model="itemQuantity" />
-                    <x-ui.field name="itemUnit" label="Unidad" wire:model="itemUnit" />
+                    <x-ui.field name="itemQuantity" label="Cantidad (paquetes)" type="number" step="0.001" min="0" wire:model="itemQuantity" />
+                    <x-ui.select name="itemBaseUnit" label="Unidad base" placeholder="g, ml o unidad" :options="\App\Models\ShoppingItem::BASE_UNITS"
+                                 :selected="$itemBaseUnit" help="Solo para productos nuevos." wire:model="itemBaseUnit" />
                 </div>
                 <x-ui.select name="itemCategory" label="Categoría" placeholder="Sin categoría" :options="$categoryOptions" :selected="$itemCategory" wire:model="itemCategory" />
             </div>
@@ -196,4 +228,25 @@
             </datalist>
         </x-ui.form-dialog-section>
     </x-ui.form-dialog>
+
+    @if ($purchaseItem)
+        <x-ui.form-dialog :open="$showPurchase" close="closePurchase" submit-action="confirmPurchase" id="shopping-purchase-dialog"
+                          :title="'Comprado: '.$purchaseItem->name" icon="bi-bag-check" submit="Marcar comprado">
+            <div class="d-flex flex-column gap-3">
+                <p class="md-body-medium mb-0 meal-muted">
+                    Se suma al stock en casa y sale de la lista. El precio pagado queda en el historial como precio de ticket verificado.
+                </p>
+                @if ($purchaseItem->variants->isNotEmpty())
+                    <x-ui.select name="purchaseVariantId" label="Variante comprada" placeholder="Sin especificar"
+                                 :options="$purchaseItem->variants->mapWithKeys(fn ($v) => [$v->id => $v->label($purchaseItem->base_unit)])->all()"
+                                 :selected="$purchaseVariantId" wire:model="purchaseVariantId" />
+                @endif
+                <div class="md-field-pair">
+                    <x-ui.field name="purchaseQuantity" label="Paquetes comprados" type="number" step="0.001" min="0" wire:model="purchaseQuantity" />
+                    <x-ui.field name="purchaseAmount" label="Precio pagado por paquete" type="number" step="0.01" min="0" wire:model="purchaseAmount" />
+                </div>
+                <x-ui.field name="purchaseStore" label="Tienda" list="shopping-places-list" autocomplete="off" wire:model="purchaseStore" />
+            </div>
+        </x-ui.form-dialog>
+    @endif
 </x-module-shell>

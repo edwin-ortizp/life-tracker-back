@@ -2,15 +2,20 @@
 
 namespace App\Livewire\Meal;
 
+use App\Livewire\Concerns\WithManagementCard;
 use App\Models\MealPlanEntryItem;
 use App\Models\ShoppingItem;
-use App\Models\ShoppingItemVariant;
+use App\Models\ShoppingItemPrice;
+use App\Models\Store;
+use App\Services\Meal\CatalogNames;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
-use App\Livewire\Concerns\WithManagementCard;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
@@ -22,6 +27,7 @@ class MealShopping extends Component
     #[Url(as: 'q', history: true, keep: true)]
     public string $search = '';
 
+    // Id de la tienda: el total y los subtotales usan sus precios.
     #[Url(as: 'place', history: true, keep: true)]
     public string $placeFilter = '';
 
@@ -37,15 +43,28 @@ class MealShopping extends Component
 
     public string $itemName = '';
 
-    public ?int $itemQuantity = 1;
+    public $itemQuantity = 1;
 
-    public string $itemUnit = '';
+    public string $itemBaseUnit = '';
 
     public string $itemCategory = '';
 
     public string $itemStore = '';
 
-    public ?float $itemPrice = null;
+    public $itemPrice = null;
+
+    // Diálogo "Marcar como comprado"
+    public bool $showPurchase = false;
+
+    public ?string $purchaseItemId = null;
+
+    public string $purchaseVariantId = '';
+
+    public string $purchaseStore = '';
+
+    public $purchaseQuantity = 1;
+
+    public $purchaseAmount = null;
 
     public function updatedSearch(): void
     {
@@ -64,7 +83,7 @@ class MealShopping extends Component
 
     public function openForm(): void
     {
-        $this->reset(['itemName', 'itemQuantity', 'itemUnit', 'itemCategory', 'itemStore', 'itemPrice']);
+        $this->reset(['itemName', 'itemQuantity', 'itemBaseUnit', 'itemCategory', 'itemStore', 'itemPrice']);
         $this->resetValidation();
         $this->showForm = true;
     }
@@ -80,29 +99,30 @@ class MealShopping extends Component
      */
     public function save(): void
     {
+        $name = trim($this->itemName);
+        $existing = $name !== '' ? ShoppingItem::whereRaw('LOWER(name) = ?', [mb_strtolower($name)])->first() : null;
+
         $data = $this->validate([
             'itemName' => ['required', 'string', 'max:255'],
-            'itemQuantity' => ['nullable', 'integer', 'min:1'],
-            'itemUnit' => ['nullable', 'string', 'max:60'],
+            'itemQuantity' => ['nullable', 'numeric', 'gt:0'],
+            'itemBaseUnit' => [$existing?->base_unit ? 'nullable' : 'required', Rule::in(array_keys(ShoppingItem::BASE_UNITS))],
             'itemCategory' => ['nullable', 'string', 'in:'.implode(',', array_keys($this->categoryOptions))],
             'itemStore' => ['nullable', 'string', 'max:255', 'required_with:itemPrice'],
             'itemPrice' => ['nullable', 'numeric', 'min:0'],
-        ]);
-
-        $name = trim($data['itemName']);
-        $item = auth()->user()->shoppingItems()->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])->first();
+        ], attributes: ['itemBaseUnit' => 'unidad base']);
 
         $attributes = array_filter([
             'to_buy' => $data['itemQuantity'],
-            'unit' => $data['itemUnit'] ?: null,
             'category' => $data['itemCategory'] ?: null,
         ], fn ($value) => $value !== null);
 
-        if ($item) {
-            $item->update(['next_purchase' => true, ...$attributes]);
+        if ($existing) {
+            $existing->update(['next_purchase' => true, ...$attributes] + ($existing->base_unit ? [] : ['base_unit' => $data['itemBaseUnit']]));
+            $item = $existing;
         } else {
-            $item = auth()->user()->shoppingItems()->create([
+            $item = ShoppingItem::create([
                 'name' => $name,
+                'base_unit' => $data['itemBaseUnit'],
                 'stock' => 0,
                 'to_buy' => 1,
                 'status' => 'available',
@@ -111,11 +131,15 @@ class MealShopping extends Component
             ]);
         }
 
-        if ($data['itemStore']) {
-            $item->variants()->updateOrCreate(
-                ['place' => $data['itemStore']],
-                array_filter(['price' => $data['itemPrice']], fn ($value) => $value !== null),
-            );
+        if ($data['itemStore'] && $data['itemPrice'] !== null && $data['itemPrice'] !== '') {
+            // Sin marca ni presentación conocidas, el precio va a la variante preferida o a una genérica pendiente de completar.
+            $variant = $item->variants()->orderByDesc('is_preferred')->first() ?? $item->variants()->create([]);
+            $variant->prices()->create([
+                'store_id' => CatalogNames::store($data['itemStore'])->id,
+                'amount' => $data['itemPrice'],
+                'observed_on' => now()->toDateString(),
+                'source' => 'manual',
+            ]);
         }
 
         $this->showForm = false;
@@ -140,6 +164,80 @@ class MealShopping extends Component
         }
     }
 
+    public function openPurchase(string $id): void
+    {
+        $item = ShoppingItem::withOffers()->find($id);
+        if (! $item) {
+            return;
+        }
+
+        $offer = $item->bestOffer($this->placeFilter ?: null);
+        $this->resetValidation();
+        $this->purchaseItemId = $item->id;
+        $this->purchaseVariantId = (string) ($offer['variant']->id ?? $item->variants->first()?->id ?? '');
+        $this->purchaseStore = $offer['price']->store?->name ?? '';
+        $this->purchaseQuantity = max((float) $item->to_buy, 1);
+        $this->purchaseAmount = $offer ? (float) $offer['price']->amount : null;
+        $this->showPurchase = true;
+    }
+
+    public function closePurchase(): void
+    {
+        $this->showPurchase = false;
+    }
+
+    /**
+     * Marca como comprado: suma al stock el contenido comprado y, si se indica el precio pagado,
+     * lo guarda como precio de ticket verificado para el historial.
+     */
+    public function confirmPurchase(): void
+    {
+        $item = ShoppingItem::with('variants')->find($this->purchaseItemId);
+        if (! $item) {
+            return;
+        }
+
+        $data = $this->validate([
+            'purchaseVariantId' => ['nullable', Rule::in($item->variants->pluck('id'))],
+            'purchaseQuantity' => ['required', 'numeric', 'gt:0'],
+            'purchaseAmount' => ['nullable', 'numeric', 'min:0'],
+            'purchaseStore' => ['nullable', 'string', 'max:255', 'required_with:purchaseAmount'],
+        ], attributes: ['purchaseQuantity' => 'cantidad', 'purchaseAmount' => 'precio pagado', 'purchaseStore' => 'tienda']);
+
+        DB::transaction(function () use ($item, $data) {
+            $variant = $item->variants->firstWhere('id', $data['purchaseVariantId']);
+            $quantity = (float) $data['purchaseQuantity'];
+
+            $stockAdded = $variant?->isComparable() ? $variant->content * $quantity : ($item->base_unit === 'unit' && ! $variant?->content ? $quantity : 0);
+            $item->update([
+                'stock' => (float) $item->stock + $stockAdded,
+                'next_purchase' => false,
+                'to_buy' => 0,
+            ]);
+
+            if ($variant && $data['purchaseAmount'] !== null && $data['purchaseAmount'] !== '') {
+                // El precio pagado se registra por paquete, igual que los demás precios de la variante.
+                $variant->prices()->create([
+                    'store_id' => CatalogNames::store($data['purchaseStore'])->id,
+                    'amount' => round((float) $data['purchaseAmount'], 2),
+                    'observed_on' => now()->toDateString(),
+                    'source' => 'ticket',
+                    'paid' => true,
+                    'verified_at' => now(),
+                    'verified_by' => auth()->id(),
+                ]);
+            }
+        });
+
+        $this->showPurchase = false;
+    }
+
+    public function addSuggested(string $id, $quantity = null): void
+    {
+        $item = ShoppingItem::find($id);
+        $item?->update(['next_purchase' => true] + ($quantity ? ['to_buy' => max((float) $item->to_buy, (float) $quantity)] : []));
+    }
+
     #[On('ingredients-imported')]
     public function refreshIngredients(): void
     {
@@ -157,91 +255,103 @@ class MealShopping extends Component
         }
     }
 
+    /**
+     * Lo que piden las comidas planeadas de la semana, en unidad base, descontando lo que hay en casa.
+     */
+    private function weeklyNeeds(): Collection
+    {
+        $plannedRecipes = MealPlanEntryItem::query()
+            ->whereNotNull('recipe_id')
+            ->whereHas('mealPlanEntry', fn ($entry) => $entry->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]))
+            ->with(['recipe.recipeIngredients.shoppingItem' => fn ($query) => $query->withOffers()])
+            ->get();
+
+        return $plannedRecipes
+            ->flatMap(function ($plannedRecipe) {
+                $recipe = $plannedRecipe->recipe;
+                $factor = (float) ($plannedRecipe->portions ?? 1) / max((float) ($recipe?->servings ?? 1), 0.01);
+
+                return $recipe?->recipeIngredients->map(fn ($ingredient) => [
+                    'shopping_item_id' => $ingredient->shopping_item_id,
+                    'shopping_item' => $ingredient->shoppingItem,
+                    'quantity' => $ingredient->quantity !== null ? (float) $ingredient->quantity * $factor : null,
+                    'recipe_name' => $recipe->name,
+                ]) ?? collect();
+            })
+            ->filter(fn ($ingredient) => $ingredient['shopping_item'])
+            ->groupBy('shopping_item_id')
+            ->map(function ($ingredients) {
+                $item = $ingredients->first()['shopping_item'];
+                $quantity = $ingredients->contains(fn ($ingredient) => $ingredient['quantity'] === null) ? null : $ingredients->sum('quantity');
+                $missing = $quantity === null ? null : max($quantity - (float) $item->stock, 0.0);
+                $costPerUnit = $item->costPerBaseUnit();
+
+                return [
+                    'shopping_item_id' => $item->id,
+                    'shopping_item' => $item,
+                    'quantity' => $quantity,
+                    'missing' => $missing,
+                    'cost' => $missing !== null && $costPerUnit !== null ? $missing * $costPerUnit : null,
+                    'recipes' => $ingredients->pluck('recipe_name')->unique()->values(),
+                ];
+            });
+    }
+
     public function render()
     {
         $query = ShoppingItem::query()
-            ->with('variants')
+            ->withOffers()
             ->where('next_purchase', true)
             ->when($this->search, fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
-            ->when($this->placeFilter, fn ($q, $p) => $q->whereHas('variants', fn ($vq) => $vq->where('place', $p)))
+            ->when($this->placeFilter, fn ($q, $storeId) => $q->whereHas('prices', fn ($pq) => $pq->where('store_id', $storeId)))
             ->orderBy('name');
 
         // El total estimado se calcula sobre toda la lista, no solo la página visible.
-        $place = $this->placeFilter ?: null;
+        $storeId = $this->placeFilter ?: null;
         $allItems = (clone $query)->get();
-        $estimatedTotal = $allItems->sum(fn ($item) => $item->estimatedSubtotal($place) ?? 0);
-        $unpricedCount = $allItems->filter(fn ($item) => $item->estimatedPrice($place) === null)->count();
+        $estimatedTotal = $allItems->sum(fn ($item) => $item->estimatedSubtotal($storeId) ?? 0);
+        $unpricedCount = $allItems->filter(fn ($item) => $item->estimatedPrice($storeId) === null)->count();
 
         // Paginación de la Card de gestión: se agrupa la página visible.
         $items = $query->paginate($this->perPage());
         $pageItems = $items->getCollection();
 
         if ($this->groupBy === 'place') {
-            $grouped = collect();
-            foreach ($pageItems as $item) {
-                $places = $item->variants->pluck('place')->filter()->unique();
-                if ($places->isEmpty()) {
-                    $grouped->push(['group' => null, 'item' => $item]);
-                } else {
-                    foreach ($places as $place) {
-                        $grouped->push(['group' => $place, 'item' => $item]);
-                    }
-                }
-            }
-            $grouped = $grouped->groupBy('group')->map(fn ($g) => $g->pluck('item')->unique('id'))->sortKeys();
+            // Cada artículo va a la tienda donde está su mejor oferta.
+            $grouped = $pageItems
+                ->groupBy(fn ($item) => $item->bestOffer($storeId)['price']->store?->name ?? '')
+                ->sortKeys();
         } else {
             $grouped = $pageItems->groupBy('category')->sortKeys();
         }
 
-        // Items needed from this week's meal plan
-        $weekStart = Carbon::now()->startOfWeek();
-        $weekEnd = Carbon::now()->endOfWeek();
-        $plannedRecipes = MealPlanEntryItem::query()
-            ->whereNotNull('recipe_id')
-            ->whereHas('mealPlanEntry', fn ($entry) => $entry->whereBetween('date', [$weekStart, $weekEnd]))
-            ->with(['recipe.recipeIngredients.shoppingItem'])
-            ->get();
-
-        $neededItems = $plannedRecipes
-            ->flatMap(function ($plannedRecipe) {
-                $portions = (float) ($plannedRecipe->portions ?? 1);
-
-                return $plannedRecipe->recipe?->recipeIngredients->map(fn ($ingredient) => [
-                    'shopping_item_id' => $ingredient->shopping_item_id,
-                    'shopping_item' => $ingredient->shoppingItem,
-                    'quantity' => $ingredient->quantity !== null ? (float) $ingredient->quantity * $portions : null,
-                    'unit' => $ingredient->unit,
-                    'recipe_name' => $plannedRecipe->recipe->name,
-                ]) ?? collect();
-            })
-            ->groupBy(fn ($ingredient) => $ingredient['shopping_item_id'].'|'.($ingredient['unit'] ?? ''))
-            ->map(fn ($ingredients) => [
-                'shopping_item_id' => $ingredients->first()['shopping_item_id'],
-                'shopping_item' => $ingredients->first()['shopping_item'],
-                'quantity' => $ingredients->contains(fn ($ingredient) => $ingredient['quantity'] === null)
-                    ? null
-                    : $ingredients->sum('quantity'),
-                'unit' => $ingredients->first()['unit'],
-                'recipes' => $ingredients->pluck('recipe_name')->unique()->values(),
-            ]);
-
+        $neededItems = $this->weeklyNeeds();
         $neededItemIds = $neededItems->pluck('shopping_item_id')->unique();
 
-        $places = ShoppingItemVariant::whereNotNull('place')->distinct()->pluck('place')->sort();
+        $belowMinimum = ShoppingItem::query()
+            ->where('next_purchase', false)
+            ->whereNotNull('min_stock')
+            ->whereColumn('stock', '<', 'min_stock')
+            ->orderBy('name')
+            ->get();
 
-        $neededCount = $neededItemIds->count();
+        $purchaseItem = $this->showPurchase ? ShoppingItem::with('variants.brand')->find($this->purchaseItemId) : null;
 
         return view('livewire.meal.meal-shopping', [
             'items' => $items,
             'grouped' => $grouped,
             'neededItems' => $neededItems,
             'neededItemIds' => $neededItemIds,
-            'places' => $places,
+            'neededCost' => $neededItems->sum(fn ($needed) => $needed['cost'] ?? 0),
+            'belowMinimum' => $belowMinimum,
+            'places' => Store::orderBy('name')->pluck('name', 'id'),
             'totalItems' => $items->total(),
-            'neededCount' => $neededCount,
+            'neededCount' => $neededItemIds->count(),
             'estimatedTotal' => $estimatedTotal,
             'unpricedCount' => $unpricedCount,
-            'catalogNames' => auth()->user()->shoppingItems()->orderBy('name')->pluck('name'),
+            'catalogNames' => ShoppingItem::orderBy('name')->pluck('name'),
+            'purchaseItem' => $purchaseItem,
+            'sources' => ShoppingItemPrice::SOURCES,
         ]);
     }
 }

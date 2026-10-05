@@ -130,10 +130,8 @@
                                                         </select>
                                                         <label for="bulk-category-{{ $index }}">Categoría *</label>
                                                     </div>
-                                                    <div class="md-text-field">
-                                                        <input type="text" wire:model="rows.{{ $index }}.unit" placeholder=" " id="bulk-unit-{{ $index }}">
-                                                        <label for="bulk-unit-{{ $index }}">Unidad</label>
-                                                    </div>
+                                                    <x-ui.select name="rows.{{ $index }}.unit" label="Unidad base" id="bulk-unit-{{ $index }}" placeholder="Definir después"
+                                                                 :options="\App\Models\ShoppingItem::BASE_UNITS" :selected="$row['unit'] ?? ''" wire:model="rows.{{ $index }}.unit" />
                                                 </div>
                                                 @error("rows.$index.new_name")<small class="text-danger">{{ $message }}</small>@enderror
                                                 @error("rows.$index.category")<small class="text-danger">{{ $message }}</small>@enderror

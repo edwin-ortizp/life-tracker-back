@@ -3,12 +3,19 @@
 namespace App\Models;
 
 use App\Models\Traits\BelongsToUser;
+use App\Services\Meal\UnitConverter;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
+/**
+ * Producto genérico del catálogo (sin marca ni tamaño). Las marcas y presentaciones van en las variantes.
+ */
 class ShoppingItem extends Model
 {
     use BelongsToUser, HasUuids;
+
+    public const BASE_UNITS = UnitConverter::BASE_UNITS;
 
     public const CATEGORIES = [
         'frutas_verduras' => 'Frutas y verduras',
@@ -29,13 +36,19 @@ class ShoppingItem extends Model
 
     protected $fillable = [
         'name',
+        'base_unit',
+        'grams_per_piece',
         'stock',
+        'min_stock',
         'to_buy',
         'category',
         'consume_by',
         'status',
         'next_purchase',
-        'unit',
+        'kcal',
+        'protein',
+        'carbs',
+        'fat',
     ];
 
     protected function casts(): array
@@ -43,6 +56,14 @@ class ShoppingItem extends Model
         return [
             'consume_by' => 'date',
             'next_purchase' => 'boolean',
+            'stock' => 'float',
+            'min_stock' => 'float',
+            'to_buy' => 'float',
+            'grams_per_piece' => 'float',
+            'kcal' => 'float',
+            'protein' => 'float',
+            'carbs' => 'float',
+            'fat' => 'float',
         ];
     }
 
@@ -56,23 +77,118 @@ class ShoppingItem extends Model
         return $this->hasMany(ShoppingItemAlias::class);
     }
 
-    /**
-     * Precio unitario estimado: el de la tienda indicada o, sin tienda, la variante más barata con precio.
-     */
-    public function estimatedPrice(?string $place = null): ?float
+    public function prices()
     {
-        $prices = $this->variants
-            ->when($place, fn ($variants) => $variants->where('place', $place))
-            ->pluck('price')
-            ->filter(fn ($price) => $price !== null);
-
-        return $prices->isEmpty() ? null : (float) $prices->min();
+        return $this->hasManyThrough(ShoppingItemPrice::class, ShoppingItemVariant::class);
     }
 
-    public function estimatedSubtotal(?string $place = null): ?float
+    /** Carga lo necesario para calcular ofertas sin consultas extra. */
+    public function scopeWithOffers($query)
     {
-        $price = $this->estimatedPrice($place);
+        return $query->with(['variants.brand', 'variants.prices.store']);
+    }
 
-        return $price === null ? null : $price * max((int) $this->to_buy, 1);
+    public function isBelowMinimum(): bool
+    {
+        return $this->min_stock !== null && (float) $this->stock < (float) $this->min_stock;
+    }
+
+    /**
+     * Ofertas vigentes: el último precio de cada variante en cada tienda.
+     *
+     * @return Collection<int, array{variant: ShoppingItemVariant, price: ShoppingItemPrice, per_base: ?float}>
+     */
+    public function offers(?string $storeId = null): Collection
+    {
+        return $this->variants
+            ->flatMap(fn (ShoppingItemVariant $variant) => $variant->latestPrices()
+                ->when($storeId, fn ($prices) => $prices->where('store_id', $storeId))
+                ->map(fn (ShoppingItemPrice $price) => [
+                    'variant' => $variant,
+                    'price' => $price,
+                    'per_base' => $variant->pricePerBase($price, $this->base_unit),
+                ])
+                ->values())
+            ->values();
+    }
+
+    /**
+     * Oferta usada para estimar: la variante preferida en su tienda más barata; sin preferida,
+     * la más barata por unidad base; y si nada es comparable, el precio más bajo.
+     */
+    public function bestOffer(?string $storeId = null): ?array
+    {
+        $offers = $this->offers($storeId);
+        if ($offers->isEmpty()) {
+            return null;
+        }
+
+        $preferred = $offers->filter(fn ($offer) => $offer['variant']->is_preferred);
+        if ($preferred->isNotEmpty()) {
+            return $preferred->sortBy(fn ($offer) => (float) $offer['price']->amount)->first();
+        }
+
+        $comparable = $offers->filter(fn ($offer) => $offer['per_base'] !== null);
+        if ($comparable->isNotEmpty()) {
+            return $comparable->sortBy('per_base')->first();
+        }
+
+        return $offers->sortBy(fn ($offer) => (float) $offer['price']->amount)->first();
+    }
+
+    public function estimatedPrice(?string $storeId = null): ?float
+    {
+        $offer = $this->bestOffer($storeId);
+
+        return $offer ? (float) $offer['price']->amount : null;
+    }
+
+    public function estimatedSubtotal(?string $storeId = null): ?float
+    {
+        $price = $this->estimatedPrice($storeId);
+
+        return $price === null ? null : $price * max((float) $this->to_buy, 1);
+    }
+
+    /** Precio por unidad base (1 g, 1 ml o 1 unidad) de la mejor oferta comparable, para costear recetas. */
+    public function costPerBaseUnit(): ?float
+    {
+        $offer = $this->bestOffer();
+        if (! $offer || $offer['per_base'] === null) {
+            return null;
+        }
+
+        return $offer['per_base'] / UnitConverter::comparisonSize($this->base_unit);
+    }
+
+    /** Nutrición por unidad base: la variante preferida manda si la define; si no, el producto. */
+    public function nutritionPerBaseUnit(): ?array
+    {
+        $preferred = $this->variants->firstWhere('is_preferred', true);
+        $source = $preferred && $preferred->kcal !== null ? $preferred : $this;
+        if ($source->kcal === null || ! $this->base_unit) {
+            return null;
+        }
+
+        $divisor = $this->base_unit === 'unit' ? 1 : 100;
+
+        return collect(['calories' => $source->kcal, 'protein' => $source->protein, 'carbs' => $source->carbs, 'fat' => $source->fat])
+            ->map(fn ($value) => $value === null ? 0.0 : (float) $value / $divisor)
+            ->all();
+    }
+
+    public function formatQuantity(?float $quantity): string
+    {
+        return UnitConverter::format($quantity, $this->base_unit);
+    }
+
+    public function baseUnitLabel(): string
+    {
+        return match ($this->base_unit) {
+            'g' => 'g',
+            'ml' => 'ml',
+            'unit' => 'und',
+            default => '',
+        };
     }
 }

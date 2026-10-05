@@ -7,6 +7,8 @@ use App\Livewire\Meal\MealShopping;
 use App\Livewire\Meal\MealWeekly;
 use App\Models\MealPlanEntry;
 use App\Models\ShoppingItem;
+use App\Models\Store;
+use App\Services\Meal\CatalogNames;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -18,9 +20,12 @@ class MealImprovementsTest extends TestCase
 
     private function item(string $name, array $prices = [], array $attributes = []): ShoppingItem
     {
-        $item = ShoppingItem::create(['name' => $name, 'stock' => 0, 'to_buy' => 1, 'status' => 'available', 'next_purchase' => true, ...$attributes]);
+        $item = ShoppingItem::create(['name' => $name, 'base_unit' => 'unit', 'stock' => 0, 'to_buy' => 1, 'status' => 'available', 'next_purchase' => true, ...$attributes]);
         foreach ($prices as $place => $price) {
-            $item->variants()->create(['place' => $place, 'price' => $price]);
+            $variant = $item->variants()->create([]);
+            if ($price !== null) {
+                $variant->prices()->create(['store_id' => CatalogNames::store($place)->id, 'amount' => $price, 'observed_on' => now()->toDateString(), 'source' => 'manual']);
+            }
         }
 
         return $item;
@@ -36,7 +41,7 @@ class MealImprovementsTest extends TestCase
         Livewire::test(MealShopping::class)
             ->assertViewHas('estimatedTotal', 11000.0)
             ->assertViewHas('unpricedCount', 1)
-            ->set('placeFilter', 'Éxito')
+            ->set('placeFilter', Store::where('name', 'Éxito')->value('id'))
             ->assertViewHas('estimatedTotal', 13000.0)
             ->assertViewHas('unpricedCount', 0);
     }
@@ -50,10 +55,10 @@ class MealImprovementsTest extends TestCase
 
         $names = fn ($component) => $component->viewData('ingredients')->getCollection()->pluck('name')->sort()->values()->all();
 
-        $c = Livewire::test(MealIngredients::class)->set('storeFilter', 'D1');
+        $c = Livewire::test(MealIngredients::class)->set('storeFilter', Store::where('name', 'D1')->value('id'));
         $this->assertSame(['Leche'], $names($c));
         $c->set('storeFilter', '__none');
-        $this->assertSame(['Sal'], $names($c));
+        $this->assertSame(['Pan', 'Sal'], $names($c));
         $c->call('clearFilters')->set('priceFilter', 'without');
         $this->assertSame(['Pan', 'Sal'], $names($c));
         $c->call('clearFilters')->set('cartFilter', 'yes');

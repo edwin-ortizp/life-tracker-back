@@ -10,6 +10,7 @@ use App\Models\MealPlanEntry;
 use App\Models\Recipe;
 use App\Models\ShoppingItem;
 use App\Models\ShoppingItemVariant;
+use App\Models\Store;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\QueryException;
@@ -104,12 +105,12 @@ class MealPlanningTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user);
-        $ingredient = ShoppingItem::create(['name' => 'Tomate', 'status' => 'available', 'stock' => 0, 'to_buy' => 0]);
-        $recipe = Recipe::create(['name' => 'Salsa', 'meal_type' => 'comida']);
+        $ingredient = ShoppingItem::create(['name' => 'Tomate', 'base_unit' => 'g', 'status' => 'available', 'stock' => 1000, 'to_buy' => 0]);
+        $recipe = Recipe::create(['name' => 'Salsa', 'meal_type' => 'comida', 'servings' => 1]);
         $recipe->recipeIngredients()->create([
             'shopping_item_id' => $ingredient->id,
-            'quantity' => 2,
-            'unit' => 'kg',
+            'quantity' => 2000,
+            'unit' => 'g',
         ]);
         $entry = MealPlanEntry::create(['date' => now()->startOfWeek(), 'meal_type' => 'comida']);
         $entry->items()->create(['recipe_id' => $recipe->id, 'portions' => 2.5, 'position' => 0]);
@@ -119,31 +120,39 @@ class MealPlanningTest extends TestCase
                 $needed = $items->first();
 
                 return $needed['shopping_item_id'] === $ingredient->id
-                    && $needed['quantity'] === 5.0
-                    && $needed['unit'] === 'kg';
+                    && $needed['quantity'] === 5000.0
+                    && $needed['missing'] === 4000.0;
             });
     }
 
-    public function test_existing_store_variants_load_and_are_updated_without_recreating_them(): void
+    public function test_existing_variants_and_prices_load_and_are_updated_without_recreating_them(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user);
-        $ingredient = ShoppingItem::create(['name' => 'Arroz', 'status' => 'available', 'stock' => 0, 'to_buy' => 0]);
-        $variant = $ingredient->variants()->create(['place' => 'D1', 'price' => 4500]);
+        $ingredient = ShoppingItem::create(['name' => 'Arroz', 'base_unit' => 'g', 'status' => 'available', 'stock' => 0, 'to_buy' => 0]);
+        $variant = $ingredient->variants()->create(['content' => 500]);
+        $price = $variant->prices()->create(['store_id' => Store::create(['name' => 'D1'])->id, 'amount' => 4500, 'observed_on' => '2026-10-01', 'source' => 'manual']);
 
         Livewire::test(MealIngredients::class)
             ->call('openForm', $ingredient->id)
+            ->assertSet('baseUnitLocked', true)
             ->assertSet('variants.0.id', $variant->id)
-            ->assertSet('variants.0.place', 'D1')
-            ->set('variants.0.price', 4700)
+            ->assertSet('variants.0.prices.0.store', 'D1')
+            ->set('variants.0.prices.0.amount', 4700)
             ->call('addVariant')
-            ->set('variants.1.place', 'Éxito')
-            ->set('variants.1.price', 5200)
+            ->set('variants.1.brand', 'Diana')
+            ->set('variants.1.content', 1)
+            ->set('variants.1.content_unit', 'kg')
+            ->call('addPrice', 1)
+            ->set('variants.1.prices.0.store', 'éxito')
+            ->set('variants.1.prices.0.amount', 5200)
             ->call('save')
             ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('shopping_item_variants', ['id' => $variant->id, 'price' => 4700]);
+        $this->assertDatabaseHas('shopping_item_prices', ['id' => $price->id, 'amount' => 4700]);
         $this->assertSame(2, ShoppingItemVariant::count());
+        $this->assertSame(1000.0, ShoppingItemVariant::whereNotNull('brand_id')->first()->content);
+        $this->assertSame(2, Store::count());
     }
 
     public function test_manual_calorie_override_can_be_reset_to_the_component_calculation(): void

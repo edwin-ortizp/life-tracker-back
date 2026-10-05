@@ -5,7 +5,8 @@ namespace App\Mcp\Tools\Meal;
 use App\Mcp\Tools\Meal\Concerns\InteractsWithMeals;
 use App\Models\Recipe;
 use App\Models\RecipeIngredient;
-use App\Models\ShoppingItem;
+use App\Services\Meal\RecipeCalculator;
+use App\Services\Meal\RecipeIngredientData;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,7 @@ class UpdateRecipeTool extends Tool
         $ingredientRules = fn (string $key) => [
             $key => ['nullable', 'array', 'max:60'],
             "{$key}.*.name" => ['required', 'string', 'max:255'],
-            "{$key}.*.quantity" => ['required', 'numeric', 'gt:0', 'max:999999.99'],
+            "{$key}.*.quantity" => ['required', 'numeric', 'gt:0', 'max:999999999.999'],
             "{$key}.*.unit" => ['nullable', 'string', 'max:50'],
             "{$key}.*.notes" => ['nullable', 'string', 'max:1000'],
         ];
@@ -38,6 +39,7 @@ class UpdateRecipeTool extends Tool
             'meal_type' => ['nullable', 'string', Rule::in(array_keys(self::MEAL_TYPES))],
             'difficulty' => ['nullable', 'string', Rule::in(self::DIFFICULTIES)],
             'prep_time' => ['nullable', 'integer', 'min:0', 'max:1440'],
+            'servings' => ['nullable', 'numeric', 'gt:0', 'max:999'],
             'instructions' => ['nullable', 'string', 'max:20000'],
             'calories' => ['nullable', 'numeric', 'min:0'],
             'protein' => ['nullable', 'numeric', 'min:0'],
@@ -81,7 +83,7 @@ class UpdateRecipeTool extends Tool
                     $fields[$text] = trim($data[$text]) ?: null;
                 }
             }
-            foreach (['meal_type', 'difficulty', 'prep_time'] as $field) {
+            foreach (['meal_type', 'difficulty', 'prep_time', 'servings'] as $field) {
                 if (isset($data[$field])) {
                     $fields[$field] = $data[$field];
                 }
@@ -110,9 +112,12 @@ class UpdateRecipeTool extends Tool
 
             foreach ($data['add_ingredients'] ?? [] as $ingredient) {
                 $existing = $current->get(mb_strtolower(trim($ingredient['name'])));
+                if ($existing) {
+                    [$quantity, $unit] = RecipeIngredientData::quantity($existing->shoppingItem, (float) $ingredient['quantity'], filled($ingredient['unit'] ?? null) ? $ingredient['unit'] : $existing->unit);
+                }
                 $existing ? $existing->update([
-                    'quantity' => $ingredient['quantity'],
-                    'unit' => filled($ingredient['unit'] ?? null) ? trim($ingredient['unit']) : $existing->unit,
+                    'quantity' => $quantity,
+                    'unit' => $unit,
                     'notes' => filled($ingredient['notes'] ?? null) ? trim($ingredient['notes']) : $existing->notes,
                 ]) : $this->saveIngredient($recipe, $ingredient);
             }
@@ -126,6 +131,10 @@ class UpdateRecipeTool extends Tool
             if (! empty($data['remove_ingredients'])) {
                 $changes[] = 'quitados: '.implode(', ', $data['remove_ingredients']);
             }
+
+            if ($changes !== []) {
+                app(RecipeCalculator::class)->refreshNutrition($recipe->refresh());
+            }
         });
 
         if ($changes === []) {
@@ -137,15 +146,13 @@ class UpdateRecipeTool extends Tool
 
     private function saveIngredient(Recipe $recipe, array $ingredient): void
     {
-        $item = ShoppingItem::firstOrCreate(
-            ['name' => trim($ingredient['name'])],
-            ['status' => 'available', 'stock' => 0, 'to_buy' => 0],
-        );
+        $item = RecipeIngredientData::product($ingredient['name'], $ingredient['unit'] ?? null);
+        [$quantity, $unit] = RecipeIngredientData::quantity($item, (float) $ingredient['quantity'], $ingredient['unit'] ?? null);
 
         $recipe->recipeIngredients()->create([
             'shopping_item_id' => $item->id,
-            'quantity' => $ingredient['quantity'],
-            'unit' => filled($ingredient['unit'] ?? null) ? trim($ingredient['unit']) : null,
+            'quantity' => $quantity,
+            'unit' => $unit,
             'notes' => filled($ingredient['notes'] ?? null) ? trim($ingredient['notes']) : null,
         ]);
     }
@@ -155,7 +162,7 @@ class UpdateRecipeTool extends Tool
         $ingredient = fn () => $schema->object([
             'name' => $schema->string()->description('Nombre del ingrediente.')->required(),
             'quantity' => $schema->number()->description('Cantidad.')->required(),
-            'unit' => $schema->string()->description('Unidad, p. ej. "g", "taza".'),
+            'unit' => $schema->string()->description('Unidad: g, kg, ml, L, unidades, libra o docena. Se convierte a la unidad base del producto.'),
             'notes' => $schema->string()->description('Notas, p. ej. "picado".'),
         ]);
 
@@ -167,6 +174,7 @@ class UpdateRecipeTool extends Tool
             'meal_type' => $schema->string()->enum(array_keys(self::MEAL_TYPES))->description('Tipo de comida.'),
             'difficulty' => $schema->string()->enum(self::DIFFICULTIES)->description('Dificultad.'),
             'prep_time' => $schema->integer()->description('Tiempo de preparación en minutos.'),
+            'servings' => $schema->number()->description('Porciones que rinde la receta.'),
             'instructions' => $schema->string()->description('Reemplaza las instrucciones completas. "" las borra.'),
             'calories' => $schema->number()->description('Calorías por porción.'),
             'protein' => $schema->number()->description('Proteína por porción (g).'),

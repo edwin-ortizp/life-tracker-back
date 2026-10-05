@@ -6,6 +6,7 @@ use App\Mcp\Support\McpOutput;
 use App\Mcp\Tools\Meal\Concerns\InteractsWithMeals;
 use App\Models\Recipe;
 use App\Models\RecipeIngredient;
+use App\Services\Meal\RecipeCalculator;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -69,7 +70,7 @@ class ListRecipesTool extends Tool
 
     private function detail(Recipe $recipe): array
     {
-        $recipe->load('recipeIngredients.shoppingItem');
+        $calculation = app(RecipeCalculator::class)->calculate($recipe);
 
         return McpOutput::compact([
             'id' => $recipe->id,
@@ -78,7 +79,11 @@ class ListRecipesTool extends Tool
             'meal_type' => $recipe->meal_type,
             'difficulty' => $recipe->difficulty,
             'prep_time_min' => $recipe->prep_time ? (int) $recipe->prep_time : null,
+            'servings' => (float) ($recipe->servings ?: 1),
             'nutrition' => $recipe->nutrition ?: null,
+            'nutrition_source' => $recipe->nutrition_source,
+            'cost_per_serving' => $calculation['cost_per_serving'],
+            'missing_data' => array_values(array_unique([...$calculation['missing_cost'], ...$calculation['missing_nutrition']])) ?: null,
             'favorite' => $recipe->favorite ? true : null,
             'ingredients' => $recipe->recipeIngredients->map(fn (RecipeIngredient $ingredient) => trim(
                 ($ingredient->quantity !== null ? (float) $ingredient->quantity.' ' : '')

@@ -30,7 +30,7 @@
             <div class="md-chip-menu" :class="{ 'open': openMenu === 'store' }">
                 <button @click="openMenu = openMenu === 'store' ? null : 'store'"
                         class="md-chip md-chip-filter {{ $storeFilter ? 'selected' : '' }}">
-                    <i class="bi bi-shop"></i> {{ $storeFilter === '__none' ? 'Sin tienda' : ($storeFilter ?: 'Tienda') }}
+                    <i class="bi bi-shop"></i> {{ $storeFilter === '__none' ? 'Sin tienda' : ($stores[$storeFilter] ?? 'Tienda') }}
                     <i class="bi bi-chevron-down md-chip-menu__arrow"></i>
                 </button>
                 <div x-show="openMenu === 'store'" x-transition x-cloak class="md-chip-menu__dropdown">
@@ -38,9 +38,9 @@
                             class="md-chip-menu__item {{ $storeFilter === '' ? 'active' : '' }}">Todas</button>
                     <button wire:click="$set('storeFilter', '__none')" @click="openMenu = null"
                             class="md-chip-menu__item {{ $storeFilter === '__none' ? 'active' : '' }}">Sin tienda</button>
-                    @foreach ($stores as $store)
-                        <button wire:click="$set('storeFilter', @js($store))" @click="openMenu = null"
-                                class="md-chip-menu__item {{ $storeFilter === $store ? 'active' : '' }}">{{ $store }}</button>
+                    @foreach ($stores as $storeId => $storeName)
+                        <button wire:click="$set('storeFilter', '{{ $storeId }}')" @click="openMenu = null"
+                                class="md-chip-menu__item {{ $storeFilter === $storeId ? 'active' : '' }}">{{ $storeName }}</button>
                     @endforeach
                 </div>
             </div>
@@ -77,6 +77,11 @@
                 </div>
             </div>
 
+            <button wire:click="$set('dataFilter', '{{ $dataFilter === 'pending' ? '' : 'pending' }}')"
+                    class="md-chip md-chip-filter {{ $dataFilter === 'pending' ? 'selected' : '' }}">
+                <i class="bi bi-exclamation-diamond"></i> Pendientes de completar
+            </button>
+
             @if ($activeFilters > 0)
                 <button wire:click="clearFilters" class="md-chip md-chip-assist">
                     <i class="bi bi-x-lg"></i> Limpiar
@@ -111,21 +116,23 @@
 
                                 <div class="flex-grow-1" style="cursor: pointer;" wire:click="openForm('{{ $item->id }}')">
                                     <span class="md-body-medium" style="color: var(--md-sys-color-on-surface);">{{ $item->name }}</span>
-                                    @if ($item->unit)
-                                        <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);">({{ $item->unit }})</span>
+                                    @if ($item->base_unit)
+                                        <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);">({{ $item->baseUnitLabel() }})</span>
+                                    @else
+                                        <span class="md-chip md-chip--small ingredient-flag" title="Define la unidad base: g, ml o unidad">Sin unidad base</span>
                                     @endif
                                 </div>
 
                                 @if ($item->stock > 0)
-                                    <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);" title="En stock">
-                                        <i class="bi bi-box-seam"></i> {{ $item->stock }}
+                                    <span class="md-label-small {{ $item->isBelowMinimum() ? 'ingredient-flag' : '' }}" style="color: var(--md-sys-color-on-surface-variant);" title="{{ $item->isBelowMinimum() ? 'Por debajo del mínimo' : 'En stock' }}">
+                                        <i class="bi bi-box-seam"></i> {{ $item->formatQuantity($item->stock) }}
                                     </span>
                                 @endif
 
-                                @if ($item->variants_count > 0)
-                                    <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant);">
-                                        <i class="bi bi-shop"></i> {{ $item->variants_count }}
-                                    </span>
+                                @if ($item->variants->isNotEmpty())
+                                    <a href="{{ route('meals.compare', $item) }}" wire:navigate class="md-btn-icon md-btn-icon--small" title="Comparar precios" aria-label="Comparar precios de {{ $item->name }}">
+                                        <i class="bi bi-bar-chart-steps"></i>
+                                    </a>
                                 @endif
                             </div>
 
@@ -133,10 +140,15 @@
                             @if ($item->variants->isNotEmpty())
                                 <div class="d-flex flex-wrap gap-1 mt-1 ms-4 ps-2">
                                     @foreach ($item->variants as $variant)
-                                        <span class="md-label-small" style="color: var(--md-sys-color-on-surface-variant); background: var(--md-sys-color-surface-container); padding: 2px 6px; border-radius: 4px;">
-                                            @if ($variant->place){{ $variant->place }}@endif
-                                            @if ($variant->presentation) · {{ $variant->presentation }}@endif
-                                            @if ($variant->price) · ${{ number_format($variant->price, 2) }}@endif
+                                        @php
+                                            $cheapest = $variant->latestPrices()->sortBy(fn ($p) => (float) $p->amount)->first();
+                                            $perBase = $variant->pricePerBase($cheapest, $item->base_unit);
+                                        @endphp
+                                        <span class="ingredient-variant-chip {{ $variant->isComparable() ? '' : 'is-pending' }}" title="{{ $variant->isComparable() ? '' : 'Pendiente de completar: falta el contenido' }}">
+                                            @if ($variant->is_preferred)<i class="bi bi-star-fill" aria-label="Preferida"></i>@endif
+                                            {{ $variant->label($item->base_unit) }}
+                                            @if ($cheapest) · {{ $cheapest->store?->name }} ${{ number_format($cheapest->amount, 0, ',', '.') }}@endif
+                                            @if ($perBase !== null) <small>(${{ number_format($perBase, 0, ',', '.') }}/{{ \App\Services\Meal\UnitConverter::comparisonLabel($item->base_unit) }})</small>@endif
                                         </span>
                                     @endforeach
                                 </div>
@@ -183,53 +195,129 @@
                       :title="$editingId ? 'Editar ingrediente' : 'Agregar ingrediente'" icon="bi-basket"
                       :submit="$editingId ? 'Actualizar' : 'Guardar'"
                       :sections="[
-                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-basket', 'error' => $errors->has('name')],
-                          'inventory' => ['label' => 'Inventario', 'icon' => 'bi-box-seam'],
-                          'variants' => ['label' => 'Variantes por tienda', 'icon' => 'bi-shop'],
+                          'basic' => ['label' => 'Información básica', 'icon' => 'bi-basket', 'error' => $errors->hasAny(['name', 'baseUnit', 'gramsPerPiece'])],
+                          'inventory' => ['label' => 'Inventario', 'icon' => 'bi-box-seam', 'error' => $errors->hasAny(['stock', 'minStock', 'toBuy'])],
+                          'nutrition' => ['label' => 'Nutrición', 'icon' => 'bi-fire', 'error' => $errors->hasAny(['kcal', 'protein', 'carbs', 'fat'])],
+                          'variants' => ['label' => 'Variantes y precios', 'icon' => 'bi-shop', 'error' => $errors->has('variants.*')],
                           'aliases' => ['label' => 'Alias y equivalencias', 'icon' => 'bi-tags', 'error' => $errors->has('aliases') || $errors->has('aliases.*')],
                       ]">
-        <x-ui.form-dialog-section name="basic" title="Información básica">
+        @php
+            $unitShort = ['g' => 'g', 'ml' => 'ml', 'unit' => 'und'][$baseUnit] ?? '';
+            $nutritionBasis = ['g' => 'por 100 g', 'ml' => 'por 100 ml', 'unit' => 'por unidad'][$baseUnit] ?? '';
+        @endphp
+        <x-ui.form-dialog-section name="basic" title="Información básica" description="El nombre es el producto genérico, sin marca ni tamaño: «Aceite vegetal», no «Aceite Imatá 900 ml».">
             <div class="d-flex flex-column gap-3">
-                <x-ui.field name="name" label="Nombre" :required="true" wire:model="name" />
+                <x-ui.field name="name" label="Nombre" :required="true" wire:model.live.debounce.400ms="name" />
+                @if ($nameSuggestions->isNotEmpty())
+                    <p class="md-supporting-text ingredient-similar" role="status">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i> Ya tienes productos parecidos: {{ $nameSuggestions->implode(', ') }}.
+                    </p>
+                @endif
                 <div class="md-field-pair">
                     <x-ui.select name="category" label="Categoría" placeholder="Sin categoría" :options="$this->categoryOptions" :selected="$category" wire:model="category" />
-                    <x-ui.field name="unit" label="Unidad base" wire:model="unit" />
+                    <x-ui.select name="baseUnit" label="Unidad base" placeholder="Elige g, ml o unidad" :required="true"
+                                 :options="\App\Models\ShoppingItem::BASE_UNITS" :selected="$baseUnit" :disabled="$baseUnitLocked"
+                                 :help="$baseUnitLocked ? 'La unidad base no cambia una vez definida.' : 'Todo lo de este producto se guarda en esta unidad.'"
+                                 wire:model.live="baseUnit" />
                 </div>
+                @if ($baseUnit === 'g')
+                    <x-ui.field name="gramsPerPiece" label="Gramos por pieza (opcional)" type="number" step="0.001" min="0"
+                                help="Para productos que se compran por peso pero se cuentan por pieza, como el aguacate." wire:model="gramsPerPiece" />
+                @endif
             </div>
         </x-ui.form-dialog-section>
 
-        <x-ui.form-dialog-section name="inventory" title="Inventario">
+        <x-ui.form-dialog-section name="inventory" title="Inventario" :description="$unitShort ? 'Cantidades en '.$unitShort.'.' : 'Elige primero la unidad base.'">
             <div class="d-flex flex-column gap-3">
                 <div class="md-field-pair">
-                    <x-ui.field name="stock" label="Stock" type="number" min="0" wire:model="stock" />
-                    <x-ui.field name="toBuy" label="Por comprar" type="number" min="0" wire:model="toBuy" />
+                    <x-ui.field name="stock" label="Stock en casa" type="number" step="0.001" min="0" wire:model="stock" />
+                    <x-ui.field name="minStock" label="Stock mínimo" type="number" step="0.001" min="0" wire:model="minStock" />
                 </div>
+                <x-ui.field name="toBuy" label="Por comprar (paquetes)" type="number" step="0.001" min="0" wire:model="toBuy" />
                 <x-ui.field name="consumeBy" label="Consumir antes" type="date" wire:model="consumeBy" />
                 <label class="d-flex align-items-center gap-2" style="cursor: pointer;"><input type="checkbox" wire:model="nextPurchase" class="md-checkbox"><span class="md-body-medium">Incluir en lista de compras</span></label>
             </div>
         </x-ui.form-dialog-section>
 
-        <x-ui.form-dialog-section name="variants" title="Variantes por tienda" description="Precio, presentación o código de barras en cada tienda.">
+        <x-ui.form-dialog-section name="nutrition" title="Nutrición" :description="$nutritionBasis ? 'Valores '.$nutritionBasis.'. Las recetas los usan para calcular sus calorías.' : 'Elige primero la unidad base.'">
+            <div class="d-flex flex-column gap-3">
+                <div class="md-field-pair">
+                    <x-ui.field name="kcal" label="Calorías (kcal)" type="number" step="0.01" min="0" wire:model="kcal" />
+                    <x-ui.field name="protein" label="Proteína (g)" type="number" step="0.01" min="0" wire:model="protein" />
+                </div>
+                <div class="md-field-pair">
+                    <x-ui.field name="carbs" label="Carbohidratos (g)" type="number" step="0.01" min="0" wire:model="carbs" />
+                    <x-ui.field name="fat" label="Grasa (g)" type="number" step="0.01" min="0" wire:model="fat" />
+                </div>
+            </div>
+        </x-ui.form-dialog-section>
+
+        <x-ui.form-dialog-section name="variants" title="Variantes y precios" description="Cada variante es una marca, empaque y contenido concretos; sus precios llevan tienda, fecha y fuente.">
+            <datalist id="ingredient-brands-list">
+                @foreach ($brands as $brandName)<option value="{{ $brandName }}">@endforeach
+            </datalist>
+            <datalist id="ingredient-stores-list">
+                @foreach ($stores as $storeName)<option value="{{ $storeName }}">@endforeach
+            </datalist>
             @forelse ($variants as $index => $variant)
                 <article class="meal-variant-card" wire:key="variant-{{ $variant['id'] ?? 'new-'.$index }}">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="md-label-large">Tienda {{ $index + 1 }}</span>
-                        <button wire:click="removeVariant({{ $index }})" type="button" class="md-btn-icon md-btn-icon--small md-btn-danger" aria-label="Quitar variante"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                        <span class="md-label-large">Variante {{ $index + 1 }}</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="md-checkbox">
+                                <input type="checkbox" wire:model="variants.{{ $index }}.is_preferred"> Preferida
+                            </label>
+                            <button wire:click="removeVariant({{ $index }})" type="button" class="md-btn-icon md-btn-icon--small md-btn-danger" aria-label="Quitar variante"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                        </div>
                     </div>
                     <div class="d-flex flex-column gap-2">
                         <div class="md-field-pair">
-                            <x-ui.field name="variants.{{ $index }}.place" label="Tienda" id="var-place-{{ $index }}" wire:model="variants.{{ $index }}.place" />
-                            <x-ui.field name="variants.{{ $index }}.price" label="Precio" type="number" step="0.01" min="0" id="var-price-{{ $index }}" wire:model="variants.{{ $index }}.price" />
+                            <x-ui.field name="variants.{{ $index }}.brand" label="Marca" id="var-brand-{{ $index }}" list="ingredient-brands-list" autocomplete="off" wire:model="variants.{{ $index }}.brand" />
+                            <x-ui.select name="variants.{{ $index }}.packaging" label="Empaque" id="var-pack-{{ $index }}" placeholder="Sin definir"
+                                         :options="\App\Models\ShoppingItemVariant::PACKAGINGS" :selected="$variant['packaging']" wire:model="variants.{{ $index }}.packaging" />
                         </div>
-                        <x-ui.field name="variants.{{ $index }}.presentation" label="Presentación" id="var-pres-{{ $index }}" wire:model="variants.{{ $index }}.presentation" />
-                        <x-ui.field name="variants.{{ $index }}.barcode" label="Código de barras" id="var-barcode-{{ $index }}" wire:model="variants.{{ $index }}.barcode" />
-                        <x-ui.field name="variants.{{ $index }}.notes" label="Notas" id="var-notes-{{ $index }}" wire:model="variants.{{ $index }}.notes" />
+                        <div class="md-field-pair">
+                            <x-ui.field name="variants.{{ $index }}.content" label="Contenido" type="number" step="0.001" min="0" id="var-content-{{ $index }}"
+                                        help="Sin contenido, la variante queda pendiente y no entra en las comparaciones." wire:model="variants.{{ $index }}.content" />
+                            <x-ui.select name="variants.{{ $index }}.content_unit" label="Unidad del contenido" id="var-content-unit-{{ $index }}"
+                                         :options="\App\Livewire\Meal\MealIngredients::CONTENT_UNITS[$baseUnit] ?? []" :selected="$variant['content_unit']" :disabled="$baseUnit === ''"
+                                         wire:model="variants.{{ $index }}.content_unit" />
+                        </div>
+                        <div class="md-field-pair">
+                            <x-ui.field name="variants.{{ $index }}.units_per_pack" label="Unidades por paquete" type="number" min="1" id="var-units-{{ $index }}"
+                                        help="Ej.: 5 arepas en 400 g." wire:model="variants.{{ $index }}.units_per_pack" />
+                            <x-ui.field name="variants.{{ $index }}.barcode" label="Código de barras" id="var-barcode-{{ $index }}" wire:model="variants.{{ $index }}.barcode" />
+                        </div>
+                        <x-ui.field name="variants.{{ $index }}.kcal" label="Calorías propias (opcional, {{ $nutritionBasis ?: 'por unidad base' }})" type="number" step="0.01" min="0" id="var-kcal-{{ $index }}"
+                                    help="Solo si esta marca difiere del producto genérico." wire:model="variants.{{ $index }}.kcal" />
+
+                        <div class="ingredient-prices">
+                            <span class="md-label-large">Precios</span>
+                            @forelse ($variant['prices'] as $priceIndex => $price)
+                                <div class="ingredient-price-row" wire:key="price-{{ $index }}-{{ $price['id'] ?? 'new-'.$priceIndex }}">
+                                    <x-ui.field name="variants.{{ $index }}.prices.{{ $priceIndex }}.store" label="Tienda" id="price-store-{{ $index }}-{{ $priceIndex }}" list="ingredient-stores-list" autocomplete="off" wire:model="variants.{{ $index }}.prices.{{ $priceIndex }}.store" />
+                                    <x-ui.field name="variants.{{ $index }}.prices.{{ $priceIndex }}.amount" label="Precio" type="number" step="0.01" min="0" id="price-amount-{{ $index }}-{{ $priceIndex }}" wire:model="variants.{{ $index }}.prices.{{ $priceIndex }}.amount" />
+                                    <x-ui.field name="variants.{{ $index }}.prices.{{ $priceIndex }}.observed_on" label="Fecha" type="date" id="price-date-{{ $index }}-{{ $priceIndex }}" wire:model="variants.{{ $index }}.prices.{{ $priceIndex }}.observed_on" />
+                                    <x-ui.select name="variants.{{ $index }}.prices.{{ $priceIndex }}.source" label="Fuente" id="price-source-{{ $index }}-{{ $priceIndex }}"
+                                                 :options="\App\Models\ShoppingItemPrice::SOURCES" :selected="$price['source']" wire:model="variants.{{ $index }}.prices.{{ $priceIndex }}.source" />
+                                    <div class="ingredient-price-row__actions">
+                                        <label class="md-checkbox">
+                                            <input type="checkbox" wire:model="variants.{{ $index }}.prices.{{ $priceIndex }}.verified"> Verificado
+                                        </label>
+                                        <button wire:click="removePrice({{ $index }}, {{ $priceIndex }})" type="button" class="md-btn-icon md-btn-icon--small md-btn-danger" aria-label="Quitar precio"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="md-body-small mb-0 meal-muted">Sin precios registrados.</p>
+                            @endforelse
+                            <button wire:click="addPrice({{ $index }})" type="button" class="md-btn-text"><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar precio</button>
+                        </div>
                     </div>
                 </article>
             @empty
-                <div class="md-form-empty"><i class="bi bi-shop-window" aria-hidden="true"></i><p>No hay variantes registradas. Agrega una tienda para guardar precio, presentación o código de barras.</p></div>
+                <div class="md-form-empty"><i class="bi bi-shop-window" aria-hidden="true"></i><p>No hay variantes registradas. Agrega una para guardar marca, contenido y precios por tienda.</p></div>
             @endforelse
-            <button wire:click="addVariant" type="button" class="md-btn-text mt-2"><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar variante</button>
+            <button wire:click="addVariant" type="button" class="md-btn-text mt-2" @disabled($baseUnit === '')><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar variante</button>
         </x-ui.form-dialog-section>
 
         <x-ui.form-dialog-section name="aliases" title="Alias y equivalencias" description="Nombres alternativos que reconocerá el asistente, por ejemplo «arroz» para «Arroz blanco».">

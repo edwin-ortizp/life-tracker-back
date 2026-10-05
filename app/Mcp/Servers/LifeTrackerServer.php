@@ -51,6 +51,7 @@ use App\Mcp\Tools\Relationship\RemoveContactMethodTool;
 use App\Mcp\Tools\Relationship\UpdateContactTool;
 use App\Mcp\Tools\Relationship\UpdateRelationshipEventTool;
 use App\Mcp\Tools\Shopping\AddShoppingItemTool;
+use App\Mcp\Tools\Shopping\CompareProductPricesTool;
 use App\Mcp\Tools\Shopping\ListShoppingItemsTool;
 use App\Mcp\Tools\Shopping\RemoveShoppingItemTool;
 use App\Mcp\Tools\Shopping\UpdateShoppingItemTool;
@@ -161,6 +162,7 @@ class LifeTrackerServer extends Server
         UpdateShoppingItemTool::class,
         RemoveShoppingItemTool::class,
         ListShoppingItemsTool::class,
+        CompareProductPricesTool::class,
         LogMoodEntryTool::class,
         LogEnergyEntryTool::class,
         ListMoodEntriesTool::class,

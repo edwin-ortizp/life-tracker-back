@@ -5,6 +5,8 @@ namespace App\Livewire\Meal;
 use App\Models\Recipe;
 use App\Models\RecipeIngredient;
 use App\Models\ShoppingItem;
+use App\Services\Meal\RecipeCalculator;
+use App\Services\Meal\RecipeIngredientData;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -37,12 +39,14 @@ class MealRecipes extends Component
     public string $description = '';
     public string $difficulty = 'facil';
     public ?int $prepTime = null;
+    public $servings = 1;
     public string $mealType = 'comida';
     public string $instructions = '';
-    public ?int $nutritionCalories = null;
-    public ?int $nutritionProtein = null;
-    public ?int $nutritionCarbs = null;
-    public ?int $nutritionFat = null;
+    public $nutritionCalories = null;
+    public $nutritionProtein = null;
+    public $nutritionCarbs = null;
+    public $nutritionFat = null;
+    public string $nutritionSource = 'manual';
     public bool $favorite = false;
     public array $ingredients = [];
 
@@ -85,7 +89,7 @@ class MealRecipes extends Component
         $this->resetValidation();
 
         if ($id) {
-            $recipe = Recipe::with('recipeIngredients')->find($id);
+            $recipe = Recipe::with('recipeIngredients.shoppingItem')->find($id);
             if (!$recipe) return;
 
             $this->editingId = $recipe->id;
@@ -93,6 +97,8 @@ class MealRecipes extends Component
             $this->description = $recipe->description ?? '';
             $this->difficulty = $recipe->difficulty ?? 'facil';
             $this->prepTime = $recipe->prep_time;
+            $this->servings = $recipe->servings ?: 1;
+            $this->nutritionSource = $recipe->nutrition_source ?? 'manual';
             $this->mealType = $recipe->meal_type ?? 'comida';
             $this->instructions = $recipe->instructions ?? '';
             $this->favorite = $recipe->favorite;
@@ -113,6 +119,8 @@ class MealRecipes extends Component
             $this->description = '';
             $this->difficulty = 'facil';
             $this->prepTime = null;
+            $this->servings = 1;
+            $this->nutritionSource = 'manual';
             $this->mealType = 'comida';
             $this->instructions = '';
             $this->favorite = false;
@@ -156,10 +164,15 @@ class MealRecipes extends Component
             'name' => 'required|string|max:255',
             'difficulty' => 'required|in:facil,medio,dificil',
             'mealType' => 'required|in:desayuno,almuerzo,comida,merienda,cena',
+            'servings' => 'required|numeric|gt:0|max:999',
+            'nutritionCalories' => 'nullable|numeric|min:0',
+            'nutritionProtein' => 'nullable|numeric|min:0',
+            'nutritionCarbs' => 'nullable|numeric|min:0',
+            'nutritionFat' => 'nullable|numeric|min:0',
             'ingredients' => 'array',
             'ingredients.*.name' => 'nullable|required_without:ingredients.*.shopping_item_id|string|max:255',
             'ingredients.*.shopping_item_id' => 'nullable|string',
-            'ingredients.*.quantity' => 'required|numeric|gt:0|max:999999.99',
+            'ingredients.*.quantity' => 'required|numeric|gt:0|max:999999999.999',
             'ingredients.*.unit' => 'nullable|string|max:50',
             'ingredients.*.notes' => 'nullable|string|max:1000',
         ], [
@@ -175,13 +188,14 @@ class MealRecipes extends Component
             'protein' => $this->nutritionProtein,
             'carbs' => $this->nutritionCarbs,
             'fat' => $this->nutritionFat,
-        ], fn($v) => $v !== null);
+        ], fn($v) => $v !== null && $v !== '');
 
         $data = [
             'name' => trim($this->name),
             'description' => $this->description ?: null,
             'difficulty' => $this->difficulty,
             'prep_time' => $this->prepTime,
+            'servings' => $this->servings,
             'meal_type' => $this->mealType,
             'instructions' => $this->instructions ?: null,
             'nutrition' => $nutrition ?: null,
@@ -202,23 +216,24 @@ class MealRecipes extends Component
             if (empty($ingredient['name']) && empty($ingredient['shopping_item_id'])) continue;
 
             $shoppingItemId = $ingredient['shopping_item_id'];
-            if (!$shoppingItemId && !empty($ingredient['name'])) {
-                $item = ShoppingItem::firstOrCreate(
-                    ['name' => trim($ingredient['name'])],
-                    ['status' => 'available', 'stock' => 0, 'to_buy' => 0]
-                );
-                $shoppingItemId = $item->id;
+            $item = $shoppingItemId ? ShoppingItem::find($shoppingItemId) : null;
+            if (! $item && ! empty($ingredient['name'])) {
+                $item = RecipeIngredientData::product($ingredient['name'], $ingredient['unit'] ?? null);
             }
 
-            if ($shoppingItemId) {
+            if ($item) {
+                [$quantity, $unit] = RecipeIngredientData::quantity($item, (float) $ingredient['quantity'], $ingredient['unit'] ?? null);
                 $recipe->recipeIngredients()->create([
-                    'shopping_item_id' => $shoppingItemId,
-                    'quantity' => $ingredient['quantity'],
-                    'unit' => $ingredient['unit'] ?: null,
+                    'shopping_item_id' => $item->id,
+                    'quantity' => $quantity,
+                    'unit' => $unit,
                     'notes' => $ingredient['notes'] ?: null,
                 ]);
             }
         }
+
+        // Si todos los ingredientes tienen nutrición, la receta la calcula sola; si no, queda la manual.
+        app(RecipeCalculator::class)->refreshNutrition($recipe->refresh());
 
         $this->closeForm();
     }
@@ -247,11 +262,19 @@ class MealRecipes extends Component
             ->orderByDesc('updated_at')
             ->paginate($this->perPage());
 
-        $shoppingItems = ShoppingItem::orderBy('name')->get(['id', 'name']);
+        $shoppingItems = ShoppingItem::orderBy('name')->get(['id', 'name', 'base_unit']);
+
+        // Costo por porción en la tabla; el detalle de faltantes solo se calcula para la receta abierta.
+        $calculator = app(RecipeCalculator::class);
+        $recipes->getCollection()->load(['recipeIngredients.shoppingItem' => fn ($query) => $query->withOffers()]);
+        $costs = $recipes->getCollection()->mapWithKeys(fn (Recipe $recipe) => [$recipe->id => $calculator->calculate($recipe)]);
+        $editingCalculation = $this->editingId ? $calculator->calculate(Recipe::find($this->editingId) ?? new Recipe()) : null;
 
         return view('livewire.meal.meal-recipes', [
             'recipes' => $recipes,
             'shoppingItems' => $shoppingItems,
+            'costs' => $costs,
+            'editingCalculation' => $editingCalculation,
         ]);
     }
 }
