@@ -8,8 +8,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
- * Normaliza nombres del catálogo para que "D1", "d1" y "D1 " sean la misma tienda,
+ * Normaliza nombres del catálogo para que "D1", "d1" y "D1 " sean la misma tienda o marca,
  * y propone coincidencias parecidas antes de crear registros nuevos.
+ * Las tiendas son un catálogo cerrado: se buscan con findStore() y solo se crean con createStore().
  */
 class CatalogNames
 {
@@ -21,14 +22,37 @@ class CatalogNames
         return preg_replace('/\s+/u', ' ', $value) ?? '';
     }
 
-    public static function store(?string $name): ?Store
+    /** Tienda del catálogo con ese nombre (sin distinguir mayúsculas ni tildes). Nunca crea una nueva. */
+    public static function findStore(?string $name): ?Store
     {
-        $name = trim((string) $name);
+        $normalized = self::normalize($name);
+
+        return $normalized === '' ? null : Store::where('normalized_name', $normalized)->first();
+    }
+
+    /**
+     * Crea una tienda en el catálogo. Rechaza nombres vacíos, repetidos o muy parecidos a uno existente
+     * ("Exito" frente a "Éxito Popayán") salvo que se fuerce.
+     *
+     * @throws \InvalidArgumentException con el motivo, listo para mostrar.
+     */
+    public static function createStore(string $name, bool $allowSimilar = false): Store
+    {
+        $name = trim($name);
         if ($name === '') {
-            return null;
+            throw new \InvalidArgumentException('El nombre de la tienda es obligatorio.');
         }
 
-        return Store::firstOrCreate(['normalized_name' => self::normalize($name)], ['name' => $name]);
+        if ($existing = self::findStore($name)) {
+            throw new \InvalidArgumentException("La tienda \"{$existing->name}\" ya existe.");
+        }
+
+        $similar = self::similar($name, Store::pluck('name'));
+        if (! $allowSimilar && $similar->isNotEmpty()) {
+            throw new \InvalidArgumentException('Ya hay tiendas parecidas: '.$similar->implode(', ').'. Usa una de ellas o confirma que es otra tienda.');
+        }
+
+        return Store::create(['name' => $name]);
     }
 
     public static function brand(?string $name): ?Brand
@@ -49,7 +73,7 @@ class CatalogNames
     public static function similar(string $name, iterable $existing, int $limit = 3): Collection
     {
         $target = self::normalize($name);
-        if (mb_strlen($target) < 3) {
+        if (mb_strlen($target) < 2) {
             return collect();
         }
 

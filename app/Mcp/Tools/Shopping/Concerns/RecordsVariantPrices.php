@@ -5,16 +5,20 @@ namespace App\Mcp\Tools\Shopping\Concerns;
 use App\Models\ShoppingItem;
 use App\Models\ShoppingItemPrice;
 use App\Models\ShoppingItemVariant;
+use App\Models\Store;
 use App\Services\Meal\CatalogNames;
 use App\Services\Meal\UnitConverter;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Validation\Rule;
+use Laravel\Mcp\Response;
 
 /**
  * Parámetros compartidos para registrar variante (marca, empaque, contenido) y precio con tienda, fecha y fuente.
  */
 trait RecordsVariantPrices
 {
+    use ResolvesStore;
+
     protected function variantPriceRules(): array
     {
         return [
@@ -43,10 +47,17 @@ trait RecordsVariantPrices
         return array_key_exists($unit, ShoppingItem::BASE_UNITS) ? $unit : UnitConverter::baseUnitOf($unit);
     }
 
+    /** Tienda del precio si viene, o la respuesta de error si no está en el catálogo. */
+    protected function priceStore(array $data): Store|Response|null
+    {
+        return filled($data['price'] ?? null) && filled($data['store'] ?? null) ? $this->resolveStore($data['store']) : null;
+    }
+
     /**
-     * Crea o reutiliza la variante descrita y registra el precio si viene. Devuelve un texto con lo hecho o null.
+     * Crea o reutiliza la variante descrita y registra el precio si viene, en la tienda ya resuelta.
+     * Devuelve un texto con lo hecho o null.
      */
-    protected function recordVariantPrice(ShoppingItem $item, array $data): ?string
+    protected function recordVariantPrice(ShoppingItem $item, array $data, ?Store $store = null): ?string
     {
         $describesVariant = collect(['brand', 'packaging', 'content', 'units_per_pack', 'barcode'])->contains(fn ($key) => filled($data[$key] ?? null));
         if (! $describesVariant && blank($data['price'] ?? null)) {
@@ -76,14 +87,14 @@ trait RecordsVariantPrices
 
         $variant ? $variant->update($attributes) : $variant = $item->variants()->create($attributes);
 
-        if (blank($data['price'] ?? null)) {
+        if (blank($data['price'] ?? null) || ! $store) {
             return 'variante '.$variant->label($item->base_unit);
         }
 
         $source = $data['source'] ?? 'manual';
         $verified = (bool) ($data['verified'] ?? $source === 'ticket');
         $variant->prices()->create([
-            'store_id' => CatalogNames::store($data['store'])->id,
+            'store_id' => $store->id,
             'amount' => $data['price'],
             'observed_on' => $data['price_date'] ?? now()->toDateString(),
             'source' => $source,
@@ -91,7 +102,7 @@ trait RecordsVariantPrices
             'verified_by' => $verified ? auth()->id() : null,
         ]);
 
-        return 'precio $'.number_format((float) $data['price'], 0, ',', '.').' en '.$data['store'].' ('.$variant->label($item->base_unit).')';
+        return 'precio $'.number_format((float) $data['price'], 0, ',', '.').' en '.$store->name.' ('.$variant->label($item->base_unit).')';
     }
 
     protected function variantPriceSchema(JsonSchema $schema): array
@@ -105,7 +116,7 @@ trait RecordsVariantPrices
             'content_unit' => $schema->string()->description('Unidad del contenido (g, kg, libra, ml, L, unidades, docena). Se convierte a la unidad base.'),
             'units_per_pack' => $schema->integer()->description('Unidades por paquete (5 arepas).'),
             'barcode' => $schema->string()->description('Código de barras de la variante.'),
-            'store' => $schema->string()->description('Tienda (cadena) del precio. Requerida con "price".'),
+            'store' => $schema->string()->description('Tienda del precio, del catálogo cerrado (consulta manage-store-tool action "list"). Requerida con "price".'),
             'price' => $schema->number()->description('Precio del paquete en esa tienda.'),
             'price_date' => $schema->string()->description('Fecha del precio (YYYY-MM-DD). Por defecto hoy.'),
             'source' => $schema->string()->enum(array_keys(ShoppingItemPrice::SOURCES))->description('De dónde viene el precio: manual, ticket o web. Por defecto manual.'),

@@ -53,8 +53,12 @@ use App\Mcp\Tools\Relationship\UpdateRelationshipEventTool;
 use App\Mcp\Tools\Shopping\AddShoppingItemTool;
 use App\Mcp\Tools\Shopping\CompareProductPricesTool;
 use App\Mcp\Tools\Shopping\ListShoppingItemsTool;
+use App\Mcp\Tools\Shopping\ManagePriceTool;
+use App\Mcp\Tools\Shopping\ManageStoreTool;
+use App\Mcp\Tools\Shopping\MarkPurchasedTool;
 use App\Mcp\Tools\Shopping\RemoveShoppingItemTool;
 use App\Mcp\Tools\Shopping\UpdateShoppingItemTool;
+use App\Mcp\Tools\Shopping\UpdateVariantTool;
 use App\Mcp\Tools\Task\CompleteTaskTool;
 use App\Mcp\Tools\Task\CreateTaskTool;
 use App\Mcp\Tools\Task\GetTaskTool;
@@ -96,6 +100,7 @@ No consultes para preguntas generales que no dependen de su vida, si el dato ya 
 - Trabajo y pendientes → list-tasks-tool por categoría o con updated_since; get-task-tool solo para la tarea en foco.
 - Metas, propósitos o progreso → list-goals-tool (con goal_id o title para el detalle).
 - Comida, qué cocinar o el mercado de la semana → list-meal-plan-tool y list-recipes-tool.
+- Precios y compras → compare-product-prices-tool para saber dónde sale más barato; update-variant-tool para completar marca o contenido de una variante; manage-price-tool para verificar o corregir un precio; mark-purchased-tool cuando el usuario cuenta que compró algo. Las tiendas son un catálogo cerrado: usa manage-store-tool para listarlas y crea una nueva solo si el usuario confirma que no existe.
 - Algo que intenta dejar o una recaída → list-negative-habits-tool, sin juzgar.
 - Productividad u horas de foco → list-focus-sessions-tool.
 - Ánimo, energía, ejercicio, agua, hábitos, vehículos → sus list-*-tool, con fechas acotadas.
@@ -163,6 +168,10 @@ class LifeTrackerServer extends Server
         RemoveShoppingItemTool::class,
         ListShoppingItemsTool::class,
         CompareProductPricesTool::class,
+        UpdateVariantTool::class,
+        ManagePriceTool::class,
+        MarkPurchasedTool::class,
+        ManageStoreTool::class,
         LogMoodEntryTool::class,
         LogEnergyEntryTool::class,
         ListMoodEntriesTool::class,

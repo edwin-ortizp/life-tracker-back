@@ -164,7 +164,7 @@ class MealIngredients extends Component
                 'kcal' => $v->kcal,
                 'prices' => $v->prices->sortByDesc('observed_on')->map(fn (ShoppingItemPrice $p) => [
                     'id' => $p->id,
-                    'store' => $p->store?->name ?? '',
+                    'store_id' => $p->store_id,
                     'amount' => $p->amount,
                     'observed_on' => $p->observed_on->format('Y-m-d'),
                     'source' => $p->source,
@@ -205,7 +205,7 @@ class MealIngredients extends Component
     public function addPrice(int $variantIndex): void
     {
         $this->variants[$variantIndex]['prices'][] = [
-            'id' => null, 'store' => '', 'amount' => null, 'observed_on' => now()->toDateString(), 'source' => 'manual', 'verified' => false,
+            'id' => null, 'store_id' => '', 'amount' => null, 'observed_on' => now()->toDateString(), 'source' => 'manual', 'verified' => false,
         ];
     }
 
@@ -245,14 +245,14 @@ class MealIngredients extends Component
             'variants.*.units_per_pack' => 'nullable|integer|min:1',
             'variants.*.barcode' => 'nullable|string|max:255',
             'variants.*.kcal' => 'nullable|numeric|min:0',
-            'variants.*.prices.*.store' => 'required|string|max:255',
+            'variants.*.prices.*.store_id' => ['required', Rule::in(Store::pluck('id'))],
             'variants.*.prices.*.amount' => 'required|numeric|min:0',
             'variants.*.prices.*.observed_on' => 'required|date',
             'variants.*.prices.*.source' => ['required', Rule::in(array_keys(ShoppingItemPrice::SOURCES))],
             'aliases.*.alias' => 'nullable|string|max:255',
         ], attributes: [
             'baseUnit' => 'unidad base',
-            'variants.*.prices.*.store' => 'tienda',
+            'variants.*.prices.*.store_id' => 'tienda',
             'variants.*.prices.*.amount' => 'precio',
             'variants.*.prices.*.observed_on' => 'fecha del precio',
         ]);
@@ -316,7 +316,7 @@ class MealIngredients extends Component
                 $keptPriceIds = [];
                 foreach ($variant['prices'] ?? [] as $price) {
                     $priceData = [
-                        'store_id' => CatalogNames::store($price['store'])->id,
+                        'store_id' => $price['store_id'],
                         'amount' => $price['amount'],
                         'observed_on' => $price['observed_on'],
                         'source' => $price['source'],
@@ -365,6 +365,7 @@ class MealIngredients extends Component
     }
 
     #[On('ingredients-imported')]
+    #[On('stores-updated')]
     public function refreshIngredients(): void
     {
         // The event is enough to trigger a fresh render of the catalog.

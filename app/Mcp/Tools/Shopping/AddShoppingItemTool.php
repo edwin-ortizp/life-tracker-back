@@ -29,6 +29,11 @@ class AddShoppingItemTool extends Tool
             ...$this->variantPriceRules(),
         ]);
 
+        $store = $this->priceStore($data);
+        if ($store instanceof Response) {
+            return $store;
+        }
+
         if (empty($data['item_id']) && empty($data['name'])) {
             return Response::error('Debes indicar item_id o name para identificar el ítem.');
         }
@@ -85,7 +90,7 @@ class AddShoppingItemTool extends Tool
             $created = true;
         }
 
-        $recorded = $this->recordVariantPrice($item, $data);
+        $recorded = $this->recordVariantPrice($item, $data, $store);
         $verb = $created ? 'creado y añadido' : 'añadido';
 
         return Response::text("Ítem \"{$item->name}\" {$verb} a la lista de compras (id: {$item->id})".($recorded ? "; {$recorded}" : '').'.');

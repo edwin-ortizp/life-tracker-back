@@ -43,7 +43,15 @@ class ListShoppingItemsTool extends Tool
                 'min_stock' => $item->min_stock,
                 'category' => $item->category,
                 'estimated_price' => $item->estimatedPrice(),
+                'variants' => $item->variants->map(fn ($variant) => [
+                    'variant_id' => $variant->id,
+                    'label' => $variant->label($item->base_unit),
+                    'preferred' => $variant->is_preferred,
+                    'pending' => ! $variant->isComparable(),
+                ])->all(),
                 'offers' => $item->offers()->map(fn ($offer) => [
+                    'variant_id' => $offer['variant']->id,
+                    'price_id' => $offer['price']->id,
                     'variant' => $offer['variant']->label($item->base_unit),
                     'store' => $offer['price']->store?->name,
                     'price' => (float) $offer['price']->amount,

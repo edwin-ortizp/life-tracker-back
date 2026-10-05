@@ -219,3 +219,8 @@
 .recipe-calculation strong { display: block; font-size: 1.1rem; }
 .recipe-calculation p { grid-column: 1 / -1; color: var(--md-sys-color-on-surface-variant); }
 .compare-history__summary { cursor: pointer; }
+
+/* Catálogo de tiendas */
+.store-catalog__new, .store-catalog__inline { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; margin: 12px 0; }
+.store-catalog__new > :first-child, .store-catalog__inline > :first-child { flex: 1 1 220px; }
+.store-catalog__inline { padding: 8px 12px; border-radius: var(--md-sys-shape-corner-medium); background: var(--md-sys-color-surface-container-low); }

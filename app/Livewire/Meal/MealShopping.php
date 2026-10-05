@@ -7,10 +7,9 @@ use App\Models\MealPlanEntryItem;
 use App\Models\ShoppingItem;
 use App\Models\ShoppingItemPrice;
 use App\Models\Store;
-use App\Services\Meal\CatalogNames;
+use App\Services\Meal\PurchaseRecorder;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -49,7 +48,7 @@ class MealShopping extends Component
 
     public string $itemCategory = '';
 
-    public string $itemStore = '';
+    public string $itemStoreId = '';
 
     public $itemPrice = null;
 
@@ -60,7 +59,7 @@ class MealShopping extends Component
 
     public string $purchaseVariantId = '';
 
-    public string $purchaseStore = '';
+    public string $purchaseStoreId = '';
 
     public $purchaseQuantity = 1;
 
@@ -83,7 +82,7 @@ class MealShopping extends Component
 
     public function openForm(): void
     {
-        $this->reset(['itemName', 'itemQuantity', 'itemBaseUnit', 'itemCategory', 'itemStore', 'itemPrice']);
+        $this->reset(['itemName', 'itemQuantity', 'itemBaseUnit', 'itemCategory', 'itemStoreId', 'itemPrice']);
         $this->resetValidation();
         $this->showForm = true;
     }
@@ -107,9 +106,9 @@ class MealShopping extends Component
             'itemQuantity' => ['nullable', 'numeric', 'gt:0'],
             'itemBaseUnit' => [$existing?->base_unit ? 'nullable' : 'required', Rule::in(array_keys(ShoppingItem::BASE_UNITS))],
             'itemCategory' => ['nullable', 'string', 'in:'.implode(',', array_keys($this->categoryOptions))],
-            'itemStore' => ['nullable', 'string', 'max:255', 'required_with:itemPrice'],
+            'itemStoreId' => ['nullable', 'required_with:itemPrice', Rule::in(Store::pluck('id'))],
             'itemPrice' => ['nullable', 'numeric', 'min:0'],
-        ], attributes: ['itemBaseUnit' => 'unidad base']);
+        ], attributes: ['itemBaseUnit' => 'unidad base', 'itemStoreId' => 'tienda']);
 
         $attributes = array_filter([
             'to_buy' => $data['itemQuantity'],
@@ -131,11 +130,11 @@ class MealShopping extends Component
             ]);
         }
 
-        if ($data['itemStore'] && $data['itemPrice'] !== null && $data['itemPrice'] !== '') {
+        if ($data['itemStoreId'] && $data['itemPrice'] !== null && $data['itemPrice'] !== '') {
             // Sin marca ni presentación conocidas, el precio va a la variante preferida o a una genérica pendiente de completar.
             $variant = $item->variants()->orderByDesc('is_preferred')->first() ?? $item->variants()->create([]);
             $variant->prices()->create([
-                'store_id' => CatalogNames::store($data['itemStore'])->id,
+                'store_id' => $data['itemStoreId'],
                 'amount' => $data['itemPrice'],
                 'observed_on' => now()->toDateString(),
                 'source' => 'manual',
@@ -175,7 +174,7 @@ class MealShopping extends Component
         $this->resetValidation();
         $this->purchaseItemId = $item->id;
         $this->purchaseVariantId = (string) ($offer['variant']->id ?? $item->variants->first()?->id ?? '');
-        $this->purchaseStore = $offer['price']->store?->name ?? '';
+        $this->purchaseStoreId = (string) ($offer['price']->store_id ?? '');
         $this->purchaseQuantity = max((float) $item->to_buy, 1);
         $this->purchaseAmount = $offer ? (float) $offer['price']->amount : null;
         $this->showPurchase = true;
@@ -201,33 +200,17 @@ class MealShopping extends Component
             'purchaseVariantId' => ['nullable', Rule::in($item->variants->pluck('id'))],
             'purchaseQuantity' => ['required', 'numeric', 'gt:0'],
             'purchaseAmount' => ['nullable', 'numeric', 'min:0'],
-            'purchaseStore' => ['nullable', 'string', 'max:255', 'required_with:purchaseAmount'],
-        ], attributes: ['purchaseQuantity' => 'cantidad', 'purchaseAmount' => 'precio pagado', 'purchaseStore' => 'tienda']);
+            'purchaseStoreId' => ['nullable', 'required_with:purchaseAmount', Rule::in(Store::pluck('id'))],
+        ], attributes: ['purchaseQuantity' => 'cantidad', 'purchaseAmount' => 'precio pagado', 'purchaseStoreId' => 'tienda']);
 
-        DB::transaction(function () use ($item, $data) {
-            $variant = $item->variants->firstWhere('id', $data['purchaseVariantId']);
-            $quantity = (float) $data['purchaseQuantity'];
-
-            $stockAdded = $variant?->isComparable() ? $variant->content * $quantity : ($item->base_unit === 'unit' && ! $variant?->content ? $quantity : 0);
-            $item->update([
-                'stock' => (float) $item->stock + $stockAdded,
-                'next_purchase' => false,
-                'to_buy' => 0,
-            ]);
-
-            if ($variant && $data['purchaseAmount'] !== null && $data['purchaseAmount'] !== '') {
-                // El precio pagado se registra por paquete, igual que los demás precios de la variante.
-                $variant->prices()->create([
-                    'store_id' => CatalogNames::store($data['purchaseStore'])->id,
-                    'amount' => round((float) $data['purchaseAmount'], 2),
-                    'observed_on' => now()->toDateString(),
-                    'source' => 'ticket',
-                    'paid' => true,
-                    'verified_at' => now(),
-                    'verified_by' => auth()->id(),
-                ]);
-            }
-        });
+        $amount = $data['purchaseAmount'] ?? null;
+        app(PurchaseRecorder::class)->record(
+            $item,
+            $item->variants->firstWhere('id', $data['purchaseVariantId']),
+            (float) $data['purchaseQuantity'],
+            $amount === null || $amount === '' ? null : (float) $amount,
+            Store::find($data['purchaseStoreId'] ?? null),
+        );
 
         $this->showPurchase = false;
     }
@@ -239,6 +222,7 @@ class MealShopping extends Component
     }
 
     #[On('ingredients-imported')]
+    #[On('stores-updated')]
     public function refreshIngredients(): void
     {
         // The event is enough to trigger a fresh render of the shopping list.

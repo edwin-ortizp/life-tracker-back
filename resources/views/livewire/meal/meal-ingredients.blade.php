@@ -1,7 +1,9 @@
 <x-module-shell module="meals">
     <x-slot:actions>
         <livewire:meal.bulk-ingredient-assistant context="ingredients" />
-        <x-module-actions :primary="['label' => 'Agregar ingrediente', 'icon' => 'bi-basket', 'action' => 'openForm']" />
+        <x-module-actions :primary="['label' => 'Agregar ingrediente', 'icon' => 'bi-basket', 'action' => 'openForm']"
+                          :secondary="[['label' => 'Tiendas', 'icon' => 'bi-shop', 'event' => 'open-store-catalog']]" />
+        <livewire:meal.store-catalog />
     </x-slot:actions>
 
     <x-ui.management-card id="meal-ingredients" title="Catálogo de ingredientes" icon="bi-basket" :count="'('.$ingredients->total().' / '.$catalogTotal.')'"
@@ -256,9 +258,6 @@
             <datalist id="ingredient-brands-list">
                 @foreach ($brands as $brandName)<option value="{{ $brandName }}">@endforeach
             </datalist>
-            <datalist id="ingredient-stores-list">
-                @foreach ($stores as $storeName)<option value="{{ $storeName }}">@endforeach
-            </datalist>
             @forelse ($variants as $index => $variant)
                 <article class="meal-variant-card" wire:key="variant-{{ $variant['id'] ?? 'new-'.$index }}">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -295,7 +294,8 @@
                             <span class="md-label-large">Precios</span>
                             @forelse ($variant['prices'] as $priceIndex => $price)
                                 <div class="ingredient-price-row" wire:key="price-{{ $index }}-{{ $price['id'] ?? 'new-'.$priceIndex }}">
-                                    <x-ui.field name="variants.{{ $index }}.prices.{{ $priceIndex }}.store" label="Tienda" id="price-store-{{ $index }}-{{ $priceIndex }}" list="ingredient-stores-list" autocomplete="off" wire:model="variants.{{ $index }}.prices.{{ $priceIndex }}.store" />
+                                    <x-ui.select name="variants.{{ $index }}.prices.{{ $priceIndex }}.store_id" label="Tienda" id="price-store-{{ $index }}-{{ $priceIndex }}" placeholder="Elige la tienda"
+                                                 :options="$stores->all()" :selected="$price['store_id']" wire:model="variants.{{ $index }}.prices.{{ $priceIndex }}.store_id" />
                                     <x-ui.field name="variants.{{ $index }}.prices.{{ $priceIndex }}.amount" label="Precio" type="number" step="0.01" min="0" id="price-amount-{{ $index }}-{{ $priceIndex }}" wire:model="variants.{{ $index }}.prices.{{ $priceIndex }}.amount" />
                                     <x-ui.field name="variants.{{ $index }}.prices.{{ $priceIndex }}.observed_on" label="Fecha" type="date" id="price-date-{{ $index }}-{{ $priceIndex }}" wire:model="variants.{{ $index }}.prices.{{ $priceIndex }}.observed_on" />
                                     <x-ui.select name="variants.{{ $index }}.prices.{{ $priceIndex }}.source" label="Fuente" id="price-source-{{ $index }}-{{ $priceIndex }}"
@@ -310,7 +310,10 @@
                             @empty
                                 <p class="md-body-small mb-0 meal-muted">Sin precios registrados.</p>
                             @endforelse
-                            <button wire:click="addPrice({{ $index }})" type="button" class="md-btn-text"><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar precio</button>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button wire:click="addPrice({{ $index }})" type="button" class="md-btn-text" @disabled($stores->isEmpty())><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar precio</button>
+                                <button type="button" class="md-btn-text" x-on:click="$dispatch('open-store-catalog')"><i class="bi bi-shop" aria-hidden="true"></i> {{ $stores->isEmpty() ? 'Crea primero una tienda' : 'Gestionar tiendas' }}</button>
+                            </div>
                         </div>
                     </div>
                 </article>

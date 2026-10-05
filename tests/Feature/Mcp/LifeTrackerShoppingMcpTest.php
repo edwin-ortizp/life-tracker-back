@@ -6,6 +6,7 @@ use App\Mcp\Servers\LifeTrackerServer;
 use App\Mcp\Tools\Shopping\AddShoppingItemTool;
 use App\Mcp\Tools\Shopping\CompareProductPricesTool;
 use App\Mcp\Tools\Shopping\ListShoppingItemsTool;
+use App\Mcp\Tools\Shopping\ManageStoreTool;
 use App\Mcp\Tools\Shopping\RemoveShoppingItemTool;
 use App\Mcp\Tools\Shopping\UpdateShoppingItemTool;
 use App\Models\ShoppingItem;
@@ -54,6 +55,8 @@ class LifeTrackerShoppingMcpTest extends TestCase
     public function test_add_shopping_item_tool_registers_a_store_price(): void
     {
         $user = User::factory()->create();
+        $this->actingAs($user);
+        Store::create(['name' => 'Éxito']);
 
         LifeTrackerServer::actingAs($user)
             ->tool(AddShoppingItemTool::class, [
@@ -108,6 +111,8 @@ class LifeTrackerShoppingMcpTest extends TestCase
             'name' => 'Café', 'base_unit' => 'g', 'stock' => 0, 'to_buy' => 1, 'status' => 'available', 'next_purchase' => true,
         ]);
 
+        Store::create(['name' => 'D1']);
+
         LifeTrackerServer::actingAs($user)
             ->tool(UpdateShoppingItemTool::class, [
                 'item_id' => $item->id,
@@ -156,5 +161,35 @@ class LifeTrackerShoppingMcpTest extends TestCase
             ->assertOk()
             ->assertSee('Mío')
             ->assertDontSee('Ajeno');
+    }
+
+    public function test_price_tools_reject_unknown_stores_without_creating_anything(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Store::create(['name' => 'Éxito']);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(AddShoppingItemTool::class, ['name' => 'Arroz', 'base_unit' => 'g', 'store' => 'Exito Popayan', 'price' => 5000])
+            ->assertHasErrors(['Éxito']);
+
+        $this->assertSame(0, ShoppingItem::count());
+        $this->assertSame(1, Store::count());
+    }
+
+    public function test_manage_store_tool_lists_creates_and_merges(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $item = $user->shoppingItems()->create(['name' => 'Pan', 'base_unit' => 'unit', 'status' => 'available']);
+        $old = Store::create(['name' => 'Tiendas D1']);
+        $item->variants()->create([])->prices()->create(['store_id' => $old->id, 'amount' => 2000, 'observed_on' => '2026-10-01', 'source' => 'manual']);
+
+        LifeTrackerServer::actingAs($user)->tool(ManageStoreTool::class, ['action' => 'create', 'new_name' => 'D1'])->assertHasErrors();
+        LifeTrackerServer::actingAs($user)->tool(ManageStoreTool::class, ['action' => 'create', 'new_name' => 'D1', 'confirm_similar' => true])->assertOk();
+        LifeTrackerServer::actingAs($user)->tool(ManageStoreTool::class, ['action' => 'merge', 'store' => 'Tiendas D1', 'into' => 'D1'])->assertOk()->assertSee('1 precios movidos');
+        LifeTrackerServer::actingAs($user)->tool(ManageStoreTool::class, ['action' => 'list'])->assertOk()->assertSee('D1');
+
+        $this->assertSame(['D1'], Store::pluck('name')->all());
     }
 }

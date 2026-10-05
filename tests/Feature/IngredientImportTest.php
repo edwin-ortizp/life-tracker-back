@@ -7,8 +7,8 @@ use App\Livewire\Meal\MealIngredients;
 use App\Livewire\Meal\MealShopping;
 use App\Models\ShoppingItem;
 use App\Models\ShoppingItemAlias;
+use App\Models\Store;
 use App\Models\User;
-use App\Services\Meal\CatalogNames;
 use App\Services\Meal\IngredientImportService;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -75,7 +75,7 @@ class IngredientImportTest extends TestCase
             'next_purchase' => true,
         ]);
         $item->variants()->create([])->prices()->create([
-            'store_id' => CatalogNames::store('D1')->id, 'amount' => 4200, 'observed_on' => now()->toDateString(), 'source' => 'manual',
+            'store_id' => Store::firstOrCreate(['name' => 'D1'])->id, 'amount' => 4200, 'observed_on' => now()->toDateString(), 'source' => 'manual',
         ]);
 
         Livewire::test(MealShopping::class)

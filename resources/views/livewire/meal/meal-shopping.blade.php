@@ -1,7 +1,9 @@
 <x-module-shell module="meals">
     <x-slot:actions>
         <livewire:meal.bulk-ingredient-assistant context="shopping" />
-        <x-module-actions :primary="['label' => 'Agregar a compras', 'icon' => 'bi-cart-plus', 'action' => 'openForm']" />
+        <x-module-actions :primary="['label' => 'Agregar a compras', 'icon' => 'bi-cart-plus', 'action' => 'openForm']"
+                          :secondary="[['label' => 'Tiendas', 'icon' => 'bi-shop', 'event' => 'open-store-catalog']]" />
+        <livewire:meal.store-catalog />
     </x-slot:actions>
 
     <x-ui.management-card id="meal-shopping" title="Por comprar" icon="bi-cart3" :count="'('.$totalItems.')'"
@@ -197,7 +199,7 @@
                       title="Agregar a compras" icon="bi-cart-plus"
                       :sections="[
                           'basic' => ['label' => 'Información básica', 'icon' => 'bi-cart3', 'error' => $errors->hasAny(['itemName', 'itemQuantity', 'itemBaseUnit'])],
-                          'store' => ['label' => 'Tienda y precio', 'icon' => 'bi-shop', 'error' => $errors->hasAny(['itemStore', 'itemPrice'])],
+                          'store' => ['label' => 'Tienda y precio', 'icon' => 'bi-shop', 'error' => $errors->hasAny(['itemStoreId', 'itemPrice'])],
                       ]">
         <x-ui.form-dialog-section name="basic" title="Información básica" description="Si el ítem ya existe en tus ingredientes se reutiliza.">
             <div class="d-flex flex-column gap-3">
@@ -218,14 +220,10 @@
 
         <x-ui.form-dialog-section name="store" title="Tienda y precio" description="Opcional: guarda dónde lo consigues y a qué precio.">
             <div class="md-field-pair">
-                <x-ui.field name="itemStore" label="Tienda" list="shopping-places-list" wire:model="itemStore" />
+                <x-ui.select name="itemStoreId" label="Tienda" placeholder="Elige la tienda" :options="$places->all()" :selected="$itemStoreId" wire:model="itemStoreId" />
                 <x-ui.field name="itemPrice" label="Precio" type="number" step="0.01" min="0" wire:model="itemPrice" />
             </div>
-            <datalist id="shopping-places-list">
-                @foreach ($places as $place)
-                    <option value="{{ $place }}">
-                @endforeach
-            </datalist>
+            <button type="button" class="md-btn-text mt-2" x-on:click="$dispatch('open-store-catalog')"><i class="bi bi-shop" aria-hidden="true"></i> Gestionar tiendas</button>
         </x-ui.form-dialog-section>
     </x-ui.form-dialog>
 
@@ -245,7 +243,7 @@
                     <x-ui.field name="purchaseQuantity" label="Paquetes comprados" type="number" step="0.001" min="0" wire:model="purchaseQuantity" />
                     <x-ui.field name="purchaseAmount" label="Precio pagado por paquete" type="number" step="0.01" min="0" wire:model="purchaseAmount" />
                 </div>
-                <x-ui.field name="purchaseStore" label="Tienda" list="shopping-places-list" autocomplete="off" wire:model="purchaseStore" />
+                <x-ui.select name="purchaseStoreId" label="Tienda" placeholder="Elige la tienda" :options="$places->all()" :selected="$purchaseStoreId" wire:model="purchaseStoreId" />
             </div>
         </x-ui.form-dialog>
     @endif

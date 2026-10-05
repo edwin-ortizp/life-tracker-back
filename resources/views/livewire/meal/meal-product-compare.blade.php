@@ -5,7 +5,9 @@
 @endphp
 <x-module-shell module="meals">
     <x-slot:actions>
-        <x-module-actions :primary="['label' => 'Registrar precio', 'icon' => 'bi-receipt', 'action' => 'openForm']" />
+        <x-module-actions :primary="['label' => 'Registrar precio', 'icon' => 'bi-receipt', 'action' => 'openForm']"
+                          :secondary="[['label' => 'Tiendas', 'icon' => 'bi-shop', 'event' => 'open-store-catalog']]" />
+        <livewire:meal.store-catalog />
     </x-slot:actions>
 
     <div class="compare-header mb-3">
@@ -148,10 +150,8 @@
                       title="Registrar precio" icon="bi-receipt">
         <div class="d-flex flex-column gap-3">
             <x-ui.select name="priceVariantId" label="Variante" :required="true" :options="$variantOptions->all()" :selected="$priceVariantId" wire:model="priceVariantId" />
-            <x-ui.field name="priceStore" label="Tienda" :required="true" list="compare-stores-list" autocomplete="off" wire:model="priceStore" />
-            <datalist id="compare-stores-list">
-                @foreach ($storeNames as $storeName)<option value="{{ $storeName }}">@endforeach
-            </datalist>
+            <x-ui.select name="priceStoreId" label="Tienda" :required="true" placeholder="Elige la tienda" :options="$storeOptions->all()" :selected="$priceStoreId"
+                         help="¿No está? Agrégala desde el menú ⋮ › Tiendas." wire:model="priceStoreId" />
             <div class="md-field-pair">
                 <x-ui.field name="priceAmount" label="Precio" type="number" step="0.01" min="0" :required="true" wire:model="priceAmount" />
                 <x-ui.field name="priceDate" label="Fecha" type="date" :required="true" wire:model="priceDate" />

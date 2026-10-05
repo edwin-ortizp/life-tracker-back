@@ -34,6 +34,11 @@ class UpdateShoppingItemTool extends Tool
             ...$this->variantPriceRules(),
         ]);
 
+        $store = $this->priceStore($data);
+        if ($store instanceof Response) {
+            return $store;
+        }
+
         $item = $this->resolveShoppingItem($data['item_id'] ?? null, $data['name'] ?? null);
         if ($item instanceof Response) {
             return $item;
@@ -59,7 +64,7 @@ class UpdateShoppingItemTool extends Tool
             $item->update($updates);
         }
 
-        $recorded = $this->recordVariantPrice($item->refresh(), $data);
+        $recorded = $this->recordVariantPrice($item->refresh(), $data, $store);
 
         if ($updates === [] && ! $recorded) {
             return Response::error('No se indicó ningún campo para actualizar.');

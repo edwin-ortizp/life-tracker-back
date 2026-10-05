@@ -46,6 +46,8 @@ class CompareProductPricesTool extends Tool
             'compared_per' => UnitConverter::comparisonLabel($item->base_unit),
             'offers' => $offers->map(fn ($offer, $index) => [
                 'cheapest' => $index === 0,
+                'variant_id' => $offer['variant']->id,
+                'price_id' => $offer['price']->id,
                 'variant' => $offer['variant']->label($item->base_unit),
                 'store' => $offer['price']->store?->name,
                 'price' => (float) $offer['price']->amount,
@@ -56,7 +58,10 @@ class CompareProductPricesTool extends Tool
                 'verified' => $offer['price']->isVerified(),
                 'stale' => $offer['price']->isStale(),
             ])->all(),
-            'pending_variants' => $item->variants->reject->isComparable()->map(fn ($variant) => $variant->label($item->base_unit))->values()->all(),
+            'pending_variants' => $item->variants->reject->isComparable()->map(fn ($variant) => [
+                'variant_id' => $variant->id,
+                'label' => $variant->label($item->base_unit),
+            ])->values()->all(),
         ]);
     }
 

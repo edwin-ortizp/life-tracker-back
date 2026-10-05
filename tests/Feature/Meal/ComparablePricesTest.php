@@ -5,6 +5,7 @@ namespace Tests\Feature\Meal;
 use App\Livewire\Meal\MealProductCompare;
 use App\Livewire\Meal\MealRecipes;
 use App\Livewire\Meal\MealShopping;
+use App\Livewire\Meal\StoreCatalog;
 use App\Models\Recipe;
 use App\Models\ShoppingItem;
 use App\Models\ShoppingItemPrice;
@@ -14,7 +15,6 @@ use App\Services\Meal\CatalogNames;
 use App\Services\Meal\RecipeCalculator;
 use App\Services\Meal\UnitConverter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -30,7 +30,7 @@ class ComparablePricesTest extends TestCase
     private function offer(ShoppingItem $product, ?float $content, float $amount, string $store = 'D1', array $variant = [], ?string $date = null): void
     {
         $product->variants()->create(['content' => $content, ...$variant])->prices()->create([
-            'store_id' => CatalogNames::store($store)->id,
+            'store_id' => Store::firstOrCreate(['name' => $store])->id,
             'amount' => $amount,
             'observed_on' => $date ?? now()->toDateString(),
             'source' => 'web',
@@ -52,7 +52,9 @@ class ComparablePricesTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
 
-        $this->assertSame(CatalogNames::store('D1')->id, CatalogNames::store(' d1 ')->id);
+        $d1 = Store::create(['name' => 'D1']);
+        $this->assertSame($d1->id, CatalogNames::findStore(' d1 ')->id);
+        $this->assertNull(CatalogNames::findStore('Tiendas Ara'));
         $this->assertSame(['Atún en aceite'], CatalogNames::similar('Atun en aceite.', ['Atún en aceite', 'Arroz'])->all());
     }
 
@@ -83,7 +85,7 @@ class ComparablePricesTest extends TestCase
 
         Livewire::test(MealProductCompare::class, ['item' => $milk])
             ->call('openForm')
-            ->set('priceStore', 'Éxito')
+            ->set('priceStoreId', Store::create(['name' => 'Éxito'])->id)
             ->set('priceAmount', 3500)
             ->call('savePrice')
             ->assertHasNoErrors();
@@ -102,7 +104,7 @@ class ComparablePricesTest extends TestCase
         Livewire::test(MealShopping::class)
             ->call('openPurchase', $oil->id)
             ->assertSet('purchaseQuantity', 2.0)
-            ->assertSet('purchaseStore', 'D1')
+            ->assertSet('purchaseStoreId', Store::where('name', 'D1')->value('id'))
             ->set('purchaseAmount', 6800)
             ->call('confirmPurchase')
             ->assertHasNoErrors();
@@ -166,40 +168,51 @@ class ComparablePricesTest extends TestCase
         $this->assertEquals(450, $recipe->nutrition['calories']);
     }
 
-    public function test_catalog_migration_command_converts_legacy_data_and_reports_pending_items(): void
+    public function test_store_catalog_creates_rejects_similar_renames_and_merges(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $oil = ShoppingItem::create(['name' => 'Aceite vegetal', 'status' => 'available']);
-        $oil->forceFill(['unit' => 'litros'])->save();
-        $legacy = $oil->variants()->create([]);
-        $legacy->forceFill(['place' => 'd1', 'price' => 6950, 'presentation' => '900 ml', 'notes' => 'Aceite vegetal Imatá 900 ml · ref. web aprox.'])->save();
-        $avocado = ShoppingItem::create(['name' => 'Aguacate', 'status' => 'available']);
-        $avocado->variants()->create([])->forceFill(['place' => 'Maxihogar', 'price' => 8300])->save();
-        $recipe = Recipe::create(['name' => 'Ensalada']);
-        $recipe->recipeIngredients()->create(['shopping_item_id' => $oil->id, 'quantity' => 0.01, 'unit' => 'L']);
+        $this->actingAs(User::factory()->create());
+        $oil = $this->product('Aceite vegetal', 'ml');
+        $this->offer($oil, 900, 6950, 'Éxito');
 
-        $mapping = storage_path('framework/testing/catalog-mapping.json');
-        File::ensureDirectoryExists(dirname($mapping));
-        File::put($mapping, json_encode([
-            'stores' => ['d1' => 'D1'],
-            'variants' => [$legacy->id => ['brand' => 'Imatá', 'packaging' => 'botella']],
-        ]));
+        Livewire::test(StoreCatalog::class)
+            ->call('show')
+            ->set('newName', 'exito')
+            ->call('create')
+            ->assertHasErrors('newName')
+            ->set('newName', 'Éxito Popayán')
+            ->call('create')
+            ->assertHasErrors('newName')
+            ->assertSet('confirmSimilar', true)
+            ->call('create')
+            ->assertHasNoErrors()
+            ->assertDispatched('stores-updated');
 
-        $this->artisan('meals:migrate-catalog', ['--user' => $user->id, '--apply' => $mapping])->assertSuccessful();
+        $duplicate = Store::where('name', 'Éxito Popayán')->first();
+        Livewire::test(StoreCatalog::class)
+            ->call('show')
+            ->call('startRename', $duplicate->id)
+            ->set('editingName', 'Exito Centro')
+            ->call('rename')
+            ->call('startMerge', Store::where('name', 'Éxito')->value('id'))
+            ->set('mergeTargetId', $duplicate->id)
+            ->call('merge')
+            ->assertHasNoErrors();
 
-        $oil->refresh();
-        $this->assertSame('ml', $oil->base_unit);
-        $offer = ShoppingItem::withOffers()->find($oil->id)->bestOffer();
-        $this->assertSame(900.0, $offer['variant']->content);
-        $this->assertSame('Imatá', $offer['variant']->brand->name);
-        $this->assertSame('D1', $offer['price']->store->name);
-        $this->assertSame('web', $offer['price']->source);
-        $this->assertDatabaseHas('recipe_ingredients', ['shopping_item_id' => $oil->id, 'quantity' => 10, 'unit' => 'ml']);
-        $this->assertSame(2, Store::count());
+        $this->assertSame(['Exito Centro'], Store::pluck('name')->all());
+        $this->assertSame(1, $duplicate->prices()->count());
+    }
 
-        $report = File::get(storage_path('app/catalog-migration/report.md'));
-        $this->assertStringContainsString('Aguacate', $report);
-        $this->assertStringContainsString('Productos sin unidad base', $report);
+    public function test_prices_only_accept_stores_from_the_catalog(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $milk = $this->product('Leche', 'ml');
+        $this->offer($milk, 900, 3200);
+
+        Livewire::test(MealProductCompare::class, ['item' => $milk])
+            ->call('openForm')
+            ->set('priceStoreId', 'no-existe')
+            ->set('priceAmount', 3500)
+            ->call('savePrice')
+            ->assertHasErrors('priceStoreId');
     }
 }

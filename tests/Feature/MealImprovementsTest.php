@@ -8,7 +8,6 @@ use App\Livewire\Meal\MealWeekly;
 use App\Models\MealPlanEntry;
 use App\Models\ShoppingItem;
 use App\Models\Store;
-use App\Services\Meal\CatalogNames;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -24,7 +23,7 @@ class MealImprovementsTest extends TestCase
         foreach ($prices as $place => $price) {
             $variant = $item->variants()->create([]);
             if ($price !== null) {
-                $variant->prices()->create(['store_id' => CatalogNames::store($place)->id, 'amount' => $price, 'observed_on' => now()->toDateString(), 'source' => 'manual']);
+                $variant->prices()->create(['store_id' => Store::firstOrCreate(['name' => $place])->id, 'amount' => $price, 'observed_on' => now()->toDateString(), 'source' => 'manual']);
             }
         }
 

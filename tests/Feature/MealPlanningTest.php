@@ -131,20 +131,21 @@ class MealPlanningTest extends TestCase
         $this->actingAs($user);
         $ingredient = ShoppingItem::create(['name' => 'Arroz', 'base_unit' => 'g', 'status' => 'available', 'stock' => 0, 'to_buy' => 0]);
         $variant = $ingredient->variants()->create(['content' => 500]);
+        $exito = Store::create(['name' => 'Éxito']);
         $price = $variant->prices()->create(['store_id' => Store::create(['name' => 'D1'])->id, 'amount' => 4500, 'observed_on' => '2026-10-01', 'source' => 'manual']);
 
         Livewire::test(MealIngredients::class)
             ->call('openForm', $ingredient->id)
             ->assertSet('baseUnitLocked', true)
             ->assertSet('variants.0.id', $variant->id)
-            ->assertSet('variants.0.prices.0.store', 'D1')
+            ->assertSet('variants.0.prices.0.store_id', $price->store_id)
             ->set('variants.0.prices.0.amount', 4700)
             ->call('addVariant')
             ->set('variants.1.brand', 'Diana')
             ->set('variants.1.content', 1)
             ->set('variants.1.content_unit', 'kg')
             ->call('addPrice', 1)
-            ->set('variants.1.prices.0.store', 'éxito')
+            ->set('variants.1.prices.0.store_id', $exito->id)
             ->set('variants.1.prices.0.amount', 5200)
             ->call('save')
             ->assertHasNoErrors();

@@ -4,10 +4,10 @@ namespace App\Livewire\Meal;
 
 use App\Models\ShoppingItem;
 use App\Models\ShoppingItemPrice;
-use App\Services\Meal\CatalogNames;
 use App\Services\Meal\UnitConverter;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -28,7 +28,7 @@ class MealProductCompare extends Component
 
     public string $priceVariantId = '';
 
-    public string $priceStore = '';
+    public string $priceStoreId = '';
 
     public $priceAmount = null;
 
@@ -47,7 +47,7 @@ class MealProductCompare extends Component
     {
         $this->resetValidation();
         $this->priceVariantId = $variantId ?? (string) $this->item->variants()->value('id');
-        $this->priceStore = '';
+        $this->priceStoreId = '';
         $this->priceAmount = null;
         $this->priceDate = now()->toDateString();
         $this->priceSource = 'ticket';
@@ -65,16 +65,16 @@ class MealProductCompare extends Component
     {
         $data = $this->validate([
             'priceVariantId' => ['required', Rule::in($this->item->variants()->pluck('id'))],
-            'priceStore' => 'required|string|max:255',
+            'priceStoreId' => ['required', Rule::in(\App\Models\Store::pluck('id'))],
             'priceAmount' => 'required|numeric|min:0',
             'priceDate' => 'required|date',
             'priceSource' => ['required', Rule::in(array_keys(ShoppingItemPrice::SOURCES))],
-        ], attributes: ['priceVariantId' => 'variante', 'priceStore' => 'tienda', 'priceAmount' => 'precio', 'priceDate' => 'fecha']);
+        ], attributes: ['priceVariantId' => 'variante', 'priceStoreId' => 'tienda', 'priceAmount' => 'precio', 'priceDate' => 'fecha']);
 
         $verified = $data['priceSource'] === 'ticket';
         ShoppingItemPrice::create([
             'shopping_item_variant_id' => $data['priceVariantId'],
-            'store_id' => CatalogNames::store($data['priceStore'])->id,
+            'store_id' => $data['priceStoreId'],
             'amount' => $data['priceAmount'],
             'observed_on' => $data['priceDate'],
             'source' => $data['priceSource'],
@@ -84,6 +84,12 @@ class MealProductCompare extends Component
         ]);
 
         $this->showForm = false;
+    }
+
+    #[On('stores-updated')]
+    public function refreshStores(): void
+    {
+        // El evento basta para volver a renderizar con el catálogo de tiendas actualizado.
     }
 
     public function verifyPrice(string $priceId): void
@@ -124,7 +130,7 @@ class MealProductCompare extends Component
             'stores' => $item->variants->flatMap->prices->pluck('store')->filter()->unique('id')->sortBy('name')->pluck('name', 'id'),
             'brands' => $item->variants->pluck('brand')->filter()->unique('id')->sortBy('name')->pluck('name', 'id'),
             'variantOptions' => $item->variants->mapWithKeys(fn ($variant) => [$variant->id => $variant->label($baseUnit)]),
-            'storeNames' => \App\Models\Store::orderBy('name')->pluck('name'),
+            'storeOptions' => \App\Models\Store::orderBy('name')->pluck('name', 'id'),
         ]);
     }
 }
