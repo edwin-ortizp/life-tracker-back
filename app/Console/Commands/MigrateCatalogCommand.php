@@ -113,7 +113,7 @@ class MigrateCatalogCommand extends Command
 
     private function apply(array $mapping): array
     {
-        $stats = ['productos' => 0, 'variantes' => 0, 'variantes nuevas' => 0, 'precios' => 0, 'tiendas' => 0, 'marcas' => 0, 'ingredientes de receta' => 0];
+        $stats = ['productos' => 0, 'productos nuevos' => 0, 'variantes' => 0, 'variantes nuevas' => 0, 'precios' => 0, 'tiendas' => 0, 'marcas' => 0, 'ingredientes de receta' => 0];
         $storeAliases = collect($mapping['stores'] ?? [])->mapWithKeys(fn ($canonical, $legacy) => [CatalogNames::normalize($legacy) => $canonical]);
 
         $resolveStore = function (?string $legacy) use ($storeAliases) {
@@ -144,9 +144,29 @@ class MigrateCatalogCommand extends Command
                 $this->note('Productos sin unidad base', $item->name, 'La unidad "'.($item->getRawOriginal('unit') ?? '').'" no es g, ml ni unidad; decide a mano.');
             }
 
+            if (filled($productMap['review'] ?? null)) {
+                $this->note('Revisar a mano', $item->name, $productMap['review']);
+            }
+
             foreach ($item->variants as $variant) {
                 $variantMap = $mapping['variants'][$variant->id] ?? [];
-                $this->migrateVariant($item, $variant, $variantMap, $resolveStore, $stats);
+                $owner = $item;
+
+                // Una variante que en realidad es otro producto (p. ej. pechuga y contramuslo) se mueve a uno nuevo.
+                if (isset($variantMap['new_product'])) {
+                    $new = $variantMap['new_product'];
+                    $owner = ShoppingItem::firstOrCreate(['name' => $new['name']], [
+                        'base_unit' => $new['base_unit'] ?? $baseUnit,
+                        'category' => $new['category'] ?? $item->category,
+                        'status' => 'available',
+                        'stock' => 0,
+                        'to_buy' => 0,
+                    ]);
+                    $variant->forceFill(['shopping_item_id' => $owner->id])->save();
+                    $stats['productos nuevos'] = ($stats['productos nuevos'] ?? 0) + 1;
+                }
+
+                $this->migrateVariant($owner, $variant, $variantMap, $resolveStore, $stats);
 
                 // Una variante vieja puede corresponder a varias presentaciones (mismo producto, dos precios en una tienda).
                 foreach ($variantMap['split'] ?? [] as $extra) {
@@ -162,7 +182,10 @@ class MigrateCatalogCommand extends Command
             $product = $ingredient->shoppingItem;
             $quantity = $override['quantity'] ?? null;
 
-            if ($quantity === null && $ingredient->quantity !== null && $product?->base_unit) {
+            // Sin unidad, la cantidad solo es fiable en productos contados: "1 Queso campesino" no son 1 g.
+            $unitless = blank($ingredient->unit) && $product?->base_unit !== 'unit';
+
+            if ($quantity === null && ! $unitless && $ingredient->quantity !== null && $product?->base_unit) {
                 $quantity = UnitConverter::toBase((float) $ingredient->quantity, $ingredient->unit, $product->base_unit, $product->grams_per_piece);
             }
 
