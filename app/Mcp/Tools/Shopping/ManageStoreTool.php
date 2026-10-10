@@ -31,7 +31,7 @@ class ManageStoreTool extends Tool
         if ($data['action'] === 'list') {
             return Response::structured([
                 'stores' => Store::withCount('prices')->orderBy('name')->get()
-                    ->map(fn (Store $store) => ['name' => $store->name, 'prices' => $store->prices_count])->all(),
+                    ->map(fn (Store $store) => ['id' => $store->id, 'name' => $store->name, 'prices' => $store->prices_count])->all(),
             ]);
         }
 

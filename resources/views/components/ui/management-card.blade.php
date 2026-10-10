@@ -16,6 +16,7 @@
     'sortModel' => null,
     'sortOptions' => [],
     'sortValue' => null,
+    'refreshable' => true,
 ])
 
 @php
@@ -26,7 +27,7 @@
      */
     $cardId = $id ?? 'mcard-'.\Illuminate\Support\Str::slug($title);
     $hasFilters = isset($filters);
-    $hasMenu = isset($menu);
+    $hasMenu = $refreshable || isset($menu);
     $hasHeaderAction = isset($headerAction);
     $hasSort = filled($sortModel) && $sortOptions !== [];
     $sortLabel = $sortOptions[$sortValue] ?? reset($sortOptions);
@@ -107,7 +108,15 @@
                     @if ($search || $hasFilters)
                         <span class="md-mcard__divider" aria-hidden="true"></span>
                     @endif
-                    <x-ui.menu :label="'Más acciones de '.\Illuminate\Support\Str::lower($title)">{{ $menu }}</x-ui.menu>
+                    <x-ui.menu :label="'Más acciones de '.\Illuminate\Support\Str::lower($title)">
+                        @if ($refreshable)
+                            <x-ui.menu-item icon="bi-arrow-clockwise" wire:click="$refresh" wire:loading.attr="disabled" wire:target="$refresh">Actualizar tabla</x-ui.menu-item>
+                        @endif
+                        @isset($menu)
+                            @if ($refreshable)<x-ui.menu-divider />@endif
+                            {{ $menu }}
+                        @endisset
+                    </x-ui.menu>
                 @endif
             </div>
         @endif

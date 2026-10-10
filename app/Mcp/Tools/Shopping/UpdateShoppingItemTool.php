@@ -12,7 +12,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Actualiza un producto del catálogo de compras: cantidad a comprar, categoría, stock, mínimo, nutrición, o registra una variante (marca, empaque, contenido) con su precio por tienda, fecha y fuente.')]
+#[Description('Actualiza un producto del catálogo de compras: unidad base, cantidad a comprar, categoría, stock, mínimo, nutrición, o registra una variante con su precio. Al cambiar base_unit, revisa y envía stock, min_stock y nutrición corregidos en la nueva unidad cuando sea necesario; revisa también el contenido de todas las variantes mediante update-variant-tool. No hay conversión automática entre peso, volumen y unidades: los números omitidos se conservan y el historial de compras mantiene sus unidades originales.')]
 class UpdateShoppingItemTool extends Tool
 {
     use RecordsVariantPrices, ResolvesShoppingItem;
@@ -54,9 +54,6 @@ class UpdateShoppingItemTool extends Tool
             if (! $baseUnit) {
                 return Response::error('base_unit debe ser g, ml o unit.');
             }
-            if ($item->base_unit && $item->base_unit !== $baseUnit) {
-                return Response::error("La unidad base de \"{$item->name}\" es {$item->base_unit} y no puede cambiar. Si hace falta, crea otro producto.");
-            }
             $updates['base_unit'] = $baseUnit;
         }
 
@@ -93,6 +90,8 @@ class UpdateShoppingItemTool extends Tool
             'carbs' => $schema->number()->description('Carbohidratos (g) por 100 g, 100 ml o unidad.'),
             'fat' => $schema->number()->description('Grasa (g) por 100 g, 100 ml o unidad.'),
             ...$this->variantPriceSchema($schema),
+            'base_unit' => $schema->string()->enum(array_keys(ShoppingItem::BASE_UNITS))
+                ->description('Nueva unidad base: g, ml o unit. Puede cambiar al editar. Envía también stock, min_stock y nutrición corregidos si corresponde y actualiza los contenidos de las variantes con update-variant-tool. Los números omitidos se conservan; no se deducen equivalencias ni se modifica el historial de compras.'),
         ];
     }
 }

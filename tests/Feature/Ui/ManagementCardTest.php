@@ -44,7 +44,7 @@ class ManagementCardTest extends TestCase
 
     public function test_it_omits_tools_and_footer_when_not_configured(): void
     {
-        $html = Blade::render('<x-ui.management-card title="Registro de hoy" icon="bi-droplet">Lista</x-ui.management-card>');
+        $html = Blade::render('<x-ui.management-card title="Registro de hoy" icon="bi-droplet" :refreshable="false">Lista</x-ui.management-card>');
 
         $this->assertStringNotContainsString('md-mcard__tools', $html);
         $this->assertStringNotContainsString('md-mcard__foot', $html);
@@ -62,7 +62,7 @@ class ManagementCardTest extends TestCase
     public function test_a_header_action_links_to_the_full_view(): void
     {
         $html = Blade::render(<<<'BLADE'
-            <x-ui.management-card title="Historial reciente" icon="bi-clock-history">
+            <x-ui.management-card title="Historial reciente" icon="bi-clock-history" :refreshable="false">
                 <x-slot:headerAction><a href="/historial" class="md-btn-text">Ver historial completo</a></x-slot:headerAction>
                 Filas
             </x-ui.management-card>
@@ -85,5 +85,35 @@ class ManagementCardTest extends TestCase
         $this->assertStringContainsString('Nuevo pendiente', $html);
         $this->assertStringContainsString('md-fab-split__compact', $html);
         $this->assertStringContainsString('md-create-fab__item--primary', $html);
+    }
+
+    public function test_refresh_is_default_and_shares_the_existing_menu(): void
+    {
+        $html = Blade::render(<<<'BLADE'
+            <x-ui.management-card title="Salud" icon="bi-heart">
+                <x-slot:menu><x-ui.menu-item href="/statistics">Estadísticas</x-ui.menu-item></x-slot:menu>
+                Filas
+            </x-ui.management-card>
+            BLADE);
+
+        $this->assertSame(1, substr_count($html, 'Actualizar tabla'));
+        $this->assertSame(1, substr_count($html, 'aria-label="Más acciones de salud"'));
+        $this->assertStringContainsString('Estadísticas', $html);
+        $this->assertStringContainsString('bi-arrow-clockwise', $html);
+        $this->assertStringContainsString('wire:click="$refresh"', $html);
+        $this->assertStringContainsString('wire:loading.attr="disabled"', $html);
+        $this->assertStringContainsString('wire:target="$refresh"', $html);
+    }
+
+    public function test_refresh_can_be_disabled_without_removing_existing_actions(): void
+    {
+        $html = Blade::render(<<<'BLADE'
+            <x-ui.management-card title="Ejemplo" icon="bi-list" :refreshable="false">
+                <x-slot:menu><x-ui.menu-item>Exportar</x-ui.menu-item></x-slot:menu>
+                Filas
+            </x-ui.management-card>
+            BLADE);
+        $this->assertStringNotContainsString('Actualizar tabla', $html);
+        $this->assertStringContainsString('Exportar', $html);
     }
 }

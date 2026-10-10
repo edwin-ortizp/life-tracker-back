@@ -14,6 +14,15 @@ $path = str_replace('\\', '/', (string) config('database.connections.sqlite.data
 if (config('database.default') !== 'sqlite' || ! str_ends_with($path, '/storage/framework/testing/purchase-browser.sqlite')) {
     throw new RuntimeException('Browser fixture requires its dedicated SQLite database.');
 }
+if (($argv[1] ?? '') === '--update-stock') {
+    $user = User::where('email', 'purchase-browser@example.test')->firstOrFail();
+    $stock = (int) ($argv[2] ?? 123);
+    if (! in_array($stock, [123, 456], true)) {
+        throw new RuntimeException('Unexpected fixture stock.');
+    }
+    ShoppingItem::where('user_id', $user->id)->where('name', 'Pan de prueba')->update(['stock' => $stock]);
+    exit(0);
+}
 Artisan::call('migrate:fresh', ['--force' => true]);
 $user = User::factory()->create(['email' => 'purchase-browser@example.test', 'password' => 'browser-test-password']);
 auth()->login($user);

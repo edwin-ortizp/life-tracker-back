@@ -126,6 +126,66 @@ class LifeTrackerShoppingMcpTest extends TestCase
         $this->assertSame(12000.0, ShoppingItem::withOffers()->find($item->id)->estimatedPrice());
     }
 
+    public function test_update_shopping_item_tool_changes_base_unit_with_explicit_corrected_values(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $item = $user->shoppingItems()->create([
+            'name' => 'Huevos', 'base_unit' => 'g', 'stock' => 600, 'min_stock' => 300,
+            'kcal' => 150, 'to_buy' => 2, 'status' => 'available',
+        ]);
+
+        LifeTrackerServer::actingAs($user)->tool(UpdateShoppingItemTool::class, [
+            'item_id' => $item->id, 'base_unit' => 'unit', 'stock' => 12, 'min_stock' => 6, 'kcal' => 75,
+        ])->assertOk();
+
+        $item->refresh();
+        $this->assertSame('unit', $item->base_unit);
+        $this->assertSame(12.0, $item->stock);
+        $this->assertSame(6.0, $item->min_stock);
+        $this->assertSame(75.0, $item->kcal);
+        $this->assertSame(2.0, $item->to_buy);
+    }
+
+    public function test_update_shopping_item_tool_preserves_omitted_values_when_correcting_base_unit(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $item = $user->shoppingItems()->create([
+            'name' => 'Leche', 'base_unit' => 'g', 'stock' => 500, 'min_stock' => 100, 'status' => 'available',
+        ]);
+        $variant = $item->variants()->create(['content' => 500]);
+
+        LifeTrackerServer::actingAs($user)->tool(UpdateShoppingItemTool::class, [
+            'item_id' => $item->id, 'base_unit' => 'ml',
+        ])->assertOk();
+
+        $this->assertSame('ml', $item->fresh()->base_unit);
+        $this->assertSame(500.0, $item->fresh()->stock);
+        $this->assertSame(100.0, $item->fresh()->min_stock);
+        $this->assertSame(500.0, $variant->fresh()->content);
+    }
+
+    public function test_update_shopping_item_tool_rejects_invalid_or_foreign_base_unit_changes(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $item = $user->shoppingItems()->create([
+            'name' => 'Arroz', 'base_unit' => 'g', 'stock' => 500, 'status' => 'available',
+        ]);
+
+        LifeTrackerServer::actingAs($user)->tool(UpdateShoppingItemTool::class, [
+            'item_id' => $item->id, 'base_unit' => 'desconocida', 'stock' => 1,
+        ])->assertHasErrors();
+
+        LifeTrackerServer::actingAs(User::factory()->create())->tool(UpdateShoppingItemTool::class, [
+            'item_id' => $item->id, 'base_unit' => 'ml',
+        ])->assertHasErrors();
+
+        $this->assertSame('g', $item->fresh()->base_unit);
+        $this->assertSame(500.0, $item->fresh()->stock);
+    }
+
     public function test_compare_tool_orders_variants_by_price_per_base_unit(): void
     {
         $user = User::factory()->create();
@@ -188,7 +248,9 @@ class LifeTrackerShoppingMcpTest extends TestCase
         LifeTrackerServer::actingAs($user)->tool(ManageStoreTool::class, ['action' => 'create', 'new_name' => 'D1'])->assertHasErrors();
         LifeTrackerServer::actingAs($user)->tool(ManageStoreTool::class, ['action' => 'create', 'new_name' => 'D1', 'confirm_similar' => true])->assertOk();
         LifeTrackerServer::actingAs($user)->tool(ManageStoreTool::class, ['action' => 'merge', 'store' => 'Tiendas D1', 'into' => 'D1'])->assertOk()->assertSee('1 precios movidos');
-        LifeTrackerServer::actingAs($user)->tool(ManageStoreTool::class, ['action' => 'list'])->assertOk()->assertSee('D1');
+        LifeTrackerServer::actingAs($user)->tool(ManageStoreTool::class, ['action' => 'list'])
+            ->assertOk()
+            ->assertStructuredContent(['stores' => [['id' => Store::where('name', 'D1')->firstOrFail()->id, 'name' => 'D1', 'prices' => 1]]]);
 
         $this->assertSame(['D1'], Store::pluck('name')->all());
     }

@@ -5,6 +5,7 @@ import { mkdirSync, closeSync, openSync } from 'node:fs';
 import path from 'node:path';
 
 let server;
+let serverEnv;
 test.beforeAll(async () => {
     test.setTimeout(60_000);
     const directory = path.resolve('storage/framework/testing');
@@ -12,6 +13,7 @@ test.beforeAll(async () => {
     const database = path.join(directory, 'purchase-browser.sqlite');
     closeSync(openSync(database, 'a'));
     const env = { ...process.env, APP_ENV: 'testing', DB_CONNECTION: 'sqlite', DB_DATABASE: database, DB_URL: '', CACHE_STORE: 'array', SESSION_DRIVER: 'file', DEBUGBAR_ENABLED: 'false', TELESCOPE_ENABLED: 'false', NIGHTWATCH_ENABLED: 'false', APP_CONFIG_CACHE: path.join(directory, 'unused-purchase-config.php') };
+    serverEnv = env;
     execFileSync('php', ['tests/Browser/support/purchase-fixture.php'], { env, stdio: 'pipe' });
     server = spawn('php', ['-S', '127.0.0.1:8027', path.resolve('vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php')], { cwd: path.resolve('public'), env, stdio: 'pipe', windowsHide: true });
     let serverOutput = '';
@@ -26,6 +28,42 @@ test.beforeAll(async () => {
 test.afterAll(() => { server?.kill(); });
 
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+    test(`management refresh without navigation at ${viewport.width}px`, async ({ page }) => {
+        await page.setViewportSize(viewport);
+        await page.goto('/login');
+        await page.getByLabel('Correo electrónico').fill('purchase-browser@example.test');
+        await page.getByLabel('Contraseña', { exact: true }).fill('browser-test-password');
+        await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
+        await page.waitForURL(url => !url.pathname.includes('/login'));
+        await page.goto('/meals/ingredients?q=Pan');
+        const card = page.locator('#meal-ingredients');
+        const trigger = card.getByRole('button', { name: 'Más acciones de catálogo de ingredientes' });
+        await expect(trigger).toHaveCount(1);
+        await page.evaluate(() => { window.refreshDocumentMarker = 'same-document'; });
+        const updatedStock = viewport.width === 1440 ? '123' : '456';
+        execFileSync('php', ['tests/Browser/support/purchase-fixture.php', '--update-stock', updatedStock], { env: serverEnv, stdio: 'pipe' });
+        await trigger.focus();
+        await page.keyboard.press('Enter');
+        const refresh = card.getByRole('menuitem', { name: 'Actualizar tabla' });
+        await expect(refresh).toBeVisible();
+        let releaseRefresh;
+        const heldRequest = new Promise(resolve => { releaseRefresh = resolve; });
+        await page.route(/livewire.*\/update/, async route => { await heldRequest; await route.continue(); });
+        const refreshRequest = page.waitForRequest(request => request.method() === 'POST' && /livewire.*\/update/.test(request.url()));
+        await refresh.focus();
+        await page.keyboard.press('Enter');
+        await refreshRequest;
+        await expect(refresh).toBeDisabled();
+        releaseRefresh();
+        await expect(card).toContainText(updatedStock);
+        await expect(refresh).not.toBeVisible();
+        expect(await page.evaluate(() => window.refreshDocumentMarker)).toBe('same-document');
+        expect(new URL(page.url()).searchParams.get('q')).toBe('Pan');
+        await trigger.click();
+        await page.keyboard.press('Escape');
+        await expect(trigger).toBeFocused();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    });
     test(`purchase create, detail and edit at ${viewport.width}px`, async ({ page }) => {
         await page.setViewportSize(viewport);
         const errors = [];

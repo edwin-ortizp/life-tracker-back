@@ -4,7 +4,7 @@
 
 <x-catalog.example title="Card de gestión" description="Header con ícono, título y contador; búsqueda, Filtros y ⋮ separados por divisores. Bajo 640 px de ancho de la card el header se compacta en íconos y la búsqueda se expande al tocarla.">
     <x-ui.management-card id="catalog-mcard" title="Cronología de salud" icon="bi-clock-history" count="(25 / 58)"
-                          search="catalogSearch" search-placeholder="Buscar eventos" :active-filters="2" :paginator="$catalogPaginator" noun="eventos">
+                          search="catalogSearch" search-placeholder="Buscar eventos" :active-filters="2" :paginator="$catalogPaginator" noun="eventos" :refreshable="false">
         <x-slot:filters>
             <x-ui.select name="catalog-mcard-range" label="Rango de tiempo" :options="\App\Support\Ui\CatalogFixtures::periodOptions()" />
         </x-slot:filters>
@@ -27,7 +27,7 @@
 </x-catalog.example>
 
 <x-catalog.example title="Card de gestión dentro de un detalle" description="Sin búsqueda ni paginación: `headerAction` lleva a la vista completa. La tabla md-table usa chips tonales para tipo y ⋮ por fila, y se apila bajo 640 px de ancho de la card.">
-    <x-ui.management-card id="catalog-mcard-summary" title="Historial reciente" icon="bi-clock-history">
+    <x-ui.management-card id="catalog-mcard-summary" title="Historial reciente" icon="bi-clock-history" :refreshable="false">
         <x-slot:headerAction><a href="{{ route('ui.catalog') }}" class="md-btn-text">Ver historial completo</a></x-slot:headerAction>
         <table class="md-table md-table--stack">
             <thead>
