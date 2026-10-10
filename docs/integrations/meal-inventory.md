@@ -40,3 +40,5 @@ Las fechas son `consume_by` por producto y una fecha opcional por preparación; 
 ## Validación
 
 Pruebas focalizadas: `MealInventoryTest`, `MealInventoryMcpTest`, planificación y contratos MCP existentes. El navegador usa exclusivamente `storage/framework/testing/purchase-browser.sqlite` y verifica ese destino antes de inicializarlo. Los escenarios `meal inventory` cubren escritorio/móvil y dos procesos de consumo que compiten por el mismo stock; SQLite no sustituye una validación de bloqueos en el MySQL del despliegue.
+
+Orden de momentos: Desayuno, Onces (mañana), Almuerzo, Merienda (tarde), Cena. Se conserva el identificador histórico `comida` para Onces, sin eliminar registros.

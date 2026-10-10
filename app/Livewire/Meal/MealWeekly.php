@@ -43,9 +43,9 @@ class MealWeekly extends Component
 
     public array $mealTypes = [
         'desayuno' => 'Desayuno',
+        'comida' => 'Onces (mañana)',
         'almuerzo' => 'Almuerzo',
-        'comida' => 'Comida',
-        'merienda' => 'Merienda',
+        'merienda' => 'Merienda (tarde)',
         'cena' => 'Cena',
     ];
 

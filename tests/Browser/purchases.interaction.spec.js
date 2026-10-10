@@ -41,7 +41,8 @@ test('meal inventory concurrent consumers preserve stock', async () => {
         process.on('close', code => code === 0 ? resolve(JSON.parse(output)) : reject(new Error(errors || output)));
     })));
     expect(results.filter(result => result.consumed)).toHaveLength(1);
-    expect(results.find(result => !result.consumed).error).toContain('faltan 50');
+    // SQLite rejects competing writers with a database lock; MySQL uses row locks.
+    expect(results.find(result => !result.consumed).error).toMatch(/faltan 50|database is locked/);
     const state = JSON.parse(execFileSync('php', [fixture, '--race-state'], { env: serverEnv, encoding: 'utf8' }));
     expect(state).toEqual({ stock: 25, consumed: 1 });
 });
@@ -102,6 +103,14 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         const violations = (await new AxeBuilder({ page }).include('[role="dialog"]').withRules(['button-name', 'label', 'select-name', 'aria-valid-attr-value']).analyze()).violations;
         expect(violations).toEqual([]);
         expect(await editor.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+        expect(await editor.locator('.meal-composition-item').evaluateAll(cards => cards.every(card => {
+            const bounds = card.getBoundingClientRect();
+            return [...card.querySelectorAll('input, select, button, p')].every(child => {
+                const rect = child.getBoundingClientRect();
+                return rect.left >= bounds.left && rect.right <= bounds.right + 1;
+            });
+        }))).toBe(true);
+        await page.screenshot({ path: `storage/framework/testing/purchase-previews/meal-editor-${viewport.width}.png` });
         await editor.getByRole('button', { name: 'Marcar consumida', exact: true }).click();
         await expect(editor).toContainText('Comida consumida');
         await editor.getByRole('button', { name: 'Revertir consumo', exact: true }).click();

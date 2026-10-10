@@ -11,9 +11,9 @@ trait InteractsWithMeals
     /** Mismos tipos de comida que la pantalla semanal. */
     protected const MEAL_TYPES = [
         'desayuno' => 'Desayuno',
+        'comida' => 'Onces (mañana)',
         'almuerzo' => 'Almuerzo',
-        'comida' => 'Comida',
-        'merienda' => 'Merienda',
+        'merienda' => 'Merienda (tarde)',
         'cena' => 'Cena',
     ];
 

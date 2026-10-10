@@ -24,6 +24,7 @@ if (($argv[1] ?? '') === '--update-stock') {
     exit(0);
 }
 if (in_array($argv[1] ?? '', ['--setup-race', '--consume-race', '--race-state'], true)) {
+    \Illuminate\Support\Facades\DB::statement('PRAGMA busy_timeout = 10000');
     $user = User::where('email', 'purchase-browser@example.test')->firstOrFail();
     auth()->login($user);
     $inventory = app(\App\Services\Meal\MealInventory::class);
@@ -40,6 +41,14 @@ if (in_array($argv[1] ?? '', ['--setup-race', '--consume-race', '--race-state'],
             echo json_encode(['consumed' => true]);
         } catch (\Illuminate\Validation\ValidationException $exception) {
             echo json_encode(['consumed' => false, 'error' => implode(' ', $exception->validator->errors()->all())]);
+        } catch (\Illuminate\Database\QueryException $exception) {
+            if (! str_contains($exception->getMessage(), 'database is locked')) {
+                throw $exception;
+            }
+            echo json_encode(['consumed' => false, 'error' => 'database is locked']);
+        } catch (\Throwable $exception) {
+            fwrite(STDERR, $exception->getMessage());
+            exit(1);
         }
     } else {
         echo json_encode(['stock' => ShoppingItem::where('name', 'Producto concurrencia')->sole()->stock,

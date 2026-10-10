@@ -17,7 +17,7 @@ use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Plan de comidas del usuario por día y tipo de comida (desayuno, almuerzo, comida, merienda, cena), con recetas, porciones y calorías. Por defecto la semana actual (lunes a domingo). Úsala cuando hable de qué va a comer o qué comió, alimentación, calorías, mercado de la semana o antes de planear una comida.')]
+#[Description('Plan de comidas del usuario por día y tipo de comida (desayuno, comida (onces de la mañana), almuerzo, merienda (tarde), cena), con recetas, porciones y calorías. Por defecto la semana actual (lunes a domingo). Úsala cuando hable de qué va a comer o qué comió, alimentación, calorías, mercado de la semana o antes de planear una comida.')]
 class ListMealPlanTool extends Tool
 {
     use InteractsWithMeals;

@@ -224,3 +224,12 @@
 .store-catalog__new, .store-catalog__inline { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; margin: 12px 0; }
 .store-catalog__new > :first-child, .store-catalog__inline > :first-child { flex: 1 1 220px; }
 .store-catalog__inline { padding: 8px 12px; border-radius: var(--md-sys-shape-corner-medium); background: var(--md-sys-color-surface-container-low); }
+
+/* Adaptar la composición al ancho del diálogo. */
+.meal-composition-list { container-type: inline-size; }
+.meal-composition-item--free .meal-composition-item__body { grid-template-columns: minmax(0, 1fr); }
+.meal-composition-item__body > * { min-width: 0; }
+@container (max-width: 480px) {
+  .meal-composition-item__body { grid-template-columns: minmax(0, 1fr); }
+  .meal-composition-item__title span { white-space: normal; overflow-wrap: anywhere; }
+}

@@ -21,6 +21,15 @@ class MealPlanningTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_meal_slots_follow_daily_order_without_changing_legacy_identifiers(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $expected = ['desayuno' => 'Desayuno', 'comida' => 'Onces (mañana)', 'almuerzo' => 'Almuerzo', 'merienda' => 'Merienda (tarde)', 'cena' => 'Cena'];
+        Livewire::test(MealWeekly::class)->assertSet('mealTypes', $expected);
+        Livewire::test(MealRecipes::class)->assertSet('mealTypes', $expected);
+        $this->assertSame($expected, \App\Livewire\Home\Dashboard::MEAL_TYPES);
+    }
+
     public function test_recipe_requires_a_positive_quantity_for_each_ingredient(): void
     {
         $user = User::factory()->create();

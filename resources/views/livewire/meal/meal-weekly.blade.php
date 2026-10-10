@@ -100,7 +100,7 @@
                     </section>
                 @endif
                 <fieldset class="border-0 p-0 m-0" @disabled($formStatus === 'consumed')>
-                <div class="md-dialog-layout md-dialog-layout--main-aside">
+                <div class="md-dialog-layout">
                     <section class="md-form-section">
                         <div class="md-form-section__header">
                             <div><i class="bi bi-egg-fried"></i><span>Composición</span></div>
@@ -152,7 +152,7 @@
 
                         <div class="meal-composition-list">
                             @forelse ($formItems as $index => $item)
-                                <article class="meal-composition-item" wire:key="{{ $item['key'] }}">
+                                <article class="meal-composition-item {{ empty($item['recipe_id']) && empty($item['preparation_id']) ? 'meal-composition-item--free' : '' }}" wire:key="{{ $item['key'] }}">
                                     <div class="meal-composition-item__order">
                                         <button type="button" wire:click="moveItem({{ $index }}, -1)" class="md-btn-icon md-btn-icon--small" aria-label="Subir" @disabled($loop->first)><i class="bi bi-chevron-up"></i></button>
                                         <button type="button" wire:click="moveItem({{ $index }}, 1)" class="md-btn-icon md-btn-icon--small" aria-label="Bajar" @disabled($loop->last)><i class="bi bi-chevron-down"></i></button>

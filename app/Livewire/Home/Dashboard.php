@@ -36,9 +36,9 @@ class Dashboard extends Component
 
     public const MEAL_TYPES = [
         'desayuno' => 'Desayuno',
+        'comida' => 'Onces (mañana)',
         'almuerzo' => 'Almuerzo',
-        'comida' => 'Comida',
-        'merienda' => 'Merienda',
+        'merienda' => 'Merienda (tarde)',
         'cena' => 'Cena',
     ];
 
