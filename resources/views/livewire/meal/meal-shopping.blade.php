@@ -2,9 +2,10 @@
     <x-slot:actions>
         <livewire:meal.bulk-ingredient-assistant context="shopping" />
         <x-module-actions :primary="['label' => 'Agregar a compras', 'icon' => 'bi-cart-plus', 'action' => 'openForm']"
-                          :split="true" :secondary="[['label' => 'Registrar compra', 'icon' => 'bi-receipt', 'event' => 'open-purchase-editor', 'create' => true], ['label' => 'Tiendas', 'icon' => 'bi-shop', 'event' => 'open-store-catalog']]" />
+                          :split="true" :secondary="[['label' => 'Registrar compra', 'icon' => 'bi-receipt', 'event' => 'open-purchase-editor', 'create' => true], ['label' => 'Generar compras del plan', 'icon' => 'bi-cart-plus', 'event' => 'meal-shopping-preview', 'create' => true], ['label' => 'Tiendas', 'icon' => 'bi-shop', 'event' => 'open-store-catalog']]" />
         <livewire:meal.store-catalog />
         <livewire:meal.purchase-editor :key="'purchase-editor-shopping'" />
+        <livewire:meal.meal-plan-shopping-editor :key="'meal-plan-shopping-editor'" />
     </x-slot:actions>
 
     <x-ui.management-card id="meal-shopping" title="Por comprar" icon="bi-cart3" :count="'('.$totalItems.')'"

@@ -5,10 +5,14 @@ namespace App\Livewire\Meal;
 use App\Livewire\Concerns\HasUrlDate;
 use App\Models\MealPlanEntry;
 use App\Models\Recipe;
+use App\Models\MealPreparation;
+use App\Models\ShoppingItem;
+use App\Services\Meal\MealInventory;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -26,6 +30,16 @@ class MealWeekly extends Component
     public ?int $editingId = null;
     public string $recipeSearch = '';
     public array $formItems = [];
+    public string $formStatus = 'planned';
+    public array $consumption = [];
+    public string $consumptionMode = '';
+    public string $outsideNotes = '';
+    public $outsideCalories = null;
+    public string $targetDate = '';
+    public string $targetMealType = 'cena';
+    public string $selectedPreparation = '';
+    #[Locked]
+    public string $operationKey = '';
 
     public array $mealTypes = [
         'desayuno' => 'Desayuno',
@@ -60,21 +74,33 @@ class MealWeekly extends Component
         abort_unless(array_key_exists($mealType, $this->mealTypes), 404);
         $this->resetValidation();
 
-        $existing = MealPlanEntry::with('items.recipe')
-            ->where('date', $date)
+        $existing = MealPlanEntry::where('user_id', auth()->id())->with(['items.recipe', 'items.preparation'])
+            ->whereDate('date', $date)
             ->where('meal_type', $mealType)
             ->first();
 
         $this->editingId = $existing?->id;
+        $this->formStatus = $existing?->status ?? 'planned';
+        $this->consumption = $existing?->consumption ?? [];
+        $this->consumptionMode = $existing?->consumption_mode ?? '';
+        $this->outsideNotes = '';
+        $this->outsideCalories = null;
+        $this->operationKey = (string) str()->uuid();
+        $this->targetDate = $date;
+        $this->targetMealType = $mealType;
+        $this->selectedPreparation = '';
         $this->formNotes = $existing?->notes ?? '';
         $this->formCalories = $existing?->calories;
         $this->formItems = $existing?->items->map(fn ($item) => [
             'key' => 'item-'.$item->id,
+            'id' => $item->id,
             'recipe_id' => $item->recipe_id,
+            'preparation_id' => $item->preparation_id,
+            'ingredients' => $item->ingredients ?? [],
             'name' => $item->recipe?->name ?? $item->name ?? '',
-            'portions' => $item->recipe_id ? (float) ($item->portions ?? 1) : null,
+            'portions' => ($item->recipe_id || $item->preparation_id) ? (float) ($item->portions ?? 1) : null,
             'calories' => $item->recipe_id ? null : $item->calories,
-            'recipe_calories' => $item->recipe?->nutrition['calories'] ?? null,
+            'recipe_calories' => $item->preparation_id ? ($item->preparation?->nutrition['calories'] ?? null) : ($item->recipe?->nutrition['calories'] ?? null),
         ])->values()->toArray() ?? [];
         $this->recipeSearch = '';
         $this->formDate = $date;
@@ -103,6 +129,8 @@ class MealWeekly extends Component
 
         $this->formItems[] = [
             'key' => 'recipe-'.$recipe->id,
+            'preparation_id' => null,
+            'ingredients' => [],
             'recipe_id' => $recipe->id,
             'name' => $recipe->name,
             'portions' => 1,
@@ -116,6 +144,8 @@ class MealWeekly extends Component
     {
         $this->formItems[] = [
             'key' => 'custom-'.str()->uuid(),
+            'preparation_id' => null,
+            'ingredients' => [],
             'recipe_id' => null,
             'name' => '',
             'portions' => null,
@@ -153,7 +183,7 @@ class MealWeekly extends Component
     public function calculatedFormCalories(): int
     {
         return (int) round(collect($this->formItems)->sum(function ($item) {
-            if (!empty($item['recipe_id'])) {
+            if (!empty($item['recipe_id']) || !empty($item['preparation_id'])) {
                 return ((float) ($item['recipe_calories'] ?? 0)) * ((float) ($item['portions'] ?? 1));
             }
 
@@ -164,7 +194,7 @@ class MealWeekly extends Component
     public function formHasIncompleteCalories(): bool
     {
         return collect($this->formItems)->contains(fn ($item) =>
-            !empty($item['recipe_id']) && $item['recipe_calories'] === null
+            (!empty($item['recipe_id']) || !empty($item['preparation_id'])) && $item['recipe_calories'] === null
         );
     }
 
@@ -204,39 +234,71 @@ class MealWeekly extends Component
             }
         }
 
-        DB::transaction(function () {
-            $entry = $this->editingId ? MealPlanEntry::find($this->editingId) : null;
-            $data = [
-                'date' => $this->formDate,
-                'meal_type' => $this->formMealType,
-                'notes' => trim($this->formNotes) ?: null,
-                'calories' => $this->formCalories,
-            ];
-
-            if ($entry) {
-                $entry->update($data);
-                $entry->items()->delete();
-            } else {
-                $entry = MealPlanEntry::create($data);
-            }
-
-            foreach ($this->formItems as $position => $item) {
-                $entry->items()->create([
-                    'recipe_id' => $item['recipe_id'] ?: null,
-                    'name' => $item['recipe_id'] ? null : trim($item['name']),
-                    'portions' => $item['recipe_id'] ? $item['portions'] : null,
-                    'calories' => $item['recipe_id'] ? null : ($item['calories'] ?? null),
-                    'position' => $position,
-                ]);
-            }
-        });
+        app(MealInventory::class)->plan((int) auth()->id(), $this->planData(), $this->operationKey.':save');
 
         $this->closeForm();
     }
 
     public function delete(int $id): void
     {
-        MealPlanEntry::where('id', $id)->delete();
+        app(MealInventory::class)->rearrange((int) auth()->id(), $id, 'delete', [], $this->operationKey.':delete');
+        $this->closeForm();
+    }
+
+    private function planData(): array
+    {
+        return ['entry_id' => $this->editingId, 'date' => $this->formDate, 'meal_type' => $this->formMealType, 'mode' => 'replace',
+            'notes' => trim($this->formNotes) ?: null, 'calories' => $this->formCalories, 'items' => $this->formItems];
+    }
+
+    public function addPreparation(): void
+    {
+        $prep = MealPreparation::where('user_id', auth()->id())->where('cancelled', false)->find($this->selectedPreparation);
+        if (! $prep) {
+            $this->addError('inventory', 'Elige una preparación disponible.');
+            return;
+        }
+        $this->formItems[] = ['key' => 'prepared-'.str()->uuid(), 'recipe_id' => null, 'preparation_id' => $prep->id,
+            'name' => $prep->name, 'portions' => 1, 'calories' => null, 'recipe_calories' => $prep->nutrition['calories'] ?? null, 'ingredients' => []];
+    }
+
+    public function addIngredient(int $index): void
+    {
+        if (isset($this->formItems[$index]) && empty($this->formItems[$index]['recipe_id']) && empty($this->formItems[$index]['preparation_id'])) {
+            $this->formItems[$index]['ingredients'][] = ['shopping_item_id' => '', 'quantity' => null, 'unit' => ''];
+        }
+    }
+
+    public function removeIngredient(int $index, int $ingredient): void
+    {
+        unset($this->formItems[$index]['ingredients'][$ingredient]);
+        $this->formItems[$index]['ingredients'] = array_values($this->formItems[$index]['ingredients']);
+    }
+
+    public function consume(string $mode = 'home'): void
+    {
+        $this->validate(['outsideCalories' => ['nullable', 'integer', 'min:0'], 'outsideNotes' => ['string', 'max:5000']]);
+        DB::transaction(function () use ($mode) {
+            $inventory = app(MealInventory::class);
+            if ($mode === 'outside' && empty($this->formItems)) {
+                $inventory->consumeAt((int) auth()->id(), ['date' => $this->formDate, 'meal_type' => $this->formMealType, 'mode' => 'outside', 'notes' => $this->outsideNotes, 'calories' => $this->outsideCalories], $this->operationKey.':outside');
+            } else {
+                $saved = $inventory->plan((int) auth()->id(), $this->planData(), $this->operationKey.':consume-plan');
+                $inventory->consume((int) auth()->id(), $saved['meal_id'], $mode === 'outside' ? ['mode' => 'outside', 'notes' => $this->outsideNotes, 'calories' => $this->outsideCalories] : ['mode' => 'home'], $this->operationKey.':consume');
+            }
+        });
+        $this->openForm($this->formDate, $this->formMealType);
+    }
+
+    public function revertConsumption(): void
+    {
+        app(MealInventory::class)->revert((int) auth()->id(), (int) $this->editingId, $this->operationKey.':revert');
+        $this->openForm($this->formDate, $this->formMealType);
+    }
+
+    public function rearrange(string $action): void
+    {
+        app(MealInventory::class)->rearrange((int) auth()->id(), (int) $this->editingId, $action, ['date' => $this->targetDate, 'meal_type' => $this->targetMealType], $this->operationKey.':'.$action);
         $this->closeForm();
     }
 
@@ -244,13 +306,15 @@ class MealWeekly extends Component
     {
         $weekStart = Carbon::parse($this->selectedDate)->startOfWeek();
         $weekDates = collect(range(0, 6))->map(fn ($day) => $weekStart->copy()->addDays($day));
-        $entries = MealPlanEntry::with('items.recipe')
-            ->whereBetween('date', [$weekStart->toDateString(), $weekStart->copy()->endOfWeek()->toDateString()])
+        $entries = MealPlanEntry::where('user_id', auth()->id())->with(['items.recipe', 'items.preparation'])
+            ->whereDate('date', '>=', $weekStart->toDateString())->whereDate('date', '<=', $weekStart->copy()->endOfWeek()->toDateString())
             ->get();
 
         // Calorías totales por día, sumando todas las comidas planificadas.
-        $dailyCalories = $entries->groupBy(fn ($entry) => $entry->date->format('Y-m-d'))
+        $dailyCalories = $entries->where('status', 'planned')->groupBy(fn ($entry) => $entry->date->format('Y-m-d'))
             ->map(fn ($dayEntries) => $dayEntries->sum('effective_calories'));
+        $consumedCalories = $entries->where('status', 'consumed')->groupBy(fn ($entry) => $entry->date->format('Y-m-d'))
+            ->map(fn ($dayEntries) => $dayEntries->sum(fn ($entry) => $entry->consumption['calories'] ?? 0));
         $plannedDays = $dailyCalories->filter()->count();
         $weekCalories = $dailyCalories->sum();
 
@@ -270,8 +334,9 @@ class MealWeekly extends Component
                 ->get(['id', 'name', 'meal_type', 'favorite', 'nutrition']);
         }
 
-        return view('livewire.meal.meal-weekly', compact(
-            'weekDates', 'entries', 'weekStart', 'recipeResults', 'dailyCalories', 'plannedDays', 'weekCalories'
-        ));
+        return view('livewire.meal.meal-weekly', compact('weekDates', 'entries', 'weekStart', 'recipeResults', 'dailyCalories', 'consumedCalories', 'plannedDays', 'weekCalories') + [
+            'products' => $this->showForm ? ShoppingItem::where('user_id', auth()->id())->orderBy('name')->get(['id', 'name', 'base_unit']) : collect(),
+            'preparations' => $this->showForm ? MealPreparation::where('user_id', auth()->id())->where('cancelled', false)->orderByDesc('cooked_at')->get()->filter(fn ($p) => $p->remaining() > 0) : collect(),
+        ]);
     }
 }

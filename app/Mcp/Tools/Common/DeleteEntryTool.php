@@ -127,6 +127,12 @@ class DeleteEntryTool extends Tool
     /** Casos que la base de datos o la app no permiten borrar sin decidir algo antes. */
     private function blocker(string $type, Model $record): ?string
     {
+        if ($type === 'meal' && $record->status === 'consumed') {
+            return 'Revierte el consumo con consume-meal-tool antes de borrar la comida.';
+        }
+        if ($type === 'recipe' && \App\Models\MealPreparation::where('user_id', auth()->id())->where('recipe_id', $record->id)->exists()) {
+            return 'La receta tiene preparaciones registradas y debe conservarse para su historial.';
+        }
         if ($type === 'recipe' && ($uses = $record->mealPlanItems()->count()) > 0) {
             return "La receta \"{$record->name}\" está en {$uses} comidas del plan. Quítala de esas comidas (plan-meal-tool con mode=replace, o borra la comida) antes de borrarla.";
         }
@@ -136,6 +142,11 @@ class DeleteEntryTool extends Tool
 
     private function delete(string $type, Model $record): void
     {
+        if ($type === 'meal') {
+            app(\App\Services\Meal\MealInventory::class)->rearrange((int) auth()->id(), $record->id, 'delete');
+
+            return;
+        }
         $vehicle = in_array($type, ['vehicle_fillup', 'vehicle_maintenance'], true) ? $record->vehicle : null;
         $goal = $type === 'goal_value' ? $record->goal : null;
 

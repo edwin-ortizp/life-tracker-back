@@ -104,6 +104,7 @@ No consultes para preguntas generales que no dependen de su vida, si el dato ya 
 - Trabajo y pendientes → list-tasks-tool por categoría o con updated_since; get-task-tool solo para la tarea en foco.
 - Metas, propósitos o progreso → list-goals-tool (con goal_id o title para el detalle).
 - Comida, qué cocinar o el mercado de la semana → list-meal-plan-tool y list-recipes-tool.
+- Planificar no registra consumo. plan-meal-tool admite ingredientes enlazados y preparation_id; consume-meal-tool registra consumo o comida por fuera y revierte descuentos. manage-preparation-tool cocina porciones una sola vez; manage-meal-tool edita/mueve/copia/intercambia/borrar planes. Usa operation_key estable para reintentos. suggest-meals-tool cruza stock y fechas; generate-meal-shopping-tool previsualiza antes de generar compras. Los textos libres sin ingredientes se consumen sin descuento y con advertencia.
 - Precios y compras → compare-product-prices-tool para saber dónde sale más barato; update-variant-tool para completar marca o contenido de una variante; manage-price-tool para verificar o corregir un precio; mark-purchased-tool cuando el usuario cuenta que compró algo. Las tiendas son un catálogo cerrado: usa manage-store-tool para listarlas y crea una nueva solo si el usuario confirma que no existe.
 - Tickets completos → create-purchase-tool con todas las líneas y una operation_key UUID estable; list-purchases-tool y get-purchase-tool para consultar; update-purchase-tool para corregir enviando todas las líneas. Los precios enlazados a compras se corrigen desde la compra. list-shopping-items-tool incluye última compra y conteos; not_purchased_days filtra productos sin compras recientes, incluyendo nunca comprados.
 - Algo que intenta dejar o una recaída → list-negative-habits-tool, sin juzgar.
@@ -199,6 +200,11 @@ class LifeTrackerServer extends Server
         WriteJournalEntryTool::class,
         ListMealPlanTool::class,
         PlanMealTool::class,
+        \App\Mcp\Tools\Meal\ConsumeMealTool::class,
+        \App\Mcp\Tools\Meal\ManageMealTool::class,
+        \App\Mcp\Tools\Meal\ManagePreparationTool::class,
+        \App\Mcp\Tools\Meal\SuggestMealsTool::class,
+        \App\Mcp\Tools\Meal\GenerateMealShoppingTool::class,
         ListRecipesTool::class,
         CreateRecipeTool::class,
         UpdateRecipeTool::class,

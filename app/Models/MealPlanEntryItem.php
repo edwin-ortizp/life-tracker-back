@@ -10,12 +10,15 @@ class MealPlanEntryItem extends Model
     use BelongsToUser;
 
     protected $fillable = [
+        'user_id',
         'meal_plan_entry_id',
         'recipe_id',
         'name',
         'portions',
         'calories',
         'position',
+        'preparation_id',
+        'ingredients',
     ];
 
     protected function casts(): array
@@ -24,6 +27,7 @@ class MealPlanEntryItem extends Model
             'portions' => 'decimal:2',
             'calories' => 'integer',
             'position' => 'integer',
+            'ingredients' => 'array',
         ];
     }
 
@@ -35,5 +39,10 @@ class MealPlanEntryItem extends Model
     public function recipe()
     {
         return $this->belongsTo(Recipe::class);
+    }
+
+    public function preparation()
+    {
+        return $this->belongsTo(MealPreparation::class);
     }
 }

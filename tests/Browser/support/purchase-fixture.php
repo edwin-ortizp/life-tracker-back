@@ -26,6 +26,13 @@ if (($argv[1] ?? '') === '--update-stock') {
 Artisan::call('migrate:fresh', ['--force' => true]);
 $user = User::factory()->create(['email' => 'purchase-browser@example.test', 'password' => 'browser-test-password']);
 auth()->login($user);
+$milk = ShoppingItem::create(['name' => 'Leche de consumo', 'base_unit' => 'ml', 'stock' => 1000, 'status' => 'available', 'consume_by' => today()->addDays(2)]);
+$milk->variants()->create(['content' => 1000, 'is_preferred' => true]);
+$cake = ShoppingItem::create(['name' => 'Torta de consumo', 'base_unit' => 'g', 'stock' => 500, 'status' => 'available']);
+$recipe = \App\Models\Recipe::create(['name' => 'Sopa de inventario', 'meal_type' => 'cena', 'servings' => 6, 'nutrition' => ['calories' => 100]]);
+$recipe->recipeIngredients()->create(['shopping_item_id' => $milk->id, 'quantity' => 600, 'unit' => 'ml']);
+$dinner = \App\Models\MealPlanEntry::create(['date' => now()->toDateString(), 'meal_type' => 'cena', 'notes' => 'Cena de prueba', 'calories' => 420]);
+$dinner->items()->create(['name' => 'Sopa de prueba', 'calories' => 420, 'position' => 0]);
 Store::create(['name' => 'Tienda de prueba']);
 foreach (['Pan de prueba', 'Leche de prueba'] as $name) {
     $item = ShoppingItem::create(['name' => $name, 'base_unit' => 'unit', 'stock' => 0, 'status' => 'available', 'next_purchase' => true]);

@@ -119,6 +119,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/pomodoro/settings', PomodoroSettings::class)->name('pomodoro.settings');
     Route::redirect('/meals', '/meals/weekly')->name('meals');
     Route::get('/meals/weekly', MealWeekly::class)->name('meals.weekly');
+    Route::get('/meals/preparations', \App\Livewire\Meal\MealPreparations::class)->name('meals.preparations');
+    Route::get('/meals/suggestions', \App\Livewire\Meal\MealSuggestions::class)->name('meals.suggestions');
     Route::get('/meals/recipes', MealRecipes::class)->name('meals.recipes');
     Route::get('/meals/ingredients', MealIngredients::class)->name('meals.ingredients');
     Route::get('/meals/shopping', MealShopping::class)->name('meals.shopping');

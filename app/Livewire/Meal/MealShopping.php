@@ -257,41 +257,11 @@ class MealShopping extends Component
      */
     private function weeklyNeeds(): Collection
     {
-        $plannedRecipes = MealPlanEntryItem::query()
-            ->whereNotNull('recipe_id')
-            ->whereHas('mealPlanEntry', fn ($entry) => $entry->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]))
-            ->with(['recipe.recipeIngredients.shoppingItem' => fn ($query) => $query->withOffers()])
-            ->get();
+        $preview = app(\App\Services\Meal\MealNeeds::class)->preview((int) auth()->id(), today()->startOfWeek()->toDateString(), today()->endOfWeek()->toDateString());
+        $products = ShoppingItem::where('user_id', auth()->id())->withOffers()->whereIn('id', collect($preview['needs'])->pluck('shopping_item_id')->filter())->get()->keyBy('id');
 
-        return $plannedRecipes
-            ->flatMap(function ($plannedRecipe) {
-                $recipe = $plannedRecipe->recipe;
-                $factor = (float) ($plannedRecipe->portions ?? 1) / max((float) ($recipe?->servings ?? 1), 0.01);
-
-                return $recipe?->recipeIngredients->map(fn ($ingredient) => [
-                    'shopping_item_id' => $ingredient->shopping_item_id,
-                    'shopping_item' => $ingredient->shoppingItem,
-                    'quantity' => $ingredient->quantity !== null ? (float) $ingredient->quantity * $factor : null,
-                    'recipe_name' => $recipe->name,
-                ]) ?? collect();
-            })
-            ->filter(fn ($ingredient) => $ingredient['shopping_item'])
-            ->groupBy('shopping_item_id')
-            ->map(function ($ingredients) {
-                $item = $ingredients->first()['shopping_item'];
-                $quantity = $ingredients->contains(fn ($ingredient) => $ingredient['quantity'] === null) ? null : $ingredients->sum('quantity');
-                $missing = $quantity === null ? null : max($quantity - (float) $item->stock, 0.0);
-                $costPerUnit = $item->costPerBaseUnit();
-
-                return [
-                    'shopping_item_id' => $item->id,
-                    'shopping_item' => $item,
-                    'quantity' => $quantity,
-                    'missing' => $missing,
-                    'cost' => $missing !== null && $costPerUnit !== null ? $missing * $costPerUnit : null,
-                    'recipes' => $ingredients->pluck('recipe_name')->unique()->values(),
-                ];
-            });
+        return collect($preview['needs'])->filter(fn ($row) => $products->has($row['shopping_item_id']))
+            ->map(fn ($row) => $row + ['shopping_item' => $products[$row['shopping_item_id']], 'recipes' => collect()]);
     }
 
     public function render()

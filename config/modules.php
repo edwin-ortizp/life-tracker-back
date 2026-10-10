@@ -130,6 +130,8 @@ return [
         'patterns' => ['meals*'], 'preserve' => ['date'],
         'tabs' => [
             ['label' => 'Planificación', 'route' => 'meals.weekly', 'icon' => 'bi-calendar-week', 'active' => ['meals.weekly']],
+            ['label' => 'Preparaciones', 'route' => 'meals.preparations', 'icon' => 'bi-egg-fried', 'active' => ['meals.preparations']],
+            ['label' => 'Qué cocinar', 'route' => 'meals.suggestions', 'icon' => 'bi-lightbulb', 'active' => ['meals.suggestions']],
             ['label' => 'Recetas', 'route' => 'meals.recipes', 'icon' => 'bi-book', 'active' => ['meals.recipes']],
             ['label' => 'Ingredientes', 'route' => 'meals.ingredients', 'icon' => 'bi-basket', 'active' => ['meals.ingredients', 'meals.compare']],
             ['label' => 'Compras', 'route' => 'meals.shopping', 'icon' => 'bi-cart3', 'active' => ['meals.shopping']],

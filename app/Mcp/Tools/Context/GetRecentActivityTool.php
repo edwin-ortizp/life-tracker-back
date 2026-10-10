@@ -333,14 +333,14 @@ class GetRecentActivityTool extends Tool
 
     private function meals(DateWindow $window): array
     {
-        $entries = $this->between(Auth::user()->mealPlanEntries()->with('items.recipe'), 'date', $window)->get();
+        $entries = $this->between(Auth::user()->mealPlanEntries()->with(['items.recipe', 'items.preparation']), 'date', $window)->get();
 
         $items = $entries->groupBy(fn (MealPlanEntry $entry) => $entry->date->toDateString())
             ->map(fn (Collection $day, string $date) => $this->item(
                 $date,
                 'comidas',
-                $day->map(fn (MealPlanEntry $entry) => $entry->meal_type.': '.$entry->items->map(fn (MealPlanEntryItem $item) => $item->recipe?->name ?? $item->name)->implode(', '))->implode('; ')
-                    .(($kcal = (int) $day->sum(fn (MealPlanEntry $entry) => $entry->effective_calories)) ? " ({$kcal} kcal)" : ''),
+                $day->map(fn (MealPlanEntry $entry) => $entry->meal_type.' ('.($entry->status === 'consumed' ? ($entry->consumption_mode === 'outside' ? 'consumida por fuera' : 'consumida') : 'planeada').'): '.$entry->items->map(fn (MealPlanEntryItem $item) => $item->recipe?->name ?? $item->name)->implode(', '))->implode('; ')
+                    .' · '.(int) $day->where('status', 'planned')->sum('effective_calories').' kcal planeadas; '.(int) $day->where('status', 'consumed')->sum(fn ($entry) => $entry->consumption['calories'] ?? 0).' kcal consumidas',
                 65,
             ))->values();
 

@@ -169,7 +169,7 @@ class Dashboard extends Component
         // Meals planned for the day, in meal-type order
         $mealOrder = array_keys(self::MEAL_TYPES);
         $meals = MealPlanEntry::whereDate('date', $date)
-            ->with('items.recipe')
+            ->with(['items.recipe', 'items.preparation'])
             ->get()
             ->sortBy(fn ($meal) => array_search($meal->meal_type, $mealOrder))
             ->values();

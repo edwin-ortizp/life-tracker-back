@@ -73,6 +73,6 @@ class MealImprovementsTest extends TestCase
 
         Livewire::test(MealWeekly::class)
             ->assertViewHas('dailyCalories', fn ($daily) => $daily->get($day->format('Y-m-d')) === 1100)
-            ->assertSee('Total del día');
+            ->assertSee('Planeado / consumido');
     }
 }

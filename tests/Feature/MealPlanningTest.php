@@ -40,6 +40,33 @@ class MealPlanningTest extends TestCase
         $this->assertDatabaseCount('recipe_ingredients', 0);
     }
 
+    public function test_opening_dinner_loads_existing_components_notes_and_calories(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $entry = MealPlanEntry::create(['date' => '2026-07-20', 'meal_type' => 'cena', 'notes' => 'Preparar temprano', 'calories' => 420]);
+        $entry->items()->create(['name' => 'Sopa', 'calories' => 420, 'position' => 0]);
+
+        Livewire::test(MealWeekly::class)
+            ->call('openForm', '2026-07-20', 'cena')
+            ->assertSet('editingId', $entry->id)
+            ->assertSet('formNotes', 'Preparar temprano')
+            ->assertSet('formCalories', 420)
+            ->assertSet('formItems.0.name', 'Sopa')
+            ->assertSee('Editar cena')
+            ->set('formNotes', 'Nota editada')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->call('openForm', '2026-07-20', 'cena')
+            ->assertSet('formNotes', 'Nota editada')
+            ->call('closeForm')
+            ->call('openForm', '2026-07-20', 'desayuno')
+            ->assertSet('editingId', null)
+            ->assertSet('formItems', [])
+            ->assertSet('formNotes', '');
+
+        $this->assertDatabaseCount('meal_plan_entries', 1);
+    }
+
     public function test_a_meal_can_combine_recipes_and_custom_items_with_calculated_calories(): void
     {
         $user = User::factory()->create();
