@@ -24,7 +24,7 @@ class MealPreparation extends Model
 
     public function remaining(): float
     {
-        return round($this->portions + MealInventoryMovement::where('user_id', $this->user_id)->where('preparation_id', $this->id)->sum('delta'), 2);
+        return $this->cancelled ? 0.0 : round($this->portions + MealInventoryMovement::where('user_id', $this->user_id)->where('preparation_id', $this->id)->sum('delta'), 2);
     }
 
     public function plannedItems()
@@ -44,6 +44,6 @@ class MealPreparation extends Model
         $remaining = $this->remaining();
         $reserved = $this->reserved();
 
-        return ['id' => $this->id, 'name' => $this->name, 'recipe_id' => $this->recipe_id, 'cooked_at' => $this->cooked_at->toIso8601String(), 'consume_by' => $this->consume_by?->toDateString(), 'produced' => $this->portions, 'consumed' => round($this->portions - $remaining, 2), 'reserved' => $reserved, 'available' => round($remaining - $reserved, 2), 'remaining' => $remaining, 'cancelled' => $this->cancelled, 'ingredients' => $this->ingredients, 'nutrition' => $this->nutrition];
+        return ['id' => $this->id, 'name' => $this->name, 'recipe_id' => $this->recipe_id, 'cooked_at' => $this->cooked_at->toIso8601String(), 'consume_by' => $this->consume_by?->toDateString(), 'produced' => $this->portions, 'consumed' => $this->cancelled ? 0.0 : round($this->portions - $remaining, 2), 'reserved' => $reserved, 'available' => round($remaining - $reserved, 2), 'remaining' => $remaining, 'cancelled' => $this->cancelled, 'ingredients' => $this->ingredients, 'nutrition' => $this->nutrition];
     }
 }

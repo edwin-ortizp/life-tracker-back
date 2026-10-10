@@ -35,7 +35,7 @@ class MealInventory
         return DB::transaction(function () use ($userId, $action, $input, $key, $callback) {
             // All meal writers take this lock first, including reservations with no stock movement.
             User::whereKey($userId)->lockForUpdate()->firstOrFail();
-            $fingerprint = hash('sha256', json_encode([$action, $input], JSON_THROW_ON_ERROR));
+            $fingerprint = hash('sha256', json_encode([$action, $this->canonicalInput($input)], JSON_THROW_ON_ERROR));
             $existing = MealInventoryOperation::where('user_id', $userId)->where('operation_key', $key)->first();
             if ($existing) {
                 if ($existing->fingerprint !== $fingerprint) {
@@ -51,13 +51,27 @@ class MealInventory
             $operation->update(['result' => $result]);
 
             return $result;
-        });
+        }, 3);
     }
 
     public function entry(int $userId, int $id): MealPlanEntry
     {
         return MealPlanEntry::where('user_id', $userId)->with(['items.recipe.recipeIngredients.shoppingItem', 'items.preparation'])->find($id)
             ?? $this->fail('No se encontró la comida o no te pertenece.');
+    }
+
+    private function canonicalInput(array $input): array
+    {
+        if (! array_is_list($input)) {
+            ksort($input);
+        }
+        foreach ($input as &$value) {
+            if (is_array($value)) {
+                $value = $this->canonicalInput($value);
+            }
+        }
+
+        return $input;
     }
 
     private function planned(MealPlanEntry $entry): void
@@ -150,6 +164,9 @@ class MealInventory
             $rows = $this->normalizeItems($userId, $data['items']);
             $replace = ($data['mode'] ?? 'append') === 'replace';
             $old = $entry->items()->where('user_id', $userId)->get()->keyBy('id');
+            if (! $replace && collect($rows)->contains(fn ($row) => $row['id'] !== null)) {
+                $this->fail('Para editar componentes existentes usa mode=replace con el conjunto completo.');
+            }
             if ($replace && collect($rows)->pluck('recipe_id')->filter()->duplicates()->isNotEmpty()) {
                 $this->fail('Una receta no puede repetirse dentro de la misma comida. Ajusta sus porciones.');
             }
@@ -196,7 +213,7 @@ class MealInventory
     /** Canonical product quantities; null quantity marks incomplete data in read-only previews. */
     public function recipeIngredients(int $userId, Recipe $recipe, float $portions, bool $strict = true): array
     {
-        $factor = $portions / max((float) $recipe->servings, 0.01);
+        $factor = $portions / max((float) ($recipe->servings ?: 1), 0.01);
         $rows = [];
         foreach ($recipe->recipeIngredients()->where('user_id', $userId)->with('shoppingItem')->get() as $ingredient) {
             $product = $ingredient->shoppingItem;
@@ -272,7 +289,7 @@ class MealInventory
                 'name' => $recipe->name, 'cooked_at' => $data['cooked_at'] ?? now(), 'consume_by' => $data['consume_by'] ?? null,
                 'portions' => $portions, 'ingredients' => $ingredients, 'nutrition' => $recipe->nutrition]);
 
-            return ['preparation_id' => $preparation->id, 'portions' => $portions];
+            return ['preparation_id' => $preparation->id, 'portions' => $portions, 'warnings' => $this->expiryWarnings($userId, $ingredients)];
         });
     }
 
@@ -286,7 +303,9 @@ class MealInventory
             $outside = ($data['mode'] ?? 'home') === 'outside';
             $warnings = [];
             if (! $outside) {
-                $this->debit($operation, $this->entryIngredients($userId, $entry));
+                $ingredients = $this->entryIngredients($userId, $entry);
+                $this->debit($operation, $ingredients);
+                $warnings = $this->expiryWarnings($userId, $ingredients);
                 foreach ($entry->items->whereNotNull('preparation_id')->groupBy('preparation_id')->sortKeys() as $prepId => $items) {
                     $prep = MealPreparation::where('user_id', $userId)->lockForUpdate()->find($prepId) ?? $this->fail('Preparación ajena o inexistente.');
                     $portions = (float) $items->sum('portions');
@@ -294,6 +313,9 @@ class MealInventory
                         $this->fail("No hay porciones suficientes de {$prep->name}.");
                     }
                     $operation->movements()->create(['user_id' => $userId, 'preparation_id' => $prep->id, 'name' => $prep->name, 'unit' => 'portion', 'delta' => -$portions]);
+                    if ($prep->consume_by && $prep->consume_by->lte(today()->addDays(7))) {
+                        $warnings[] = $prep->name.': fecha límite '.$prep->consume_by->toDateString().'.';
+                    }
                 }
                 if ($entry->items->contains(fn ($item) => ! $item->recipe_id && ! $item->preparation_id && empty($item->ingredients))) {
                     $warnings[] = 'Inventario incompleto: hay elementos libres sin ingredientes enlazados; no se descontaron.';
@@ -318,6 +340,13 @@ class MealInventory
 
             return $this->consume($userId, $entry->id, array_intersect_key($data, array_flip(['mode', 'notes', 'calories', 'consumed_at'])), $operation->id.':consume');
         });
+    }
+
+    private function expiryWarnings(int $userId, array $ingredients): array
+    {
+        return ShoppingItem::where('user_id', $userId)->whereIn('id', collect($ingredients)->pluck('shopping_item_id'))->whereNotNull('consume_by')
+            ->whereDate('consume_by', '<=', today()->addDays(7)->toDateString())->get()
+            ->map(fn ($product) => $product->name.': fecha límite '.$product->consume_by->toDateString().'.')->all();
     }
 
     private function reverse(MealInventoryOperation $original, MealInventoryOperation $operation): void
@@ -410,6 +439,7 @@ class MealInventory
                 $source->update(['date' => $date, 'meal_type' => $target['meal_type']]);
                 $destination = $source;
             } else {
+                $newDestination = ! $destination;
                 $destination ??= MealPlanEntry::create(['user_id' => $userId, 'date' => $date, 'meal_type' => $target['meal_type'], 'status' => 'planned']);
                 $offset = $destination->items()->count();
                 foreach ($source->items as $index => $item) {
@@ -427,7 +457,7 @@ class MealInventory
                     }
                 }
                 $destination->update(['notes' => trim(implode("\n", array_filter([$destination->notes, $source->notes]))) ?: null,
-                    'calories' => $destination->calories !== null && $source->calories !== null ? $destination->calories + $source->calories : null]);
+                    'calories' => $newDestination ? $source->calories : ($destination->calories !== null && $source->calories !== null ? $destination->calories + $source->calories : null)]);
                 if ($action === 'move') {
                     $source->delete();
                 }

@@ -387,6 +387,10 @@ class MealIngredients extends Component
 
     public function delete(string $id)
     {
+        if (\App\Models\MealInventoryMovement::where('user_id', auth()->id())->where('shopping_item_id', $id)->exists()) {
+            $this->addError('name', 'Este producto tiene movimientos de consumo o preparación y debe conservarse para su historial.');
+            return;
+        }
         if (PurchaseLine::where('shopping_item_id', $id)->exists()) {
             $this->addError('name', 'Este producto tiene compras registradas y no puede eliminarse.');
 

@@ -27,6 +27,25 @@ test.beforeAll(async () => {
 });
 test.afterAll(() => { server?.kill(); });
 
+test('meal inventory concurrent consumers preserve stock', async () => {
+    test.setTimeout(60_000);
+    const fixture = 'tests/Browser/support/purchase-fixture.php';
+    const { ids } = JSON.parse(execFileSync('php', [fixture, '--setup-race'], { env: serverEnv, encoding: 'utf8' }));
+    const results = await Promise.all(ids.map(id => new Promise((resolve, reject) => {
+        const process = spawn('php', [fixture, '--consume-race', String(id)], { env: serverEnv, windowsHide: true });
+        let output = '';
+        let errors = '';
+        process.stdout.on('data', data => { output += data; });
+        process.stderr.on('data', data => { errors += data; });
+        process.on('error', reject);
+        process.on('close', code => code === 0 ? resolve(JSON.parse(output)) : reject(new Error(errors || output)));
+    })));
+    expect(results.filter(result => result.consumed)).toHaveLength(1);
+    expect(results.find(result => !result.consumed).error).toContain('faltan 50');
+    const state = JSON.parse(execFileSync('php', [fixture, '--race-state'], { env: serverEnv, encoding: 'utf8' }));
+    expect(state).toEqual({ stock: 25, consumed: 1 });
+});
+
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
     test(`meal inventory cook consume and revert at ${viewport.width}px`, async ({ page }) => {
         test.setTimeout(120_000);

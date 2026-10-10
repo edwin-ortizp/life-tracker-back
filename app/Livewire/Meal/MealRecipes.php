@@ -248,6 +248,10 @@ class MealRecipes extends Component
 
     public function delete(string $id)
     {
+        if (\App\Models\MealPreparation::where('user_id', auth()->id())->where('recipe_id', $id)->exists()) {
+            $this->addError('name', 'Esta receta tiene preparaciones registradas y debe conservarse para su historial.');
+            return;
+        }
         Recipe::where('id', $id)->delete();
     }
 

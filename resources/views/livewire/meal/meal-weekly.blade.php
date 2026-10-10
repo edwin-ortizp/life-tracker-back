@@ -104,7 +104,7 @@
                     <section class="md-form-section">
                         <div class="md-form-section__header">
                             <div><i class="bi bi-egg-fried"></i><span>Composición</span></div>
-                            <button type="button" wire:click="addCustomItem" class="md-btn-text md-btn-text--small"><i class="bi bi-plus-lg"></i> Elemento libre</button>
+                            <button type="button" wire:click="addCustomItem" class="md-btn-text md-btn-text--small"><i class="bi bi-plus-lg" aria-hidden="true"></i> Elemento libre</button>
                         </div>
 
                         <div class="d-flex flex-wrap gap-2 align-items-end mb-3">
@@ -247,7 +247,7 @@
                         <x-ui.select id="meal-target-type" label="Comida destino" wire:model="targetMealType" :options="$mealTypes" />
                         @foreach (['move' => 'Mover', 'copy' => 'Copiar', 'swap' => 'Intercambiar'] as $action => $label)<button type="button" wire:click="rearrange('{{ $action }}')" wire:loading.attr="disabled" class="md-btn-text">{{ $label }}</button>@endforeach
                     </section>
-                    <button type="button" wire:click="delete({{ $editingId }})" wire:confirm="¿Eliminar esta comida planificada?" class="md-btn-text md-btn-danger mt-3"><i class="bi bi-trash"></i> Eliminar</button>
+                    <button type="button" wire:click="delete({{ $editingId }})" wire:confirm="¿Eliminar esta comida planificada?" class="md-btn-text md-btn-danger mt-3"><i class="bi bi-trash" aria-hidden="true"></i> Eliminar</button>
                 @endif
     </x-ui.form-dialog>
 </x-module-shell>
