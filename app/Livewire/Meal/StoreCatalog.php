@@ -120,7 +120,12 @@ class StoreCatalog extends Component
 
     public function delete(string $id): void
     {
-        $store = Store::withCount('prices')->find($id);
+        $store = Store::withCount(['prices', 'purchases'])->find($id);
+        if ($store && $store->purchases_count > 0) {
+            $this->addError('storeName', 'Esta tienda tiene compras registradas; puedes fusionarla con otra.');
+
+            return;
+        }
         if ($store && $store->prices_count === 0) {
             $store->delete();
             $this->dispatch('stores-updated');

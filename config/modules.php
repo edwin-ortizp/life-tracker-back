@@ -133,6 +133,7 @@ return [
             ['label' => 'Recetas', 'route' => 'meals.recipes', 'icon' => 'bi-book', 'active' => ['meals.recipes']],
             ['label' => 'Ingredientes', 'route' => 'meals.ingredients', 'icon' => 'bi-basket', 'active' => ['meals.ingredients', 'meals.compare']],
             ['label' => 'Compras', 'route' => 'meals.shopping', 'icon' => 'bi-cart3', 'active' => ['meals.shopping']],
+            ['label' => 'Historial de compras', 'route' => 'meals.purchases', 'icon' => 'bi-receipt', 'active' => ['meals.purchases']],
         ],
     ],
     'tasks' => [

@@ -10,8 +10,10 @@ use App\Models\Store;
 use App\Services\Meal\PurchaseRecorder;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -64,6 +66,15 @@ class MealShopping extends Component
     public $purchaseQuantity = 1;
 
     public $purchaseAmount = null;
+
+    #[Locked]
+    public string $purchaseOperationKey = '';
+
+    #[On('purchase-saved')]
+    public function refreshPurchases(): void
+    {
+        $this->resetPage();
+    }
 
     public function updatedSearch(): void
     {
@@ -173,6 +184,7 @@ class MealShopping extends Component
         $offer = $item->bestOffer($this->placeFilter ?: null);
         $this->resetValidation();
         $this->purchaseItemId = $item->id;
+        $this->purchaseOperationKey = (string) Str::uuid();
         $this->purchaseVariantId = (string) ($offer['variant']->id ?? $item->variants->first()?->id ?? '');
         $this->purchaseStoreId = (string) ($offer['price']->store_id ?? '');
         $this->purchaseQuantity = max((float) $item->to_buy, 1);
@@ -210,6 +222,7 @@ class MealShopping extends Component
             (float) $data['purchaseQuantity'],
             $amount === null || $amount === '' ? null : (float) $amount,
             Store::find($data['purchaseStoreId'] ?? null),
+            $this->purchaseOperationKey,
         );
 
         $this->showPurchase = false;

@@ -4,6 +4,7 @@ namespace App\Livewire\Meal;
 
 use App\Livewire\Concerns\WithManagementCard;
 use App\Models\Brand;
+use App\Models\PurchaseLine;
 use App\Models\ShoppingItem;
 use App\Models\ShoppingItemPrice;
 use App\Models\ShoppingItemVariant;
@@ -14,6 +15,7 @@ use App\Services\Meal\RecipeCalculator;
 use App\Services\Meal\UnitConverter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
@@ -56,23 +58,38 @@ class MealIngredients extends Component
     public string $dataFilter = '';
 
     public bool $showForm = false;
+
     public ?string $editingId = null;
 
     // Product form fields
     public string $name = '';
+
     public string $baseUnit = '';
+
     public bool $baseUnitLocked = false;
+
     public $gramsPerPiece = null;
+
     public $stock = 0;
+
     public $minStock = null;
+
     public $toBuy = 0;
+
     public string $category = '';
+
     public ?string $consumeBy = null;
+
     public string $status = 'available';
+
     public bool $nextPurchase = false;
+
     public $kcal = null;
+
     public $protein = null;
+
     public $carbs = null;
+
     public $fat = null;
 
     // Variants (dynamic rows), each with its own prices.
@@ -164,6 +181,7 @@ class MealIngredients extends Component
                 'kcal' => $v->kcal,
                 'prices' => $v->prices->sortByDesc('observed_on')->map(fn (ShoppingItemPrice $p) => [
                     'id' => $p->id,
+                    'purchase_line_id' => $p->purchase_line_id,
                     'store_id' => $p->store_id,
                     'amount' => $p->amount,
                     'observed_on' => $p->observed_on->format('Y-m-d'),
@@ -323,6 +341,11 @@ class MealIngredients extends Component
                     ];
 
                     $priceModel = ! empty($price['id']) ? $model->prices()->whereKey($price['id'])->first() : null;
+                    if ($priceModel?->purchase_line_id) {
+                        $keptPriceIds[] = $priceModel->id;
+
+                        continue; // Ticket prices are edited through their purchase.
+                    }
                     $priceModel ? $priceModel->fill($priceData) : $priceModel = $model->prices()->make($priceData);
 
                     if (($price['verified'] ?? false) && ! $priceModel->verified_at) {
@@ -334,9 +357,12 @@ class MealIngredients extends Component
                     $priceModel->save();
                     $keptPriceIds[] = $priceModel->id;
                 }
-                $model->prices()->whereNotIn('id', $keptPriceIds)->delete();
+                $model->prices()->whereNull('purchase_line_id')->whereNotIn('id', $keptPriceIds)->delete();
             }
 
+            if (PurchaseLine::where('shopping_item_id', $item->id)->whereNotIn('shopping_item_variant_id', $keptIds)->exists()) {
+                throw ValidationException::withMessages(['variants' => 'No puedes eliminar una presentación con compras registradas.']);
+            }
             $item->variants()->whereNotIn('id', $keptIds)->delete();
             $importer->syncAliases($item, $this->aliases);
 
@@ -361,6 +387,11 @@ class MealIngredients extends Component
 
     public function delete(string $id)
     {
+        if (PurchaseLine::where('shopping_item_id', $id)->exists()) {
+            $this->addError('name', 'Este producto tiene compras registradas y no puede eliminarse.');
+
+            return;
+        }
         ShoppingItem::where('id', $id)->delete();
     }
 
@@ -407,6 +438,7 @@ class MealIngredients extends Component
             : collect();
 
         return view('livewire.meal.meal-ingredients', [
+            'purchaseHistory' => $this->showForm && $this->editingId ? ShoppingItem::where('user_id', auth()->id())->with('purchaseLines.purchase.store')->findOrFail($this->editingId)->purchaseHistorySummary() : null,
             'grouped' => $grouped,
             'ingredients' => $ingredients,
             'catalogTotal' => ShoppingItem::query()->count(),

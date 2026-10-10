@@ -18,9 +18,13 @@ class ListShoppingItemsTool extends Tool
         $data = $request->validate([
             'name' => ['nullable', 'string'],
             'only_pending' => ['nullable', 'boolean'],
+            'not_purchased_days' => ['nullable', 'integer', 'min:1', 'max:36500'],
         ]);
 
-        $query = Auth::user()->shoppingItems()->withOffers();
+        $query = Auth::user()->shoppingItems()->withOffers()->with('purchaseLines.purchase.store');
+        if (! empty($data['not_purchased_days'])) {
+            $query->whereDoesntHave('purchaseLines.purchase', fn ($q) => $q->whereBetween('purchased_at', [now()->subDays($data['not_purchased_days']), now()]));
+        }
 
         if (($data['only_pending'] ?? true) !== false) {
             $query->where('next_purchase', true);
@@ -42,6 +46,7 @@ class ListShoppingItemsTool extends Tool
                 'stock' => $item->stock,
                 'min_stock' => $item->min_stock,
                 'category' => $item->category,
+                'purchase_history' => $item->purchaseHistorySummary(),
                 'estimated_price' => $item->estimatedPrice(),
                 'variants' => $item->variants->map(fn ($variant) => [
                     'variant_id' => $variant->id,
@@ -67,6 +72,7 @@ class ListShoppingItemsTool extends Tool
     public function schema(JsonSchema $schema): array
     {
         return [
+            'not_purchased_days' => $schema->integer()->description('Sin compras en los últimos N días. Incluye nunca comprados, distinguidos en purchase_history.'),
             'name' => $schema->string()
                 ->description('Filtra por nombre o alias del ítem.'),
             'only_pending' => $schema->boolean()

@@ -2,8 +2,8 @@
 
 namespace App\Mcp\Tools\Shopping;
 
-use App\Models\ShoppingItemPrice;
 use App\Mcp\Tools\Shopping\Concerns\ResolvesStore;
+use App\Models\ShoppingItemPrice;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -32,6 +32,9 @@ class ManagePriceTool extends Tool
         $price = ShoppingItemPrice::with(['store', 'variant.shoppingItem'])->where('user_id', Auth::id())->find($data['price_id']);
         if (! $price) {
             return Response::error('No se encontró el precio o no te pertenece.');
+        }
+        if ($price->purchase_line_id) {
+            return Response::error('Este precio pertenece a una compra. Corrígelo mediante update-purchase-tool para mantener el historial consistente.');
         }
 
         $product = $price->variant?->shoppingItem?->name ?? 'producto';

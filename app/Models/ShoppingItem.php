@@ -72,6 +72,25 @@ class ShoppingItem extends Model
         return $this->hasMany(ShoppingItemVariant::class);
     }
 
+    public function purchaseLines()
+    {
+        return $this->hasMany(PurchaseLine::class);
+    }
+
+    public function purchaseHistorySummary(): array
+    {
+        $lines = $this->purchaseLines;
+        $purchases = $lines->map->purchase->filter()->unique('id')->filter(fn ($purchase) => $purchase->purchased_at->lte(now()));
+        $latest = $purchases->sortByDesc('purchased_at')->first();
+        $line = $latest ? $lines->firstWhere('purchase_id', $latest->id) : null;
+
+        return [
+            'never_purchased' => $purchases->isEmpty(),
+            'last_purchase' => $latest ? ['purchase_id' => $latest->id, 'purchased_at' => $latest->purchased_at->toIso8601String(), 'store' => $latest->store?->name, 'unit_price' => $line?->unit_price] : null,
+            'counts' => collect([30, 60, 90])->mapWithKeys(fn ($days) => [$days => $purchases->filter(fn ($purchase) => $purchase->purchased_at->gte(now()->subDays($days)))->count()])->all(),
+        ];
+    }
+
     public function aliases()
     {
         return $this->hasMany(ShoppingItemAlias::class);

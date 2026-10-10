@@ -87,6 +87,9 @@ class ManageStoreTool extends Tool
         if ($count > 0) {
             return Response::error("\"{$store->name}\" tiene {$count} precios; únela a otra tienda con action \"merge\" en vez de eliminarla.");
         }
+        if ($store->purchases()->exists()) {
+            return Response::error('Esta tienda tiene compras registradas; únela a otra tienda en vez de eliminarla.');
+        }
         $store->delete();
 
         return Response::text("Tienda \"{$store->name}\" eliminada del catálogo.");

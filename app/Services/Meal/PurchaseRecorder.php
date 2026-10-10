@@ -2,49 +2,152 @@
 
 namespace App\Services\Meal;
 
+use App\Models\Purchase;
 use App\Models\ShoppingItem;
-use App\Models\ShoppingItemPrice;
 use App\Models\ShoppingItemVariant;
 use App\Models\Store;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
-/**
- * Registra una compra: suma al stock lo comprado, saca el producto de la lista
- * y, si se indica, guarda el precio pagado como precio de ticket verificado.
- */
 class PurchaseRecorder
 {
-    /** @return array{stock_added: float, price: ?ShoppingItemPrice} */
-    public function record(ShoppingItem $item, ?ShoppingItemVariant $variant, float $packages, ?float $amountPaid = null, ?Store $store = null): array
+    public function record(ShoppingItem $item, ?ShoppingItemVariant $variant, float $packages, ?float $amountPaid = null, ?Store $store = null, ?string $operationKey = null): array
     {
-        return DB::transaction(function () use ($item, $variant, $packages, $amountPaid, $store) {
-            $stockAdded = match (true) {
-                (bool) $variant?->isComparable() => $variant->content * $packages,
-                $item->base_unit === 'unit' => $packages,
-                default => 0.0,
-            };
+        $purchase = $this->save([
+            'purchased_at' => now()->toDateTimeString(), 'store_id' => $store?->id,
+            'operation_key' => $operationKey ?? (string) Str::uuid(),
+            'lines' => [['shopping_item_id' => $item->id, 'shopping_item_variant_id' => $variant?->id, 'packages' => $packages, 'unit_price' => $amountPaid]],
+        ], null, true);
+        $line = $purchase->lines->first();
 
-            $item->update([
-                'stock' => (float) $item->stock + $stockAdded,
-                'next_purchase' => false,
-                'to_buy' => 0,
-            ]);
+        return ['stock_added' => $line->stock_added, 'price' => $line->price, 'purchase' => $purchase];
+    }
 
-            $price = null;
-            if ($variant && $amountPaid !== null && $store) {
-                // El precio pagado se registra por paquete, igual que los demás precios de la variante.
-                $price = $variant->prices()->create([
-                    'store_id' => $store->id,
-                    'amount' => round($amountPaid, 2),
-                    'observed_on' => now()->toDateString(),
-                    'source' => 'ticket',
-                    'paid' => true,
-                    'verified_at' => now(),
-                    'verified_by' => auth()->id(),
-                ]);
+    public function save(array $input, ?string $purchaseId = null, bool $quick = false): Purchase
+    {
+        $userId = auth()->id();
+        abort_unless($userId, 401);
+        $data = Validator::make($input, [
+            'purchased_at' => ['required', 'date'],
+            'store_id' => [$quick || $purchaseId ? 'nullable' : 'required', 'nullable', 'uuid'],
+            'operation_key' => [$purchaseId ? 'nullable' : 'required', 'uuid'],
+            'total_paid' => ['nullable', 'numeric', 'min:0', 'max:999999999999.99'],
+            'payment_method' => ['nullable', 'string', 'max:255'],
+            'ticket_reference' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string', 'max:10000'],
+            'lines' => ['required', 'array', 'min:1', 'max:200'],
+            'lines.*.id' => ['nullable', 'uuid', 'distinct'],
+            'lines.*.shopping_item_id' => ['required', 'uuid'],
+            'lines.*.shopping_item_variant_id' => ['nullable', 'uuid'],
+            'lines.*.packages' => ['required', 'numeric', 'decimal:0,6', 'gt:0', 'max:999999999'],
+            'lines.*.unit_price' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'lines.*.ticket_text' => ['nullable', 'string', 'max:255'],
+        ])->validate();
+
+        return DB::transaction(function () use ($data, $userId, $purchaseId) {
+            User::whereKey($userId)->lockForUpdate()->firstOrFail();
+            if (! $purchaseId && ($existing = Purchase::where('user_id', $userId)->where('operation_key', $data['operation_key'])->first())) {
+                return $existing->load('lines.price', 'store');
             }
+            $purchase = $purchaseId ? Purchase::where('user_id', $userId)->lockForUpdate()->findOrFail($purchaseId) : new Purchase;
+            $old = $purchase->exists ? $purchase->lines()->get()->keyBy('id') : collect();
+            $store = ! empty($data['store_id']) ? Store::where('user_id', $userId)->find($data['store_id']) : null;
+            if (! empty($data['store_id']) && ! $store) {
+                $this->invalid('store_id', 'La tienda no pertenece al usuario.');
+            }
+            $reference = trim($data['ticket_reference'] ?? '') ?: null;
+            if ($reference && ! $store) {
+                $this->invalid('store_id', 'La referencia del ticket requiere tienda.');
+            }
+            if ($reference && Purchase::where('user_id', $userId)->where('store_id', $store->id)->where('ticket_reference', $reference)->when($purchase->exists, fn ($q) => $q->where('id', '!=', $purchase->id))->exists()) {
+                $this->invalid('ticket_reference', 'Este ticket ya está registrado en esta tienda.');
+            }
+            $ids = collect($data['lines'])->pluck('shopping_item_id')->merge($old->pluck('shopping_item_id'))->unique()->sort()->values();
+            $items = ShoppingItem::where('user_id', $userId)->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            $prepared = collect();
+            foreach ($data['lines'] as $index => $row) {
+                $item = $items->get($row['shopping_item_id']);
+                if (! $item) {
+                    $this->invalid("lines.$index.shopping_item_id", 'Producto no disponible para este usuario.');
+                }
+                $previous = ! empty($row['id']) ? $old->get($row['id']) : null;
+                if (! empty($row['id']) && ! $previous) {
+                    $this->invalid("lines.$index.id", 'La línea no pertenece a esta compra.');
+                }
+                $variant = ! empty($row['shopping_item_variant_id']) ? ShoppingItemVariant::where('user_id', $userId)->where('shopping_item_id', $item->id)->with('brand')->find($row['shopping_item_variant_id']) : null;
+                if (! empty($row['shopping_item_variant_id']) && ! $variant) {
+                    $this->invalid("lines.$index.shopping_item_variant_id", 'La variante no pertenece al producto.');
+                }
+                $price = isset($row['unit_price']) && $row['unit_price'] !== '' ? round((float) $row['unit_price'], 2) : null;
+                if ($price !== null && (! $store || ! $variant)) {
+                    $this->invalid("lines.$index.unit_price", 'El precio requiere tienda y variante.');
+                }
+                $same = $previous && $previous->shopping_item_id === $item->id && $previous->shopping_item_variant_id === $variant?->id && (float) $previous->packages === (float) $row['packages'];
+                $snapshot = $same ? $previous->only(['product_name', 'variant_label', 'base_unit', 'content', 'stock_added']) : [
+                    'product_name' => $item->name, 'variant_label' => $variant?->label($item->base_unit),
+                    'base_unit' => $item->base_unit, 'content' => $variant?->content,
+                    'stock_added' => $variant?->isComparable() ? $variant->content * $row['packages'] : ($item->base_unit === 'unit' ? (float) $row['packages'] : 0),
+                ];
+                $snapshot['stock_added'] = round((float) $snapshot['stock_added'], 3);
+                $prepared->push(['previous' => $previous, 'attributes' => $snapshot + [
+                    'user_id' => $userId, 'shopping_item_id' => $item->id, 'shopping_item_variant_id' => $variant?->id,
+                    'packages' => $row['packages'], 'unit_price' => $price, 'ticket_text' => $row['ticket_text'] ?? null,
+                ]]);
+            }
+            foreach ($items as $item) {
+                $before = $old->where('shopping_item_id', $item->id)->sum('stock_added');
+                $after = $prepared->sum(fn ($row) => $row['attributes']['shopping_item_id'] === $item->id ? $row['attributes']['stock_added'] : 0);
+                $stock = round((float) $item->stock - $before + $after, 3);
+                if ($stock < 0) {
+                    $this->invalid('lines', "La edición dejaría stock negativo para {$item->name}.");
+                }
+                if ($stock > 999999999.999) {
+                    $this->invalid('lines', "La cantidad supera el stock máximo admitido para {$item->name}.");
+                }
+                $updates = ['stock' => $stock];
+                if ($prepared->contains(fn ($row) => $row['attributes']['shopping_item_id'] === $item->id) && ! $old->contains('shopping_item_id', $item->id)) {
+                    $updates += ['next_purchase' => false, 'to_buy' => 0];
+                }
+                $item->update($updates);
+            }
+            $purchase->fill([
+                'user_id' => $userId, 'purchased_at' => $data['purchased_at'],
+                'total_paid' => $data['total_paid'] ?? null, 'payment_method' => $data['payment_method'] ?? null,
+                'notes' => $data['notes'] ?? null,
+            ]);
+            $purchase->store_id = $store?->id;
+            $purchase->ticket_reference = $reference;
+            if (! $purchase->exists) {
+                $purchase->operation_key = $data['operation_key'];
+            }
+            $purchase->save();
+            $retained = [];
+            foreach ($prepared as $row) {
+                $line = $row['previous'] ?? $purchase->lines()->make();
+                $line->fill($row['attributes'])->save();
+                $retained[] = $line->id;
+                if ($line->unit_price !== null && $line->shopping_item_variant_id && $store) {
+                    $line->price()->updateOrCreate([], [
+                        'user_id' => $userId, 'shopping_item_variant_id' => $line->shopping_item_variant_id,
+                        'store_id' => $store->id, 'amount' => $line->unit_price,
+                        'observed_on' => $purchase->purchased_at->toDateString(), 'source' => 'ticket',
+                        'paid' => true, 'verified_at' => now(), 'verified_by' => $userId,
+                    ]);
+                } else {
+                    $line->price()->delete();
+                }
+            }
+            $purchase->lines()->whereNotIn('id', $retained)->delete();
 
-            return ['stock_added' => (float) $stockAdded, 'price' => $price];
+            return $purchase->fresh(['lines.price', 'store']);
         });
+    }
+
+    private function invalid(string $field, string $message): never
+    {
+        throw ValidationException::withMessages([$field => $message]);
     }
 }

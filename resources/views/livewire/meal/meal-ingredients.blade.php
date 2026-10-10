@@ -235,6 +235,16 @@
                     <x-ui.field name="stock" label="Stock en casa" type="number" step="0.001" min="0" wire:model="stock" />
                     <x-ui.field name="minStock" label="Stock mínimo" type="number" step="0.001" min="0" wire:model="minStock" />
                 </div>
+                @if ($purchaseHistory)
+                    <div class="md-body-medium">
+                        @if ($purchaseHistory['last_purchase'])
+                            <p>Última compra: {{ \Carbon\Carbon::parse($purchaseHistory['last_purchase']['purchased_at'])->format('d/m/Y H:i') }} · {{ $purchaseHistory['last_purchase']['store'] ?? 'Sin tienda' }} · Precio por paquete: {{ $purchaseHistory['last_purchase']['unit_price'] === null ? 'Sin precio' : '$'.number_format((float) $purchaseHistory['last_purchase']['unit_price'], 2, ',', '.') }}</p>
+                        @else
+                            <p>Sin compras registradas.</p>
+                        @endif
+                        <p>Compras en 30 / 60 / 90 días: {{ implode(' / ', $purchaseHistory['counts']) }}</p>
+                    </div>
+                @endif
                 <x-ui.field name="toBuy" label="Por comprar (paquetes)" type="number" step="0.001" min="0" wire:model="toBuy" />
                 <x-ui.field name="consumeBy" label="Consumir antes" type="date" wire:model="consumeBy" />
                 <label class="d-flex align-items-center gap-2" style="cursor: pointer;"><input type="checkbox" wire:model="nextPurchase" class="md-checkbox"><span class="md-body-medium">Incluir en lista de compras</span></label>
@@ -293,6 +303,10 @@
                         <div class="ingredient-prices">
                             <span class="md-label-large">Precios</span>
                             @forelse ($variant['prices'] as $priceIndex => $price)
+                                @if (! empty($price['purchase_line_id']))
+                                    <p class="md-body-small">Ticket: ${{ number_format((float) $price['amount'], 2, ',', '.') }} · {{ $stores[$price['store_id']] ?? 'Sin tienda' }} · {{ $price['observed_on'] }}. Se corrige desde el historial de compras.</p>
+                                    @continue
+                                @endif
                                 <div class="ingredient-price-row" wire:key="price-{{ $index }}-{{ $price['id'] ?? 'new-'.$priceIndex }}">
                                     <x-ui.select name="variants.{{ $index }}.prices.{{ $priceIndex }}.store_id" label="Tienda" id="price-store-{{ $index }}-{{ $priceIndex }}" placeholder="Elige la tienda"
                                                  :options="$stores->all()" :selected="$price['store_id']" wire:model="variants.{{ $index }}.prices.{{ $priceIndex }}.store_id" />

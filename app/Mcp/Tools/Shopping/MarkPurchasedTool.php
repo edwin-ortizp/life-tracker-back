@@ -21,6 +21,7 @@ class MarkPurchasedTool extends Tool
     {
         $data = $request->validate([
             'item_id' => ['nullable', 'string'],
+            'operation_key' => ['nullable', 'uuid'],
             'name' => ['nullable', 'string'],
             'variant_id' => ['nullable', 'string'],
             'packages' => ['nullable', 'numeric', 'gt:0'],
@@ -51,7 +52,7 @@ class MarkPurchasedTool extends Tool
         }
 
         $packages = (float) ($data['packages'] ?? max((float) $item->to_buy, 1));
-        $result = app(PurchaseRecorder::class)->record($item, $variant, $packages, isset($data['amount_paid']) ? (float) $data['amount_paid'] : null, $store);
+        $result = app(PurchaseRecorder::class)->record($item, $variant, $packages, isset($data['amount_paid']) ? (float) $data['amount_paid'] : null, $store, $data['operation_key'] ?? null);
 
         $item->refresh();
         $text = "Compra registrada: {$item->name}";
@@ -60,12 +61,13 @@ class MarkPurchasedTool extends Tool
             : ' (stock sin cambios: la variante no tiene contenido)';
         $text .= $result['price'] ? '; precio pagado $'.number_format((float) $result['price']->amount, 0, ',', '.').' guardado' : '';
 
-        return Response::text($text.'. Ya no está en la lista de compras.');
+        return Response::text($text.'. Ya no está en la lista de compras. Compra: '.$result['purchase']->id);
     }
 
     public function schema(JsonSchema $schema): array
     {
         return [
+            'operation_key' => $schema->string()->description('UUID estable para reintentar el mismo registro sin duplicarlo.'),
             'item_id' => $schema->string()->description('Id del producto. Alternativa a "name".'),
             'name' => $schema->string()->description('Nombre o alias del producto. Alternativa a "item_id".'),
             'variant_id' => $schema->string()->description('Variante comprada. Por defecto la preferida o la más barata.'),

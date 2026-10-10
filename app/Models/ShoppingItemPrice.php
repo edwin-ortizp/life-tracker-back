@@ -20,6 +20,7 @@ class ShoppingItemPrice extends Model
     public const STALE_AFTER_DAYS = 60;
 
     protected $fillable = [
+        'purchase_line_id',
         'shopping_item_variant_id',
         'store_id',
         'amount',
