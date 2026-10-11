@@ -37,6 +37,22 @@ class ClientRegistrationTest extends TestCase
         ])->assertCreated();
     }
 
+    public function test_a_desktop_oauth_client_can_register_a_loopback_callback(): void
+    {
+        $redirect = 'http://127.0.0.1:54321/callback/codex-client';
+        $this->postJson('/oauth/register', [
+            'client_name' => 'Codex',
+            'redirect_uris' => [$redirect],
+        ])->assertCreated()->assertJsonPath('redirect_uris', [$redirect]);
+    }
+
+    public function test_a_domain_impersonating_loopback_is_rejected(): void
+    {
+        $this->postJson('/oauth/register', [
+            'redirect_uris' => ['http://127.0.0.1.attacker.example/callback'],
+        ])->assertStatus(400)->assertJsonPath('error', 'invalid_redirect_uri');
+    }
+
     public function test_grok_registers_its_observed_https_callback(): void
     {
         $redirect = 'https://grok.com/connectors-oauth-exchange-code/';

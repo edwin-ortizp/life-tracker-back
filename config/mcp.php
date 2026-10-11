@@ -28,7 +28,8 @@ return [
         'https://claude.com',
         'https://chatgpt.com',
         'https://grok.com',
-        // 'http://localhost',   // descomenta solo para probar en local
+        // RFC 8252: callback local de clientes OAuth de escritorio, con puerto variable.
+        'http://127.0.0.1',
     ],
 
     /*

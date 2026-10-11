@@ -1,5 +1,13 @@
 # Revisión MCP — 11 de octubre de 2026
 
+## Actualización: Codex de escritorio con OAuth
+
+El usuario aclaró que la conexión pendiente corresponde a Codex de escritorio, servidor localmente configurado como `mupo`, no a chatgpt.com. Grok ya funciona según su prueba. El 11-10-2026 se ejecutó `codex mcp login mupo --oauth-client-registration dcr --scopes mcp:use`: registro rechazado con HTTP 400, `invalid_redirect_uri`, `redirect_uris.0 is not a permitted redirect domain.` No se alcanzó el consentimiento.
+
+La [documentación oficial de Codex](https://learn.chatgpt.com/docs/extend/mcp) establece callbacks HTTP loopback para escritorio, con puerto local variable. La configuración de Life Tracker no permitía loopback. Reproducción local previa al cambio: callback `http://127.0.0.1:54321/callback/codex-client` recibe 400; 8/9 pruebas de registro pasan y falla este caso. Corrección justificada: habilitar `http://127.0.0.1` en redirect_domains. El validador del paquete, al reconocer loopback, admite localhost/127.0.0.1/[::1] con puerto variable; no autoriza hosts externos ni prefijos similares. Es un callback al equipo del usuario, no publicar el servidor MCP en localhost. La URI concreta se registra y Passport la compara en el canje. No se cambia allowed_origins ni se añaden Bearer manuales.
+
+Pendiente: publicar la configuración y regenerar su cache, repetir login OAuth y verificar herramientas desde Codex. No declarar conexión validada antes del consentimiento y la inicialización.
+
 Estado: revisión local, suite final y comprobaciones públicas realizadas; diagnóstico de los intentos de clientes pendiente de logs/acceso. No acredita compatibilidad real con clientes web.
 
 ## Evidencia previa a correcciones

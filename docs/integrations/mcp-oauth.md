@@ -60,6 +60,11 @@ paquete es `'*'`, que dejaría a cualquiera registrar un cliente apuntando a don
 Hoy admite `https://claude.ai`, `https://claude.com`, `https://chatgpt.com` y `https://grok.com`, más los esquemas
 privados `claude`, `cursor` y `vscode` de las apps de escritorio.
 
+También admite callbacks HTTP loopback de escritorio mediante `http://127.0.0.1`
+(el validador del paquete incluye localhost e IPv6 loopback con puerto variable).
+Esto permite el consentimiento OAuth en Codex con `codex mcp login mupo` si el
+servidor se configuró con ese nombre. El servidor MCP continúa usando su URL HTTPS pública.
+
 Si una herramienta legítima no consigue registrarse, `POST /oauth/register` responde `400` con
 `error: invalid_redirect_uri`: mira en los logs qué URI intentó usar y añade su dominio a la
 lista. Es el comportamiento buscado, no un fallo.
