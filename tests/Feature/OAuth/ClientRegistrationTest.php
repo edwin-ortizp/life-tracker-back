@@ -37,6 +37,27 @@ class ClientRegistrationTest extends TestCase
         ])->assertCreated();
     }
 
+    public function test_grok_registers_its_observed_https_callback(): void
+    {
+        $redirect = 'https://grok.com/connectors-oauth-exchange-code/';
+        $this->postJson('/oauth/register', [
+            'client_name' => 'Grok',
+            'redirect_uris' => [$redirect],
+        ])->assertCreated()
+            ->assertJsonPath('redirect_uris', [$redirect])
+            ->assertJsonPath('token_endpoint_auth_method', 'none');
+    }
+
+    public function test_a_domain_impersonating_grok_is_rejected(): void
+    {
+        $this->postJson('/oauth/register', [
+            'client_name' => 'Grok falso',
+            'redirect_uris' => ['https://grok.com.attacker.example/connectors-oauth-exchange-code/'],
+        ])->assertStatus(400)->assertJsonPath('error', 'invalid_redirect_uri');
+
+        $this->assertSame(0, Client::count());
+    }
+
     public function test_a_redirect_outside_the_allowlist_is_rejected(): void
     {
         // Sin esto, cualquiera podría registrar un cliente y llevarse el código

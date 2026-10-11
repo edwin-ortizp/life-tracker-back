@@ -57,7 +57,7 @@ sola una conexión validada desde ChatGPT, Claude o Grok.
 
 `config/mcp.php` trae una allowlist explícita en `redirect_domains` (el valor por defecto del
 paquete es `'*'`, que dejaría a cualquiera registrar un cliente apuntando a donde quisiera).
-Hoy admite `https://claude.ai`, `https://claude.com` y `https://chatgpt.com`, más los esquemas
+Hoy admite `https://claude.ai`, `https://claude.com`, `https://chatgpt.com` y `https://grok.com`, más los esquemas
 privados `claude`, `cursor` y `vscode` de las apps de escritorio.
 
 Si una herramienta legítima no consigue registrarse, `POST /oauth/register` responde `400` con

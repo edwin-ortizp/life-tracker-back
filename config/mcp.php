@@ -27,6 +27,7 @@ return [
         'https://claude.ai',
         'https://claude.com',
         'https://chatgpt.com',
+        'https://grok.com',
         // 'http://localhost',   // descomenta solo para probar en local
     ],
 
