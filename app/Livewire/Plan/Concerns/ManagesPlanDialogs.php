@@ -6,6 +6,7 @@ use App\Actions\RecordPlanVisit;
 use App\Actions\SavePlan;
 use App\Models\Circle;
 use App\Models\Plan;
+use App\Models\PlanTag;
 use App\Models\PlanVisit;
 use App\Models\Relationship;
 use Illuminate\Database\Eloquent\Builder;
@@ -42,6 +43,8 @@ trait ManagesPlanDialogs
 
     public array $planPeople = [];
 
+    public array $planTags = [];
+
     public array $planLinks = [];
 
     /** Image URLs in order; the first one is the main image. */
@@ -68,7 +71,7 @@ trait ManagesPlanDialogs
         $this->resetPlanForm();
 
         if ($id) {
-            $plan = Plan::query()->with(['circles', 'relationships', 'links', 'images'])->findOrFail($id);
+            $plan = Plan::query()->with(['circles', 'relationships', 'tags', 'links', 'images'])->findOrFail($id);
 
             $this->editingPlanId = $plan->id;
             $this->planTitle = $plan->title;
@@ -81,6 +84,7 @@ trait ManagesPlanDialogs
             $this->planNotes = $plan->notes ?? '';
             $this->planCircles = $plan->circles->pluck('id')->all();
             $this->planPeople = $plan->relationships->pluck('id')->all();
+            $this->planTags = $plan->tags->pluck('id')->all();
             $this->planLinks = $plan->links->map(fn ($link) => ['url' => $link->url, 'label' => $link->label ?? ''])->all();
             $this->planImages = $plan->images->pluck('url')->all();
         } else {
@@ -162,6 +166,8 @@ trait ManagesPlanDialogs
             'planCircles.*' => ['string'],
             'planPeople' => ['array'],
             'planPeople.*' => ['string'],
+            'planTags' => ['array'],
+            'planTags.*' => ['string', Rule::exists('plan_tags', 'id')->where('user_id', auth()->id())],
             'planLinks' => ['array', 'max:10'],
             'planLinks.*.url' => ['required', 'url:http,https', 'max:2048'],
             'planLinks.*.label' => ['nullable', 'string', 'max:120'],
@@ -194,6 +200,7 @@ trait ManagesPlanDialogs
             $this->planPeople,
             $this->planLinks,
             $this->planImages,
+            $this->planTags,
         );
 
         $this->closePlanForm();
@@ -297,12 +304,13 @@ trait ManagesPlanDialogs
             'typeOptions' => Plan::TYPES,
             'circleOptions' => Circle::query()->orderBy('sort_order')->orderBy('name')->pluck('name', 'id')->all(),
             'peopleOptions' => Relationship::query()->active()->orderBy('full_name')->pluck('full_name', 'id')->all(),
+            'planTagOptions' => PlanTag::query()->orderBy('name')->pluck('name', 'id')->all(),
         ];
     }
 
     private function resetPlanForm(): void
     {
-        $this->reset(['editingPlanId', 'planTitle', 'planType', 'planCategory', 'planCity', 'planAddress', 'planScheduledOn', 'planEndsOn', 'planNotes', 'planCircles', 'planPeople', 'planLinks', 'planImages']);
+        $this->reset(['editingPlanId', 'planTitle', 'planType', 'planCategory', 'planCity', 'planAddress', 'planScheduledOn', 'planEndsOn', 'planNotes', 'planCircles', 'planPeople', 'planTags', 'planLinks', 'planImages']);
         $this->resetValidation();
     }
 

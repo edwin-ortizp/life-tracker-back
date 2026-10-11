@@ -6,6 +6,7 @@ use App\Livewire\Plan\Concerns\ManagesPlanDialogs;
 use App\Models\Circle;
 use App\Models\Plan;
 use App\Models\PlanLink;
+use App\Models\PlanTag;
 use App\Models\Relationship;
 use App\Support\Ui\DataState;
 use Illuminate\Database\Eloquent\Builder;
@@ -54,6 +55,9 @@ class PlanIndex extends Component
     #[Url(as: 'people', history: true, keep: true)]
     public array $people = [];
 
+    #[Url(as: 'tags', history: true, keep: true)]
+    public array $tags = [];
+
     public ?string $surpriseMessage = null;
 
     public function mount(): void
@@ -83,7 +87,7 @@ class PlanIndex extends Component
 
     public function removeFilter(string $key, ?string $value = null): void
     {
-        if (in_array($key, ['types', 'circles', 'people'], true)) {
+        if (in_array($key, ['types', 'circles', 'people', 'tags'], true)) {
             $this->{$key} = array_values(array_diff($this->{$key}, [$value]));
         } elseif (in_array($key, ['status', 'city', 'q'], true)) {
             $this->{$key} = '';
@@ -92,7 +96,7 @@ class PlanIndex extends Component
 
     public function clearFilters(): void
     {
-        $this->reset(['group', 'status', 'q', 'city', 'types', 'circles', 'people', 'surpriseMessage']);
+        $this->reset(['group', 'status', 'q', 'city', 'types', 'circles', 'people', 'tags', 'surpriseMessage']);
     }
 
     public function surprise(): void
@@ -108,7 +112,7 @@ class PlanIndex extends Component
         $statusCounts = Plan::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
 
         $plans = $this->sortPlans(
-            $this->filteredQuery()->withVisitStats()->with(['circles', 'relationships', 'images'])->get(),
+            $this->filteredQuery()->withVisitStats()->with(['circles', 'relationships', 'tags', 'images'])->get(),
             $this->sort,
         );
         $plans = $this->paginateCollection($plans);
@@ -119,6 +123,7 @@ class PlanIndex extends Component
         )->take(3);
 
         $options = $this->planDialogOptions();
+        $options['tagOptions'] = PlanTag::query()->orderBy('name')->pluck('name', 'id')->all();
 
         return view('livewire.plan.plan-index', [
             'plans' => $plans,
@@ -152,6 +157,7 @@ class PlanIndex extends Component
             ->when($this->city !== '', fn (Builder $query) => $query->where('city', $this->city))
             ->when($this->circles !== [], fn (Builder $query) => $query->whereHas('circles', fn (Builder $circles) => $circles->whereKey($this->circles)))
             ->when($this->people !== [], fn (Builder $query) => $query->whereHas('relationships', fn (Builder $people) => $people->whereKey($this->people)))
+            ->when($this->tags !== [], fn (Builder $query) => $query->whereHas('tags', fn (Builder $tags) => $tags->whereKey($this->tags)))
             ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $match) => $match
                 ->where('title', 'like', "%{$search}%")
                 ->orWhere('city', 'like', "%{$search}%")
@@ -177,6 +183,9 @@ class PlanIndex extends Component
         foreach ($this->people as $person) {
             $filters[] = ['key' => 'people', 'value' => $person, 'label' => $options['peopleOptions'][$person] ?? 'Persona', 'icon' => 'bi-person'];
         }
+        foreach ($this->tags as $tag) {
+            $filters[] = ['key' => 'tags', 'value' => $tag, 'label' => $options['tagOptions'][$tag] ?? 'Etiqueta', 'icon' => 'bi-tags'];
+        }
 
         return $filters;
     }
@@ -189,5 +198,6 @@ class PlanIndex extends Component
         $this->types = array_values(array_intersect(array_filter($this->types, 'is_string'), array_keys(Plan::TYPES)));
         $this->circles = array_values(array_filter($this->circles, 'is_string'));
         $this->people = array_values(array_filter($this->people, 'is_string'));
+        $this->tags = array_values(array_intersect(array_filter($this->tags, 'is_string'), PlanTag::query()->pluck('id')->all()));
     }
 }

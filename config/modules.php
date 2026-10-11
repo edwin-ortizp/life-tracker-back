@@ -170,7 +170,11 @@ return [
         'title' => 'Planes', 'subtitle' => 'Lugares, actividades y experiencias para compartir.', 'icon' => 'bi-map',
         'patterns' => ['plans*'],
         'rail' => true,
-        'preserve' => ['group', 'status', 'q', 'sort', 'city', 'types', 'circles', 'people'],
+        'preserve' => ['group', 'status', 'q', 'sort', 'city', 'types', 'circles', 'people', 'tags'],
+        'tabs' => [
+            ['label' => 'Planes', 'route' => 'plans', 'icon' => 'bi-map', 'active' => ['plans', 'plans.show']],
+            ['label' => 'Ajustes', 'route' => 'plans.settings', 'archetype' => 'settings', 'icon' => 'bi-sliders', 'active' => ['plans.settings']],
+        ],
     ],
     'goals' => [
         'archetype' => 'list',

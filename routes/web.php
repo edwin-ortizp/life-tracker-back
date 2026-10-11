@@ -141,6 +141,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/relationships/{relationship}/plans', RelationshipPlans::class)->name('relationships.plans');
     Route::get('/relationships/{relationship}/history', RelationshipHistory::class)->name('relationships.history');
     Route::get('/relationships/{relationship}/tasks', RelationshipTasks::class)->name('relationships.tasks');
+    Route::get('/plans/settings', \App\Livewire\Plan\PlanSettings::class)->name('plans.settings');
     Route::get('/plans', PlanIndex::class)->name('plans');
     Route::get('/plans/{plan}', PlanShow::class)->name('plans.show');
     Route::get('/goals', GoalIndex::class)->name('goals');

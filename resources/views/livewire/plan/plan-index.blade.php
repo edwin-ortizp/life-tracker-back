@@ -19,6 +19,7 @@
                     <x-ui.multi-select name="types" label="Tipo de plan" :options="$typeOptions" all-label="Todos los tipos" icon="bi-tag" />
                     <x-ui.multi-select name="circles" label="Círculo" :options="$circleOptions" all-label="Todos los círculos" icon="bi-diagram-3" />
                     <x-ui.multi-select name="people" label="Persona" :options="$peopleOptions" all-label="Todas las personas" icon="bi-people" />
+                    <x-ui.multi-select name="tags" label="Etiquetas" :options="$tagOptions" all-label="Todas las etiquetas" icon="bi-tags" />
         </x-slot:filters>
         <x-slot:filterActions>
             <x-ui.action variant="outlined" icon="bi-eraser" wire:click="clearFilters">Limpiar</x-ui.action>

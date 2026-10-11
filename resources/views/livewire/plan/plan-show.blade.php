@@ -68,6 +68,13 @@
                 <dl class="plan-data">
                     <div><dt>Estado</dt><dd><span class="plan-status plan-status--{{ $plan->status }}">{{ $plan->statusLabel() }}</span></dd></div>
                     <div><dt>Tipo</dt><dd>{{ $plan->typeLabel() }}</dd></div>
+                    @if ($plan->tags->isNotEmpty())
+                        <div class="plan-data__full"><dt>Etiquetas</dt><dd class="d-flex flex-wrap gap-2">
+                            @foreach ($plan->tags as $tag)
+                                <span class="md-chip"><i class="bi {{ $tag->icon }}" aria-hidden="true"></i> {{ $tag->name }}</span>
+                            @endforeach
+                        </dd></div>
+                    @endif
                     @if ($plan->category)<div><dt>Categoría</dt><dd>{{ $plan->category }}</dd></div>@endif
                     @if ($plan->city)<div><dt>Ciudad</dt><dd>{{ $plan->city }}</dd></div>@endif
                     @if ($plan->scheduled_on)<div><dt>Fecha</dt><dd>{{ $plan->scheduled_on->translatedFormat('j M Y') }}@if ($plan->ends_on) – {{ $plan->ends_on->translatedFormat('j M Y') }}@endif</dd></div>@endif

@@ -89,6 +89,21 @@ class Plan extends Model
         return $this->belongsToMany(Relationship::class);
     }
 
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(PlanTag::class, 'plan_tag_assignments', 'plan_id', 'plan_tag_id')
+            ->withTimestamps();
+    }
+
+    /** Replace the tag set using only tags owned by this plan's user. */
+    public function syncTags(array $tagIds): void
+    {
+        $owned = PlanTag::query()->whereKey($tagIds)->pluck('id');
+        $payload = $owned->mapWithKeys(fn (string $id) => [$id => ['user_id' => $this->user_id]])->all();
+
+        $this->tags()->sync($payload);
+    }
+
     public function links(): HasMany
     {
         return $this->hasMany(PlanLink::class)->orderBy('created_at');

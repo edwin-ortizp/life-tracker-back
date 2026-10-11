@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Livewire\Plan\PlanIndex;
 use App\Livewire\Plan\PlanShow;
+use App\Livewire\Plan\PlanSettings;
 use App\Livewire\Relationship\RelationshipPlans;
 use App\Models\Circle;
 use App\Models\Plan;
 use App\Models\PlanVisit;
+use App\Models\PlanTag;
 use App\Models\Relationship;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,10 +26,82 @@ class PlanModuleTest extends TestCase
         $plan = Plan::factory()->for($user)->create(['title' => 'Heladería Popsy']);
         $person = Relationship::factory()->for($user)->create();
 
-        foreach (['/plans', "/plans/{$plan->id}", "/relationships/{$person->id}/plans"] as $url) {
+        foreach (['/plans', '/plans/settings', "/plans/{$plan->id}", "/relationships/{$person->id}/plans"] as $url) {
             $response = $this->actingAs($user)->get($url)->assertOk()->assertSee('md-module-shell', false);
             $this->assertSame(1, substr_count($response->getContent(), '<h1'), "{$url} should render one module heading.");
         }
+    }
+
+    public function test_plan_tags_can_be_managed_but_in_use_tags_cannot_be_deleted(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Livewire::test(PlanSettings::class)
+            ->call('openForm')
+            ->set('name', 'Sushi')
+            ->set('icon', 'bi-egg-fried')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        Livewire::test(PlanSettings::class)
+            ->call('openForm')
+            ->set('name', 'Sushi')
+            ->call('save')
+            ->assertHasErrors(['name' => 'unique']);
+
+        $tag = PlanTag::query()->sole();
+        $plan = Plan::factory()->for($user)->create();
+        $plan->syncTags([$tag->id]);
+
+        Livewire::test(PlanSettings::class)
+            ->call('delete', $tag->id)
+            ->assertSee('está asociada a 1 plan');
+
+        $this->assertDatabaseHas('plan_tags', ['id' => $tag->id]);
+    }
+
+    public function test_plan_tags_are_assignable_filterable_and_scoped_to_the_owner(): void
+    {
+        $user = User::factory()->create();
+        $ownTag = PlanTag::forceCreate(['user_id' => $user->id, 'name' => 'Sushi', 'icon' => 'bi-egg-fried']);
+        $foreignTag = PlanTag::forceCreate(['user_id' => User::factory()->create()->id, 'name' => 'Secreto']);
+        $this->actingAs($user);
+
+        Livewire::test(PlanIndex::class)
+            ->call('openPlanForm')
+            ->set('planTitle', 'Restaurante japonés')
+            ->set('planTags', [$ownTag->id, $foreignTag->id])
+            ->call('savePlan')
+            ->assertHasErrors(['planTags.1']);
+
+        Livewire::test(PlanIndex::class)
+            ->call('openPlanForm')
+            ->set('planTitle', 'Restaurante japonés')
+            ->set('planTags', [$ownTag->id])
+            ->call('savePlan')
+            ->assertHasNoErrors();
+
+        $plan = Plan::query()->with('tags')->sole();
+        $this->assertSame(['Sushi'], $plan->tags->pluck('name')->all());
+        $this->get("/plans/{$plan->id}")->assertSee('Sushi');
+
+        $secondTag = PlanTag::forceCreate(['user_id' => $user->id, 'name' => 'Ramen']);
+        Livewire::test(PlanIndex::class)
+            ->call('openPlanForm', $plan->id)
+            ->set('planTags', [$ownTag->id, $secondTag->id])
+            ->call('savePlan')
+            ->assertHasNoErrors();
+        $this->assertEqualsCanonicalizing(['Sushi', 'Ramen'], $plan->fresh()->tags->pluck('name')->all());
+
+        Plan::factory()->for($user)->create(['title' => 'Pizzería']);
+        Livewire::test(PlanIndex::class)
+            ->set('tags', [$ownTag->id])
+            ->assertSee('Restaurante japonés')
+            ->assertDontSee('Pizzería');
+
+        $plan->delete();
+        $this->assertDatabaseMissing('plan_tag_assignments', ['plan_id' => $plan->id]);
     }
 
     public function test_user_creates_a_plan_with_circles_people_and_links(): void

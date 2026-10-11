@@ -26,6 +26,9 @@
             <div class="md-form-dialog__full">
                 <x-ui.textarea name="planNotes" label="Notas" rows="3" wire:model.blur="planNotes" />
             </div>
+            <div class="md-form-dialog__full">
+                <x-ui.multi-select name="planTags" label="Etiquetas" :options="$planTagOptions" all-label="Sin etiquetas" icon="bi-tags" />
+            </div>
         </div>
     </x-ui.form-dialog-section>
 

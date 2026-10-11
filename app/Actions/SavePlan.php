@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Models\Circle;
 use App\Models\Plan;
+use App\Models\PlanTag;
 use App\Models\Relationship;
 use Illuminate\Support\Facades\DB;
 
@@ -18,10 +19,11 @@ class SavePlan
      * @param  iterable<string>|null  $relationshipIds  Replaces the people; null leaves them unchanged.
      * @param  array<int, array{url: string, label?: ?string}>|null  $links  Replaces the links; null leaves them unchanged.
      * @param  array<int, string>|null  $images  Image URLs in display order, main first; null leaves them unchanged.
+     * @param  array<int, string>|null  $tagIds  Replaces the plan tags; null leaves them unchanged.
      */
-    public static function handle(Plan $plan, array $attributes, ?iterable $circleIds = null, ?iterable $relationshipIds = null, ?array $links = null, ?array $images = null): Plan
+    public static function handle(Plan $plan, array $attributes, ?iterable $circleIds = null, ?iterable $relationshipIds = null, ?array $links = null, ?array $images = null, ?array $tagIds = null): Plan
     {
-        return DB::transaction(function () use ($plan, $attributes, $circleIds, $relationshipIds, $links, $images): Plan {
+        return DB::transaction(function () use ($plan, $attributes, $circleIds, $relationshipIds, $links, $images, $tagIds): Plan {
             $plan->fill($attributes);
 
             // A date turns an open plan into a scheduled one, and removing it undoes that.
@@ -41,6 +43,10 @@ class SavePlan
 
             if ($relationshipIds !== null) {
                 $plan->relationships()->sync(Relationship::query()->whereKey(collect($relationshipIds)->all())->pluck('id'));
+            }
+
+            if ($tagIds !== null) {
+                $plan->syncTags($tagIds);
             }
 
             if ($links !== null) {
