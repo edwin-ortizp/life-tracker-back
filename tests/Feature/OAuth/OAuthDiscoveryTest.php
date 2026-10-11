@@ -22,6 +22,7 @@ class OAuthDiscoveryTest extends TestCase
             // Sin S256 los clientes no pueden completar PKCE.
             ->assertJsonPath('code_challenge_methods_supported', ['S256'])
             ->assertJsonPath('grant_types_supported', ['authorization_code', 'refresh_token'])
+            ->assertJsonPath('token_endpoint_auth_methods_supported', ['none', 'client_secret_basic', 'client_secret_post'])
             ->assertJsonPath('scopes_supported', [Registrar::OAUTH_SCOPE]);
     }
 
@@ -32,6 +33,12 @@ class OAuthDiscoveryTest extends TestCase
             ->assertJsonPath('resource', url('/'))
             ->assertJsonPath('authorization_servers', [url('/')])
             ->assertJsonPath('scopes_supported', [Registrar::OAUTH_SCOPE]);
+    }
+
+    public function test_nested_authorization_metadata_also_advertises_public_client_authentication(): void
+    {
+        $this->getJson('/.well-known/oauth-authorization-server/life-tracker')->assertOk()
+            ->assertJsonPath('token_endpoint_auth_methods_supported', ['none', 'client_secret_basic', 'client_secret_post']);
     }
 
     public function test_the_nested_variant_resolves_the_mcp_endpoint_path(): void

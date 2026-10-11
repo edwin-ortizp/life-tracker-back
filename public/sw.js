@@ -6,7 +6,7 @@
  * caducada del bundle (que dejaria Livewire inservible tras un despliegue).
  */
 
-const VERSION = 'life-tracker-v5';
+const VERSION = 'life-tracker-v6';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const PAGE_CACHE = `${VERSION}-pages`;
@@ -128,6 +128,11 @@ self.addEventListener('fetch', (event) => {
     }
 
     const url = new URL(request.url);
+
+    // Los logs requieren red y nunca deben persistir en el cache de la PWA.
+    if (url.pathname === '/log-viewer' || url.pathname.startsWith('/log-viewer/')) {
+        return;
+    }
 
     if (url.origin !== self.location.origin) {
         return;

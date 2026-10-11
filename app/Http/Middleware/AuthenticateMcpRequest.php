@@ -41,7 +41,9 @@ class AuthenticateMcpRequest
         }
 
         if (! $request->user('api')->tokenCan(Registrar::OAUTH_SCOPE)) {
-            return $this->unauthorized('El token no tiene permiso para usar el servidor MCP.');
+            return response()->json(['message' => 'El token no tiene permiso para usar el servidor MCP.'], 403)
+                ->header('WWW-Authenticate', 'Bearer error="insufficient_scope", scope="'.Registrar::OAUTH_SCOPE
+                    .'", resource_metadata="'.route('mcp.oauth.protected-resource.nested', ['path' => $request->path()]).'"');
         }
 
         Auth::setUser($user);

@@ -22,6 +22,26 @@ Hay un solo scope, `mcp:use`, que da acceso al servidor MCP completo sobre los d
 usuario. Los access tokens duran una hora y los refresh 30 días.
 
 Todo esto lo aporta `laravel/mcp` (`Mcp::oauthRoutes()` en `routes/ai.php`) sobre Passport.
+La aplicación completa los metadatos con los métodos de autenticación aceptados por
+Passport: `none`, `client_secret_basic` y `client_secret_post`. El registro dinámico
+actual crea clientes públicos (`none`). No se anuncia soporte CIMD.
+
+### Transporte HTTP
+
+El servidor usa Streamable HTTP: envía las solicitudes por POST. GET y DELETE
+responden 405; no hay stream SSE independiente por GET. Las versiones soportadas
+las determina el paquete instalado; una versión nueva en `initialize` negocia una
+soportada, mientras una cabecera `MCP-Protocol-Version` no soportada recibe 400.
+
+Las peticiones sin `Origin` siguen admitidas. Si un cliente lo envía, su origen
+debe aparecer exactamente en `mcp.allowed_origins`, cuyo valor inicial es APP_URL
+sin barra final. Esta lista es independiente de los dominios de callbacks OAuth;
+no añadir orígenes sin comprobar qué envía el cliente. Un origen rechazado recibe 403.
+Un token OAuth válido sin `mcp:use` recibe 403 con `insufficient_scope`.
+
+El estado de la revisión, las evidencias y las limitaciones pendientes están en
+[mcp-review.md](mcp-review.md). La presencia de estos endpoints no acredita por sí
+sola una conexión validada desde ChatGPT, Claude o Grok.
 
 ## Qué hace falta en el entorno
 

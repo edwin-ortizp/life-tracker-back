@@ -218,6 +218,18 @@ class LifeTrackerServer extends Server
         //
     ];
 
+    protected function handleInitializeMessage(
+        \Laravel\Mcp\Transport\JsonRpcRequest $request,
+        \Laravel\Mcp\Server\ServerContext $context,
+    ): void {
+        $version = $request->params['protocolVersion'] ?? null;
+        if (is_string($version) && ! in_array($version, $context->supportedProtocolVersions, true)) {
+            $request->params['protocolVersion'] = $context->supportedProtocolVersions[0];
+        }
+
+        parent::handleInitializeMessage($request, $context);
+    }
+
     protected array $prompts = [
         //
     ];

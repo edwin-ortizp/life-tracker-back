@@ -2,6 +2,10 @@
 
 return [
 
+    // Browser origins are independent of OAuth redirect domains. Remote clients
+    // without an Origin header remain supported.
+    'allowed_origins' => [rtrim(env('APP_URL', 'http://localhost'), '/')],
+
     /*
     |--------------------------------------------------------------------------
     | Redirect Domains

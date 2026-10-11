@@ -12,7 +12,8 @@
         "laravel/passport": "^13.8",
         "laravel/tinker": "^3.0",
         "livewire/livewire": "^4.3",
-        "monicahq/laravel-sabre": "^1.10"
+        "monicahq/laravel-sabre": "^1.10",
+        "opcodesio/log-viewer": "^3.24"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^4.4",

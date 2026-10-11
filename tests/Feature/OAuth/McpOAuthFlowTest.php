@@ -17,12 +17,44 @@ class McpOAuthFlowTest extends TestCase
 
     private const REDIRECT = 'https://claude.ai/api/mcp/auth_callback';
 
+    private static ?\phpseclib4\Crypt\RSA\PrivateKey $testKey = null;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $previousEngine = \phpseclib4\Crypt\RSA::getForcedEngine();
+        try {
+            \phpseclib4\Crypt\RSA::forceEngine('PHP');
+            $key = self::$testKey ??= \phpseclib4\Crypt\RSA::createKey(2048);
+        } finally {
+            \phpseclib4\Crypt\RSA::forceEngine($previousEngine);
+        }
+        config([
+            'passport.private_key' => $key->toString('PKCS8'),
+            'passport.public_key' => $key->getPublicKey()->toString('PKCS8'),
+        ]);
+    }
+
     public function test_a_client_completes_authorization_code_with_pkce_and_calls_a_tool(): void
     {
         $user = User::factory()->create();
         $user->habitDefinitions()->create(['name' => 'Estirar', 'time_of_day' => 'morning']);
 
         $accessToken = $this->connect($user);
+
+        $headers = ['Authorization' => 'Bearer '.$accessToken, 'Accept' => 'application/json, text/event-stream'];
+        $initialize = $this->postJson('/life-tracker', [
+            'jsonrpc' => '2.0', 'id' => 1, 'method' => 'initialize',
+            'params' => ['protocolVersion' => '2025-11-25', 'capabilities' => (object) [],
+                'clientInfo' => ['name' => 'OAuth test', 'version' => '1']],
+        ], $headers)->assertOk()->assertJsonPath('result.protocolVersion', '2025-11-25');
+        $headers['MCP-Session-Id'] = $initialize->headers->get('MCP-Session-Id');
+        $headers['MCP-Protocol-Version'] = '2025-11-25';
+        $this->postJson('/life-tracker', ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'], $headers)
+            ->assertStatus(202)->assertContent('');
+        $this->postJson('/life-tracker', ['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tools/list'], $headers)
+            ->assertOk()->assertJsonStructure(['result' => ['tools']]);
 
         $this->callMcp($accessToken, 'list-habits-tool')
             ->assertOk()
@@ -57,7 +89,9 @@ class McpOAuthFlowTest extends TestCase
         $user = User::factory()->create();
         $accessToken = $this->connect($user, 'otra-cosa');
 
-        $this->callMcp($accessToken, 'list-habits-tool')->assertUnauthorized();
+        $this->callMcp($accessToken, 'list-habits-tool')->assertForbidden()
+            ->assertHeader('WWW-Authenticate', 'Bearer error="insufficient_scope", scope="mcp:use", resource_metadata="'
+                .url('/.well-known/oauth-protected-resource/life-tracker').'"');
     }
 
     public function test_revoking_the_token_cuts_access_immediately(): void
@@ -78,8 +112,56 @@ class McpOAuthFlowTest extends TestCase
         $this->assertStringContainsString('resource_metadata=', $response->headers->get('WWW-Authenticate'));
     }
 
-    /** Registra un cliente, aprueba el consentimiento y canjea el código. Devuelve el access token. */
+    public function test_a_wrong_pkce_verifier_is_rejected(): void
+    {
+        $request = $this->authorizationRequest(User::factory()->create());
+        $request['code_verifier'] = str_repeat('b', 64);
+        $this->postJson('/oauth/token', $request)->assertStatus(400)->assertJsonPath('error', 'invalid_grant');
+    }
+
+    public function test_a_different_redirect_cannot_redeem_the_authorization_code(): void
+    {
+        $request = $this->authorizationRequest(User::factory()->create());
+        $request['redirect_uri'] = 'https://claude.ai/another-callback';
+        $this->postJson('/oauth/token', $request)->assertStatus(400)->assertJsonPath('error', 'invalid_request');
+    }
+
+    public function test_an_authorization_code_cannot_be_reused(): void
+    {
+        $request = $this->authorizationRequest(User::factory()->create());
+        $this->postJson('/oauth/token', $request)->assertOk();
+        $this->postJson('/oauth/token', $request)->assertStatus(400)->assertJsonPath('error', 'invalid_grant');
+    }
+
+    public function test_refresh_rotates_and_the_old_refresh_token_is_rejected(): void
+    {
+        $request = $this->authorizationRequest(User::factory()->create());
+        $tokens = $this->postJson('/oauth/token', $request)->assertOk()->json();
+        $refresh = ['grant_type' => 'refresh_token', 'client_id' => $request['client_id'],
+            'refresh_token' => $tokens['refresh_token']];
+        $rotated = $this->postJson('/oauth/token', $refresh)->assertOk()->json();
+        $this->assertNotSame($tokens['refresh_token'], $rotated['refresh_token']);
+        $this->callMcp($rotated['access_token'], 'list-habits-tool')->assertOk();
+        $this->postJson('/oauth/token', $refresh)->assertStatus(400)->assertJsonPath('error', 'invalid_grant');
+    }
+
+    public function test_an_expired_access_token_is_rejected(): void
+    {
+        Passport::tokensExpireIn(now()->subMinute());
+        try {
+            $this->callMcp($this->connect(User::factory()->create()), 'list-habits-tool')->assertUnauthorized();
+        } finally {
+            Passport::tokensExpireIn(now()->addHour());
+        }
+    }
+
     private function connect(User $user, string $scope = Registrar::OAUTH_SCOPE): string
+    {
+        return $this->post('/oauth/token', $this->authorizationRequest($user, $scope))
+            ->assertOk()->json('access_token');
+    }
+
+    private function authorizationRequest(User $user, string $scope = Registrar::OAUTH_SCOPE): array
     {
         $client = $this->registerClient();
         $verifier = str_repeat('a', 64);
@@ -111,15 +193,13 @@ class McpOAuthFlowTest extends TestCase
         $this->flushSession();
         $this->app['auth']->forgetGuards();
 
-        $token = $this->post('/oauth/token', [
+        return [
             'grant_type' => 'authorization_code',
             'client_id' => (string) $client->id,
             'redirect_uri' => self::REDIRECT,
             'code' => $query['code'],
             'code_verifier' => $verifier,
-        ])->assertOk();
-
-        return $token->json('access_token');
+        ];
     }
 
     private function hiddenInput(string $html, string $name): string

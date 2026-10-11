@@ -14,6 +14,8 @@ use App\Models\MoodEntry;
 use App\Models\Relationship;
 use App\Models\RelationshipEvent;
 use App\Models\Task;
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 use App\Observers\TaskCalDavObserver;
 use App\Support\Habits\HabitActionRegistry;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -46,6 +48,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $canManageLogs = static fn (?User $user): bool => $user !== null
+            && in_array(strtolower(trim($user->email)), config('log-viewer.allowed_emails', []), true);
+
+        foreach (['viewLogViewer', 'downloadLogFile', 'downloadLogFolder', 'deleteLogFile', 'deleteLogFolder'] as $ability) {
+            Gate::define($ability, $canManageLogs);
+        }
+
         Task::observe(TaskCalDavObserver::class);
 
         // Clientes OAuth de MCP: access tokens cortos y refresh rotativo de un mes.
