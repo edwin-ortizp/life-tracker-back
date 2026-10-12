@@ -15,6 +15,7 @@ function mountMeals(context) {
     }
   }
   mountMealComposer(root, scope);
+  mountIngredientEditor(root, scope);
   let cookFilter = 'ready';
   const filterCooking = () => {
     const query = (root.querySelector('[data-cook-search]')?.value || '').trim().toLocaleLowerCase('es');
@@ -82,12 +83,37 @@ function mountMealComposer(root, scope) {
   let active, draft;
   const emptyMeal = () => ({items:[], notes:'', status:'planned'});
   const mealAt = slot => structuredClone(saved.get(slot.dataset.mealKey) || {items:slot.dataset.mealRecipe ? [{kind:'recipe', name:slot.dataset.mealRecipe, quantity:1, unit:'porción'}] : [], notes:'', status:'planned'});
+  function updateWeekTotals() {
+    const days = new Map();
+    root.querySelectorAll('[data-meal-key]').forEach(slot => {
+      const meal = mealAt(slot), day = slot.dataset.mealKey.split('-')[0];
+      const totals = days.get(day) || {planned:0, consumed:0};
+      const calculated = meal.items.reduce((sum,item) => sum + (nutrients[item.kind]?.[0] || 0) * Number(item.quantity) / (item.kind === 'ingredient' ? 100 : 1), 0);
+      const override = meal.caloriesOverride;
+      const calories = override !== undefined && override !== '' ? Number(override) : calculated;
+      if (meal.status === 'consumed') totals.consumed += meal.consumption_mode === 'outside' ? Number(meal.outsideCalories || 0) : calories;
+      else totals.planned += calories;
+      days.set(day, totals);
+    });
+    const number = value => Math.round(value).toLocaleString('es-CO');
+    root.querySelectorAll('[data-meal-day-totals]').forEach(node => {
+      const totals = days.get(node.dataset.mealDayTotals) || {planned:0,consumed:0};
+      node.querySelector('[data-day-planned]').textContent = number(totals.planned) + ' kcal planeadas';
+      node.querySelector('[data-day-consumed]').textContent = number(totals.consumed) + ' kcal consumidas';
+    });
+    const pending = [...days.values()].reduce((sum,day) => sum + day.planned, 0);
+    const count = [...days.values()].filter(day => day.planned > 0).length;
+    find('[data-meal-week-summary]').textContent = `Pendiente de la semana: ${number(pending)} kcal · promedio ${number(count ? pending / count : 0)} kcal/día en ${count} días planificados`;
+  }
+  updateWeekTotals();
   function updateSlot(slot, meal) {
     saved.set(slot.dataset.mealKey, structuredClone(meal));
-    slot.querySelector('[data-meal-caption]').textContent = meal.items.map(item => item.name).join(' + ') || 'Planificar comida';
+    slot.querySelector('[data-meal-caption]').textContent = meal.items.map(item => item.name).join(' + ') || 'Agregar';
     slot.querySelector('[data-meal-status-label]').textContent = meal.status === 'consumed' ? (meal.consumption_mode === 'outside' ? 'Comida por fuera' : 'Consumida') : meal.items.length ? 'Planeada' : 'Sin planificar';
     slot.querySelector('[data-meal-status-label]').dataset.mealState = meal.status === 'consumed' ? meal.consumption_mode || 'home' : meal.items.length ? 'planned' : 'empty';
+    if (!meal.items.length && meal.status !== 'consumed') slot.querySelector('[data-meal-caption]').innerHTML = '<span class="lt-meal-add-label"><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar</span>';
     slot.classList.toggle('lt-meal-slot--empty', !meal.items.length && meal.status !== 'consumed');
+    updateWeekTotals();
   }
   const list = find('[data-meal-items]');
   const readItems = () => [...list.children].map(row => ({
@@ -263,11 +289,91 @@ function mountMealComposer(root, scope) {
       draft.outsideNotes = find('[data-meal-outside-notes]').value;
       draft.outsideCalories = find('[data-meal-outside-calories]').value;
       saved.set(active.dataset.mealKey, structuredClone(draft));
+      updateWeekTotals();
       active.querySelector('[data-meal-status-label]').textContent = {planned:'Planeada', home:'Consumida', outside:'Comida por fuera'}[status.value];
-      active.querySelector('[data-meal-caption]').textContent = draft.items.map(item => item.name).join(' + ') || (status.value === 'outside' ? 'Comida por fuera' : 'Planificar comida');
+      active.querySelector('[data-meal-caption]').textContent = draft.items.map(item => item.name).join(' + ') || (status.value === 'outside' ? 'Comida por fuera' : 'Agregar');
       active.querySelector('[data-meal-status-label]').dataset.mealState = status.value;
+      if (!draft.items.length && draft.status === 'planned') active.querySelector('[data-meal-caption]').innerHTML = '<span class="lt-meal-add-label"><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar</span>';
       active.classList.toggle('lt-meal-slot--empty', !draft.items.length && draft.status === 'planned');
       layer.hidden = true; active.focus();
+    }
+  });
+}
+
+function mountIngredientEditor(root, scope) {
+  const modal = root.querySelector('#ingredient-new');
+  if (!modal) return;
+  const find = selector => modal.querySelector(selector);
+  const variants = find('[data-ingredient-variants]'), prices = find('[data-ingredient-prices]');
+  const saved = new Map(); let active = null, nextId = 0;
+  const fields = (row, attr) => Object.fromEntries([...row.querySelectorAll('[' + attr + ']')].map(input => [input.getAttribute(attr), input.type === 'checkbox' ? input.checked : input.value]));
+  function syncVariants() {
+    const options = [...variants.children].map((row,index) => {
+      const data = fields(row,'data-variant-field');
+      const label = 'Variante ' + (index + 1) + (data.brand ? ' · ' + data.brand : '') + (data.content ? ' · ' + data.content + ' ' + data.content_unit : '') + (data.packaging ? ' · ' + data.packaging : '');
+      row.querySelector('[data-variant-title]').textContent = label;
+      return {id:row.dataset.variantId,label};
+    });
+    prices.querySelectorAll('[data-price-field="variant"]').forEach(select => {
+      const value = select.value;
+      select.replaceChildren(new Option('Seleccionar variante',''), ...options.map(option => new Option(option.label,option.id)));select.value=value;
+    });
+  }
+  function addVariant(data = {}) {
+    const row = find('[data-ingredient-variant-template]').content.firstElementChild.cloneNode(true);
+    row.dataset.variantId = data.id || 'variant-' + (++nextId);
+    row.querySelectorAll('[data-variant-field]').forEach(input => { input.value = data[input.dataset.variantField] ?? ''; });
+    variants.append(row); syncVariants(); return row;
+  }
+  function addPrice(data = {}) {
+    const row = find('[data-ingredient-price-template]').content.firstElementChild.cloneNode(true);prices.append(row);syncVariants();
+    row.querySelectorAll('[data-price-field]').forEach(input => { if(input.type === 'checkbox') input.checked = data[input.dataset.priceField] || false; else input.value = data[input.dataset.priceField] ?? ''; });
+    return row;
+  }
+  scope.on(variants,'input',syncVariants);
+  scope.on(root,'click',event => {
+    const trigger = event.target.closest('[data-lt-toggle="ingredient-new"]');
+    if (trigger && !modal.hidden && !modal.contains(trigger)) {
+      active = trigger.hasAttribute('data-ingredient') ? trigger : null;
+      modal.querySelectorAll('input').forEach(input => { input.value='';input.checked=false; });
+      const state = active ? saved.get(active.dataset.ingredient) : null;
+      find('[data-ingredient-name]').value = state?.name || active?.dataset.ingredient || '';
+      find('#ingredient-new-title').textContent = active ? 'Editar ingrediente' : 'Agregar ingrediente';
+      variants.replaceChildren();prices.replaceChildren();
+      const initial = state || (active ? {variants:[{id:'example',packaging:'Unidad',content:'1',content_unit:'unidad',units_per_pack:'1'}],prices:[{variant:'example',store:'Éxito',amount:'4500',source:'manual',date:'2026-10-12',verified:false},{variant:'example',store:'Carulla',amount:'5200',source:'manual',date:'2026-10-12',verified:false}]} : {variants:[],prices:[]});
+      initial.variants.forEach(addVariant);initial.prices.forEach(addPrice);
+      if(state?.otherFields) [...modal.querySelectorAll('[data-section="basic"] input,[data-section="basic"] select,[data-section="inventory"] input,[data-section="aliases"] input')].forEach((input,index)=>{input.value=state.otherFields[index] ?? '';});
+      find('[data-ingredient-price-error]').textContent='';
+      find('[data-lt-dialog-section="basic"]').click();
+    }
+    if(event.target.closest('[data-ingredient-add-variant]')) addVariant().querySelector('input').focus();
+    if(event.target.closest('[data-ingredient-add-price]')) {
+      if(!variants.children.length) {find('[data-ingredient-price-error]').textContent='Agrega una variante antes de registrar precios.';return;}
+      addPrice().querySelector('select').focus();
+    }
+    const removeVariant=event.target.closest('[data-remove-variant]');
+    if(removeVariant) {
+      const row=removeVariant.closest('[data-variant-id]');const id=row.dataset.variantId;
+      [...prices.children].filter(price=>price.querySelector('[data-price-field="variant"]').value===id).forEach(price=>price.remove());row.remove();syncVariants();
+    }
+    const removePrice=event.target.closest('[data-remove-price]');if(removePrice) removePrice.closest('article').remove();
+    if(event.target.closest('[data-lt-action="save-ingredient"]')) {
+      const invalid=[...modal.querySelectorAll('input,select')].find(input=>!input.checkValidity());
+      if(invalid) {find('[data-lt-dialog-section="'+invalid.closest('[data-section]').dataset.section+'"]').click();invalid.reportValidity();return;}
+      const state={name:find('[data-ingredient-name]').value,variants:[...variants.children].map(row=>({id:row.dataset.variantId,...fields(row,'data-variant-field')})),prices:[...prices.children].map(row=>fields(row,'data-price-field'))};
+      state.otherFields = [...modal.querySelectorAll('[data-section="basic"] input,[data-section="basic"] select,[data-section="inventory"] input,[data-section="aliases"] input')].map(input=>input.value);
+      if(!active) {
+        const example = root.querySelector('[data-ingredient]');
+        active = example.cloneNode(true); active.dataset.ingredient = 'local-' + (++nextId);
+        active.querySelector('.lt-list-item__body span').textContent = 'Sin inventario';
+        active.querySelector('.lt-chip').textContent = 'Sin stock';
+        example.parentElement.append(active);
+      }
+      if(active) {
+        saved.set(active.dataset.ingredient,state);active.querySelector('strong').textContent=state.name;
+        active.querySelector('[data-ingredient-offers]').textContent=state.prices.map(price=>{const v=state.variants.find(v=>v.id===price.variant);return price.store+' · $'+Number(price.amount).toLocaleString('es-CO')+' · '+[v?.brand,v?.content,v?.content_unit,v?.packaging].filter(Boolean).join(' ');}).join(' | ') || 'Sin precios registrados';
+      }
+      modal.hidden=true;active?.focus();
     }
   });
 }

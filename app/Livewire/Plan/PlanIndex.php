@@ -2,19 +2,19 @@
 
 namespace App\Livewire\Plan;
 
+use App\Livewire\Concerns\WithManagementCard;
 use App\Livewire\Plan\Concerns\ManagesPlanDialogs;
-use App\Models\Circle;
 use App\Models\Plan;
+use App\Models\PlanCategory;
 use App\Models\PlanLink;
 use App\Models\PlanTag;
-use App\Models\Relationship;
 use App\Support\Ui\DataState;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use App\Livewire\Concerns\WithManagementCard;
 
 #[Layout('layouts.app')]
 #[Title('Planes')]
@@ -23,12 +23,15 @@ class PlanIndex extends Component
     use ManagesPlanDialogs;
     use WithManagementCard;
 
-    #[\Livewire\Attributes\Locked]
+    #[Locked]
     public bool $scheduled = false;
+
     #[Url(history: true)]
     public string $from = '';
+
     #[Url(history: true)]
     public string $to = '';
+
     #[Url(history: true)]
     public string $category = '';
 
@@ -96,7 +99,12 @@ class PlanIndex extends Component
 
     public function removeFilter(string $key, ?string $value = null): void
     {
-        if ($key === 'category') { $this->category = ''; $this->resetPage(); return; }
+        if ($key === 'category') {
+            $this->category = '';
+            $this->resetPage();
+
+            return;
+        }
         if (in_array($key, ['types', 'circles', 'people', 'tags'], true)) {
             $this->{$key} = array_values(array_diff($this->{$key}, [$value]));
         } elseif (in_array($key, ['status', 'city', 'q'], true)) {
@@ -125,7 +133,9 @@ class PlanIndex extends Component
             $this->filteredQuery()->withVisitStats()->with(['circles', 'relationships', 'tags', 'images'])->get(),
             $this->sort === 'latest' ? 'upcoming' : $this->sort,
         );
-        if ($this->sort === 'latest') $plans = $plans->reverse()->values();
+        if ($this->sort === 'latest') {
+            $plans = $plans->reverse()->values();
+        }
         $plans = $this->paginateCollection($plans);
 
         $stale = $this->sortPlans(
@@ -134,7 +144,7 @@ class PlanIndex extends Component
         )->take(3);
 
         $options = $this->planDialogOptions();
-        $options['categoryOptions'] = \App\Models\PlanCategory::query()->orderBy('name')->pluck('name', 'id')->all();
+        $options['categoryOptions'] = PlanCategory::query()->orderBy('name')->pluck('name', 'id')->all();
         $options['tagOptions'] = PlanTag::query()->orderBy('name')->pluck('name', 'id')->all();
 
         return view('livewire.plan.plan-index', [
@@ -183,7 +193,9 @@ class PlanIndex extends Component
     private function activeFilters(array $options): array
     {
         $filters = [];
-        if ($this->category !== '') $filters[] = ['key'=>'category','value'=>$this->category,'label'=>\App\Models\PlanCategory::query()->find($this->category)?->name ?? 'Categoría','icon'=>'bi-grid'];
+        if ($this->category !== '') {
+            $filters[] = ['key' => 'category', 'value' => $this->category, 'label' => PlanCategory::query()->find($this->category)?->name ?? 'Categoría', 'icon' => 'bi-grid'];
+        }
 
         if ($this->status !== '') {
             $filters[] = ['key' => 'status', 'value' => $this->status, 'label' => Plan::STATUSES[$this->status], 'icon' => 'bi-flag'];
@@ -212,10 +224,20 @@ class PlanIndex extends Component
         $this->group = array_key_exists($this->group, Plan::GROUPS) ? $this->group : '';
         $this->status = array_key_exists($this->status, Plan::STATUSES) ? $this->status : '';
         $this->sort = $this->scheduled ? (in_array($this->sort, ['upcoming', 'latest'], true) ? $this->sort : 'upcoming') : (array_key_exists($this->sort, self::SORTS) ? $this->sort : 'recent');
-        if ($this->scheduled) $this->status = '';
-        foreach (['from', 'to'] as $field) { if ($this->{$field} !== '' && ! validator([$field => $this->{$field}], [$field => 'date_format:Y-m-d'])->passes()) $this->{$field} = ''; }
-        if ($this->from && $this->to && $this->from > $this->to) $this->to = $this->from;
-        if ($this->category && ! \App\Models\PlanCategory::query()->whereKey($this->category)->exists()) $this->category = '';
+        if ($this->scheduled) {
+            $this->status = '';
+        }
+        foreach (['from', 'to'] as $field) {
+            if ($this->{$field} !== '' && ! validator([$field => $this->{$field}], [$field => 'date_format:Y-m-d'])->passes()) {
+                $this->{$field} = '';
+            }
+        }
+        if ($this->from && $this->to && $this->from > $this->to) {
+            $this->to = $this->from;
+        }
+        if ($this->category && ! PlanCategory::query()->whereKey($this->category)->exists()) {
+            $this->category = '';
+        }
         $this->types = array_values(array_intersect(array_filter($this->types, 'is_string'), array_keys(Plan::TYPES)));
         $this->circles = array_values(array_filter($this->circles, 'is_string'));
         $this->people = array_values(array_filter($this->people, 'is_string'));

@@ -1,4 +1,4 @@
-<x-module-shell module="plans" :title="$plan->title" class="plans-page" :back="['href' => route('plans'), 'label' => 'Volver a Planes']">
+<x-module-shell module="plans" active-route="plans.show" :title="$plan->title" class="plans-page" :back="['href' => route('plans'), 'label' => 'Volver a Planes']">
     <x-slot:actions>
         <x-module-actions :primary="['label' => 'Registrar visita', 'icon' => 'bi-check2-circle', 'action' => 'openVisitForm(\''.$plan->id.'\')']" :fab-always="true" />
     </x-slot:actions>

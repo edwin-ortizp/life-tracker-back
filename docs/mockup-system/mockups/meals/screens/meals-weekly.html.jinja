@@ -1,38 +1,36 @@
-{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, dialog, fab %}
 {% call shell('meals', 'Planificación de comidas', 'bi-egg-fried') %}
 {{ meals_tabs('/meals-weekly') }}
 <section class="lt-toolbar"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><p class="lt-toolbar__label">Semana del 8 al 14 de septiembre</p><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button></section>
-<section class="lt-metrics">{{ metric('Comidas planificadas','16 de 21','success') }}{{ metric('Recetas distintas','9') }}{{ metric('Ingredientes por comprar','14','warning') }}</section>
 <section class="lt-week-plan" aria-label="Plan semanal">
   {% set plan = [
-    ('Lun','8',[('Desayuno','Avena con banano'),('Almuerzo','Pollo al curry'),('Cena','Ensalada César')]),
-    ('Mar','9',[('Desayuno','Huevos pericos'),('Almuerzo','Pollo al curry'),('Cena','Crema de ahuyama')]),
-    ('Mié','10',[('Desayuno','Avena con banano'),('Almuerzo','Lentejas con arroz'),('Cena','Tacos de pescado')]),
-    ('Jue','11',[('Desayuno','Arepa con queso'),('Almuerzo','Lentejas con arroz'),('Cena','')]),
-    ('Vie','12',[('Desayuno','Yogur con granola'),('Almuerzo','Salmón al horno'),('Cena','Pizza casera')]),
-    ('Sáb','13',[('Desayuno','Calentado'),('Almuerzo',''),('Cena','')]),
-    ('Dom','14',[('Desayuno','Pancakes de avena'),('Almuerzo','Ajiaco'),('Cena','')])
+    ('Lun','8',[('Desayuno','Avena con banano'),('Onces (mañana)',''),('Almuerzo','Pollo al curry'),('Merienda (tarde)',''),('Cena','Ensalada César')]),
+    ('Mar','9',[('Desayuno','Huevos pericos'),('Onces (mañana)',''),('Almuerzo','Pollo al curry'),('Merienda (tarde)',''),('Cena','Crema de ahuyama')]),
+    ('Mié','10',[('Desayuno','Avena con banano'),('Onces (mañana)',''),('Almuerzo','Lentejas con arroz'),('Merienda (tarde)',''),('Cena','Tacos de pescado')]),
+    ('Jue','11',[('Desayuno','Arepa con queso'),('Onces (mañana)',''),('Almuerzo','Lentejas con arroz'),('Merienda (tarde)',''),('Cena','')]),
+    ('Vie','12',[('Desayuno','Yogur con granola'),('Onces (mañana)',''),('Almuerzo','Salmón al horno'),('Merienda (tarde)',''),('Cena','Pizza casera')]),
+    ('Sáb','13',[('Desayuno','Calentado'),('Onces (mañana)',''),('Almuerzo',''),('Merienda (tarde)',''),('Cena','')]),
+    ('Dom','14',[('Desayuno','Pancakes de avena'),('Onces (mañana)',''),('Almuerzo','Ajiaco'),('Merienda (tarde)',''),('Cena','')])
   ] %}
-  <div class="lt-meal-row-labels" aria-label="Tipos de comida"><span aria-hidden="true"></span>{% for label in ['Desayuno','Almuerzo','Cena'] %}<span class="lt-meal-row-label">{{ label }}</span>{% endfor %}</div>
+  <div class="lt-meal-row-labels" aria-label="Tipos de comida"><span aria-hidden="true"></span>{% for label in ['Desayuno','Onces (mañana)','Almuerzo','Merienda (tarde)','Cena','Planeado / consumido'] %}<span class="lt-meal-row-label">{{ label }}</span>{% endfor %}</div>
   {% for dname, dnum, slots in plan %}
   <div class="lt-day-col{% if dnum == '10' %} is-today{% endif %}"><h4>{{ dname }} <small>{{ dnum }}{% if dnum == '10' %} · hoy{% endif %}</small></h4>
-    {% for slot, recipe in slots %}<div class="lt-meal-card"><button class="lt-meal-slot{% if not recipe %} lt-meal-slot--empty{% endif %}" type="button" data-lt-toggle="meal-composition" data-meal-key="{{ dnum }}-{{ loop.index }}" data-meal-label="{{ slot }} · {{ dname }} {{ dnum }} de septiembre" data-meal-recipe="{{ recipe }}" aria-haspopup="dialog" aria-label="{{ slot }} · {{ dname }} {{ dnum }} de septiembre"><span data-meal-caption>{{ recipe or 'Planificar comida' }}</span><small class="lt-chip lt-meal-status-chip" data-meal-state="{{ 'planned' if recipe else 'empty' }}" data-meal-status-label>{{ 'Planeada' if recipe else 'Sin planificar' }}</small></button><div class="lt-menu-anchor lt-meal-card__actions">
+    {% for slot, recipe in slots %}<div class="lt-meal-card"><button class="lt-meal-slot{% if not recipe %} lt-meal-slot--empty{% endif %}" type="button" data-lt-toggle="meal-composition" data-meal-key="{{ dnum }}-{{ loop.index }}" data-meal-label="{{ slot }} · {{ dname }} {{ dnum }} de septiembre" data-meal-recipe="{{ recipe }}" aria-haspopup="dialog" aria-label="{{ slot }} · {{ dname }} {{ dnum }} de septiembre"><span data-meal-caption>{% if recipe %}{{ recipe }}{% else %}<span class="lt-meal-add-label"><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar</span>{% endif %}</span><small class="lt-chip lt-meal-status-chip" data-meal-state="{{ 'planned' if recipe else 'empty' }}" data-meal-status-label>{{ 'Planeada' if recipe else 'Sin planificar' }}</small></button><div class="lt-menu-anchor lt-meal-card__actions">
       <button class="lt-icon-button" type="button" data-lt-toggle="meal-menu-{{ dnum }}-{{ loop.index }}" aria-haspopup="menu" aria-expanded="false" aria-label="Acciones de {{ slot }} del {{ dnum }}"><i class="bi bi-three-dots-vertical" aria-hidden="true"></i></button>
       <div class="lt-menu lt-menu--down" id="meal-menu-{{ dnum }}-{{ loop.index }}" role="menu" hidden>
         {% for action, label, icon in [('move','Mover','bi-arrow-right'),('copy','Copiar','bi-copy'),('swap','Intercambiar','bi-arrow-left-right'),('delete','Eliminar','bi-trash')] %}<button class="lt-menu__item" type="button" role="menuitem" data-meal-open-action="{{ action }}" data-lt-toggle="meal-action-dialog"><i class="bi {{ icon }}" aria-hidden="true"></i>{{ label }}</button>{% endfor %}
       </div>
     </div></div>{% endfor %}
+    <div class="lt-meal-day-totals" data-meal-day-totals="{{ dnum }}"><strong data-day-planned>—</strong><small data-day-consumed>0 kcal consumidas</small></div>
   </div>
   {% endfor %}
+  <p class="lt-meal-week-summary" data-meal-week-summary aria-live="polite"></p>
 </section>
-<section class="lt-grid-2">
+<section>
   <article class="lt-panel lt-panel--accent"><div class="lt-panel__head"><i class="bi bi-sun"></i><h3>Hoy · miércoles 10</h3></div><div class="lt-panel__body"><div class="lt-list">
     {% for slot, recipe, meta in [('Desayuno','Avena con banano','10 min · 1 porción'),('Almuerzo','Lentejas con arroz','45 min · sobra para mañana'),('Cena','Tacos de pescado','25 min · 2 porciones')] %}<div class="lt-list-item"><span class="lt-list-item__icon"><i class="bi bi-egg-fried"></i></span><div class="lt-list-item__body"><strong>{{ recipe }}</strong><span>{{ slot }} · {{ meta }}</span></div><a class="lt-button lt-button--text" href="#/meals-recipes">Ver receta</a></div>{% endfor %}
   </div></div></article>
-  <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-search"></i><h3>Asignar receta</h3></div><div class="lt-panel__body">
-    <label class="lt-field"><span>Jueves 11 · Cena</span><input type="search" value="cre" placeholder="Escribe para buscar entre tus recetas..."></label>
-    <div class="lt-list">{% for r, m in [('Crema de ahuyama','30 min · vegetariana'),('Crepes de espinaca','25 min'),('Cremoso de champiñones','35 min')] %}<button class="lt-list-item" type="button" data-lt-static-nav><div class="lt-list-item__body"><strong>{{ r }}</strong><span>{{ m }}</span></div><i class="bi bi-plus-circle"></i></button>{% endfor %}</div>
-  </div></article>
+
 </section>
 {{ fab('Generar lista de compras', 'bi-cart-plus', 'meal-generate-shopping') }}
 {% call dialog('meal-generate-shopping', 'Generar lista de compras', submit='Generar', icon='bi-cart-plus') %}
@@ -102,7 +100,7 @@
   <p data-meal-action-source></p>
   <div data-meal-action-target>
     <label class="lt-field"><span>Fecha destino</span><input type="date" data-meal-target-date min="2026-09-08" max="2026-09-14" required></label>
-    <label class="lt-field"><span>Comida destino</span><select data-meal-target-type><option value="1">Desayuno</option><option value="2">Almuerzo</option><option value="3">Cena</option></select></label>
+    <label class="lt-field"><span>Comida destino</span><select data-meal-target-type><option value="1">Desayuno</option><option value="2">Onces (mañana)</option><option value="3">Almuerzo</option><option value="4">Merienda (tarde)</option><option value="5">Cena</option></select></label>
   </div>
   <p data-meal-delete-confirm hidden>¿Eliminar esta comida planificada?</p>
   <p data-meal-action-error role="status"></p>

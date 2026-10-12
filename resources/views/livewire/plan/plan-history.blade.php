@@ -1,4 +1,4 @@
-<x-module-shell module="plans">
+<x-module-shell module="plans" active-route="plans.history" :navigation-query="['q'=>$q,'people'=>$people]">
     <x-ui.management-card id="plan-history" title="Historial" icon="bi-clock-history" search="q" search-placeholder="Buscar plan, persona o comentario" :paginator="$visits" noun="visitas" :count="$visits->total()" sort-model="sort" :sort-options="['recent'=>'Más recientes','oldest'=>'Más antiguos']" :sort-value="$sort" :active-filters="(int) filled($from) + (int) filled($to) + count($people)">
         <x-slot:filters>
             <x-ui.field name="from" type="date" label="Desde" wire:model.live="from" />

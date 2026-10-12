@@ -6,6 +6,7 @@ use App\Actions\RecordPlanVisit;
 use App\Actions\SavePlan;
 use App\Models\Circle;
 use App\Models\Plan;
+use App\Models\PlanCategory;
 use App\Models\PlanTag;
 use App\Models\PlanVisit;
 use App\Models\Relationship;
@@ -28,6 +29,7 @@ trait ManagesPlanDialogs
     public string $planType = 'restaurant';
 
     public string $planCategory = '';
+
     public string $planCategoryId = '';
 
     public string $planCity = '';
@@ -67,7 +69,10 @@ trait ManagesPlanDialogs
         return [];
     }
 
-    public function updatedPlanCategoryId(): void { $this->planCategory = ''; }
+    public function updatedPlanCategoryId(): void
+    {
+        $this->planCategory = '';
+    }
 
     public function openPlanForm(?string $id = null): void
     {
@@ -307,7 +312,7 @@ trait ManagesPlanDialogs
     protected function planDialogOptions(): array
     {
         return [
-            'planCategoryOptions' => \App\Models\PlanCategory::query()->orderBy('name')->pluck('name', 'id')->all(),
+            'planCategoryOptions' => PlanCategory::query()->orderBy('name')->pluck('name', 'id')->all(),
             'typeOptions' => Plan::TYPES,
             'circleOptions' => Circle::query()->orderBy('sort_order')->orderBy('name')->pluck('name', 'id')->all(),
             'peopleOptions' => Relationship::query()->active()->orderBy('full_name')->pluck('full_name', 'id')->all(),

@@ -1,0 +1,32 @@
+import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import { spawn, execFileSync } from 'node:child_process';
+import { mkdirSync,closeSync,openSync } from 'node:fs';
+import path from 'node:path';
+let server;
+test.beforeAll(async()=>{
+ test.setTimeout(60000);const directory=path.resolve('storage/framework/testing');mkdirSync(directory,{recursive:true});const database=path.join(directory,'plan-browser.sqlite');closeSync(openSync(database,'a'));
+ const env={...process.env,APP_ENV:'testing',DB_CONNECTION:'sqlite',DB_DATABASE:database,DB_URL:'',CACHE_STORE:'array',SESSION_DRIVER:'file',DEBUGBAR_ENABLED:'false',TELESCOPE_ENABLED:'false',NIGHTWATCH_ENABLED:'false',APP_CONFIG_CACHE:path.join(directory,'unused-plan-config.php')};
+ execFileSync('php',['tests/Browser/support/plan-fixture.php'],{env,stdio:'pipe'});
+ server=spawn('php',['-S','127.0.0.1:8028',path.resolve('vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php')],{cwd:path.resolve('public'),env,stdio:'pipe',windowsHide:true});
+ for(let i=0;i<60;i++){try{if((await fetch('http://127.0.0.1:8028/login')).ok)return;}catch{}await new Promise(resolve=>setTimeout(resolve,500));}throw Error('Server did not start');
+});
+test.afterAll(()=>server?.kill());
+for(const width of [1440,390]) test(`plans real interactions ${width}`,async({page})=>{
+ test.setTimeout(90000);page.setDefaultTimeout(10000);const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.setViewportSize({width,height:1000});await page.goto('/login');await page.getByLabel('Correo electrónico',{exact:true}).fill('plan-browser@example.test');await page.getByLabel('Contraseña',{exact:true}).fill('browser-test-password');await page.getByRole('button',{name:'Iniciar Sesión'}).click();await page.waitForURL(url=>!url.pathname.includes('/login'));
+ await page.goto('/plans');await expect(page.locator('.plan-row__person').first()).toHaveAttribute('href',/relationships\//);await page.locator('.plan-row__person').first().click();await expect(page).toHaveURL(/relationships\//);await page.goBack();await expect(page.locator('.plans-list')).toBeVisible();
+ const nav=()=>page.getByRole('navigation',{name:'Vistas del módulo'});
+ await nav().getByRole('link',{name:'Programados',exact:true}).click();await expect(page.getByRole('link',{name:'Cena programada',exact:true})).toBeVisible();await expect(page.getByRole('link',{name:'Plan vencido',exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:/Filtros/}).first().click();await page.getByLabel('Desde',{exact:true}).fill('2000-01-01');await expect(page.getByRole('link',{name:'Plan vencido',exact:true})).toBeVisible();await page.keyboard.press('Escape');
+ await nav().getByRole('link',{name:'Historial',exact:true}).click();await expect(page.getByText('Comentario de visita',{exact:true})).toBeVisible();const visit=page.locator('.md-list-item').filter({hasText:'Comentario de visita'});
+ if(width===390){await visit.locator('.md-row-actions__more').click();await page.getByRole('menuitem',{name:'Ver detalle',exact:true}).click();}else await visit.getByRole('button',{name:'Ver detalle',exact:true}).click();
+ await expect(page.getByRole('dialog')).toBeVisible();await page.getByRole('dialog').getByRole('button',{name:'Cerrar',exact:true}).click();
+ await nav().getByRole('link',{name:'Ajustes',exact:true}).click();await page.getByRole('button',{name:'Categorías de planes',exact:true}).click();await expect(page.getByRole('cell',{name:'Gastronomía',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Crear categoría',exact:true}).click();const dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();await dialog.getByLabel('Nombre',{exact:false}).fill('Categoría navegador '+width);await dialog.getByLabel('Buscar icono',{exact:true}).fill('corazón');await dialog.getByRole('button',{name:'heart',exact:true}).click();
+ await dialog.getByLabel('Buscar icono',{exact:true}).fill('zzzzzz');await expect(dialog.getByText('No se encontraron iconos.',{exact:true})).toBeVisible();await dialog.getByLabel('Buscar icono',{exact:true}).fill('calendar');await expect(dialog.locator('.plan-icon-picker__results button').first()).toBeVisible();await dialog.getByLabel('Buscar icono',{exact:true}).press('ArrowDown');await expect(dialog.locator('.plan-icon-picker__results button:focus')).toHaveCount(1);await page.keyboard.press('Enter');
+ const a11y=await new AxeBuilder({page}).include('[role="dialog"]').withRules(['button-name','label','aria-valid-attr-value']).analyze();expect(a11y.violations).toEqual([]);
+ await dialog.getByRole('button',{name:'Guardar'}).click();await expect(dialog).toHaveCount(0);await expect(page.getByRole('cell',{name:'Categoría navegador '+width,exact:true})).toBeVisible();
+ await expect(nav().getByRole('link',{name:'Ajustes',exact:true})).toHaveAttribute('aria-current','page');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(errors).toEqual([]);
+ await page.screenshot({path:`storage/framework/testing/playwright/plans/settings-${width}.png`,fullPage:true});
+});

@@ -4,7 +4,7 @@ namespace App\Actions;
 
 use App\Models\Circle;
 use App\Models\Plan;
-use App\Models\PlanTag;
+use App\Models\PlanCategory;
 use App\Models\Relationship;
 use Illuminate\Support\Facades\DB;
 
@@ -28,12 +28,12 @@ class SavePlan
             abort_unless($owner, 403);
             if (array_key_exists('plan_category_id', $attributes)) {
                 $category = filled($attributes['plan_category_id'])
-                    ? \App\Models\PlanCategory::withoutGlobalScopes()->where('user_id', $owner)->findOrFail($attributes['plan_category_id']) : null;
+                    ? PlanCategory::withoutGlobalScopes()->where('user_id', $owner)->findOrFail($attributes['plan_category_id']) : null;
                 $attributes['category'] = $category?->name;
             } elseif (array_key_exists('category', $attributes)) {
                 $name = preg_replace('/\s+/u', ' ', trim($attributes['category'] ?? ''));
-                $category = $name === '' ? null : \App\Models\PlanCategory::withoutGlobalScopes()->firstOrCreate(
-                    ['user_id' => $owner, 'normalized_name' => \App\Models\PlanCategory::normalized($name)],
+                $category = $name === '' ? null : PlanCategory::withoutGlobalScopes()->firstOrCreate(
+                    ['user_id' => $owner, 'normalized_name' => PlanCategory::normalized($name)],
                     ['name' => $name, 'icon' => 'bi-grid'],
                 );
                 $attributes['plan_category_id'] = $category?->id;

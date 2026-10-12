@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Mcp;
 
+use App\Actions\RecordPlanVisit;
 use App\Mcp\Servers\LifeTrackerServer;
 use App\Mcp\Tools\Plan\CreatePlanTool;
 use App\Mcp\Tools\Plan\ListPlansTool;
@@ -12,6 +13,7 @@ use App\Mcp\Tools\Relationship\CreateContactTool;
 use App\Mcp\Tools\Relationship\ListCirclesTool;
 use App\Models\Circle;
 use App\Models\Plan;
+use App\Models\PlanCategory;
 use App\Models\PlanVisit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -182,7 +184,7 @@ class LifeTrackerPlanMcpTest extends TestCase
         $alison = $user->relationships()->create(['full_name' => 'Alison Pino', 'category' => 'pareja']);
         $alison->aliases()->create(['alias' => 'Ali']);
         $plan = Plan::factory()->for($user)->create(['title' => 'Heladería Popsy']);
-        \App\Actions\RecordPlanVisit::handle($plan, today()->subMonths(3)->toDateString(), [$alison->id]);
+        RecordPlanVisit::handle($plan, today()->subMonths(3)->toDateString(), [$alison->id]);
 
         LifeTrackerServer::actingAs($user)
             ->tool(RecordPlanVisitTool::class, [
@@ -286,8 +288,8 @@ class LifeTrackerPlanMcpTest extends TestCase
         $cine = Plan::factory()->for($user)->create(['title' => 'Ir al cine']);
 
         $this->actingAs($user);
-        \App\Actions\RecordPlanVisit::handle($popsy, today()->subWeek()->toDateString(), [$alison->id], 'Con Ali');
-        \App\Actions\RecordPlanVisit::handle($cine, today()->subDays(2)->toDateString(), [$julian->id]);
+        RecordPlanVisit::handle($popsy, today()->subWeek()->toDateString(), [$alison->id], 'Con Ali');
+        RecordPlanVisit::handle($cine, today()->subDays(2)->toDateString(), [$julian->id]);
         Plan::factory()->create(['title' => 'Plan ajeno']);
 
         LifeTrackerServer::actingAs($user)
@@ -296,5 +298,22 @@ class LifeTrackerPlanMcpTest extends TestCase
             ->assertSee('Heladería Popsy')
             ->assertDontSee('Ir al cine')
             ->assertDontSee('Plan ajeno');
+    }
+
+    public function test_text_categories_remain_compatible_and_user_owned(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        PlanCategory::forceCreate(['user_id' => $other->id, 'name' => 'Gastronomía', 'icon' => 'bi-grid']);
+        LifeTrackerServer::actingAs($user)->tool(CreatePlanTool::class, ['title' => 'Cena MCP', 'category' => '  Gastronomía  '])->assertOk();
+        $plan = Plan::withoutGlobalScopes()->where('user_id', $user->id)->sole();
+        $category = PlanCategory::withoutGlobalScopes()->findOrFail($plan->plan_category_id);
+        $this->assertSame($user->id, $category->user_id);
+        $this->assertSame('Gastronomía', $plan->category);
+        LifeTrackerServer::actingAs($user)->tool(UpdatePlanTool::class, ['plan_id' => $plan->id, 'category' => 'gastronomía'])->assertOk();
+        $this->assertSame($category->id, $plan->fresh()->plan_category_id);
+        LifeTrackerServer::actingAs($user)->tool(UpdatePlanTool::class, ['plan_id' => $plan->id, 'category' => 'Cultura'])->assertOk();
+        $this->assertSame('Cultura', $plan->fresh()->category);
+        $this->assertNotSame($category->id, $plan->fresh()->plan_category_id);
     }
 }

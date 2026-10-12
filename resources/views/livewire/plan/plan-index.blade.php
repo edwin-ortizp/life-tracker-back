@@ -1,4 +1,4 @@
-<x-module-shell module="plans" class="plans-page">
+<x-module-shell module="plans" class="plans-page" :active-route="$scheduled ? 'plans.scheduled' : 'plans'" :navigation-query="['q'=>$q,'group'=>$group,'status'=>$status,'sort'=>$sort,'city'=>$city,'types'=>$types,'circles'=>$circles,'people'=>$people,'tags'=>$tags,'category'=>$category]">
     <x-slot:actions>
         <x-module-actions :primary="['label' => 'Agregar plan', 'icon' => 'bi-plus-lg', 'action' => 'openPlanForm']" :fab-always="true" />
     </x-slot:actions>

@@ -1,9 +1,9 @@
-@props(['module' => null, 'title' => null, 'subtitle' => null, 'icon' => null, 'archetype' => null, 'tabs' => null, 'back' => null])
+@props(['module' => null, 'title' => null, 'subtitle' => null, 'icon' => null, 'archetype' => null, 'tabs' => null, 'back' => null, 'activeRoute' => null, 'navigationQuery' => null])
 
 @php
     use App\Support\Ui\ScreenArchetype;
 
-    $routeName = request()->route()?->getName() ?? '';
+    $routeName = $activeRoute ?? request()->route()?->getName() ?? '';
     $moduleKey = $module;
 
     if (! $moduleKey) {
@@ -22,7 +22,7 @@
     $archetypeSource = ScreenArchetype::isDeclared($archetype, $definition, $routeName) ? 'declared' : 'fallback';
     $moduleTitle = $title ?? $definition['title'] ?? 'Life Tracker';
     // El panel contextual se retiró en la v1; los módulos que lo recuperan lo declaran.
-    $showRail = $definition['rail'] ?? false;
+    $showRail = ($definition['rail'] ?? false) && (! isset($definition['rail_routes']) || \Illuminate\Support\Str::is($definition['rail_routes'], $routeName));
     // Un detalle declara sus propias pestañas; reemplazan a las del módulo en esa pantalla.
     $isDetail = ! empty($tabs);
     $navigationTabs = $isDetail ? $tabs : ($definition['tabs'] ?? []);
@@ -47,7 +47,7 @@
 
     @if (! empty($navigationTabs))
         <div data-region="navigation">
-            <x-module-tabs :tabs="$navigationTabs"
+            <x-module-tabs :tabs="$navigationTabs" :route-name="$routeName" :navigation-query="$navigationQuery"
                            :preserve="$isDetail ? [] : ($definition['preserve'] ?? [])"
                            :back="$isDetail ? $back : null"
                            :label="$isDetail ? 'Secciones de '.$moduleTitle : 'Vistas del módulo'" />

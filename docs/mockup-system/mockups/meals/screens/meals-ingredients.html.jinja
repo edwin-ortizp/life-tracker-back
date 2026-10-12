@@ -17,7 +17,7 @@
       ('Despensa', [('Avena en hojuelas','800 g','En stock','success',''),('Leche de coco','2 latas','En stock','success',''),('Arroz basmati','—','Sin stock','danger',''),('Café','500 g','En stock','success',''),('Harina de trigo','1 kg','En stock','success','')])
     ] %}
     <p class="lt-section-label">{{ cat }}</p>
-    <div class="lt-list">{% for name, qty, chip, tone, note in items %}<button class="lt-list-item" type="button" data-lt-static-nav data-ingredient="{{ name }}"><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ qty }}{% if note %} · {{ note }}{% endif %}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></button>{% endfor %}</div>
+    <div class="lt-list">{% for name, qty, chip, tone, note in items %}<button class="lt-list-item" type="button" data-lt-toggle="ingredient-new" aria-haspopup="dialog" data-ingredient="{{ name }}"><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ qty }}{% if note %} · {{ note }}{% endif %}</span><span data-ingredient-offers>Éxito · $4.500 · Carulla · $5.200 · presentación por unidad (ejemplo)</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></button>{% endfor %}</div>
     {% endfor %}
   {% endif %}{% endcall %}
   <aside class="lt-stack">
@@ -31,19 +31,43 @@
   </aside>
 </section>
 {{ fab('Agregar ingrediente', 'bi-basket', 'ingredient-new', actions=[('Agregar en bloque', 'bi-magic', None)], split=True) }}
-{% call dialog('ingredient-new', 'Agregar ingrediente', icon='bi-basket', sections=[('basic','Información básica','bi-basket'),('inventory','Inventario','bi-box-seam'),('variants','Variantes por tienda','bi-shop'),('aliases','Alias y equivalencias','bi-tags')]) %}
+{% call dialog('ingredient-new', 'Agregar ingrediente', icon='bi-basket', submit_action='save-ingredient', sections=[('basic','Información básica','bi-basket'),('inventory','Inventario','bi-box-seam'),('variants','Variantes','bi-box'),('prices','Precios por tienda','bi-shop'),('aliases','Alias y equivalencias','bi-tags')]) %}
 <section class="lt-dialog__section" data-section="basic">
   <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
-  <div class="lt-form"><label class="lt-field lt-form--full"><span>Nombre *</span><input type="text" placeholder="Ej. Aguacate"></label><label class="lt-field "><span>Categoría</span><select><option>Frutas y verduras</option><option>Lácteos y huevos</option></select></label><label class="lt-field "><span>Unidad base</span><input type="text" placeholder="unidades"></label></div>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Nombre *</span><input data-ingredient-name type="text" required placeholder="Ej. Aguacate"></label><label class="lt-field "><span>Categoría</span><select><option>Frutas y verduras</option><option>Lácteos y huevos</option></select></label><label class="lt-field "><span>Unidad base</span><input type="text" placeholder="unidades"></label></div>
 </section>
 <section class="lt-dialog__section" data-section="inventory" hidden>
   <header class="lt-dialog__section-head"><h3>Inventario</h3></header>
   <div class="lt-form"><label class="lt-field "><span>Stock</span><input type="number" value="0"></label><label class="lt-field "><span>Por comprar</span><input type="number" value="2"></label></div>
 </section>
 <section class="lt-dialog__section" data-section="variants" hidden>
-  <header class="lt-dialog__section-head"><h3>Variantes por tienda</h3></header>
-  <div class="lt-form"><label class="lt-field "><span>Tienda</span><input type="text" placeholder="Éxito"></label><label class="lt-field "><span>Precio</span><input type="number" value=""></label></div>
+  <header class="lt-dialog__section-head"><h3>Variantes</h3></header>
+  <div data-ingredient-variants class="lt-stack"></div>
+  <button class="lt-button lt-button--tonal" type="button" data-ingredient-add-variant><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar variante</button>
 </section>
+<section class="lt-dialog__section" data-section="prices" hidden>
+  <header class="lt-dialog__section-head"><h3>Precios por tienda</h3></header>
+  <div data-ingredient-prices class="lt-stack"></div>
+  <button class="lt-button lt-button--tonal" type="button" data-ingredient-add-price><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar precio</button>
+  <p data-ingredient-price-error role="status"></p>
+</section>
+<template data-ingredient-variant-template>
+  <article class="lt-ingredient-editor-card"><header><strong data-variant-title></strong><button class="lt-icon-button" type="button" data-remove-variant aria-label="Quitar variante"><i class="bi bi-trash" aria-hidden="true"></i></button></header><div class="lt-form">
+    {% for key, label, type in [('brand','Marca','text'),('packaging','Empaque','text'),('content','Contenido','number'),('content_unit','Unidad del contenido','text'),('units_per_pack','Unidades por paquete','number'),('kcal','Calorías propias','number'),('barcode','Código de barras','text')] %}
+    <label class="lt-field"><span>{{ label }}</span><input data-variant-field="{{ key }}" type="{{ type }}"{% if type == 'number' %} min="{{ 1 if key == 'units_per_pack' else 0 }}" step="{{ 1 if key == 'units_per_pack' else 'any' }}"{% endif %}></label>
+    {% endfor %}
+  </div></article>
+</template>
+<template data-ingredient-price-template>
+  <article class="lt-ingredient-editor-card"><header><strong>Precio por tienda</strong><button class="lt-icon-button" type="button" data-remove-price aria-label="Quitar precio"><i class="bi bi-trash" aria-hidden="true"></i></button></header><div class="lt-form">
+    <label class="lt-field lt-form--full"><span>Variante</span><select data-price-field="variant" required></select></label>
+    <label class="lt-field"><span>Tienda</span><input data-price-field="store" required></label>
+    <label class="lt-field"><span>Precio</span><input data-price-field="amount" type="number" min="0" step="0.01" required></label>
+    <label class="lt-field"><span>Fuente del precio</span><select data-price-field="source" required><option value="">Seleccionar</option><option value="manual">Manual</option><option value="web">Web</option><option value="ticket">Ticket</option></select></label>
+    <label class="lt-field"><span>Fecha</span><input data-price-field="date" type="date" required></label>
+    <label><input data-price-field="verified" type="checkbox"> Verificado</label>
+  </div></article>
+</template>
 <section class="lt-dialog__section" data-section="aliases" hidden>
   <header class="lt-dialog__section-head"><h3>Alias y equivalencias</h3></header>
   <div class="lt-form"><label class="lt-field "><span>Alias 1</span><input type="text" placeholder="palta"></label></div>

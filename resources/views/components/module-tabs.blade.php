@@ -1,7 +1,7 @@
-@props(['tabs' => [], 'preserve' => [], 'label' => 'Vistas del módulo', 'back' => null])
+@props(['tabs' => [], 'preserve' => [], 'label' => 'Vistas del módulo', 'back' => null, 'routeName' => null, 'navigationQuery' => null])
 
 @php
-    $query = \Illuminate\Support\Arr::only(request()->query(), $preserve);
+    $query = \Illuminate\Support\Arr::only($navigationQuery ?? request()->query(), $preserve);
 @endphp
 
 {{-- Con `back` es la navegación de un detalle: el regreso vive al inicio de la fila de pestañas, nunca en una fila propia. --}}
@@ -16,8 +16,8 @@
     <div class="md-module-tabs__track">
         @foreach ($tabs as $tab)
             @php
-                $active = request()->routeIs(...($tab['active'] ?? [$tab['route']]));
-                $href = route($tab['route'], array_merge($tab['params'] ?? [], isset($tab['preserve']) ? \Illuminate\Support\Arr::only(request()->query(), $tab['preserve']) : $query));
+                $active = \Illuminate\Support\Str::is($tab['active'] ?? [$tab['route']], $routeName ?? request()->route()?->getName() ?? '');
+                $href = route($tab['route'], array_merge($tab['params'] ?? [], isset($tab['preserve']) ? \Illuminate\Support\Arr::only($navigationQuery ?? request()->query(), $tab['preserve']) : $query));
             @endphp
             <a href="{{ $href }}" @if ($tab['navigate'] ?? true) wire:navigate @endif class="md-module-tab {{ $active ? 'is-active' : '' }}" @if($active) aria-current="page" @endif>
                 <i class="bi {{ $tab['icon'] ?? 'bi-circle' }}" aria-hidden="true"></i>
