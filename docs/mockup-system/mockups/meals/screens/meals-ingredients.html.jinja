@@ -1,8 +1,8 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab, manage_card %}
+{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog, fab, manage_card %}
 {% call shell('meals', 'Ingredientes', 'bi-basket') %}
-{{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-ingredients') }}
+{{ meals_tabs('/meals-ingredients') }}
 <section class="lt-grid-main">
-  {% call(zone) manage_card('ingredients', 'Catálogo de ingredientes', 'bi-basket', count='(9 / 86)', total=86, search='Buscar ingredientes', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':9,'total':86,'noun':'ingredientes','page':1,'pages':4,'per_page':25}) %}{% if zone == 'filters' %}
+  {% call(zone) manage_card('ingredients', 'Catálogo de ingredientes', 'bi-basket', count='(14 / 86)', total=86, search='Buscar ingredientes', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':14,'total':86,'noun':'ingredientes','page':1,'pages':4,'per_page':25}) %}{% if zone == 'filters' %}
       <div class="lt-popover" id="ingredients-filters" role="dialog" aria-labelledby="ingredients-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="ingredients-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="ingredients-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <div class="lt-field"><span>Inventario</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Todos</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>En stock</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Por agotarse</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Sin stock</button></div></div>
@@ -12,12 +12,12 @@
     {% else %}
 
     {% for cat, items in [
-      ('Verduras y frutas', [('Banano','6 unidades','En stock','success','Alias: guineo'),('Ahuyama','0,5 kg','Por agotarse','warning',''),('Cilantro','—','Sin stock','danger','Usado en 7 recetas')]),
-      ('Proteínas', [('Pechuga de pollo','1,2 kg','En stock','success','Variantes: filete, molida'),('Lentejas','250 g','Por agotarse','warning',''),('Tilapia','—','Sin stock','danger','Necesario por una receta')]),
-      ('Despensa', [('Avena en hojuelas','800 g','En stock','success',''),('Leche de coco','2 latas','En stock','success',''),('Arroz basmati','—','Sin stock','danger','')])
+      ('Verduras y frutas', [('Banano','6 unidades','En stock','success','Alias: guineo'),('Ahuyama','0,5 kg','Por agotarse','warning',''),('Cilantro','—','Sin stock','danger','Usado en 7 recetas'),('Limones','6 unidades','En stock','success',''),('Frutos rojos','200 g','En stock','success','')]),
+      ('Proteínas', [('Pechuga de pollo','1,2 kg','En stock','success','Variantes: filete, molida'),('Lentejas','250 g','Por agotarse','warning',''),('Tilapia','—','Sin stock','danger','Necesario por una receta'),('Huevos','30 unidades','En stock','success','')]),
+      ('Despensa', [('Avena en hojuelas','800 g','En stock','success',''),('Leche de coco','2 latas','En stock','success',''),('Arroz basmati','—','Sin stock','danger',''),('Café','500 g','En stock','success',''),('Harina de trigo','1 kg','En stock','success','')])
     ] %}
     <p class="lt-section-label">{{ cat }}</p>
-    <div class="lt-list">{% for name, qty, chip, tone, note in items %}<button class="lt-list-item" type="button" data-lt-static-nav><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ qty }}{% if note %} · {{ note }}{% endif %}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></button>{% endfor %}</div>
+    <div class="lt-list">{% for name, qty, chip, tone, note in items %}<button class="lt-list-item" type="button" data-lt-static-nav data-ingredient="{{ name }}"><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ qty }}{% if note %} · {{ note }}{% endif %}</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></button>{% endfor %}</div>
     {% endfor %}
   {% endif %}{% endcall %}
   <aside class="lt-stack">

@@ -9,7 +9,8 @@
       "template": "pages/main.html.jinja",
       "screens": [
         "plans-index",
-        "plans-show"
+        "plans-show",
+        "plans-settings"
       ],
       "output": "plans.html"
     }
@@ -24,6 +25,11 @@
       "template": "screens/plans-show.html.jinja",
       "title": "Detalle de plan",
       "bodyClass": ""
+    },
+    "plans-settings": {
+      "template": "screens/plans-settings.html.jinja",
+      "title": "Ajustes de Planes",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -34,6 +40,10 @@
     {
       "path": "/plans-show",
       "screen": "plans-show"
+    },
+    {
+      "path": "/plans-settings",
+      "screen": "plans-settings"
     }
   ],
   "datasets": {
@@ -52,7 +62,8 @@
   "entryRoute": "/plans-index",
   "entryScript": "scripts/entry.js",
   "styles": [
-    "@project/project-assets/mockups.css"
+    "@project/project-assets/mockups.css",
+    "styles/plans.css"
   ],
   "runtime": {
     "persistence": "none",

@@ -1,6 +1,6 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog, fab %}
 {% call shell('meals', 'Recetas', 'bi-book') %}
-{{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-recipes') }}
+{{ meals_tabs('/meals-recipes') }}
 <section class="lt-toolbar" aria-label="Filtros de recetas">
   <label class="lt-field"><span class="lt-sr-only">Buscar recetas</span><input type="search" placeholder="Buscar recetas..."></label>
   {% for c, sel in [('Todas',true),('Desayuno',false),('Almuerzo',false),('Cena',false),('Vegetarianas',false),('Rápidas',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}

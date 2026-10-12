@@ -105,10 +105,10 @@
       </div>{% endif %}
       <button class="lt-button lt-button--text lt-filter-button" type="button" data-lt-toggle="{{ id }}-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="{{ id }}-filters" aria-label="Filtros"><i class="bi bi-sliders"></i><span class="lt-filter-button__label">Filtros</span><span class="lt-badge lt-badge--corner" data-lt-filter-count aria-label="{{ filters }} filtros activos"{% if not filters %} hidden{% endif %}>{{ filters }}</span></button>
       {{ caller('filters') }}
-      {% if menu %}<span class="lt-mcard__divider" aria-hidden="true"></span>
+      <span class="lt-mcard__divider" aria-hidden="true"></span>
       <div class="lt-menu-anchor"><button class="lt-icon-button" type="button" data-lt-toggle="{{ id }}-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Más acciones de {{ title }}"><i class="bi bi-three-dots-vertical"></i></button>
-        <div class="lt-menu lt-menu--down" id="{{ id }}-menu" role="menu" hidden>{% for m in menu %}<button class="lt-menu__item" role="menuitem" type="button"{% if m|length > 2 and m[2] %} data-lt-toggle="{{ m[2] }}" aria-haspopup="dialog"{% else %} data-lt-static-nav{% endif %}><i class="bi {{ m[1] }}"></i> {{ m[0] }}</button>{% endfor %}</div>
-      </div>{% endif %}
+        <div class="lt-menu lt-menu--down" id="{{ id }}-menu" role="menu" hidden><button class="lt-menu__item" role="menuitem" type="button" data-lt-toggle="{{ id }}-menu"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Actualizar tabla</button>{% if menu %}<hr class="lt-menu__divider">{% endif %}{% for m in menu or [] %}<button class="lt-menu__item" role="menuitem" type="button"{% if m|length > 2 and m[2] %} data-lt-toggle="{{ m[2] }}" aria-haspopup="dialog"{% else %} data-lt-static-nav{% endif %}><i class="bi {{ m[1] }}"></i> {{ m[0] }}</button>{% endfor %}</div>
+      </div>
     </div>
   </header>
   <div class="lt-mcard__body">{{ caller('content') }}</div>
@@ -179,4 +179,8 @@
 </div>
 <hr class="lt-divider">
 <p class="lt-goal-streak"><span aria-hidden="true">🔥</span> {{ streak_text }}</p>
+{%- endmacro %}
+
+{% macro meals_tabs(current) -%}
+{{ tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Qué cocinar','/meals-cook','bi-egg-fried'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3'),('Historial de compras','/meals-history','bi-clock-history'),('Ajustes','/meals-settings','bi-gear')], current) }}
 {%- endmacro %}

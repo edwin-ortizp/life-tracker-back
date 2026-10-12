@@ -1,6 +1,6 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab, manage_card %}
+{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog, fab, manage_card %}
 {% call shell('meals', 'Lista de compras', 'bi-cart3') %}
-{{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-shopping') }}
+{{ meals_tabs('/meals-shopping') }}
 <section class="lt-grid-main">
   {% call(zone) manage_card('shopping', 'Por comprar', 'bi-cart3', count='(10 / 18)', total=18, search='Buscar en lista de compras', menu=[('Exportar CSV', 'bi-filetype-csv'), ('Imprimir lista', 'bi-printer')], footer={'from':1,'to':10,'total':18,'noun':'productos','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}
       <div class="lt-popover" id="shopping-filters" role="dialog" aria-labelledby="shopping-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>

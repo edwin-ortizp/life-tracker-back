@@ -11,7 +11,11 @@
         "meals-weekly",
         "meals-recipes",
         "meals-ingredients",
-        "meals-shopping"
+        "meals-shopping",
+        "meals-history",
+        "meals-settings",
+        "meals-purchase",
+        "meals-cook"
       ],
       "output": "meals.html"
     }
@@ -36,6 +40,26 @@
       "template": "screens/meals-shopping.html.jinja",
       "title": "Compras",
       "bodyClass": ""
+    },
+    "meals-history": {
+      "template": "screens/meals-history.html.jinja",
+      "title": "Historial de compras",
+      "bodyClass": ""
+    },
+    "meals-settings": {
+      "template": "screens/meals-settings.html.jinja",
+      "title": "Ajustes",
+      "bodyClass": ""
+    },
+    "meals-purchase": {
+      "template": "screens/meals-purchase.html.jinja",
+      "title": "Detalle de compra",
+      "bodyClass": ""
+    },
+    "meals-cook": {
+      "template": "screens/meals-cook.html.jinja",
+      "title": "Qué cocinar",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -54,6 +78,22 @@
     {
       "path": "/meals-shopping",
       "screen": "meals-shopping"
+    },
+    {
+      "path": "/meals-history",
+      "screen": "meals-history"
+    },
+    {
+      "path": "/meals-settings",
+      "screen": "meals-settings"
+    },
+    {
+      "path": "/meals-purchase",
+      "screen": "meals-purchase"
+    },
+    {
+      "path": "/meals-cook",
+      "screen": "meals-cook"
     }
   ],
   "datasets": {
@@ -72,7 +112,8 @@
   "entryRoute": "/meals-weekly",
   "entryScript": "scripts/entry.js",
   "styles": [
-    "@project/project-assets/mockups.css"
+    "@project/project-assets/mockups.css",
+    "styles/meals.css"
   ],
   "runtime": {
     "persistence": "none",

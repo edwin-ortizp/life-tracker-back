@@ -1,6 +1,6 @@
-{% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric %}
+{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog %}
 {% call shell('meals', 'Planificación de comidas', 'bi-egg-fried') %}
-{{ module_tabs([('Planificación','/meals-weekly','bi-calendar-week'),('Recetas','/meals-recipes','bi-book'),('Ingredientes','/meals-ingredients','bi-basket'),('Compras','/meals-shopping','bi-cart3')], '/meals-weekly') }}
+{{ meals_tabs('/meals-weekly') }}
 <section class="lt-toolbar"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><p class="lt-toolbar__label">Semana del 8 al 14 de septiembre</p><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-cart-plus"></i> Generar lista de compras</button></section>
 <section class="lt-metrics">{{ metric('Comidas planificadas','16 de 21','success') }}{{ metric('Recetas distintas','9') }}{{ metric('Ingredientes por comprar','14','warning') }}</section>
 <section class="lt-week-plan" aria-label="Plan semanal">
@@ -15,7 +15,7 @@
   ] %}
   {% for dname, dnum, slots in plan %}
   <div class="lt-day-col{% if dnum == '10' %} is-today{% endif %}"><h4>{{ dname }} <small>{{ dnum }}{% if dnum == '10' %} · hoy{% endif %}</small></h4>
-    {% for slot, recipe in slots %}{% if recipe %}<button class="lt-meal-slot" type="button" data-lt-static-nav><small>{{ slot }}</small>{{ recipe }}</button>{% else %}<button class="lt-meal-slot lt-meal-slot--empty" type="button" data-lt-static-nav><small>{{ slot }}</small><span><i class="bi bi-plus-lg"></i> Añadir</span></button>{% endif %}{% endfor %}
+    {% for slot, recipe in slots %}<button class="lt-meal-slot{% if not recipe %} lt-meal-slot--empty{% endif %}" type="button" data-lt-toggle="meal-composition" data-meal-key="{{ dnum }}-{{ loop.index }}" data-meal-label="{{ slot }} · {{ dname }} {{ dnum }} de septiembre" data-meal-recipe="{{ recipe }}" aria-haspopup="dialog"><small>{{ slot }}</small><span data-meal-caption>{{ recipe or 'Planificar comida' }}</span><small data-meal-status-label>{{ 'Planeada' if recipe else 'Sin planificar' }}</small></button>{% endfor %}
   </div>
   {% endfor %}
 </section>
@@ -28,4 +28,64 @@
     <div class="lt-list">{% for r, m in [('Crema de ahuyama','30 min · vegetariana'),('Crepes de espinaca','25 min'),('Cremoso de champiñones','35 min')] %}<button class="lt-list-item" type="button" data-lt-static-nav><div class="lt-list-item__body"><strong>{{ r }}</strong><span>{{ m }}</span></div><i class="bi bi-plus-circle"></i></button>{% endfor %}</div>
   </div></article>
 </section>
+{% call dialog('meal-composition', 'Composición de la comida', icon='bi-egg-fried', submit='Guardar', submit_action='save-meal', sections=[('composition','Ingredientes','bi-basket'),('nutrition','Resumen nutricional','bi-heart-pulse'),('notes','Notas','bi-journal-text')]) %}
+<section class="lt-dialog__section" data-section="composition">
+  <header class="lt-dialog__section-head"><h3>Composición de la comida</h3><p>Combina recetas, ingredientes y elementos libres para esta comida.</p></header>
+  <div class="lt-meal-status-row">
+    <span>Estado de la comida</span>
+    <div class="lt-menu-anchor">
+      <div class="lt-split">
+        <button class="lt-button lt-split__main" type="button" data-meal-status data-lt-toggle="meal-status-menu" aria-haspopup="menu" aria-expanded="false">Planeada</button>
+        <button class="lt-button lt-split__toggle" type="button" data-lt-toggle="meal-status-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Cambiar estado de la comida"><i class="bi bi-chevron-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="lt-menu lt-menu--down" id="meal-status-menu" role="menu" hidden>
+        <button class="lt-menu__item" type="button" role="menuitem" data-meal-set-status="planned">Volver a planeada</button>
+        <button class="lt-menu__item" type="button" role="menuitem" data-meal-set-status="home">Marcar como consumida</button>
+        <button class="lt-menu__item" type="button" role="menuitem" data-meal-set-status="outside">Registrar comida por fuera</button>
+      </div>
+    </div>
+  </div>
+  <p data-meal-status-message role="status"></p>
+  <div data-meal-outside hidden>
+    <label class="lt-field"><span>Notas de comida por fuera</span><input data-meal-outside-notes maxlength="5000" placeholder="Ej. Almuerzo en un restaurante"></label>
+    <label class="lt-field"><span>Calorías consumidas por fuera (opcional)</span><input data-meal-outside-calories type="number" min="0" step="1" placeholder="Sin registrar"></label>
+    <p>El plan original se conserva. Puedes registrar una comida por fuera sin añadir elementos.</p>
+  </div>
+  <div data-meal-items aria-label="Elementos de la comida"></div>
+  <button class="lt-button lt-button--tonal" type="button" data-meal-add><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar</button>
+  <p data-meal-error role="status"></p>
+  <template data-meal-row-template>
+    <div class="lt-meal-composer">
+      <label class="lt-field"><span>Tipo</span><select data-meal-kind required><option value="">Seleccionar</option><option value="recipe">Receta</option><option value="ingredient">Ingrediente</option><option value="free">Elemento libre</option></select></label>
+      <label class="lt-field" data-meal-name-field><span>Elemento</span><select data-meal-choice required disabled><option value="">Selecciona el tipo</option></select><input data-meal-free hidden disabled required maxlength="120" placeholder="Nombre del elemento"></label>
+      <label class="lt-field"><span>Cantidad</span><input data-meal-quantity required type="number" min="0.1" step="any" placeholder="Cantidad"></label>
+      <label class="lt-field"><span>Unidad</span><select data-meal-unit required><option value="">Seleccionar</option><option>porción</option><option>g</option><option>ml</option><option>unidad</option></select></label>
+      <button class="lt-icon-button" type="button" data-meal-remove aria-label="Quitar elemento"><i class="bi bi-trash" aria-hidden="true"></i></button>
+    </div>
+  </template>
+</section>
+<section class="lt-dialog__section" data-section="nutrition" hidden>
+  <header class="lt-dialog__section-head"><h3>Resumen nutricional</h3><p>Estimación de ejemplo según la composición y las cantidades.</p></header>
+  <label class="lt-field"><span>Calorías manuales (kcal)</span><input data-meal-calories-override type="number" min="0" step="1" placeholder="Usar cálculo de la composición" aria-describedby="meal-calories-help"></label>
+  <p id="meal-calories-help">Este valor sustituye las calorías calculadas. Déjalo vacío para usar el cálculo de la composición.</p>
+  <div class="lt-metrics" data-meal-nutrition></div>
+  <p data-meal-nutrition-note></p>
+</section>
+<section class="lt-dialog__section" data-section="notes" hidden>
+  <header class="lt-dialog__section-head"><h3>Notas de preparación</h3><p>Guarda instrucciones, tiempos y recordatorios para esta comida.</p></header>
+  <div class="lt-field">
+    <span id="meal-notes-label">Notas</span>
+    <div class="lt-md-editor">
+      <div class="lt-md-editor__toolbar" role="toolbar" aria-label="Formato de las notas">
+        {% for action, label, icon in [('bold','Negrita','bi-type-bold'),('italic','Cursiva','bi-type-italic'),('link','Enlace','bi-link-45deg'),('unordered','Lista con viñetas','bi-list-ul'),('ordered','Lista numerada','bi-list-ol')] %}
+        <button class="lt-md-editor__tool" type="button" data-meal-markdown="{{ action }}" aria-label="{{ label }}"><i class="bi {{ icon }}" aria-hidden="true"></i></button>
+        {% if action in ['italic','link'] %}<span class="lt-md-editor__sep" aria-hidden="true"></span>{% endif %}
+        {% endfor %}
+        <span class="lt-md-editor__hint"><i class="bi bi-question-circle" aria-hidden="true"></i> Markdown</span>
+      </div>
+      <textarea data-meal-notes rows="8" aria-labelledby="meal-notes-label" placeholder="Ej. Dejar la avena en remojo desde la noche anterior."></textarea>
+    </div>
+  </div>
+</section>
+{% endcall %}
 {% endcall %}

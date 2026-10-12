@@ -1,0 +1,11 @@
+{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, manage_card %}
+{% from '@project/mockups/meals/screens/purchase-data.html.jinja' import purchases %}
+{% call shell('meals', 'Historial de compras', 'bi-clock-history') %}
+{{ meals_tabs('/meals-history') }}
+{% call(zone) manage_card('purchase-history','Compras realizadas','bi-receipt',count='(3 / 3)',total=3,search='Buscar compras',footer={'from':1,'to':3,'total':3,'noun':'compras','page':1,'pages':1,'per_page':25}) %}
+{% if zone == 'filters' %}
+<div class="lt-popover" id="purchase-history-filters" role="dialog" aria-labelledby="purchase-history-filters-title" hidden>
+<span class="lt-popover__handle" aria-hidden="true"></span><div class="lt-popover__head"><h4 id="purchase-history-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="purchase-history-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
+<label class="lt-field"><span>Desde</span><input type="date"></label><label class="lt-field"><span>Hasta</span><input type="date"></label><label class="lt-field"><span>Tienda</span><select><option>Todas</option><option>Éxito Calle 80</option><option>D1</option><option>Plaza de mercado</option></select></label><div class="lt-popover__actions"><button class="lt-button" type="button" data-lt-toggle="purchase-history-filters">Filtrar</button></div></div>
+{% else %}<div class="lt-list">{% for date,store,total,lines in purchases %}<a class="lt-list-item lt-purchase-open" href="#/meals-purchase?purchase={{ loop.index }}"><span class="lt-list-item__icon"><i class="bi bi-receipt" aria-hidden="true"></i></span><span class="lt-list-item__body"><strong>{{ store }}</strong><span>{{ date }} · {{ lines|length }} productos</span></span><strong>{{ total }}</strong><i class="bi bi-chevron-right" aria-hidden="true"></i></a>{% endfor %}</div>{% endif %}{% endcall %}
+{% endcall %}

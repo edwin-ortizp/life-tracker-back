@@ -234,19 +234,30 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         await dialog.getByRole('button', { name: 'Guardar', exact: true }).click();
         await expect(dialog).not.toBeVisible();
         await page.goto('/meals/purchases');
-        await expect(page.getByText('2 líneas', { exact: false }).first()).toBeVisible();
-        if (viewport.width < 768) {
-            await page.locator('.md-row-actions__more').first().click();
-            await page.getByRole('menuitem', { name: 'Ver detalle', exact: true }).first().click();
-        } else {
-            await page.getByRole('button', { name: 'Ver detalle', exact: true }).first().click();
-        }
-        const detail = page.getByRole('dialog', { name: 'Detalle de compra' });
+        await expect(page.locator('.purchase-history-row').first()).toContainText('2 ítems');
+        await page.goto('/meals/purchases?q=Pan&per_page=10');
+        const row = page.locator('.purchase-history-row').first();
+        await row.focus();
+        await page.keyboard.press('Enter');
+        await expect(page).toHaveURL(/meals\/purchases\/[^?]+/);
+        const detail = page.locator('.purchase-invoice');
         await expect(detail).toContainText('Pan de prueba');
-        await page.keyboard.press('Escape');
-        await expect(detail).not.toBeVisible();
-        await page.locator('.md-row-actions__more').first().click();
-        await page.getByRole('menuitem', { name: 'Editar', exact: true }).first().click();
+        await expect(detail).toContainText('Suma de ítems (incompleta)');
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+        const invoiceViolations = (await new AxeBuilder({ page }).include('.purchase-invoice').withRules(['button-name', 'link-name', 'aria-valid-attr-value', 'scrollable-region-focusable']).analyze()).violations;
+        expect(invoiceViolations).toEqual([]);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        await page.screenshot({ path: `storage/framework/testing/purchase-previews/invoice-${viewport.width}.png`, fullPage: true });
+        await detail.getByRole('link', { name: 'Pan de prueba' }).click();
+        await expect(page).toHaveURL(/ingredient=/);
+        await expect(page.locator('#meal-ingredients')).toContainText('Pan de prueba');
+        await page.goBack();
+        await page.getByRole('link', { name: 'Volver al historial de compras', exact: true }).click();
+        await expect(page).toHaveURL(/q=Pan/);
+        await expect(page).toHaveURL(/per_page=10/);
+        await page.screenshot({ path: `storage/framework/testing/purchase-previews/history-${viewport.width}.png`, fullPage: true });
+        await page.locator('.purchase-history-row').first().click();
+        await page.getByRole('button', { name: 'Editar compra', exact: true }).click();
         const editor = page.getByRole('dialog', { name: 'Editar compra' });
         await expect(editor).toBeVisible();
         if (viewport.width < 768) await editor.getByRole('button', { name: 'Mostrar u ocultar secciones' }).click();
@@ -254,6 +265,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         await editor.getByLabel('Notas').fill(`Editada desde ${viewport.width}px`);
         await editor.getByRole('button', { name: 'Guardar', exact: true }).click();
         await expect(editor).not.toBeVisible();
+        await expect(page.locator('.purchase-invoice')).toContainText(`Editada desde ${viewport.width}px`);
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
         expect(errors).toEqual([]);
     });

@@ -233,3 +233,40 @@
   .meal-composition-item__body { grid-template-columns: minmax(0, 1fr); }
   .meal-composition-item__title span { white-space: normal; overflow-wrap: anywhere; }
 }
+
+/* Historial compacto y comprobante de compra. */
+.purchase-history-list { display: grid; gap: 4px; padding: 8px; }
+.purchase-history-row { display: flex; align-items: center; gap: 16px; min-height: 64px; padding: 10px 16px; color: var(--md-sys-color-on-surface); text-decoration: none; border-radius: var(--md-sys-shape-corner-medium); }
+.purchase-history-row:hover { background: var(--md-sys-color-surface-container-low); }
+.purchase-history-row:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: -2px; }
+.purchase-history-row__icon { display: grid; place-items: center; flex: 0 0 40px; height: 40px; border-radius: var(--md-sys-shape-corner-medium); background: color-mix(in srgb, var(--md-module-accent) 14%, var(--md-sys-color-surface-container-lowest)); color: var(--md-module-accent); }
+.purchase-history-row__body { display: grid; flex: 1; min-width: 0; }
+.purchase-history-row__body strong, .purchase-history-row__total { overflow-wrap: anywhere; }
+.purchase-history-row__body > span { font-size: .75rem; color: var(--md-sys-color-on-surface-variant); }
+.purchase-history-row__total { text-align: right; }
+.purchase-invoice { min-width: 0; overflow: hidden; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-large); background: var(--md-sys-color-surface-container-lowest); }
+.purchase-invoice__header { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; padding: 28px; }
+.purchase-invoice__identity { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.purchase-invoice__identity p { margin: 8px 0; }
+.purchase-invoice__mark { font-size: 2rem; color: var(--md-module-accent); }
+.purchase-invoice__meta { display: grid; gap: 12px; margin: 0; max-width: 100%; overflow-wrap: anywhere; }
+.purchase-invoice__meta dt { font-size: .8rem; color: var(--md-sys-color-on-surface-variant); }
+.purchase-invoice__meta dd { margin: 0; }
+.purchase-invoice__table { overflow-x: auto; }
+.purchase-invoice table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.purchase-invoice th, .purchase-invoice td { padding: 16px; border-block: 1px solid var(--md-sys-color-outline-variant); text-align: right; vertical-align: top; }
+.purchase-invoice th:first-child, .purchase-invoice td:nth-child(2) { text-align: left; }
+.purchase-invoice thead { background: var(--md-sys-color-surface-container-low); }
+.purchase-invoice tbody th { font-weight: 500; min-width: 180px; overflow-wrap: anywhere; }
+.purchase-invoice tbody th a { display: inline-flex; align-items: center; min-height: 44px; gap: 4px; }
+.purchase-invoice tbody small { display: block; margin-top: 6px; font-size: .75rem; color: var(--md-sys-color-on-surface-variant); font-weight: 400; }
+.purchase-invoice tfoot { font-weight: 700; }
+.purchase-invoice__footer { padding: 20px 28px; color: var(--md-sys-color-on-surface-variant); }
+.purchase-invoice__notes { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 767.98px) {
+  .purchase-history-row { gap: 10px; padding: 10px 8px; flex-wrap: wrap; }
+  .purchase-history-row__body { flex-basis: calc(100% - 60px); }
+  .purchase-history-row__total { margin-left: 50px; flex: 1; text-align: left; }
+  .purchase-invoice__header { padding: 20px; gap: 16px; }
+  .purchase-invoice table { min-width: 640px; }
+}

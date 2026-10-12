@@ -38,6 +38,9 @@ class MealIngredients extends Component
     #[Url(as: 'q', history: true, keep: true)]
     public string $search = '';
 
+    #[Url(as: 'ingredient')]
+    public string $ingredientId = '';
+
     #[Url(as: 'category', history: true, keep: true)]
     public string $categoryFilter = '';
 
@@ -100,6 +103,11 @@ class MealIngredients extends Component
 
     public array $categoryOptions = ShoppingItem::CATEGORIES;
 
+    public function updatedIngredientId(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -132,7 +140,7 @@ class MealIngredients extends Component
 
     public function clearFilters(): void
     {
-        $this->reset(['categoryFilter', 'storeFilter', 'priceFilter', 'cartFilter', 'dataFilter']);
+        $this->reset(['ingredientId', 'categoryFilter', 'storeFilter', 'priceFilter', 'cartFilter', 'dataFilter']);
         $this->resetPage();
     }
 
@@ -413,7 +421,8 @@ class MealIngredients extends Component
 
     public function render()
     {
-        $base = ShoppingItem::query()
+        $base = ShoppingItem::where('user_id', auth()->id())
+            ->when($this->ingredientId, fn ($q, $id) => $q->whereKey($id))
             ->when($this->search, fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
             ->when($this->categoryFilter, fn ($q, $c) => $q->where('category', $c))
             ->when($this->storeFilter === '__none', fn ($q) => $q->whereDoesntHave('prices'))
@@ -453,7 +462,7 @@ class MealIngredients extends Component
             'stores' => Store::orderBy('name')->pluck('name', 'id'),
             'brands' => $this->showForm ? Brand::orderBy('name')->pluck('name') : collect(),
             'nameSuggestions' => $nameSuggestions,
-            'activeFilters' => collect([$this->categoryFilter, $this->storeFilter, $this->priceFilter, $this->cartFilter, $this->dataFilter])->filter()->count(),
+            'activeFilters' => collect([$this->ingredientId, $this->categoryFilter, $this->storeFilter, $this->priceFilter, $this->cartFilter, $this->dataFilter])->filter()->count(),
         ]);
     }
 }

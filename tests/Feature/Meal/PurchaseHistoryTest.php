@@ -4,6 +4,7 @@ namespace Tests\Feature\Meal;
 
 use App\Livewire\Meal\MealIngredients;
 use App\Livewire\Meal\MealPurchases;
+use App\Livewire\Meal\MealPurchaseShow;
 use App\Livewire\Meal\MealShopping;
 use App\Livewire\Meal\PurchaseEditor;
 use App\Models\Purchase;
@@ -215,7 +216,7 @@ class PurchaseHistoryTest extends TestCase
         Livewire::test(PurchaseEditor::class)->call('open')->set('form', collect($this->input)->except('operation_key')->all())->call('save')->assertHasNoErrors()->assertDispatched('purchase-saved');
         $purchase = Purchase::firstOrFail();
         Livewire::test(MealPurchases::class)->assertSee('Historial de compras')->assertSee('D1')->set('storeId', (string) Str::uuid())->assertSee('No hay compras registradas');
-        Livewire::test(MealPurchases::class)->call('openDetail', $purchase->id)->assertSee('LECHE TET')->assertSet('showDetail', true)->call('closeDetail')->assertSet('showDetail', false);
+        Livewire::test(MealPurchaseShow::class, ['purchase' => $purchase->id])->assertSee('LECHE TET')->assertSee('Total pagado');
         Livewire::test(PurchaseEditor::class)->call('open', $purchase->id)->assertSet('form.lines.0.packages', 2.0)->set('form.notes', 'Corregida')->call('save')->assertHasNoErrors();
         $this->assertSame('Corregida', $purchase->fresh()->notes);
         Livewire::test(MealShopping::class)->assertSee('Registrar compra');
@@ -287,4 +288,72 @@ class PurchaseHistoryTest extends TestCase
         $this->save($input, $purchase->id);
         $this->assertSame(100.1, $this->item->fresh()->stock);
     }
+    public function test_invoice_route_is_owned_and_requires_authentication(): void
+    {
+        $purchase = $this->save();
+        $this->get(route('meals.purchases.show', $purchase->id))->assertOk()->assertSee('Comprobante de compra');
+        $this->get(route('meals.purchases.show', (string) Str::uuid()))->assertNotFound();
+        $this->actingAs(User::factory()->create());
+        $this->get(route('meals.purchases.show', $purchase->id))->assertNotFound();
+    }
+
+    public function test_invoice_requires_authentication(): void
+    {
+        auth()->logout();
+        $this->get(route('meals.purchases.show', (string) Str::uuid()))->assertRedirect(route('login'));
+    }
+
+    public function test_history_search_combines_with_filters_and_resets_pagination(): void
+    {
+        $this->input['ticket_reference'] = 'TICKET-UNICO';
+        $purchase = $this->save();
+        foreach (['D1', 'TICKET-UNICO', 'Leche'] as $term) {
+            Livewire::test(MealPurchases::class)->set('search', $term)
+                ->assertViewHas('purchases', fn ($rows) => $rows->total() === 1)
+                ->set('from', '2026-09-02')->assertViewHas('purchases', fn ($rows) => $rows->total() === 0);
+        }
+        Livewire::test(MealPurchases::class)->call('gotoPage', 2)->set('search', 'Leche')
+            ->assertViewHas('purchases', fn ($rows) => $rows->currentPage() === 1);
+        $this->actingAs(User::factory()->create());
+        Livewire::test(MealPurchases::class)->set('search', 'Leche')->assertDontSee($purchase->ticket_reference);
+    }
+
+    public function test_invoice_preserves_snapshots_null_prices_and_fractional_packages(): void
+    {
+        $this->input['lines'][0]['packages'] = 1.5;
+        $purchase = $this->save();
+        $this->item->update(['name' => 'Nombre nuevo']);
+        Livewire::test(MealPurchaseShow::class, ['purchase' => $purchase->id])
+            ->assertSee('Leche')->assertDontSee('Nombre nuevo')->assertSee('1,5 paquetes')
+            ->assertSee('$ 15,00')->assertSee('$ 999,00')
+            ->assertSee(route('meals.ingredients', ['ingredient' => $this->item->id]), false);
+        $purchase->lines()->first()->update(['unit_price' => null]);
+        $purchase->update(['total_paid' => null]);
+        Livewire::test(MealPurchaseShow::class, ['purchase' => $purchase->id])
+            ->assertSee('Suma de ítems (incompleta)')->assertSee('Sin registrar');
+    }
+
+    public function test_invoice_refreshes_after_edit_and_restores_history_state(): void
+    {
+        $purchase = $this->save();
+        $component = Livewire::test(MealPurchaseShow::class, ['purchase' => $purchase->id])
+            ->set('history', ['q' => 'Leche', 'page' => 2, 'per_page' => 10, 'from' => '2026-09-01', 'redirect' => 'https://example.com'])
+            ->assertViewHas('backUrl', route('meals.purchases', ['q' => 'Leche', 'page' => 2, 'per_page' => 10, 'from' => '2026-09-01']));
+        Livewire::test(PurchaseEditor::class)->call('open', $purchase->id)
+            ->set('form.notes', 'Nueva nota de factura')->call('save')->assertHasNoErrors();
+        $component->dispatch('purchase-saved')->assertSee('Nueva nota de factura');
+        $this->assertSame(2100.0, $this->item->fresh()->stock);
+    }
+
+    public function test_ingredient_destination_filters_by_owned_id_and_can_be_cleared(): void
+    {
+        $other = ShoppingItem::create(['name' => 'Otro ingrediente', 'base_unit' => 'g', 'stock' => 0, 'status' => 'available']);
+        Livewire::test(MealIngredients::class)->set('ingredientId', $this->item->id)
+            ->assertViewHas('ingredients', fn ($rows) => $rows->total() === 1 && $rows->first()->id === $this->item->id)
+            ->call('clearFilters')->assertViewHas('ingredients', fn ($rows) => $rows->total() === 2);
+        $this->actingAs(User::factory()->create());
+        Livewire::test(MealIngredients::class)->set('ingredientId', $other->id)
+            ->assertViewHas('ingredients', fn ($rows) => $rows->total() === 0);
+    }
+
 }

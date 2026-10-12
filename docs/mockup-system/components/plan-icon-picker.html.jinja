@@ -1,0 +1,9 @@
+{% macro plan_icon_picker(id, selected) -%}
+<div class="lt-plan-icon-picker" data-icon-picker>
+<label class="lt-field"><span>Buscar icono</span><input type="search" placeholder="Buscar por nombre: heart, calendar, tree…" data-icon-search aria-controls="{{ id }}-results"></label>
+<p class="lt-plan-icon-picker__selected">Icono seleccionado: <i class="bi {{ selected }}" data-icon-preview aria-hidden="true"></i> <span data-icon-name>{{ selected }}</span></p>
+<input type="hidden" name="icon" value="{{ selected }}" data-icon-value>
+<div class="lt-plan-icon-picker__results" id="{{ id }}-results" role="group" aria-label="Iconos disponibles" data-icon-results></div>
+<p class="lt-page-head__subtitle" data-icon-status role="status"></p>
+</div>
+{%- endmacro %}

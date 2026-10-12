@@ -30,13 +30,12 @@ class MealPurchases extends Component
     #[Url]
     public string $itemId = '';
 
-    public ?string $detailId = null;
-
-    public bool $showDetail = false;
+    #[Url(as: 'q')]
+    public string $search = '';
 
     public function updated($property): void
     {
-        if (in_array($property, ['from', 'to', 'storeId', 'itemId'])) {
+        if (in_array($property, ['from', 'to', 'storeId', 'itemId', 'search'])) {
             $this->resetPage();
         }
     }
@@ -47,21 +46,15 @@ class MealPurchases extends Component
         $this->resetPage();
     }
 
-    public function openDetail(string $id): void
-    {
-        $this->detailId = $id;
-        $this->showDetail = true;
-    }
-
-    public function closeDetail(): void
-    {
-        $this->showDetail = false;
-        $this->detailId = null;
-    }
-
     public function render()
     {
-        $query = Purchase::where('user_id', auth()->id())->with('store', 'lines');
+        $query = Purchase::where('user_id', auth()->id())->with('store')->withCount('lines');
+        if (trim($this->search) !== '') {
+            $search = '%'.trim($this->search).'%';
+            $query->where(fn ($q) => $q->where('ticket_reference', 'like', $search)
+                ->orWhereHas('store', fn ($store) => $store->where('user_id', auth()->id())->where('name', 'like', $search))
+                ->orWhereHas('lines', fn ($line) => $line->where('product_name', 'like', $search)));
+        }
         if ($this->from) {
             $query->whereDate('purchased_at', '>=', $this->from);
         }
@@ -79,7 +72,8 @@ class MealPurchases extends Component
             'purchases' => $query->orderByDesc('purchased_at')->orderByDesc('id')->paginate($this->perPage()),
             'stores' => Store::where('user_id', auth()->id())->orderBy('name')->pluck('name', 'id'),
             'products' => ShoppingItem::where('user_id', auth()->id())->orderBy('name')->pluck('name', 'id'),
-            'detail' => $this->detailId ? Purchase::where('user_id', auth()->id())->with('store', 'lines')->findOrFail($this->detailId) : null,
+            'totalPurchases' => Purchase::where('user_id', auth()->id())->count(),
+            'historyState' => array_filter(['q' => $this->search, 'from' => $this->from, 'to' => $this->to, 'storeId' => $this->storeId, 'itemId' => $this->itemId, 'page' => $this->getPage(), 'per_page' => $this->perPage()], fn ($value) => $value !== ''),
         ]);
     }
 }

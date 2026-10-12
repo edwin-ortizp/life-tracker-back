@@ -1,0 +1,27 @@
+{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog %}
+{% set recipes = [
+('pancakes','🥞','Pancakes de avena','15 min',2,[('Avena en hojuelas',120,800,'g'),('Huevos',2,30,'unidades'),('Frutos rojos',100,200,'g')]),
+('curry','🍛','Pollo al curry','40 min',4,[('Pechuga de pollo',600,1200,'g'),('Leche de coco',1,2,'latas'),('Arroz basmati',300,0,'g')]),
+('lentils','🥣','Lentejas con arroz','45 min',6,[('Lentejas',500,250,'g'),('Arroz basmati',300,0,'g')])
+] %}
+{% call shell('meals','Qué cocinar','bi-egg-fried') %}
+{{ meals_tabs('/meals-cook') }}
+<section class="lt-metrics">{{ metric('Puedes cocinar','1 receta','success') }}{{ metric('Con ingredientes faltantes','2 recetas','warning') }}{{ metric('Según tu inventario','Stock actual') }}</section>
+<section class="lt-toolbar" aria-label="Buscar y filtrar recetas según stock">
+<label class="lt-field"><span class="lt-sr-only">Buscar qué cocinar</span><input type="search" placeholder="Buscar receta…" data-cook-search></label>
+{% for key,label,selected in [('ready','Puedo cocinar',true),('missing','Me faltan ingredientes',false),('all','Todas',false)] %}<button class="lt-button {{ 'lt-button--tonal' if selected else 'lt-button--text' }}" type="button" data-cook-filter="{{ key }}" aria-pressed="{{ 'true' if selected else 'false' }}">{{ label }}</button>{% endfor %}
+</section>
+<p class="lt-cook-hint">Compara las cantidades necesarias para las porciones indicadas con tu stock. Consultar una receta no descuenta ingredientes.</p>
+<section class="lt-recipe-grid" aria-label="Recetas según disponibilidad">
+{% for key,emoji,name,time,portions,ingredients in recipes %}
+{% set status=namespace(missing=0) %}{% for ingredient,needed,stock,unit in ingredients %}{% if stock < needed %}{% set status.missing=status.missing+1 %}{% endif %}{% endfor %}
+<article class="lt-recipe-card" data-cook-card data-cook-state="{{ 'missing' if status.missing else 'ready' }}" data-cook-name="{{ name }}"{% if status.missing %} hidden{% endif %}>
+<div class="lt-recipe-card__media" aria-hidden="true">{{ emoji }}</div><div class="lt-recipe-card__body"><h3>{{ name }}</h3><div class="lt-chip-row"><span class="lt-chip lt-chip--{{ 'warning' if status.missing else 'success' }}">{% if status.missing %}Faltan {{ status.missing }} ingredientes{% else %}Stock suficiente{% endif %}</span><span class="lt-chip lt-chip--neutral">{{ time }}</span><span class="lt-chip lt-chip--neutral">{{ portions }} porciones</span></div>
+<p>{% if status.missing %}{% for ingredient,needed,stock,unit in ingredients %}{% if stock < needed %}{{ ingredient }}: faltan {{ needed-stock }} {{ unit }}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}{% else %}Tienes todos los ingredientes en las cantidades necesarias.{% endif %}</p>
+<button class="lt-button lt-button--text" type="button" data-lt-toggle="cook-{{ key }}" aria-haspopup="dialog">Ver ingredientes <i class="bi bi-arrow-right" aria-hidden="true"></i></button></div></article>
+{% endfor %}
+</section><p class="lt-cook-hint" data-cook-empty role="status" hidden>No hay recetas que coincidan con esta búsqueda y disponibilidad.</p>
+{% for key,emoji,name,time,portions,ingredients in recipes %}{% call dialog('cook-' ~ key,name,submit='Cerrar',icon='bi-egg-fried') %}
+<p>{{ portions }} porciones · {{ time }}</p><div class="lt-list">{% for ingredient,needed,stock,unit in ingredients %}<div class="lt-list-item"><div class="lt-list-item__body"><a class="lt-link" href="#/meals-ingredients?ingredient={{ ingredient|urlencode }}">{{ ingredient }}</a><span>Necesitas {{ needed }} {{ unit }} · Tienes {{ stock }} {{ unit }}</span></div><span class="lt-chip lt-chip--{{ 'success' if stock >= needed else 'warning' }}">{% if stock >= needed %}Disponible{% else %}Faltan {{ needed-stock }} {{ unit }}{% endif %}</span></div>{% endfor %}</div>
+{% endcall %}{% endfor %}
+{% endcall %}
