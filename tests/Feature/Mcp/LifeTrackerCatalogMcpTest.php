@@ -4,6 +4,7 @@ namespace Tests\Feature\Mcp;
 
 use App\Mcp\Servers\LifeTrackerServer;
 use App\Mcp\Tools\Shopping\ManagePriceTool;
+use App\Mcp\Tools\Shopping\MergeIngredientTool;
 use App\Mcp\Tools\Shopping\MarkPurchasedTool;
 use App\Mcp\Tools\Shopping\UpdateVariantTool;
 use App\Models\ShoppingItem;
@@ -122,5 +123,31 @@ class LifeTrackerCatalogMcpTest extends TestCase
 
         LifeTrackerServer::actingAs($user)->tool(UpdateVariantTool::class, ['variant_id' => $variant->id, 'flavor' => ''])->assertOk();
         $this->assertNull($variant->fresh()->flavor);
+    }
+
+    public function test_merge_ingredient_tool_previews_first_and_merges_only_when_confirmed(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $target = ShoppingItem::create(['name' => 'Fresa', 'base_unit' => 'g', 'status' => 'available', 'stock' => 100, 'to_buy' => 0]);
+        $source = ShoppingItem::create(['name' => 'Fresa congelada', 'base_unit' => 'g', 'status' => 'available', 'stock' => 500, 'to_buy' => 0]);
+        $source->variants()->create(['content' => 500]);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(MergeIngredientTool::class, ['source_name' => 'Fresa congelada'])
+            ->assertOk()
+            ->assertSee('"preview":true')
+            ->assertSee('congelada');
+        $this->assertModelExists($source);
+
+        LifeTrackerServer::actingAs($user)
+            ->tool(MergeIngredientTool::class, ['source_id' => $source->id, 'confirm' => true])
+            ->assertOk()
+            ->assertSee('ahora es la variante');
+
+        $this->assertModelMissing($source);
+        $this->assertSame(600.0, $target->fresh()->stock);
+        $this->assertSame('congelada', $target->variants()->first()->flavor);
+        $this->assertSame(['Fresa congelada'], $target->aliases()->pluck('alias')->all());
     }
 }

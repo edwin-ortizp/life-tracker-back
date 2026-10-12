@@ -13,6 +13,7 @@ use App\Models\ShoppingItemVariant;
 use App\Models\Store;
 use App\Services\Meal\CatalogNames;
 use App\Services\Meal\IngredientImportService;
+use App\Services\Meal\IngredientMergeService;
 use App\Services\Meal\RecipeCalculator;
 use App\Services\Meal\UnitConverter;
 use Illuminate\Support\Facades\DB;
@@ -69,6 +70,17 @@ class MealIngredients extends Component
     public string $usageFilter = '';
 
     public bool $showForm = false;
+
+    // Asistente «Convertir en variante de…»
+    public ?string $mergeSourceId = null;
+
+    public string $mergeTargetId = '';
+
+    public string $mergeFlavor = '';
+
+    public bool $mergeKeepAlias = true;
+
+    public bool $mergeSuggested = false;
 
     public ?string $editingId = null;
 
@@ -429,6 +441,56 @@ class MealIngredients extends Component
         }
     }
 
+    public function openMerge(string $id): void
+    {
+        $source = ShoppingItem::find($id);
+        if (! $source) {
+            return;
+        }
+
+        $this->resetValidation();
+        $target = IngredientMergeService::suggestedTarget($source);
+        $this->mergeSourceId = $source->id;
+        $this->mergeTargetId = $target?->id ?? '';
+        $this->mergeFlavor = $target ? IngredientMergeService::suggestedFlavor($source->name, $target->name) : '';
+        $this->mergeKeepAlias = true;
+        $this->mergeSuggested = $target !== null;
+    }
+
+    public function updatedMergeTargetId(): void
+    {
+        $this->mergeSuggested = false;
+        $source = ShoppingItem::find($this->mergeSourceId);
+        $target = $this->mergeTargetId ? ShoppingItem::find($this->mergeTargetId) : null;
+        if ($source && $target && $this->mergeFlavor === '') {
+            $this->mergeFlavor = IngredientMergeService::suggestedFlavor($source->name, $target->name);
+        }
+    }
+
+    public function closeMerge(): void
+    {
+        $this->reset(['mergeSourceId', 'mergeTargetId', 'mergeFlavor', 'mergeKeepAlias', 'mergeSuggested']);
+    }
+
+    public function confirmMerge(IngredientMergeService $merger): void
+    {
+        $this->validate([
+            'mergeTargetId' => ['required', Rule::in(ShoppingItem::where('id', '!=', $this->mergeSourceId)->pluck('id'))],
+            'mergeFlavor' => 'nullable|string|max:60',
+        ], [
+            'mergeTargetId.required' => 'Elige el producto principal.',
+            'mergeTargetId.in' => 'Elige el producto principal de la lista.',
+        ]);
+
+        $source = ShoppingItem::findOrFail($this->mergeSourceId);
+        $merger->merge($source, ShoppingItem::findOrFail($this->mergeTargetId), $this->mergeFlavor, $this->mergeKeepAlias);
+
+        if ($this->ingredientId === $source->id) {
+            $this->ingredientId = '';
+        }
+        $this->closeMerge();
+    }
+
     public function removeFilter(string $key, ?string $value = null): void
     {
         $this->resetPage();
@@ -526,6 +588,13 @@ class MealIngredients extends Component
             : collect();
 
         $stores = Store::orderBy('name')->pluck('name', 'id');
+        $mergeSource = $this->mergeSourceId ? ShoppingItem::find($this->mergeSourceId) : null;
+        $merge = $mergeSource ? [
+            'source' => $mergeSource,
+            'targets' => ShoppingItem::where('id', '!=', $mergeSource->id)->orderBy('name')->pluck('name', 'id')->all(),
+            'variants' => $mergeSource->variants()->with('brand')->get(),
+            'preview' => app(IngredientMergeService::class)->preview($mergeSource),
+        ] : null;
         $appliedFilters = $this->appliedFilters($stores);
 
         return view('livewire.meal.meal-ingredients', [
@@ -536,6 +605,7 @@ class MealIngredients extends Component
             'brands' => $this->showForm ? Brand::orderBy('name')->pluck('name') : collect(),
             'nameSuggestions' => $nameSuggestions,
             'appliedFilters' => $appliedFilters,
+            'merge' => $merge,
             'activeFilters' => count($appliedFilters),
         ]);
     }

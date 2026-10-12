@@ -91,6 +91,7 @@
                                     <x-ui.menu-item icon="bi-bar-chart-steps" :href="route('meals.compare', $item)" wire:navigate>Comparar precios</x-ui.menu-item>
                                 @endif
                                 <x-ui.menu-item :icon="$item->next_purchase ? 'bi-cart-dash' : 'bi-cart-plus'" wire:click="toggleNextPurchase('{{ $item->id }}')">{{ $item->next_purchase ? 'Quitar de compras' : 'Agregar a compras' }}</x-ui.menu-item>
+                                <x-ui.menu-item icon="bi-intersect" wire:click="openMerge('{{ $item->id }}')">Convertir en variante de…</x-ui.menu-item>
                                 <x-ui.menu-divider />
                                 <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete('{{ $item->id }}')"
                                                 wire:confirm="El ingrediente y sus variantes, precios y alias se eliminan de forma permanente.">Eliminar</x-ui.menu-item>
@@ -102,6 +103,66 @@
         </table>
     @endif
     </x-ui.management-card>
+
+    @if ($merge)
+        @php
+            $p = $merge['preview'];
+            $plural = fn (int $n, string $one, string $many) => $n.' '.($n === 1 ? $one : $many);
+            $flavorTag = trim($mergeFlavor);
+        @endphp
+        <div x-data="{ open: true }" wire:key="merge-{{ $merge['source']->id }}">
+            <x-ui.dialog state="open" title="Convertir en variante" icon="bi-intersect" size="lg" x-on:md-surface-close="$wire.closeMerge()">
+                <div class="ingredient-merge">
+                    <p class="md-body-medium"><strong>{{ $merge['source']->name }}</strong> dejará de ser un producto aparte: pasará a ser una variante del producto principal que elijas.</p>
+
+                    <section class="ingredient-merge__step">
+                        <h3 class="md-title-small"><span class="ingredient-merge__num">1</span> Producto principal</h3>
+                        <x-ui.combobox name="mergeTargetId" label="Convertir en variante de" placeholder="Sin elegir" :options="$merge['targets']" wire:model.live="mergeTargetId" />
+                        @if ($mergeSuggested)
+                            <p class="md-supporting-text"><i class="bi bi-lightbulb" aria-hidden="true"></i> Sugerido por el nombre.</p>
+                        @endif
+                    </section>
+
+                    <section class="ingredient-merge__step">
+                        <h3 class="md-title-small"><span class="ingredient-merge__num">2</span> Cómo queda la variante</h3>
+                        <p class="md-supporting-text">Lo que diferencia a este producto del principal. Se aplica a cada una de sus variantes.</p>
+                        <x-ui.field name="mergeFlavor" label="Sabor o tipo" maxlength="60" help="Ej. manzanilla, congelada, infantil." wire:model.live.debounce.300ms="mergeFlavor" />
+                        @if ($merge['variants']->isNotEmpty())
+                            <ul class="ingredient-merge__variants">
+                                @foreach ($merge['variants'] as $variant)
+                                    @php
+                                        $after = collect([$variant->brand?->name, collect([$flavorTag ?: null, $variant->flavor])->filter()->unique()->implode(' · ') ?: null, \App\Models\ShoppingItemVariant::PACKAGINGS[$variant->packaging] ?? null])->filter()->implode(' · ');
+                                    @endphp
+                                    <li wire:key="merge-variant-{{ $variant->id }}"><span>{{ $variant->label() }}</span><span><i class="bi bi-arrow-right" aria-hidden="true"></i> {{ $after ?: 'Variante' }}</span></li>
+                                @endforeach
+                            </ul>
+                        @elseif ($flavorTag !== '')
+                            <p class="md-supporting-text">No tiene variantes: se creará la variante «{{ $flavorTag }}» en el producto principal.</p>
+                        @endif
+                    </section>
+
+                    <section class="ingredient-merge__step">
+                        <h3 class="md-title-small"><span class="ingredient-merge__num">3</span> Qué se mueve</h3>
+                        <ul class="ingredient-merge__moves">
+                            <li><i class="bi bi-tag" aria-hidden="true"></i><span><strong>{{ $plural($p['prices'], 'precio', 'precios') }}</strong> {{ $p['prices'] === 1 ? 'pasa' : 'pasan' }} a la variante, con su tienda y fecha.</span></li>
+                            <li><i class="bi bi-box-seam" aria-hidden="true"></i><span><strong>Stock:</strong> {{ $p['stock'] > 0 ? $merge['source']->formatQuantity($p['stock']) : 'nada' }} se suma al producto principal.</span></li>
+                            <li><i class="bi bi-receipt" aria-hidden="true"></i><span><strong>{{ $plural($p['purchases'], 'línea de compra', 'líneas de compra') }}</strong> {{ $p['purchases'] === 1 ? 'queda registrada' : 'quedan registradas' }} con el producto principal.</span></li>
+                            <li><i class="bi bi-book" aria-hidden="true"></i><span><strong>{{ $plural($p['recipes'], 'receta', 'recetas') }}</strong> {{ $p['recipes'] === 1 ? 'usará' : 'usarán' }} el producto principal.</span></li>
+                            @if ($merge['source']->next_purchase)
+                                <li><i class="bi bi-cart3" aria-hidden="true"></i><span>Está en la lista de compras: el principal queda en la lista.</span></li>
+                            @endif
+                        </ul>
+                        <label class="d-flex align-items-center gap-2"><input type="checkbox" class="md-checkbox" wire:model="mergeKeepAlias"> <span class="md-body-medium">Guardar «{{ $merge['source']->name }}» como alias del principal</span></label>
+                        <p class="ingredient-merge__warning" role="note"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> «{{ $merge['source']->name }}» se elimina del catálogo. Esta acción no se puede deshacer.</p>
+                    </section>
+                </div>
+                <x-slot:actions>
+                    <x-ui.action variant="text" wire:click="closeMerge">Cancelar</x-ui.action>
+                    <x-ui.action variant="filled" icon="bi-intersect" wire:click="confirmMerge" wire:loading.attr="disabled" wire:target="confirmMerge">Convertir</x-ui.action>
+                </x-slot:actions>
+            </x-ui.dialog>
+        </div>
+    @endif
 
 
     <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="ingredient-dialog"

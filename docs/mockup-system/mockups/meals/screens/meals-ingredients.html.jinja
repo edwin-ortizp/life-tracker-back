@@ -20,7 +20,8 @@
       <thead><tr><th scope="col">Ingrediente</th><th scope="col">Categoría</th><th scope="col">Stock</th><th scope="col">Estado</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead>
       <tbody>
       {% for cat, items in [
-        ('Verduras y frutas', [('Banano','6 unidades','En stock','success','Alias: guineo'),('Ahuyama','0,5 kg','Por agotarse','warning',''),('Cilantro','—','Sin stock','danger','Usado en 7 recetas'),('Limones','6 unidades','En stock','success',''),('Frutos rojos','200 g','En stock','success','')]),
+        ('Verduras y frutas', [('Banano','6 unidades','En stock','success','Alias: guineo'),('Ahuyama','0,5 kg','Por agotarse','warning',''),('Cilantro','—','Sin stock','danger','Usado en 7 recetas'),('Limones','6 unidades','En stock','success',''),('Frutos rojos','200 g','En stock','success',''),('Fresa','500 g','En stock','success',''),('Fresa congelada','1 kg','En stock','success','')]),
+        ('Bebidas', [('Aromática','1 caja','En stock','success',''),('Aromática de manzanilla','2 cajas','En stock','success',''),('Aromática de hierbabuena','—','Sin stock','danger','En la lista de compras')]),
         ('Proteínas', [('Pechuga de pollo','1,2 kg','En stock','success','Variantes: filete, molida'),('Lentejas','250 g','Por agotarse','warning',''),('Tilapia','—','Sin stock','danger','Necesario por una receta'),('Huevos','30 unidades','En stock','success','')]),
         ('Despensa', [('Avena en hojuelas','800 g','En stock','success',''),('Leche de coco','2 latas','En stock','success',''),('Arroz basmati','—','Sin stock','danger',''),('Café','500 g','En stock','success',''),('Harina de trigo','1 kg','En stock','success','')])
       ] %}{% set outer = loop.index %}{% for name, qty, chip, tone, note in items %}
@@ -29,7 +30,7 @@
           <td data-label="Categoría" data-ingredient-category>{{ cat }}</td>
           <td data-label="Stock" data-ingredient-stock>{{ qty }}</td>
           <td data-label="Estado"><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></td>
-          <td class="lt-mtable__actions">{{ row_split('ingredient-menu-' ~ outer ~ '-' ~ loop.index, 'Editar', [('Comparar precios','bi-bar-chart-steps'),('Agregar a compras','bi-cart-plus'),('Eliminar','bi-trash',true,None,'ingredient-delete')], name, dialog='ingredient-new') }}</td>
+          <td class="lt-mtable__actions">{{ row_split('ingredient-menu-' ~ outer ~ '-' ~ loop.index, 'Editar', [('Comparar precios','bi-bar-chart-steps'),('Agregar a compras','bi-cart-plus'),('Convertir en variante de…','bi-intersect',false,None,'ingredient-merge'),('Eliminar','bi-trash',true,None,'ingredient-delete')], name, dialog='ingredient-new') }}</td>
         </tr>
       {% endfor %}{% endfor %}
       </tbody>
@@ -87,6 +88,37 @@
   <div class="lt-stack" data-ingredient-aliases><div class="lt-alias-row"><label class="lt-field"><span>Alias 1</span><input type="text" placeholder="palta"></label><button class="lt-icon-button" type="button" data-remove-alias aria-label="Quitar alias"><i class="bi bi-trash" aria-hidden="true"></i></button></div></div>
   <button class="lt-button lt-button--tonal" type="button" data-ingredient-add-alias><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar alias</button>
 </section>
+{% endcall %}
+{% call dialog('ingredient-merge', 'Convertir en variante', submit='Convertir', icon='bi-intersect', submit_action='merge-ingredient') %}
+<div class="lt-merge" data-ingredient-merge>
+  <p class="lt-page-head__subtitle"><strong data-merge-source></strong> dejará de ser un producto aparte: pasará a ser una variante del producto principal que elijas.</p>
+  <section class="lt-merge__step">
+    <h3><span class="lt-merge__num">1</span> Producto principal</h3>
+    <label class="lt-field lt-combobox" data-lt-combobox data-merge-target><span>Convertir en variante de</span><input type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ingredient-merge-targets" autocomplete="off" placeholder="Buscar producto"><i class="bi bi-chevron-down" aria-hidden="true"></i><ul role="listbox" id="ingredient-merge-targets" hidden><li class="lt-combobox__empty" aria-disabled="true" hidden>Sin resultados</li></ul></label>
+    <p class="lt-merge__hint" data-merge-suggestion hidden><i class="bi bi-lightbulb" aria-hidden="true"></i> Sugerido por el nombre.</p>
+  </section>
+  <section class="lt-merge__step">
+    <h3><span class="lt-merge__num">2</span> Cómo queda la variante</h3>
+    <p class="lt-merge__hint">Lo que diferencia a este producto del principal. Se aplica a cada una de sus variantes.</p>
+    <div class="lt-form">
+      <label class="lt-field"><span>Sabor o tipo</span><input type="text" data-merge-flavor maxlength="60" placeholder="Ej. manzanilla, congelada, infantil"></label>
+    </div>
+    <ul class="lt-merge__variants" data-merge-variants></ul>
+  </section>
+  <section class="lt-merge__step">
+    <h3><span class="lt-merge__num">3</span> Qué se mueve</h3>
+    <ul class="lt-merge__moves">
+      <li><i class="bi bi-tag" aria-hidden="true"></i><span><strong>3 precios</strong> pasan a la nueva variante, con su tienda y fecha.</span></li>
+      <li><i class="bi bi-box-seam" aria-hidden="true"></i><span><strong>Stock:</strong> <span data-merge-stock></span> se suma al producto principal.</span></li>
+      <li><i class="bi bi-receipt" aria-hidden="true"></i><span><strong>2 compras</strong> quedan registradas con el producto principal y la nueva variante.</span></li>
+      <li><i class="bi bi-book" aria-hidden="true"></i><span><strong>1 receta</strong> usará el producto principal.</span></li>
+      <li><i class="bi bi-cart3" aria-hidden="true"></i><span>Si estaba en la lista de compras, el principal queda en la lista.</span></li>
+    </ul>
+    <label class="lt-ingredient-check"><input type="checkbox" data-merge-alias checked> Guardar «<span data-merge-source></span>» como alias del principal</label>
+    <p class="lt-merge__warning"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> «<span data-merge-source></span>» se elimina del catálogo. Esta acción no se puede deshacer.</p>
+  </section>
+  <p class="lt-merge__error" data-merge-error role="alert"></p>
+</div>
 {% endcall %}
 {% call dialog('ingredient-delete', 'Eliminar ingrediente', submit='Eliminar', icon='bi-trash', submit_action='delete-ingredient') %}
 <p class="lt-page-head__subtitle"><strong data-ingredient-delete-name></strong> se eliminará de tu catálogo junto con sus variantes, precios y alias.</p>

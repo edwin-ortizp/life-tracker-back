@@ -30,6 +30,7 @@ function mountMeals(context) {
   }
   mountMealComposer(root, scope);
   mountIngredientEditor(root, scope);
+  mountIngredientMerge(root, scope);
   scope.on(root,'click',event=>{
     const trigger=event.target.closest('[data-lt-toggle="recipe-new"]');
     if(!trigger || trigger.closest('#recipe-new')) return;
@@ -366,6 +367,56 @@ function mountMealComposer(root, scope) {
       layer.hidden = true; active.focus();
     }
   });
+}
+
+// Asistente «Convertir en variante de…»: el producto elegido pasa a ser variante de otro y se elimina.
+function mountIngredientMerge(root, scope) {
+  const dialog = root.querySelector('#ingredient-merge');
+  if (!dialog) return;
+  const box = dialog.querySelector('[data-merge-target]');
+  const input = box.querySelector('input');
+  const list = box.querySelector('[role="listbox"]');
+  const flavor = dialog.querySelector('[data-merge-flavor]');
+  const normalize = text => text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
+  let source = null;
+  // Diferencia entre nombres: «Aromática de manzanilla» respecto a «Aromática» → «manzanilla».
+  const difference = (name, base) => name.slice(base.length).replace(/^\s*(de|con|en|sin)?\s+/i, '').trim();
+  const renderVariants = () => {
+    const tag = flavor.value.trim();
+    const items = [['Hindú', 'Caja · 20 und'], ['Jaibel', 'Caja · 25 und']];
+    dialog.querySelector('[data-merge-variants]').innerHTML = items.map(([brand, size]) => '<li><span>' + brand + ' · ' + size + '</span><span>→ ' + brand + (tag ? ' · <strong>' + tag + '</strong>' : '') + ' · ' + size + '</span></li>').join('');
+  };
+  scope.on(root, 'click', event => {
+    const open = event.target.closest('[data-lt-toggle="ingredient-merge"]');
+    if (open?.closest('[data-ingredient]')) {
+      source = open.closest('[data-ingredient]');
+      const name = source.dataset.ingredient;
+      dialog.querySelectorAll('[data-merge-source]').forEach(node => { node.textContent = name; });
+      dialog.querySelector('[data-merge-stock]').textContent = source.querySelector('[data-ingredient-stock]').textContent.trim() === '—' ? 'nada' : source.querySelector('[data-ingredient-stock]').textContent.trim();
+      dialog.querySelector('[data-merge-error]').textContent = '';
+      const others = [...root.querySelectorAll('tr[data-ingredient]')].map(row => row.dataset.ingredient).filter(other => other !== name);
+      list.querySelectorAll('[role="option"]').forEach(option => option.remove());
+      const empty = list.querySelector('.lt-combobox__empty');
+      others.forEach(other => { const option = document.createElement('li'); option.setAttribute('role', 'option'); option.textContent = other; list.insertBefore(option, empty); });
+      const suggestion = others.filter(other => normalize(name).startsWith(normalize(other) + ' ')).sort((a, b) => b.length - a.length)[0];
+      input.value = suggestion || '';
+      flavor.value = suggestion ? difference(name, suggestion) : '';
+      dialog.querySelector('[data-merge-suggestion]').hidden = !suggestion;
+      renderVariants();
+    }
+    if (event.target.closest('[data-lt-action="merge-ingredient"]') && source) {
+      const target = [...root.querySelectorAll('tr[data-ingredient]')].find(row => row.dataset.ingredient === input.value.trim());
+      if (!target) { dialog.querySelector('[data-merge-error]').textContent = 'Elige el producto principal de la lista.'; input.focus(); return; }
+      const tag = flavor.value.trim();
+      const offers = target.querySelector('[data-ingredient-offers]');
+      offers.textContent = offers.textContent + ' · + variante' + (tag ? ' ' + tag : '') + ' (de ' + source.dataset.ingredient + ')';
+      source.remove(); source = null; dialog.hidden = true;
+      target.classList.add('is-merge-updated');
+      target.querySelector('.lt-split__main')?.focus();
+    }
+  });
+  scope.on(flavor, 'input', renderVariants);
+  scope.on(input, 'change', () => { dialog.querySelector('[data-merge-suggestion]').hidden = true; });
 }
 
 function mountIngredientEditor(root, scope) {
