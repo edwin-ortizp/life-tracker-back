@@ -200,6 +200,40 @@ class MealPlanningTest extends TestCase
         $this->assertSame(2, Store::count());
     }
 
+    public function test_arriving_with_an_ingredient_shows_it_as_a_removable_filter(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $coffee = ShoppingItem::create(['name' => 'Café', 'base_unit' => 'g', 'status' => 'available', 'stock' => 0, 'to_buy' => 0]);
+        ShoppingItem::create(['name' => 'Arroz', 'base_unit' => 'g', 'status' => 'available', 'stock' => 0, 'to_buy' => 0]);
+
+        Livewire::withQueryParams(['ingredient' => $coffee->id])
+            ->test(MealIngredients::class)
+            ->assertSee('Ingrediente: Café')
+            ->assertDontSee('Arroz')
+            ->call('removeFilter', 'ingredient')
+            ->assertSet('ingredientId', '')
+            ->assertDontSee('Ingrediente: Café')
+            ->assertSee('Arroz');
+    }
+
+    public function test_variant_flavor_is_saved_and_loaded_from_the_ingredient_modal(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $ingredient = ShoppingItem::create(['name' => 'Palomitas', 'base_unit' => 'g', 'status' => 'available', 'stock' => 0, 'to_buy' => 0]);
+
+        Livewire::test(MealIngredients::class)
+            ->call('openForm', $ingredient->id)
+            ->call('addVariant')->set('variants.0.brand', 'Act II')->set('variants.0.flavor', ' Mantequilla ')->set('variants.0.content', 90)
+            ->call('addVariant')->set('variants.1.brand', 'Act II')->set('variants.1.flavor', 'Queso')->set('variants.1.content', 90)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertEqualsCanonicalizing(['Mantequilla', 'Queso'], $ingredient->variants()->pluck('flavor')->all());
+        Livewire::test(MealIngredients::class)
+            ->call('openForm', $ingredient->id)
+            ->assertSet('variants.0.flavor', fn ($flavor) => in_array($flavor, ['Mantequilla', 'Queso'], true));
+    }
+
     public function test_removing_a_variant_drops_its_prices_and_prices_require_a_variant(): void
     {
         $this->actingAs(User::factory()->create());

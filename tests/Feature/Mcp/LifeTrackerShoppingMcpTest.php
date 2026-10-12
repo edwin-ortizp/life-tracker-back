@@ -75,6 +75,27 @@ class LifeTrackerShoppingMcpTest extends TestCase
         $this->assertSame(500.0, $offer['per_base']);
     }
 
+    public function test_variants_of_the_same_brand_and_content_are_kept_apart_by_flavor(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        Store::create(['name' => 'Éxito']);
+
+        foreach (['Mantequilla', 'Queso', 'Mantequilla'] as $flavor) {
+            LifeTrackerServer::actingAs($user)
+                ->tool(AddShoppingItemTool::class, [
+                    'name' => 'Palomitas', 'base_unit' => 'g', 'brand' => 'Act II', 'flavor' => $flavor, 'content' => 90, 'content_unit' => 'g',
+                    'store' => 'Éxito', 'price' => 4500,
+                ])
+                ->assertOk();
+        }
+
+        $variants = ShoppingItem::where('user_id', $user->id)->firstOrFail()->variants()->with('brand')->get();
+        $this->assertEqualsCanonicalizing(['Mantequilla', 'Queso'], $variants->pluck('flavor')->all());
+        $this->assertStringContainsString('Act II · Mantequilla', $variants->firstWhere('flavor', 'Mantequilla')->label());
+        $this->assertSame(2, $variants->firstWhere('flavor', 'Mantequilla')->prices()->count());
+    }
+
     public function test_add_shopping_item_tool_requires_a_base_unit_for_new_products(): void
     {
         $user = User::factory()->create();

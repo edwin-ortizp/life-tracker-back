@@ -185,23 +185,25 @@
 .purchase-history-row__body strong, .purchase-history-row__total { overflow-wrap: anywhere; }
 .purchase-history-row__body > span { font-size: .75rem; color: var(--md-sys-color-on-surface-variant); }
 .purchase-history-row__total { text-align: right; }
-.purchase-invoice { min-width: 0; overflow: hidden; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-large); background: var(--md-sys-color-surface-container-lowest); }
-.purchase-invoice__header { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; padding: 28px; }
+.purchase-invoice { width: 100%; max-width: 960px; margin-inline: auto; min-width: 0; overflow: hidden; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-large); background: var(--md-sys-color-surface-container-lowest); }
+.purchase-invoice__header { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; padding: 28px; border-bottom: 1px solid var(--md-sys-color-outline-variant); }
 .purchase-invoice__identity { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
-.purchase-invoice__identity p { margin: 8px 0; }
+.purchase-invoice__identity p { margin: 6px 0; color: var(--md-sys-color-on-surface-variant); }
+.purchase-invoice__identity h2 { margin: 4px 0; }
 .purchase-invoice__mark { font-size: 2rem; color: var(--md-module-accent); }
-.purchase-invoice__meta { display: grid; gap: 12px; margin: 0; max-width: 100%; overflow-wrap: anywhere; }
+.purchase-invoice__meta { display: grid; gap: 12px; margin: 0; max-width: 100%; overflow-wrap: anywhere; font-size: .875rem; }
 .purchase-invoice__meta dt { font-size: .8rem; color: var(--md-sys-color-on-surface-variant); }
-.purchase-invoice__meta dd { margin: 0; }
+.purchase-invoice__meta dd { margin: 4px 0 0; font-weight: 700; }
 .purchase-invoice__table { overflow-x: auto; }
-.purchase-invoice table { width: 100%; border-collapse: collapse; font-size: .875rem; }
-.purchase-invoice th, .purchase-invoice td { padding: 16px; border-block: 1px solid var(--md-sys-color-outline-variant); text-align: right; vertical-align: top; }
-.purchase-invoice th:first-child, .purchase-invoice td:nth-child(2) { text-align: left; }
+.purchase-invoice table { width: 100%; border-collapse: collapse; font-size: .875rem; color: var(--md-sys-color-on-surface); }
+.purchase-invoice th, .purchase-invoice td { font-size: inherit; color: inherit; padding: 16px; border-block: 1px solid var(--md-sys-color-outline-variant); text-align: right; vertical-align: top; }
+.purchase-invoice th:first-child, .purchase-invoice thead th:nth-child(2), .purchase-invoice tbody td:nth-child(2) { text-align: left; }
+.purchase-invoice thead th { font-weight: 600; }
 .purchase-invoice thead { background: var(--md-sys-color-surface-container-low); }
-.purchase-invoice tbody th { font-weight: 500; min-width: 180px; overflow-wrap: anywhere; }
+.purchase-invoice tbody th { font-weight: 600; min-width: 180px; overflow-wrap: anywhere; }
 .purchase-invoice tbody th a { display: inline-flex; align-items: center; min-height: 44px; gap: 4px; }
 .purchase-invoice tbody small { display: block; margin-top: 6px; font-size: .75rem; color: var(--md-sys-color-on-surface-variant); font-weight: 400; }
-.purchase-invoice tfoot { font-weight: 700; }
+.purchase-invoice tfoot { font-weight: 700; font-size: 1rem; }
 .purchase-invoice__footer { padding: 20px 28px; color: var(--md-sys-color-on-surface-variant); }
 .purchase-invoice__notes { white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 767.98px) {
@@ -229,7 +231,7 @@
 .ingredient-rows { display: flex; flex-direction: column; gap: 10px; }
 .ingredient-row { display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 8px; align-items: start; padding: 14px 10px 10px; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); }
 .ingredient-row__fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
-.ingredient-row__fields--variant { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, .8fr) minmax(0, .9fr); }
+.ingredient-row__fields--variant { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, .8fr) minmax(0, .9fr); }
 .ingredient-row__fields--price { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, .9fr); }
 .ingredient-row__remove { margin-top: 6px; }
 .ingredient-row__meta { grid-column: 1 / -1; }

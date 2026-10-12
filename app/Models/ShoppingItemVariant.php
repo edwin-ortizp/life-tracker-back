@@ -27,6 +27,7 @@ class ShoppingItemVariant extends Model
         'shopping_item_id',
         'brand_id',
         'packaging',
+        'flavor',
         'content',
         'units_per_pack',
         'is_preferred',
@@ -111,6 +112,7 @@ class ShoppingItemVariant extends Model
 
         return collect([
             $this->brand?->name,
+            $this->flavor,
             self::PACKAGINGS[$this->packaging] ?? null,
             $this->isComparable() ? UnitConverter::format($this->content, $baseUnit) : null,
             $this->units_per_pack ? $this->units_per_pack.' und' : null,

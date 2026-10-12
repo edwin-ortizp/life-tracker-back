@@ -24,6 +24,7 @@ class UpdateVariantTool extends Tool
             'variant_id' => ['required', 'string'],
             'delete' => ['nullable', 'boolean'],
             'brand' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'flavor' => ['sometimes', 'nullable', 'string', 'max:60'],
             'packaging' => ['sometimes', 'nullable', Rule::in(array_keys(ShoppingItemVariant::PACKAGINGS))],
             'content' => ['sometimes', 'nullable', 'numeric', 'gt:0'],
             'content_unit' => ['nullable', 'string', 'max:20'],
@@ -51,7 +52,11 @@ class UpdateVariantTool extends Tool
             return Response::text("Variante \"{$label}\" de \"{$product->name}\" eliminada con sus precios.");
         }
 
-        $updates = collect($data)->only(['packaging', 'units_per_pack', 'barcode', 'kcal', 'protein', 'carbs', 'fat'])->all();
+        $updates = collect($data)->only(['packaging', 'flavor', 'units_per_pack', 'barcode', 'kcal', 'protein', 'carbs', 'fat'])->all();
+
+        if (array_key_exists('flavor', $data)) {
+            $updates['flavor'] = trim((string) $data['flavor']) ?: null;
+        }
 
         if (array_key_exists('brand', $data)) {
             $updates['brand_id'] = CatalogNames::brand($data['brand'])?->id;
@@ -104,6 +109,7 @@ class UpdateVariantTool extends Tool
             'packaging' => $schema->string()->enum(array_keys(ShoppingItemVariant::PACKAGINGS))->description('Empaque.'),
             'content' => $schema->number()->description('Contenido del paquete, p. ej. 900. null lo borra (la variante vuelve a quedar pendiente).'),
             'content_unit' => $schema->string()->description('Unidad del contenido (g, kg, libra, ml, L, unidades, docena). Por defecto la unidad base del producto.'),
+            'flavor' => $schema->string()->description('Sabor de la variante (mantequilla, queso); vacío lo quita.'),
             'units_per_pack' => $schema->integer()->description('Unidades por paquete.'),
             'barcode' => $schema->string()->description('Código de barras.'),
             'is_preferred' => $schema->boolean()->description('Marca la variante como la preferida del producto (desmarca las demás).'),

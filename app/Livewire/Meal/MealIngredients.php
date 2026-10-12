@@ -201,6 +201,7 @@ class MealIngredients extends Component
                 'id' => $v->id,
                 'key' => $v->id,
                 'brand' => $v->brand?->name ?? '',
+                'flavor' => $v->flavor ?? '',
                 'packaging' => $v->packaging ?? '',
                 'content' => $v->content,
                 'content_unit' => $this->defaultContentUnit(),
@@ -229,7 +230,7 @@ class MealIngredients extends Component
     public function addVariant()
     {
         $this->variants[] = [
-            'id' => null, 'key' => 'new-'.Str::uuid(), 'brand' => '', 'packaging' => '', 'content' => null, 'content_unit' => $this->defaultContentUnit(),
+            'id' => null, 'key' => 'new-'.Str::uuid(), 'brand' => '', 'flavor' => '', 'packaging' => '', 'content' => null, 'content_unit' => $this->defaultContentUnit(),
             'units_per_pack' => null, 'barcode' => '', 'is_preferred' => false, 'kcal' => null,
         ];
     }
@@ -297,6 +298,7 @@ class MealIngredients extends Component
             'carbs' => 'nullable|numeric|min:0',
             'fat' => 'nullable|numeric|min:0',
             'variants.*.brand' => 'nullable|string|max:255',
+            'variants.*.flavor' => 'nullable|string|max:60',
             'variants.*.packaging' => ['nullable', Rule::in(array_keys(ShoppingItemVariant::PACKAGINGS))],
             'variants.*.content' => 'nullable|numeric|gt:0',
             'variants.*.units_per_pack' => 'nullable|integer|min:1',
@@ -361,6 +363,7 @@ class MealIngredients extends Component
                 $variantData = [
                     'brand_id' => CatalogNames::brand($variant['brand'] ?? null)?->id,
                     'packaging' => $variant['packaging'] ?: null,
+                    'flavor' => trim((string) ($variant['flavor'] ?? '')) ?: null,
                     'content' => $content,
                     'units_per_pack' => $nullable($variant['units_per_pack'] ?? null),
                     'barcode' => trim((string) ($variant['barcode'] ?? '')) ?: null,
@@ -426,6 +429,50 @@ class MealIngredients extends Component
         }
     }
 
+    public function removeFilter(string $key, ?string $value = null): void
+    {
+        $this->resetPage();
+        match ($key) {
+            'ingredient' => $this->ingredientId = '',
+            'category' => $this->categoryFilter = array_values(array_diff($this->categoryFilter, [$value])),
+            'store' => $this->storeFilter = '',
+            'price' => $this->priceFilter = '',
+            'cart' => $this->cartFilter = '',
+            'usage' => $this->usageFilter = '',
+            'data' => $this->dataFilter = '',
+            default => null,
+        };
+    }
+
+    /** Chips de la franja de filtros aplicados: [key, value, label, icon]. */
+    private function appliedFilters($stores): array
+    {
+        $chips = [];
+        if ($this->ingredientId !== '') {
+            $name = ShoppingItem::whereKey($this->ingredientId)->value('name');
+            $chips[] = ['key' => 'ingredient', 'value' => null, 'label' => 'Ingrediente: '.($name ?? 'no disponible'), 'icon' => 'bi-basket'];
+        }
+        foreach ($this->categoryFilter as $category) {
+            $chips[] = ['key' => 'category', 'value' => $category, 'label' => 'Categoría: '.($this->categoryOptions[$category] ?? 'no disponible'), 'icon' => 'bi-tag'];
+        }
+        if ($this->storeFilter !== '') {
+            $chips[] = ['key' => 'store', 'value' => null, 'label' => 'Tienda: '.($this->storeFilter === '__none' ? 'Sin tienda' : ($stores[$this->storeFilter] ?? 'no disponible')), 'icon' => 'bi-shop'];
+        }
+        $labels = [
+            'price' => [$this->priceFilter, ['with' => 'Con precio', 'without' => 'Sin precio'], 'bi-currency-dollar'],
+            'cart' => [$this->cartFilter, ['yes' => 'En la lista de compras', 'no' => 'Fuera de la lista de compras'], 'bi-cart3'],
+            'usage' => [$this->usageFilter, ['used' => 'Usados en recetas', 'unused' => 'Sin usar en recetas'], 'bi-book'],
+            'data' => [$this->dataFilter, ['pending' => 'Pendientes de completar'], 'bi-exclamation-diamond'],
+        ];
+        foreach ($labels as $key => [$value, $options, $icon]) {
+            if (isset($options[$value])) {
+                $chips[] = ['key' => $key, 'value' => null, 'label' => $options[$value], 'icon' => $icon];
+            }
+        }
+
+        return $chips;
+    }
+
     public function delete(string $id)
     {
         if (\App\Models\MealInventoryMovement::where('user_id', auth()->id())->where('shopping_item_id', $id)->exists()) {
@@ -478,14 +525,18 @@ class MealIngredients extends Component
             ? CatalogNames::similar($this->name, ShoppingItem::pluck('name'))
             : collect();
 
+        $stores = Store::orderBy('name')->pluck('name', 'id');
+        $appliedFilters = $this->appliedFilters($stores);
+
         return view('livewire.meal.meal-ingredients', [
             'purchaseHistory' => $this->showForm && $this->editingId ? ShoppingItem::where('user_id', auth()->id())->with('purchaseLines.purchase.store')->findOrFail($this->editingId)->purchaseHistorySummary() : null,
             'ingredients' => $ingredients,
             'catalogTotal' => ShoppingItem::query()->count(),
-            'stores' => Store::orderBy('name')->pluck('name', 'id'),
+            'stores' => $stores,
             'brands' => $this->showForm ? Brand::orderBy('name')->pluck('name') : collect(),
             'nameSuggestions' => $nameSuggestions,
-            'activeFilters' => collect([$this->ingredientId, $this->categoryFilter, $this->storeFilter, $this->priceFilter, $this->cartFilter, $this->dataFilter, $this->usageFilter])->filter()->count(),
+            'appliedFilters' => $appliedFilters,
+            'activeFilters' => count($appliedFilters),
         ]);
     }
 }

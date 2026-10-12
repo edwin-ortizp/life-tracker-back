@@ -1,4 +1,4 @@
-{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog, fab, manage_card, row_split %}
+{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog, fab, manage_card, row_split, applied_filters %}
 {% call shell('meals', 'Ingredientes', 'bi-basket') %}
 {{ meals_tabs('/meals-ingredients') }}
 <section class="lt-stack">
@@ -15,6 +15,7 @@
         <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="ingredients-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     {% else %}
+    <template data-ingredient-filter-template>{{ applied_filters([('bi-basket','Ingrediente')]) }}</template>
     <table class="lt-mtable">
       <thead><tr><th scope="col">Ingrediente</th><th scope="col">Categoría</th><th scope="col">Stock</th><th scope="col">Estado</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead>
       <tbody>
@@ -58,7 +59,7 @@
 </section>
 <template data-ingredient-variant-template>
   <article class="lt-ingredient-editor-card"><header><strong data-variant-title></strong><button class="lt-icon-button" type="button" data-remove-variant aria-label="Quitar variante"><i class="bi bi-trash" aria-hidden="true"></i></button></header><div class="lt-form">
-    {% for key, label, type in [('brand','Marca','text'),('packaging','Empaque','text'),('content','Contenido','number'),('content_unit','Unidad del contenido','text')] %}
+    {% for key, label, type in [('brand','Marca','text'),('flavor','Sabor','text'),('packaging','Empaque','text'),('content','Contenido','number'),('content_unit','Unidad del contenido','text')] %}
     {% set options = {'packaging':['Unidad','Paquete','Bolsa','Caja','Botella','Lata','Frasco'],'content_unit':['unidad','g','kg','ml','L']}.get(key) %}
     <label class="lt-field"><span>{{ label }}</span>{% if options %}<select data-variant-field="{{ key }}"><option value="">Seleccionar</option>{% for option in options %}<option>{{ option }}</option>{% endfor %}</select>{% else %}<input data-variant-field="{{ key }}" type="{{ type }}"{% if type == 'number' %} min="0" step="any"{% endif %}>{% endif %}</label>
     {% endfor %}

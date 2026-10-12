@@ -110,4 +110,17 @@ class LifeTrackerCatalogMcpTest extends TestCase
         $this->assertFalse($item->next_purchase);
         $this->assertDatabaseHas('shopping_item_prices', ['amount' => 6800, 'source' => 'ticket', 'paid' => true]);
     }
+
+    public function test_update_variant_tool_sets_and_clears_the_flavor(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $variant = ShoppingItem::create(['name' => 'Palomitas', 'base_unit' => 'g', 'status' => 'available', 'stock' => 0, 'to_buy' => 0])->variants()->create(['content' => 90]);
+
+        LifeTrackerServer::actingAs($user)->tool(UpdateVariantTool::class, ['variant_id' => $variant->id, 'flavor' => 'Queso'])->assertOk();
+        $this->assertSame('Queso', $variant->fresh()->flavor);
+
+        LifeTrackerServer::actingAs($user)->tool(UpdateVariantTool::class, ['variant_id' => $variant->id, 'flavor' => ''])->assertOk();
+        $this->assertNull($variant->fresh()->flavor);
+    }
 }

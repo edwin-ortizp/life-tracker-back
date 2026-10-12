@@ -19,7 +19,7 @@
                 <tfoot><tr><th scope="row" colspan="4">Suma de ítems{{ $summary['lines_total_complete'] ? '' : ' (incompleta)' }}</th><td>$ {{ number_format($summary['lines_total'], 2, ',', '.') }}</td></tr><tr><th scope="row" colspan="4">Total pagado</th><td>{{ $purchase->total_paid === null ? 'Sin registrar' : '$ '.number_format((float) $purchase->total_paid, 2, ',', '.') }}</td></tr></tfoot>
             </table>
         </div>
-        <footer class="purchase-invoice__footer"><p>Valores en COP.</p>@if ($purchase->notes)<h3 class="md-title-small">Notas</h3><p class="purchase-invoice__notes">{{ $purchase->notes }}</p>@endif</footer>
+        @if ($purchase->notes)<footer class="purchase-invoice__footer"><h3 class="md-title-small">Notas</h3><p class="purchase-invoice__notes">{{ $purchase->notes }}</p></footer>@endif
     </article>
     <livewire:meal.purchase-editor :key="'purchase-editor-detail-'.$purchase->id" />
 </x-module-shell>

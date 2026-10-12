@@ -10,11 +10,22 @@ function mountMeals(context) {
   root.querySelectorAll('[data-purchase]').forEach(node => { node.hidden = node.dataset.purchase !== purchase; });
   const ingredient = context.params.get('ingredient');
   if (ingredient) {
-    const row = [...root.querySelectorAll('[data-ingredient]')].find(node => node.dataset.ingredient === ingredient);
-    if (row) {
-      row.classList.add('is-ingredient-selected');
-      row.setAttribute('tabindex', '-1');
-      requestAnimationFrame(() => { row.scrollIntoView({block:'center'}); row.focus({preventScroll:true}); });
+    // Llegar desde un enlace (p. ej. el detalle de compra) se ve como un filtro aplicado que se puede quitar.
+    const template = root.querySelector('[data-ingredient-filter-template]');
+    const rows = [...root.querySelectorAll('tr[data-ingredient]')];
+    if (template && rows.length) {
+      const strip = template.content.firstElementChild.cloneNode(true);
+      const label = 'Ingrediente: ' + ingredient;
+      strip.querySelector('.lt-chip span').textContent = label;
+      strip.querySelector('[data-lt-remove-filter]').setAttribute('aria-label', 'Quitar filtro ' + label);
+      template.after(strip);
+      rows.forEach(row => { row.hidden = row.dataset.ingredient !== ingredient; });
+      const badge = root.querySelector('#ingredients [data-lt-filter-count]'); if (badge) { badge.textContent = '1'; badge.hidden = false; }
+      const counter = root.querySelector('#ingredients [data-lt-visible-count]'); if (counter) counter.textContent = '(' + rows.filter(row => !row.hidden).length + ' / ' + (counter.dataset.total || rows.length) + ')';
+      scope.on(root, 'click', event => {
+        if (!event.target.closest('#ingredients [data-lt-remove-filter], #ingredients [data-lt-clear-filters]')) return;
+        requestAnimationFrame(() => { if (!strip.querySelector('[data-lt-remove-filter]')) { rows.forEach(row => { row.hidden = false; }); strip.remove(); } });
+      });
     }
   }
   mountMealComposer(root, scope);
@@ -386,7 +397,7 @@ function mountIngredientEditor(root, scope) {
   function syncVariants() {
     const options = [...variants.children].map((row,index) => {
       const data = fields(row,'data-variant-field');
-      const label = 'Variante ' + (index + 1) + (data.brand ? ' · ' + data.brand : '') + (data.content ? ' · ' + data.content + ' ' + data.content_unit : '') + (data.packaging ? ' · ' + data.packaging : '');
+      const label = 'Variante ' + (index + 1) + (data.brand ? ' · ' + data.brand : '') + (data.flavor ? ' · ' + data.flavor : '') + (data.content ? ' · ' + data.content + ' ' + data.content_unit : '') + (data.packaging ? ' · ' + data.packaging : '');
       row.querySelector('[data-variant-title]').textContent = label;
       return {id:row.dataset.variantId,label};
     });

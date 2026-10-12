@@ -24,6 +24,7 @@ trait RecordsVariantPrices
         return [
             'base_unit' => ['nullable', 'string', 'max:20'],
             'brand' => ['nullable', 'string', 'max:255'],
+            'flavor' => ['nullable', 'string', 'max:60'],
             'packaging' => ['nullable', Rule::in(array_keys(ShoppingItemVariant::PACKAGINGS))],
             'content' => ['nullable', 'numeric', 'gt:0'],
             'content_unit' => ['nullable', 'string', 'max:20'],
@@ -59,12 +60,13 @@ trait RecordsVariantPrices
      */
     protected function recordVariantPrice(ShoppingItem $item, array $data, ?Store $store = null): ?string
     {
-        $describesVariant = collect(['brand', 'packaging', 'content', 'units_per_pack', 'barcode'])->contains(fn ($key) => filled($data[$key] ?? null));
+        $describesVariant = collect(['brand', 'flavor', 'packaging', 'content', 'units_per_pack', 'barcode'])->contains(fn ($key) => filled($data[$key] ?? null));
         if (! $describesVariant && blank($data['price'] ?? null)) {
             return null;
         }
 
         $brand = CatalogNames::brand($data['brand'] ?? null);
+        $flavor = trim((string) ($data['flavor'] ?? '')) ?: null;
         $content = null;
         if (filled($data['content'] ?? null) && $item->base_unit) {
             $content = UnitConverter::toBase((float) $data['content'], $data['content_unit'] ?? null, $item->base_unit, $item->grams_per_piece);
@@ -73,6 +75,7 @@ trait RecordsVariantPrices
         $variant = $item->variants()
             ->when($describesVariant, fn ($query) => $query
                 ->where('brand_id', $brand?->id)
+                ->where('flavor', $flavor)
                 ->when($content !== null, fn ($q) => $q->where('content', $content), fn ($q) => $q->whereNull('content')))
             ->orderByDesc('is_preferred')
             ->first();
@@ -80,6 +83,7 @@ trait RecordsVariantPrices
         $attributes = array_filter([
             'brand_id' => $brand?->id,
             'packaging' => $data['packaging'] ?? null,
+            'flavor' => $flavor,
             'content' => $content,
             'units_per_pack' => $data['units_per_pack'] ?? null,
             'barcode' => $data['barcode'] ?? null,
@@ -111,6 +115,7 @@ trait RecordsVariantPrices
             'base_unit' => $schema->string()->enum(array_keys(ShoppingItem::BASE_UNITS))
                 ->description('Unidad base del producto: g (peso), ml (volumen) o unit (contado). Obligatoria al crear un producto; no cambia después.'),
             'brand' => $schema->string()->description('Marca de la variante (Imatá, Latti...). El nombre del producto no lleva marca.'),
+            'flavor' => $schema->string()->description('Sabor de la variante (mantequilla, queso). Sabores distintos son variantes distintas.'),
             'packaging' => $schema->string()->enum(array_keys(ShoppingItemVariant::PACKAGINGS))->description('Empaque de la variante.'),
             'content' => $schema->number()->description('Contenido del paquete, por ejemplo 900. Sin contenido la variante no se puede comparar.'),
             'content_unit' => $schema->string()->description('Unidad del contenido (g, kg, libra, ml, L, unidades, docena). Se convierte a la unidad base.'),

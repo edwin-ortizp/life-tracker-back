@@ -26,6 +26,11 @@
             <x-ui.action variant="outlined" icon="bi-eraser" wire:click="clearFilters" x-on:click="filtersOpen = false">Limpiar</x-ui.action>
             <x-ui.action variant="filled" icon="bi-funnel-fill" x-on:click="filtersOpen = false">Filtrar</x-ui.action>
         </x-slot:filterActions>
+        @if ($appliedFilters !== [])
+            <x-slot:strip>
+                <x-ui.applied-filters :filters="$appliedFilters" />
+            </x-slot:strip>
+        @endif
 
     @if ($ingredients->isEmpty())
         <div class="md-card-elevated p-4 text-center">
@@ -183,6 +188,7 @@
                     <article class="ingredient-row" wire:key="variant-{{ $variant['key'] }}">
                         <div class="ingredient-row__fields ingredient-row__fields--variant">
                             <x-ui.field name="variants.{{ $index }}.brand" label="Marca" id="var-brand-{{ $index }}" list="ingredient-brands-list" autocomplete="off" wire:model="variants.{{ $index }}.brand" />
+                            <x-ui.field name="variants.{{ $index }}.flavor" label="Sabor" id="var-flavor-{{ $index }}" maxlength="60" wire:model="variants.{{ $index }}.flavor" />
                             <x-ui.select name="variants.{{ $index }}.packaging" label="Empaque" id="var-pack-{{ $index }}" placeholder="Sin definir"
                                          :options="\App\Models\ShoppingItemVariant::PACKAGINGS" :selected="$variant['packaging']" wire:model="variants.{{ $index }}.packaging" />
                             <x-ui.field name="variants.{{ $index }}.content" label="Contenido" type="number" step="0.001" min="0" id="var-content-{{ $index }}" wire:model="variants.{{ $index }}.content" />
@@ -209,6 +215,7 @@
         @php
             $variantOptions = collect($variants)->mapWithKeys(fn ($variant, $index) => [$variant['key'] => collect([
                 $variant['brand'] ?: null,
+                $variant['flavor'] ?: null,
                 filled($variant['content']) ? $variant['content'].' '.$variant['content_unit'] : null,
                 \App\Models\ShoppingItemVariant::PACKAGINGS[$variant['packaging']] ?? null,
             ])->filter()->implode(' · ') ?: 'Variante '.($index + 1)])->all();

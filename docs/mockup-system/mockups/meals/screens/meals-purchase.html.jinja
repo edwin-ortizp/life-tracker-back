@@ -2,12 +2,13 @@
 {% from '@project/mockups/meals/screens/purchase-data.html.jinja' import purchases %}
 {% call shell('meals','Detalle de compra','bi-receipt') %}
 {{ detail_nav([('Historial de compras','/meals-history','bi-clock-history')], '/meals-history', '/meals-history', 'Volver al historial de compras') }}
+{% set flavors = {'Café': 'Vainilla', 'Harina de trigo': None} %}
 {% for date,store,total,lines in purchases %}
 <article class="lt-panel lt-invoice" data-purchase="{{ loop.index }}"{% if not loop.first %} hidden{% endif %} aria-label="Compra en {{ store }} del {{ date }}">
 <header class="lt-invoice__header"><span class="lt-invoice__mark"><i class="bi bi-receipt" aria-hidden="true"></i></span><div><p class="lt-section-label">Comprobante de compra</p><h2>{{ store }}</h2><p>{{ date }}</p></div><dl><dt>Referencia</dt><dd>COMP-2026-00{{ loop.index }}</dd><dt>Productos</dt><dd>{{ lines|length }}</dd></dl></header>
 <div class="lt-invoice__table"><table><caption class="lt-sr-only">Ingredientes comprados, cantidades y precios en pesos colombianos</caption><thead><tr><th scope="col">Ingrediente</th><th scope="col">Presentación</th><th scope="col">Cantidad</th><th scope="col">Precio unitario</th><th scope="col">Subtotal</th></tr></thead><tbody>
-{% for name,quantity,price in lines %}<tr><th scope="row"><a href="#/meals-ingredients?ingredient={{ name|urlencode }}" class="lt-link">{{ name }} <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></th><td>{{ quantity }}</td><td>1</td><td>{{ price }}</td><td>{{ price }}</td></tr>{% endfor %}
-</tbody><tfoot><tr><th scope="row" colspan="4">Total pagado</th><td>{{ total }}</td></tr></tfoot></table></div><p class="lt-invoice__note">Valores en COP. Selecciona un ingrediente para verlo en el catálogo.</p>
+{% for name,quantity,price in lines %}<tr><th scope="row"><a href="#/meals-ingredients?ingredient={{ name|urlencode }}" class="lt-link">{{ name }} <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></th><td>{{ quantity }}{% if flavors.get(name) %}<span class="lt-invoice__flavor">Sabor: {{ flavors[name]|lower }}</span>{% endif %}</td><td>1</td><td>{{ price }}</td><td>{{ price }}</td></tr>{% endfor %}
+</tbody><tfoot><tr><th scope="row" colspan="4">Total pagado</th><td>{{ total }}</td></tr></tfoot></table></div>
 </article>
 {% endfor %}
 {% endcall %}
