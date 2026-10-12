@@ -136,6 +136,7 @@ return [
             ['label' => 'Ingredientes', 'route' => 'meals.ingredients', 'icon' => 'bi-basket', 'active' => ['meals.ingredients', 'meals.compare']],
             ['label' => 'Compras', 'route' => 'meals.shopping', 'icon' => 'bi-cart3', 'active' => ['meals.shopping']],
             ['label' => 'Historial de compras', 'route' => 'meals.purchases', 'icon' => 'bi-receipt', 'active' => ['meals.purchases', 'meals.purchases.show']],
+            ['label' => 'Ajustes', 'route' => 'meals.settings', 'archetype' => 'settings', 'icon' => 'bi-gear', 'active' => ['meals.settings', 'meals.settings.categories']],
         ],
     ],
     'tasks' => [
@@ -170,10 +171,13 @@ return [
         'title' => 'Planes', 'subtitle' => 'Lugares, actividades y experiencias para compartir.', 'icon' => 'bi-map',
         'patterns' => ['plans*'],
         'rail' => true,
-        'preserve' => ['group', 'status', 'q', 'sort', 'city', 'types', 'circles', 'people', 'tags'],
+        'rail_routes' => ['plans', 'plans.show'],
+        'preserve' => ['group', 'status', 'q', 'sort', 'city', 'types', 'circles', 'people', 'tags', 'category'],
         'tabs' => [
-            ['label' => 'Planes', 'route' => 'plans', 'icon' => 'bi-map', 'active' => ['plans', 'plans.show']],
-            ['label' => 'Ajustes', 'route' => 'plans.settings', 'archetype' => 'settings', 'icon' => 'bi-sliders', 'active' => ['plans.settings']],
+            ['label' => 'Todos', 'route' => 'plans', 'icon' => 'bi-map', 'active' => ['plans', 'plans.show']],
+            ['label' => 'Programados', 'route' => 'plans.scheduled', 'icon' => 'bi-calendar-event', 'active' => ['plans.scheduled'], 'preserve' => ['group','q','city','types','circles','people','tags','category']],
+            ['label' => 'Historial', 'route' => 'plans.history', 'icon' => 'bi-clock-history', 'active' => ['plans.history'], 'preserve' => ['q','people']],
+            ['label' => 'Ajustes', 'route' => 'plans.settings', 'archetype' => 'settings', 'icon' => 'bi-sliders', 'active' => ['plans.settings'], 'preserve' => []],
         ],
     ],
     'goals' => [

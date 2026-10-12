@@ -1,0 +1,4 @@
+{% from '@project/components/life-shell.html.jinja' import tabs %}
+{% macro plans_tabs(current) -%}
+{{ tabs([('Todos','/plans-index','bi-grid'),('Programados','/plans-scheduled','bi-calendar-event'),('Historial','/plans-history','bi-clock-history'),('Ajustes','/plans-settings','bi-gear')], current) }}
+{%- endmacro %}

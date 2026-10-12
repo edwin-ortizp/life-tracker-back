@@ -1,0 +1,6 @@
+{% from '@project/components/life-shell.html.jinja' import shell, summary_card %}
+{% call shell('relationships', 'Contacto', 'bi-person', back=('/plans-index','Volver a Planes')) %}
+{% call summary_card('plan-contact','Contacto','bi-person') %}
+<div class="lt-panel__body"><span class="lt-avatar" data-contact-initial aria-hidden="true"></span><h2 data-contact-name></h2><p class="lt-page-head__subtitle">Planes compartidos con este contacto</p><div class="lt-list" data-contact-plans></div><p data-contact-empty hidden>No hay planes asociados a este contacto en esta demostración.</p></div>
+{% endcall %}
+{% endcall %}

@@ -17,7 +17,7 @@
         @foreach ($tabs as $tab)
             @php
                 $active = request()->routeIs(...($tab['active'] ?? [$tab['route']]));
-                $href = route($tab['route'], array_merge($tab['params'] ?? [], $query));
+                $href = route($tab['route'], array_merge($tab['params'] ?? [], isset($tab['preserve']) ? \Illuminate\Support\Arr::only(request()->query(), $tab['preserve']) : $query));
             @endphp
             <a href="{{ $href }}" @if ($tab['navigate'] ?? true) wire:navigate @endif class="md-module-tab {{ $active ? 'is-active' : '' }}" @if($active) aria-current="page" @endif>
                 <i class="bi {{ $tab['icon'] ?? 'bi-circle' }}" aria-hidden="true"></i>

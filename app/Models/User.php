@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Actions\SeedDefaultCircles;
+use App\Actions\SeedDefaultMealCategories;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -46,7 +47,10 @@ class User extends Authenticatable
 
     protected static function booted(): void
     {
-        static::created(fn (self $user) => SeedDefaultCircles::for($user));
+        static::created(function (self $user) {
+            SeedDefaultCircles::for($user);
+            SeedDefaultMealCategories::for($user);
+        });
     }
 
     public function plans()

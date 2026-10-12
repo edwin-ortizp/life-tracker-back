@@ -3,7 +3,7 @@
         <x-module-actions :primary="['label' => 'Agregar plan', 'icon' => 'bi-plus-lg', 'action' => 'openPlanForm']" :fab-always="true" />
     </x-slot:actions>
 
-    <x-ui.management-card id="plans" title="Tus planes" icon="bi-map" :count="'('.$plans->total().' / '.$total.')'"
+    <x-ui.management-card id="plans" :title="$scheduled ? 'Programados' : 'Tus planes'" icon="bi-map" :count="'('.$plans->total().' / '.$total.')'"
                           search="q" search-placeholder="Buscar planes" :active-filters="count($activeFilters)"
                           :paginator="$plans" noun="planes" class="plans-section"
                           sort-model="sort" :sort-options="$sorts" :sort-value="$sort">
@@ -14,7 +14,14 @@
                 <x-ui.chip variant="filter" :icon="$item['icon']" :selected="$group === $key" wire:click="setGroup('{{ $key }}')" wire:key="plans-group-{{ $key }}">{{ $item['label'] }} ({{ $item['count'] }})</x-ui.chip>
             @endforeach
             </div>
+            @if ($scheduled)
+                <x-ui.field name="from" type="date" label="Desde" wire:model.live="from" />
+                <x-ui.field name="to" type="date" label="Hasta" wire:model.live="to" />
+            @endif
+            <x-ui.select name="category" label="Categoría" :options="$categoryOptions" :selected="$category" placeholder="Todas" wire:model.live="category" />
+            @if (! $scheduled)
                     <x-ui.select name="status" label="Estado" :options="$statusOptions" :selected="$status" placeholder="Todos menos archivados" icon="bi-flag" wire:model.live="status" />
+            @endif
                     <x-ui.select name="city" label="Ciudad" :options="$cityOptions" :selected="$city" placeholder="Todas las ciudades" icon="bi-geo-alt" wire:model.live="city" />
                     <x-ui.multi-select name="types" label="Tipo de plan" :options="$typeOptions" all-label="Todos los tipos" icon="bi-tag" />
                     <x-ui.multi-select name="circles" label="Círculo" :options="$circleOptions" all-label="Todos los círculos" icon="bi-diagram-3" />
@@ -62,6 +69,7 @@
         @endif
     </x-ui.management-card>
 
+    @if (! $scheduled)
     <x-slot:rail>
         <section class="plan-card" aria-labelledby="plans-summary-title">
             <header class="plan-card__head">
@@ -122,6 +130,7 @@
 
         @include('livewire.plan.partials.plan-rail-links', ['links' => $recentLinks, 'id' => 'plans-links-title'])
     </x-slot:rail>
+    @endif
 
     @include('livewire.plan.partials.plan-dialogs')
 </x-module-shell>

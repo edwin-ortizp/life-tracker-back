@@ -48,6 +48,47 @@ test('meal inventory concurrent consumers preserve stock', async () => {
 });
 
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+    test(`meal settings catalogs at ${viewport.width}px`, async ({ page }) => {
+        await page.setViewportSize(viewport);
+        await page.goto('/login');
+        await page.getByLabel('Correo electrónico').fill('purchase-browser@example.test');
+        await page.getByLabel('Contraseña', { exact: true }).fill('browser-test-password');
+        await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
+        await page.waitForURL(url => !url.pathname.includes('/login'));
+        await page.goto('/meals/settings');
+        await page.getByRole('button', { name: 'Crear tienda', exact: true }).click();
+        const form = page.getByRole('dialog', { name: 'Crear tienda' });
+        await form.getByLabel('Nombre').fill(`${viewport.width === 390 ? 'Botica móvil' : 'Mercado escritorio'}`);
+        await form.getByRole('button', { name: 'Guardar', exact: true }).click();
+        await expect(form).not.toBeVisible();
+        await expect(page.locator('#meal-settings-catalog')).toContainText(`${viewport.width === 390 ? 'Botica móvil' : 'Mercado escritorio'}`);
+        await page.getByRole('navigation', { name: 'Secciones de Ajustes de Comidas' }).getByRole('link', { name: 'Categorías de productos' }).click();
+        await page.getByRole('button', { name: 'Crear categoría', exact: true }).click();
+        const category = page.getByRole('dialog', { name: 'Crear categoría' });
+        await category.getByLabel('Nombre').fill(`Categoría navegador ${viewport.width}`);
+        await category.getByRole('button', { name: 'Guardar', exact: true }).click();
+        await expect(category).not.toBeVisible();
+        await page.reload();
+        await expect(page.locator('#meal-settings-catalog')).toContainText(`Categoría navegador ${viewport.width}`);
+        const nav = await page.locator('.meal-settings-nav').boundingBox();
+        const content = await page.locator('#meal-settings-catalog').boundingBox();
+        expect(viewport.width < 768 ? nav.y < content.y : nav.x > content.x + content.width - 1).toBeTruthy();
+        await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+        const accessibility = await new AxeBuilder({ page }).include('.meal-settings-workspace').analyze();
+        expect(accessibility.violations).toEqual([]);
+        await page.goto('/meals/ingredients');
+        await page.getByRole('button', { name: 'Agregar ingrediente', exact: true }).click();
+        const ingredient = page.getByRole('dialog', { name: 'Agregar ingrediente' });
+        await ingredient.getByLabel('Nombre').fill(`Ingrediente categoría ${viewport.width}`);
+        const categoryId = await ingredient.getByLabel('Categoría', { exact: true }).selectOption({ label: `Categoría navegador ${viewport.width}` });
+        expect(categoryId[0]).toMatch(/^[0-9a-f-]{36}$/);
+        await ingredient.getByLabel('Unidad base').selectOption('g');
+        await ingredient.getByRole('button', { name: 'Guardar', exact: true }).click();
+        await expect(ingredient).not.toBeVisible();
+        await page.goto(`/meals/ingredients?category_id=${categoryId[0]}`);
+        await expect(page.locator('#meal-ingredients')).toContainText(`Ingrediente categoría ${viewport.width}`);
+        await expect(page.locator('#meal-ingredients')).toContainText(`Categoría navegador ${viewport.width}`);
+    });
     test(`meal inventory cook consume and revert at ${viewport.width}px`, async ({ page }) => {
         test.setTimeout(120_000);
         const errors = [];
@@ -270,4 +311,3 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         expect(errors).toEqual([]);
     });
 }
-

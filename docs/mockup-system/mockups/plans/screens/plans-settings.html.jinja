@@ -1,8 +1,9 @@
+{% from '@project/components/plans-tabs.html.jinja' import plans_tabs %}
 {% from '@project/components/plan-icon-picker.html.jinja' import plan_icon_picker %}
 {% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, manage_card, dialog, fab, row_split %}
 {% set catalogs = [('categories','Categorías de planes','bi-grid','categoría',[('Gastronomía','bi-egg-fried'),('Naturaleza','bi-tree'),('Cultura','bi-bank')]),('tags','Tags de planes','bi-tags','tag',[('En pareja','bi-heart'),('En familia','bi-people'),('Fin de semana','bi-calendar-week')])] %}
 {% call shell('plans','Ajustes de Planes','bi-gear') %}
-{{ module_tabs([('Todos','/plans-index','bi-grid'),('Programados',None,'bi-calendar-event',true),('Historial',None,'bi-clock-history',true),('Ajustes','/plans-settings','bi-gear')], '/plans-settings') }}
+{{ plans_tabs('/plans-settings') }}
 <div class="lt-plan-settings">
 <div>{% for key,title,icon,singular,items in catalogs %}<section data-plan-panel="{{ key }}"{% if not loop.first %} hidden{% endif %} aria-label="{{ title }}">
 {% call(zone) manage_card('plan-' ~ key,title,icon,count='(3 / 3)',total=3,search='Buscar ' ~ title|lower,footer={'from':1,'to':3,'total':3,'noun':title|lower,'page':1,'pages':1,'per_page':25}) %}{% if zone == 'content' %}<table class="lt-mtable"><thead><tr><th scope="col">Nombre</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead><tbody>{% for name,item_icon in items %}<tr><td><i class="bi {{ item_icon }} lt-mtable__icon" aria-hidden="true"></i>{{ name }}</td><td class="lt-mtable__actions">{{ row_split('plan-' ~ key ~ '-menu-' ~ loop.index, 'Editar', [('Eliminar','bi-trash',true,None,key ~ '-delete-' ~ loop.index)], name, dialog=key ~ '-edit-' ~ loop.index) }}</td></tr>{% endfor %}</tbody></table>{% endif %}{% endcall %}

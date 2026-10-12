@@ -5,6 +5,7 @@ namespace App\Mcp\Tools\Shopping;
 use App\Mcp\Tools\Shopping\Concerns\RecordsVariantPrices;
 use App\Mcp\Tools\Shopping\Concerns\ResolvesShoppingItem;
 use App\Models\ShoppingItem;
+use App\Models\MealCategory;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Validation\Rule;
 use Laravel\Mcp\Request;
@@ -23,7 +24,7 @@ class UpdateShoppingItemTool extends Tool
             'item_id' => ['nullable', 'string'],
             'name' => ['nullable', 'string'],
             'quantity' => ['sometimes', 'numeric', 'min:0'],
-            'category' => ['sometimes', 'nullable', 'string', Rule::in(array_keys(ShoppingItem::CATEGORIES))],
+            'category_id' => ['sometimes', 'nullable', 'string', Rule::in(array_keys(MealCategory::options()))],
             'stock' => ['sometimes', 'numeric', 'min:0'],
             'min_stock' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'grams_per_piece' => ['sometimes', 'nullable', 'numeric', 'gt:0'],
@@ -44,7 +45,7 @@ class UpdateShoppingItemTool extends Tool
             return $item;
         }
 
-        $updates = collect($data)->only(['category', 'stock', 'min_stock', 'grams_per_piece', 'kcal', 'protein', 'carbs', 'fat'])->all();
+        $updates = collect($data)->only(['category_id', 'stock', 'min_stock', 'grams_per_piece', 'kcal', 'protein', 'carbs', 'fat'])->all();
         if (array_key_exists('quantity', $data)) {
             $updates['to_buy'] = $data['quantity'];
         }
@@ -79,9 +80,8 @@ class UpdateShoppingItemTool extends Tool
                 ->description('Nombre del ítem. Alternativa a "item_id".'),
             'quantity' => $schema->number()
                 ->description('Nueva cantidad de paquetes a comprar.'),
-            'category' => $schema->string()
-                ->enum(array_keys(ShoppingItem::CATEGORIES))
-                ->description('Nueva categoría.'),
+            'category_id' => $schema->string()
+                ->description('Identificador de categoría del usuario. Consulta category_options en ListShoppingItemsTool.'),
             'stock' => $schema->number()->description('Stock en casa, en la unidad base del producto.'),
             'min_stock' => $schema->number()->description('Stock mínimo, en la unidad base.'),
             'grams_per_piece' => $schema->number()->description('Gramos por pieza para productos por peso que se cuentan por pieza.'),

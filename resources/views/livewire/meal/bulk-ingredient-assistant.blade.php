@@ -123,10 +123,10 @@
                                                         <input type="text" wire:model="rows.{{ $index }}.new_name" placeholder=" " id="bulk-new-name-{{ $index }}">
                                                         <label for="bulk-new-name-{{ $index }}">Nombre *</label>
                                                     </div>
-                                                    <div class="md-text-field {{ $errors->has("rows.$index.category") ? 'md-error' : '' }}">
-                                                        <select wire:model="rows.{{ $index }}.category" id="bulk-category-{{ $index }}">
+                                                    <div class="md-text-field {{ $errors->has("rows.$index.category_id") ? 'md-error' : '' }}">
+                                                        <select wire:model="rows.{{ $index }}.category_id" id="bulk-category-{{ $index }}">
                                                             <option value="">Seleccionar</option>
-                                                            @foreach ($categoryOptions as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach
+                                                            @foreach ($this->categoryOptions as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach
                                                         </select>
                                                         <label for="bulk-category-{{ $index }}">Categoría *</label>
                                                     </div>
@@ -134,7 +134,7 @@
                                                                  :options="\App\Models\ShoppingItem::BASE_UNITS" :selected="$row['unit'] ?? ''" wire:model="rows.{{ $index }}.unit" />
                                                 </div>
                                                 @error("rows.$index.new_name")<small class="text-danger">{{ $message }}</small>@enderror
-                                                @error("rows.$index.category")<small class="text-danger">{{ $message }}</small>@enderror
+                                                @error("rows.$index.category_id")<small class="text-danger">{{ $message }}</small>@enderror
                                             @elseif (($row['action'] ?? '') === 'link')
                                                 <div class="md-text-field mt-3 {{ $errors->has("rows.$index.link_item_id") ? 'md-error' : '' }}">
                                                     <select wire:model="rows.{{ $index }}.link_item_id" id="bulk-link-{{ $index }}">

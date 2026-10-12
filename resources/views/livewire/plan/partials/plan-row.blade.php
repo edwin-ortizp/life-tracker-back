@@ -21,7 +21,7 @@
             <span class="plan-row__people">
                 <i class="bi bi-people" aria-hidden="true"></i>
                 @foreach ($people->take(2) as $person)
-                    <span class="plan-row__person"><span class="plan-row__avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($person->full_name, 0, 1)) }}</span>{{ $person->nickname ?: \Illuminate\Support\Str::before($person->full_name.' ', ' ') }}</span>
+                    <x-ui.chip :href="route('relationships.show', $person)" wire:navigate class="plan-row__person"><span class="plan-row__avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($person->full_name, 0, 1)) }}</span>{{ $person->nickname ?: \Illuminate\Support\Str::before($person->full_name.' ', ' ') }}</x-ui.chip>
                 @endforeach
                 @if ($people->count() > 2)
                     <span class="plan-row__tag">+{{ $people->count() - 2 }}</span>
@@ -34,6 +34,7 @@
     </div>
 
     <div class="plan-row__aside">
+        @if ($plan->status === 'scheduled' && $plan->scheduled_on?->lt(today()))<x-ui.chip tone="warning" variant="tonal" icon="bi-exclamation-circle">Vencido</x-ui.chip>@endif
         <div class="plan-row__line">
             @if ($plan->scheduled_on)
                 <span class="plan-row__date"><i class="bi bi-calendar-event" aria-hidden="true"></i> {{ \Illuminate\Support\Str::ucfirst($plan->scheduled_on->translatedFormat('D, j M Y')) }}</span>

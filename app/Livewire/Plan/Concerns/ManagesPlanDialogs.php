@@ -28,6 +28,7 @@ trait ManagesPlanDialogs
     public string $planType = 'restaurant';
 
     public string $planCategory = '';
+    public string $planCategoryId = '';
 
     public string $planCity = '';
 
@@ -66,6 +67,8 @@ trait ManagesPlanDialogs
         return [];
     }
 
+    public function updatedPlanCategoryId(): void { $this->planCategory = ''; }
+
     public function openPlanForm(?string $id = null): void
     {
         $this->resetPlanForm();
@@ -77,6 +80,7 @@ trait ManagesPlanDialogs
             $this->planTitle = $plan->title;
             $this->planType = $plan->type;
             $this->planCategory = $plan->category ?? '';
+            $this->planCategoryId = $plan->plan_category_id ?? '';
             $this->planCity = $plan->city ?? '';
             $this->planAddress = $plan->address ?? '';
             $this->planScheduledOn = $plan->scheduled_on?->toDateString();
@@ -156,6 +160,7 @@ trait ManagesPlanDialogs
         $this->validate([
             'planTitle' => ['required', 'string', 'max:160'],
             'planType' => ['required', Rule::in(array_keys(Plan::TYPES))],
+            'planCategoryId' => ['nullable', 'uuid', Rule::exists('plan_categories', 'id')->where('user_id', auth()->id())],
             'planCategory' => ['nullable', 'string', 'max:80'],
             'planCity' => ['nullable', 'string', 'max:120'],
             'planAddress' => ['nullable', 'string', 'max:255'],
@@ -190,6 +195,7 @@ trait ManagesPlanDialogs
                 'title' => trim($this->planTitle),
                 'type' => $this->planType,
                 'category' => trim($this->planCategory) ?: null,
+                ...($this->planCategoryId !== '' ? ['plan_category_id' => $this->planCategoryId] : []),
                 'city' => trim($this->planCity) ?: null,
                 'address' => trim($this->planAddress) ?: null,
                 'scheduled_on' => $this->planScheduledOn ?: null,
@@ -301,6 +307,7 @@ trait ManagesPlanDialogs
     protected function planDialogOptions(): array
     {
         return [
+            'planCategoryOptions' => \App\Models\PlanCategory::query()->orderBy('name')->pluck('name', 'id')->all(),
             'typeOptions' => Plan::TYPES,
             'circleOptions' => Circle::query()->orderBy('sort_order')->orderBy('name')->pluck('name', 'id')->all(),
             'peopleOptions' => Relationship::query()->active()->orderBy('full_name')->pluck('full_name', 'id')->all(),
@@ -310,7 +317,7 @@ trait ManagesPlanDialogs
 
     private function resetPlanForm(): void
     {
-        $this->reset(['editingPlanId', 'planTitle', 'planType', 'planCategory', 'planCity', 'planAddress', 'planScheduledOn', 'planEndsOn', 'planNotes', 'planCircles', 'planPeople', 'planTags', 'planLinks', 'planImages']);
+        $this->reset(['editingPlanId', 'planTitle', 'planType', 'planCategory', 'planCategoryId', 'planCity', 'planAddress', 'planScheduledOn', 'planEndsOn', 'planNotes', 'planCircles', 'planPeople', 'planTags', 'planLinks', 'planImages']);
         $this->resetValidation();
     }
 

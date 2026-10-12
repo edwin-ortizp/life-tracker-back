@@ -40,7 +40,7 @@ class IngredientImportTest extends TestCase
         ShoppingItem::create([
             'name' => 'Leche',
             'status' => 'available',
-            'category' => 'lacteos',
+            'category_id' => \App\Models\MealCategory::where('key', 'lacteos')->value('id'),
             'next_purchase' => true,
         ]);
 
@@ -149,7 +149,7 @@ class IngredientImportTest extends TestCase
             ->assertSet('rows.1.status', 'unresolved')
             ->set('rows.1.action', 'create')
             ->set('rows.1.new_name', 'Pan')
-            ->set('rows.1.category', 'panaderia')
+            ->set('rows.1.category_id', \App\Models\MealCategory::where('key', 'panaderia')->value('id'))
             ->set('rows.1.unit', 'unit')
             ->call('confirm')
             ->assertHasNoErrors()
@@ -164,7 +164,7 @@ class IngredientImportTest extends TestCase
         ]);
         $this->assertDatabaseHas('shopping_items', [
             'name' => 'Pan',
-            'category' => 'panaderia',
+            'category_id' => \App\Models\MealCategory::where('key', 'panaderia')->value('id'),
             'base_unit' => 'unit',
             'next_purchase' => true,
             'to_buy' => 0,
@@ -182,7 +182,7 @@ class IngredientImportTest extends TestCase
             ->call('analyze')
             ->set('rows.0.action', 'create')
             ->set('rows.0.new_name', 'Huevos')
-            ->set('rows.0.category', 'lacteos')
+            ->set('rows.0.category_id', \App\Models\MealCategory::where('key', 'lacteos')->value('id'))
             ->set('rows.0.unit', 'unit')
             ->call('confirm')
             ->assertHasNoErrors();
@@ -282,7 +282,7 @@ class IngredientImportTest extends TestCase
             $importer->apply([
                 [
                     'term' => 'Pan', 'normalized' => 'pan', 'quantity' => null,
-                    'action' => 'create', 'new_name' => 'Pan', 'category' => 'panaderia', 'unit' => '',
+                    'action' => 'create', 'new_name' => 'Pan', 'category_id' => \App\Models\MealCategory::where('key', 'panaderia')->value('id'), 'unit' => '',
                 ],
                 [
                     'term' => 'Leche', 'normalized' => 'leche', 'quantity' => null,

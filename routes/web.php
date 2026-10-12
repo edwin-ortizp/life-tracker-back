@@ -24,6 +24,7 @@ use App\Livewire\Meal\MealPurchases;
 use App\Livewire\Meal\MealPurchaseShow;
 use App\Livewire\Meal\MealRecipes;
 use App\Livewire\Meal\MealShopping;
+use App\Livewire\Meal\MealSettings;
 use App\Livewire\Meal\MealWeekly;
 use App\Livewire\Mood\MoodSettings;
 use App\Livewire\Mood\MoodTracker;
@@ -124,6 +125,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/meals/suggestions', \App\Livewire\Meal\MealSuggestions::class)->name('meals.suggestions');
     Route::get('/meals/recipes', MealRecipes::class)->name('meals.recipes');
     Route::get('/meals/ingredients', MealIngredients::class)->name('meals.ingredients');
+    Route::get('/meals/settings', MealSettings::class)->name('meals.settings');
+    Route::get('/meals/settings/categories', MealSettings::class)->defaults('section', 'categories')->name('meals.settings.categories');
     Route::get('/meals/shopping', MealShopping::class)->name('meals.shopping');
     Route::get('/meals/purchases', MealPurchases::class)->name('meals.purchases');
     Route::get('/meals/purchases/{purchase}', MealPurchaseShow::class)->name('meals.purchases.show');
@@ -143,6 +146,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/relationships/{relationship}/plans', RelationshipPlans::class)->name('relationships.plans');
     Route::get('/relationships/{relationship}/history', RelationshipHistory::class)->name('relationships.history');
     Route::get('/relationships/{relationship}/tasks', RelationshipTasks::class)->name('relationships.tasks');
+    Route::get('/plans/scheduled', \App\Livewire\Plan\PlanScheduled::class)->name('plans.scheduled');
+    Route::get('/plans/history', \App\Livewire\Plan\PlanHistory::class)->name('plans.history');
     Route::get('/plans/settings', \App\Livewire\Plan\PlanSettings::class)->name('plans.settings');
     Route::get('/plans', PlanIndex::class)->name('plans');
     Route::get('/plans/{plan}', PlanShow::class)->name('plans.show');

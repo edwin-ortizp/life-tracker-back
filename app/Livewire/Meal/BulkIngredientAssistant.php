@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Meal;
 
+use App\Livewire\Concerns\WithMealCategories;
+
 use App\Models\ShoppingItem;
 use App\Services\Meal\IngredientImportService;
 use Illuminate\Validation\Rule;
@@ -10,6 +12,7 @@ use Livewire\Component;
 
 class BulkIngredientAssistant extends Component
 {
+    use WithMealCategories;
     #[Locked]
     public string $context = 'shopping';
 
@@ -22,24 +25,6 @@ class BulkIngredientAssistant extends Component
     public array $rows = [];
 
     public ?array $result = null;
-
-    #[Locked]
-    public array $categoryOptions = [
-        'frutas_verduras' => 'Frutas y verduras',
-        'carnes' => 'Carnes y pescados',
-        'lacteos' => 'Lácteos y huevos',
-        'panaderia' => 'Panadería',
-        'cereales' => 'Cereales y granos',
-        'enlatados' => 'Enlatados y conservas',
-        'condimentos' => 'Condimentos y salsas',
-        'bebidas' => 'Bebidas',
-        'congelados' => 'Congelados',
-        'snacks' => 'Snacks y dulces',
-        'limpieza' => 'Limpieza',
-        'higiene' => 'Higiene personal',
-        'mascotas' => 'Mascotas',
-        'otros' => 'Otros',
-    ];
 
     public function mount(string $context = 'shopping'): void
     {
@@ -96,7 +81,7 @@ class BulkIngredientAssistant extends Component
             'rows' => ['required', 'array', 'min:1'],
             'rows.*.action' => ['required', Rule::in(['match', 'create', 'link', 'ignore'])],
             'rows.*.new_name' => ['nullable', 'string', 'max:255'],
-            'rows.*.category' => ['nullable', Rule::in(array_keys($this->categoryOptions))],
+            'rows.*.category_id' => ['nullable', Rule::in(array_keys($this->categoryOptions))],
             'rows.*.unit' => ['nullable', 'string', 'in:g,ml,unit'],
             'rows.*.link_item_id' => ['nullable', 'uuid'],
         ], [
@@ -115,8 +100,8 @@ class BulkIngredientAssistant extends Component
                     $this->addError("rows.$index.new_name", 'Escribe el nombre del ingrediente.');
                     $hasErrors = true;
                 }
-                if (trim((string) ($row['category'] ?? '')) === '') {
-                    $this->addError("rows.$index.category", 'Selecciona una categoría.');
+                if (trim((string) ($row['category_id'] ?? '')) === '') {
+                    $this->addError("rows.$index.category_id", 'Selecciona una categoría.');
                     $hasErrors = true;
                 }
             }

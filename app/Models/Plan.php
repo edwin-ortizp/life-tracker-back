@@ -63,6 +63,7 @@ class Plan extends Model
         'title',
         'type',
         'category',
+        'plan_category_id',
         'city',
         'address',
         'status',
@@ -87,6 +88,11 @@ class Plan extends Model
     public function relationships(): BelongsToMany
     {
         return $this->belongsToMany(Relationship::class);
+    }
+
+    public function planCategory(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(PlanCategory::class);
     }
 
     public function tags(): BelongsToMany

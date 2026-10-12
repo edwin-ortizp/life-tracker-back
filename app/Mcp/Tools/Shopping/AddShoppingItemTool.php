@@ -5,6 +5,7 @@ namespace App\Mcp\Tools\Shopping;
 use App\Mcp\Tools\Shopping\Concerns\RecordsVariantPrices;
 use App\Mcp\Tools\Shopping\Concerns\ResolvesShoppingItem;
 use App\Models\ShoppingItem;
+use App\Models\MealCategory;
 use App\Services\Meal\CatalogNames;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +26,7 @@ class AddShoppingItemTool extends Tool
             'item_id' => ['nullable', 'string'],
             'name' => ['nullable', 'string', 'max:255'],
             'quantity' => ['nullable', 'numeric', 'gt:0'],
-            'category' => ['nullable', 'string', Rule::in(array_keys(ShoppingItem::CATEGORIES))],
+            'category_id' => ['nullable', 'string', Rule::in(array_keys(MealCategory::options()))],
             ...$this->variantPriceRules(),
         ]);
 
@@ -63,8 +64,8 @@ class AddShoppingItemTool extends Tool
             if (isset($data['quantity'])) {
                 $updates['to_buy'] = $data['quantity'];
             }
-            if (isset($data['category'])) {
-                $updates['category'] = $data['category'];
+            if (isset($data['category_id'])) {
+                $updates['category_id'] = $data['category_id'];
             }
             if ($baseUnit && ! $item->base_unit) {
                 $updates['base_unit'] = $baseUnit;
@@ -83,7 +84,7 @@ class AddShoppingItemTool extends Tool
                 'base_unit' => $baseUnit,
                 'stock' => 0,
                 'to_buy' => $data['quantity'] ?? 1,
-                'category' => $data['category'] ?? null,
+                'category_id' => $data['category_id'] ?? null,
                 'status' => 'available',
                 'next_purchase' => true,
             ]);
@@ -105,9 +106,8 @@ class AddShoppingItemTool extends Tool
                 ->description('Nombre genérico del producto, en singular y sin marca ni tamaño. Alternativa a "item_id". Si ya existe, se reutiliza.'),
             'quantity' => $schema->number()
                 ->description('Cantidad de paquetes a comprar (admite decimales).'),
-            'category' => $schema->string()
-                ->enum(array_keys(ShoppingItem::CATEGORIES))
-                ->description('Categoría del ítem.'),
+            'category_id' => $schema->string()
+                ->description('Identificador de categoría del usuario. Consulta category_options en ListShoppingItemsTool.'),
             ...$this->variantPriceSchema($schema),
         ];
     }

@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Meal;
 
+use App\Livewire\Concerns\WithMealCategories;
+
 use App\Livewire\Concerns\WithManagementCard;
 use App\Models\MealPlanEntryItem;
 use App\Models\ShoppingItem;
@@ -23,7 +25,7 @@ use Livewire\Component;
 #[Title('Compras')]
 class MealShopping extends Component
 {
-    use WithManagementCard;
+    use WithManagementCard, WithMealCategories;
 
     #[Url(as: 'q', history: true, keep: true)]
     public string $search = '';
@@ -37,8 +39,6 @@ class MealShopping extends Component
 
     #[Url(as: 'view', history: true, keep: true)]
     public string $viewMode = 'compact'; // 'compact' or 'grouped'
-
-    public array $categoryOptions = ShoppingItem::CATEGORIES;
 
     public bool $showForm = false;
 
@@ -123,7 +123,7 @@ class MealShopping extends Component
 
         $attributes = array_filter([
             'to_buy' => $data['itemQuantity'],
-            'category' => $data['itemCategory'] ?: null,
+            'category_id' => $data['itemCategory'] ?: null,
         ], fn ($value) => $value !== null);
 
         if ($existing) {
@@ -289,7 +289,7 @@ class MealShopping extends Component
                 ->groupBy(fn ($item) => $item->bestOffer($storeId)['price']->store?->name ?? '')
                 ->sortKeys();
         } else {
-            $grouped = $pageItems->groupBy('category')->sortKeys();
+            $grouped = $pageItems->groupBy('category_id')->sortKeys();
         }
 
         $neededItems = $this->weeklyNeeds();

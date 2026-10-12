@@ -84,7 +84,7 @@ class IngredientImportService
                 'action' => '',
                 'link_item_id' => '',
                 'new_name' => Str::ucfirst($row['term']),
-                'category' => '',
+                'category_id' => '',
                 'unit' => '',
             ];
 
@@ -161,8 +161,8 @@ class IngredientImportService
 
                 if ($action === 'create') {
                     $name = trim((string) ($row['new_name'] ?? ''));
-                    $category = trim((string) ($row['category'] ?? ''));
-                    if ($name === '' || $category === '') {
+                    $categoryId = trim((string) ($row['category_id'] ?? ''));
+                    if ($name === '' || ! array_key_exists($categoryId, \App\Models\MealCategory::options())) {
                         throw ValidationException::withMessages(["rows.$index.new_name" => 'Completa el nombre y la categoría.']);
                     }
 
@@ -171,7 +171,7 @@ class IngredientImportService
                         'name' => $name,
                         'stock' => 0,
                         'to_buy' => $context === 'shopping' && $row['quantity'] !== null ? (float) $row['quantity'] : 0,
-                        'category' => $category,
+                        'category_id' => $categoryId,
                         'status' => 'available',
                         'next_purchase' => $context === 'shopping',
                         'base_unit' => UnitConverter::baseUnitOf($row['unit'] ?? null),

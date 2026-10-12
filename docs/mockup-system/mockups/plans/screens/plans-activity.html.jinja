@@ -1,0 +1,41 @@
+{% from '@project/components/life-shell.html.jinja' import shell, manage_card, dialog, fab, row_split %}
+{% from '@project/components/plans-tabs.html.jinja' import plans_tabs %}
+{% from '@project/components/catalog/plan-row.html.jinja' import plan_dialogs %}
+{% from '@project/mockups/plans/screens/plans-data.html.jinja' import plans %}
+{% set scheduled = activity == 'scheduled' %}
+{% set title = 'Programados' if scheduled else 'Historial' %}
+{% set icon = 'bi-calendar-event' if scheduled else 'bi-clock-history' %}
+{% set visits = [('2026-06-14','14 jun. 2026','Camila Rojas','Probamos el de maracuyá; el mejor hasta ahora.'),('2026-05-02','2 may. 2026','María Ortiz, Julián Ortiz',''),('2026-03-21','21 mar. 2026','Camila Rojas','Después del cine.'),('2026-02-08','8 feb. 2026','Familia','Cumpleaños de mamá.'),('2025-12-30','30 dic. 2025','Camila Rojas','')] %}
+{% set entries = plans|selectattr('variant','equalto','scheduled')|list if scheduled else visits %}
+{% call shell('plans', 'Planes', 'bi-map') %}
+{{ plans_tabs('/plans-' ~ activity) }}
+{% call(zone) manage_card('plan-activity',title,icon,count='(' ~ entries|length ~ ' / ' ~ entries|length ~ ')',total=entries|length,search='Buscar planes programados' if scheduled else 'Buscar en el historial',sort=[('oldest','Fecha más próxima','bi-calendar-event'),('recent','Fecha más lejana','bi-calendar-event')] if scheduled else [('recent','Más recientes','bi-clock-history'),('oldest','Más antiguos','bi-clock')],footer={'from':1,'to':entries|length,'total':entries|length,'noun':'planes programados' if scheduled else 'visitas','page':1,'pages':1,'per_page':25}) %}
+{% if zone == 'content' %}
+<div class="lt-list" data-lt-sort-rows>
+{% for entry in entries %}
+{% set name = entry.title if scheduled else 'Heladería Popsy' %}
+{% set date = entry.date if scheduled else entry[1] %}
+{% set people = entry.people|join(', ') if scheduled else entry[2] %}
+<div class="lt-list-item" data-plan-activity-row data-entry-id="{{ loop.index }}" data-sort-at="{{ entry.at if scheduled else entry[0] }}">
+<span class="lt-list-item__icon"><i class="bi {{ entry.icon if scheduled else 'bi-cup-straw' }}" aria-hidden="true"></i></span>
+<div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ date }} · {{ people }}</span>{% if scheduled %}<span>{{ entry.city }} · {{ entry.category }}</span>{% elif entry[3] %}<span>{{ entry[3] }}</span>{% endif %}</div>
+{% if scheduled %}<button class="lt-button lt-button--outlined" type="button" data-lt-toggle="activity-detail-{{ loop.index }}" aria-haspopup="dialog" aria-label="Ver detalle de {{ name }} del {{ date }}">Ver detalle</button>{% else %}{{ row_split('activity-menu-' ~ loop.index, 'Ver detalle', [('Eliminar del historial','bi-trash',true,None,'activity-delete-' ~ loop.index)], name ~ ' del ' ~ date, dialog='activity-detail-' ~ loop.index) }}{% endif %}
+</div>
+{% endfor %}
+</div>
+<p class="lt-page-head__subtitle" data-plan-activity-empty role="status" hidden>No hay registros que coincidan con la búsqueda.</p>
+{% endif %}{% endcall %}
+{{ fab('Agregar plan', 'bi-plus-lg', 'plan-new') }}
+{% for entry in entries %}
+{% set name = entry.title if scheduled else 'Heladería Popsy' %}
+{% call dialog('activity-detail-' ~ loop.index,name,submit='Cerrar',icon=icon) %}
+<dl class="lt-dl"><div><dt>Estado</dt><dd>{{ 'Programado' if scheduled else 'Realizado' }}</dd></div><div><dt>Fecha</dt><dd>{{ entry.date if scheduled else entry[1] }}</dd></div><div><dt>Con quién</dt><dd>{{ entry.people|join(', ') if scheduled else entry[2] }}</dd></div>{% if scheduled %}<div><dt>Ciudad</dt><dd>{{ entry.city }}</dd></div><div><dt>Categoría</dt><dd>{{ entry.category }}</dd></div>{% else %}<div><dt>Comentario</dt><dd>{{ entry[3] or 'Sin comentario' }}</dd></div>{% endif %}</dl>
+{% endcall %}
+{% if not scheduled %}
+{% call dialog('activity-delete-' ~ loop.index,'Eliminar del historial',submit='Eliminar',icon='bi-trash',submit_action='activity-delete-' ~ loop.index) %}
+<p>¿Eliminar la visita a {{ name }} del {{ entry[1] }} del historial?</p>
+<p>El plan seguirá disponible. Este cambio solo afecta a esta vista de demostración.</p>
+{% endcall %}
+{% endif %}{% endfor %}
+{{ plan_dialogs() }}
+{% endcall %}

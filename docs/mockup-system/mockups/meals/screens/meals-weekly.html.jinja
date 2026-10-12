@@ -1,7 +1,7 @@
-{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog %}
+{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog, fab %}
 {% call shell('meals', 'Planificación de comidas', 'bi-egg-fried') %}
 {{ meals_tabs('/meals-weekly') }}
-<section class="lt-toolbar"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><p class="lt-toolbar__label">Semana del 8 al 14 de septiembre</p><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-cart-plus"></i> Generar lista de compras</button></section>
+<section class="lt-toolbar"><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana anterior"><i class="bi bi-chevron-left"></i></button><p class="lt-toolbar__label">Semana del 8 al 14 de septiembre</p><button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Semana siguiente"><i class="bi bi-chevron-right"></i></button></section>
 <section class="lt-metrics">{{ metric('Comidas planificadas','16 de 21','success') }}{{ metric('Recetas distintas','9') }}{{ metric('Ingredientes por comprar','14','warning') }}</section>
 <section class="lt-week-plan" aria-label="Plan semanal">
   {% set plan = [
@@ -13,9 +13,15 @@
     ('Sáb','13',[('Desayuno','Calentado'),('Almuerzo',''),('Cena','')]),
     ('Dom','14',[('Desayuno','Pancakes de avena'),('Almuerzo','Ajiaco'),('Cena','')])
   ] %}
+  <div class="lt-meal-row-labels" aria-label="Tipos de comida"><span aria-hidden="true"></span>{% for label in ['Desayuno','Almuerzo','Cena'] %}<span class="lt-meal-row-label">{{ label }}</span>{% endfor %}</div>
   {% for dname, dnum, slots in plan %}
   <div class="lt-day-col{% if dnum == '10' %} is-today{% endif %}"><h4>{{ dname }} <small>{{ dnum }}{% if dnum == '10' %} · hoy{% endif %}</small></h4>
-    {% for slot, recipe in slots %}<button class="lt-meal-slot{% if not recipe %} lt-meal-slot--empty{% endif %}" type="button" data-lt-toggle="meal-composition" data-meal-key="{{ dnum }}-{{ loop.index }}" data-meal-label="{{ slot }} · {{ dname }} {{ dnum }} de septiembre" data-meal-recipe="{{ recipe }}" aria-haspopup="dialog"><small>{{ slot }}</small><span data-meal-caption>{{ recipe or 'Planificar comida' }}</span><small data-meal-status-label>{{ 'Planeada' if recipe else 'Sin planificar' }}</small></button>{% endfor %}
+    {% for slot, recipe in slots %}<div class="lt-meal-card"><button class="lt-meal-slot{% if not recipe %} lt-meal-slot--empty{% endif %}" type="button" data-lt-toggle="meal-composition" data-meal-key="{{ dnum }}-{{ loop.index }}" data-meal-label="{{ slot }} · {{ dname }} {{ dnum }} de septiembre" data-meal-recipe="{{ recipe }}" aria-haspopup="dialog" aria-label="{{ slot }} · {{ dname }} {{ dnum }} de septiembre"><span data-meal-caption>{{ recipe or 'Planificar comida' }}</span><small class="lt-chip lt-meal-status-chip" data-meal-state="{{ 'planned' if recipe else 'empty' }}" data-meal-status-label>{{ 'Planeada' if recipe else 'Sin planificar' }}</small></button><div class="lt-menu-anchor lt-meal-card__actions">
+      <button class="lt-icon-button" type="button" data-lt-toggle="meal-menu-{{ dnum }}-{{ loop.index }}" aria-haspopup="menu" aria-expanded="false" aria-label="Acciones de {{ slot }} del {{ dnum }}"><i class="bi bi-three-dots-vertical" aria-hidden="true"></i></button>
+      <div class="lt-menu lt-menu--down" id="meal-menu-{{ dnum }}-{{ loop.index }}" role="menu" hidden>
+        {% for action, label, icon in [('move','Mover','bi-arrow-right'),('copy','Copiar','bi-copy'),('swap','Intercambiar','bi-arrow-left-right'),('delete','Eliminar','bi-trash')] %}<button class="lt-menu__item" type="button" role="menuitem" data-meal-open-action="{{ action }}" data-lt-toggle="meal-action-dialog"><i class="bi {{ icon }}" aria-hidden="true"></i>{{ label }}</button>{% endfor %}
+      </div>
+    </div></div>{% endfor %}
   </div>
   {% endfor %}
 </section>
@@ -28,9 +34,13 @@
     <div class="lt-list">{% for r, m in [('Crema de ahuyama','30 min · vegetariana'),('Crepes de espinaca','25 min'),('Cremoso de champiñones','35 min')] %}<button class="lt-list-item" type="button" data-lt-static-nav><div class="lt-list-item__body"><strong>{{ r }}</strong><span>{{ m }}</span></div><i class="bi bi-plus-circle"></i></button>{% endfor %}</div>
   </div></article>
 </section>
+{{ fab('Generar lista de compras', 'bi-cart-plus', 'meal-generate-shopping') }}
+{% call dialog('meal-generate-shopping', 'Generar lista de compras', submit='Generar', icon='bi-cart-plus') %}
+  <p>Semana del 8 al 14 de septiembre</p>
+  <p>Generar la lista a partir de las comidas planificadas.</p>
+{% endcall %}
 {% call dialog('meal-composition', 'Composición de la comida', icon='bi-egg-fried', submit='Guardar', submit_action='save-meal', sections=[('composition','Ingredientes','bi-basket'),('nutrition','Resumen nutricional','bi-heart-pulse'),('notes','Notas','bi-journal-text')]) %}
 <section class="lt-dialog__section" data-section="composition">
-  <header class="lt-dialog__section-head"><h3>Composición de la comida</h3><p>Combina recetas, ingredientes y elementos libres para esta comida.</p></header>
   <div class="lt-meal-status-row">
     <span>Estado de la comida</span>
     <div class="lt-menu-anchor">
@@ -51,6 +61,7 @@
     <label class="lt-field"><span>Calorías consumidas por fuera (opcional)</span><input data-meal-outside-calories type="number" min="0" step="1" placeholder="Sin registrar"></label>
     <p>El plan original se conserva. Puedes registrar una comida por fuera sin añadir elementos.</p>
   </div>
+  <header class="lt-dialog__section-head"><h3>Composición de la comida</h3></header>
   <div data-meal-items aria-label="Elementos de la comida"></div>
   <button class="lt-button lt-button--tonal" type="button" data-meal-add><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar</button>
   <p data-meal-error role="status"></p>
@@ -65,14 +76,13 @@
   </template>
 </section>
 <section class="lt-dialog__section" data-section="nutrition" hidden>
-  <header class="lt-dialog__section-head"><h3>Resumen nutricional</h3><p>Estimación de ejemplo según la composición y las cantidades.</p></header>
-  <label class="lt-field"><span>Calorías manuales (kcal)</span><input data-meal-calories-override type="number" min="0" step="1" placeholder="Usar cálculo de la composición" aria-describedby="meal-calories-help"></label>
-  <p id="meal-calories-help">Este valor sustituye las calorías calculadas. Déjalo vacío para usar el cálculo de la composición.</p>
+  <header class="lt-dialog__section-head"><h3>Resumen nutricional</h3></header>
+  <label class="lt-field"><span>Calorías manuales (kcal)</span><input data-meal-calories-override type="number" min="0" step="1" placeholder="Usar cálculo de la composición"></label>
   <div class="lt-metrics" data-meal-nutrition></div>
   <p data-meal-nutrition-note></p>
 </section>
 <section class="lt-dialog__section" data-section="notes" hidden>
-  <header class="lt-dialog__section-head"><h3>Notas de preparación</h3><p>Guarda instrucciones, tiempos y recordatorios para esta comida.</p></header>
+  <header class="lt-dialog__section-head"><h3>Notas de preparación</h3></header>
   <div class="lt-field">
     <span id="meal-notes-label">Notas</span>
     <div class="lt-md-editor">
@@ -87,5 +97,14 @@
     </div>
   </div>
 </section>
+{% endcall %}
+{% call dialog('meal-action-dialog', 'Acciones de la comida', submit='Confirmar', icon='bi-arrow-left-right', submit_action='run-meal-action') %}
+  <p data-meal-action-source></p>
+  <div data-meal-action-target>
+    <label class="lt-field"><span>Fecha destino</span><input type="date" data-meal-target-date min="2026-09-08" max="2026-09-14" required></label>
+    <label class="lt-field"><span>Comida destino</span><select data-meal-target-type><option value="1">Desayuno</option><option value="2">Almuerzo</option><option value="3">Cena</option></select></label>
+  </div>
+  <p data-meal-delete-confirm hidden>¿Eliminar esta comida planificada?</p>
+  <p data-meal-action-error role="status"></p>
 {% endcall %}
 {% endcall %}

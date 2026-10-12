@@ -69,7 +69,9 @@ startMockup({'meals-weekly': mountMeals, 'meals-recipes': mountMeals, 'meals-ing
 function mountMealComposer(root, scope) {
   const layer = root.querySelector('#meal-composition');
   if (!layer) return;
-  const find = selector => layer.querySelector(selector);
+  const find = selector => layer.querySelector(selector) || root.querySelector(selector);
+  const actionLayer = root.querySelector('#meal-action-dialog');
+  let selectedAction = null;
   const catalogs = {
     recipe: ['Avena con banano', 'Pollo al curry', 'Ensalada César', 'Huevos pericos', 'Crema de ahuyama', 'Lentejas con arroz', 'Tacos de pescado', 'Arepa con queso', 'Yogur con granola', 'Salmón al horno', 'Pizza casera', 'Calentado', 'Pancakes de avena', 'Ajiaco'],
     ingredient: ['Avena', 'Banano', 'Leche', 'Huevos', 'Arroz', 'Pollo', 'Tomate', 'Queso']
@@ -78,6 +80,15 @@ function mountMealComposer(root, scope) {
   const nutrients = {recipe: [350, 18, 42, 12], ingredient: [100, 4, 16, 2]};
   const saved = new Map();
   let active, draft;
+  const emptyMeal = () => ({items:[], notes:'', status:'planned'});
+  const mealAt = slot => structuredClone(saved.get(slot.dataset.mealKey) || {items:slot.dataset.mealRecipe ? [{kind:'recipe', name:slot.dataset.mealRecipe, quantity:1, unit:'porción'}] : [], notes:'', status:'planned'});
+  function updateSlot(slot, meal) {
+    saved.set(slot.dataset.mealKey, structuredClone(meal));
+    slot.querySelector('[data-meal-caption]').textContent = meal.items.map(item => item.name).join(' + ') || 'Planificar comida';
+    slot.querySelector('[data-meal-status-label]').textContent = meal.status === 'consumed' ? (meal.consumption_mode === 'outside' ? 'Comida por fuera' : 'Consumida') : meal.items.length ? 'Planeada' : 'Sin planificar';
+    slot.querySelector('[data-meal-status-label]').dataset.mealState = meal.status === 'consumed' ? meal.consumption_mode || 'home' : meal.items.length ? 'planned' : 'empty';
+    slot.classList.toggle('lt-meal-slot--empty', !meal.items.length && meal.status !== 'consumed');
+  }
   const list = find('[data-meal-items]');
   const readItems = () => [...list.children].map(row => ({
     kind: row.querySelector('[data-meal-kind]').value,
@@ -132,6 +143,7 @@ function mountMealComposer(root, scope) {
   const status = find('[data-meal-status]');
   const syncStatus = () => {
     find('[data-meal-outside]').hidden = status.value !== 'outside';
+    status.closest('.lt-split').dataset.mealState = status.value;
     status.textContent = {planned:'Planeada', home:'Consumida', outside:'Comida por fuera'}[status.value];
   };
   scope.on(find('[data-meal-calories-override]'), 'input', renderNutrition);
@@ -141,6 +153,47 @@ function mountMealComposer(root, scope) {
   });
   scope.on(list, 'input', renderNutrition);
   scope.on(root, 'click', event => {
+    const openAction = event.target.closest('[data-meal-open-action]');
+    if (openAction) {
+      active = openAction.closest('.lt-meal-card').querySelector('[data-meal-key]');
+      selectedAction = openAction.dataset.mealOpenAction;
+      const label = {move:'Mover', copy:'Copiar', swap:'Intercambiar', delete:'Eliminar'}[selectedAction];
+      find('#meal-action-dialog-title').textContent = label + ' comida';
+      actionLayer.querySelector('[data-lt-action="run-meal-action"]').textContent = label;
+      find('[data-meal-action-source]').textContent = active.dataset.mealLabel;
+      find('[data-meal-action-target]').hidden = selectedAction === 'delete';
+      find('[data-meal-delete-confirm]').hidden = selectedAction !== 'delete';
+      find('[data-meal-action-error]').textContent = '';
+      find('[data-meal-target-date]').value = '2026-09-' + active.dataset.mealKey.split('-')[0].padStart(2,'0');
+      find('[data-meal-target-type]').value = active.dataset.mealKey.split('-')[1];
+      const menu = openAction.closest('.lt-menu'); menu.hidden = true;
+      openAction.closest('.lt-menu-anchor').querySelector('[aria-expanded]').setAttribute('aria-expanded','false');
+      return;
+    }
+    const rearrange = event.target.closest('[data-lt-action="run-meal-action"]');
+    if (rearrange && active) {
+      const error = find('[data-meal-action-error]'); error.textContent = '';
+      const source = mealAt(active), action = selectedAction;
+      if (source.status === 'consumed' || !source.items.length) { error.textContent = 'Selecciona una comida guardada y planeada para realizar esta acción.'; return; }
+      if (action === 'delete') updateSlot(active, emptyMeal());
+      else {
+        const date = find('[data-meal-target-date]');
+        if (!date.reportValidity()) return;
+        const key = String(Number(date.value.slice(-2))) + '-' + find('[data-meal-target-type]').value;
+        const target = [...root.querySelectorAll('[data-meal-key]')].find(slot => slot.dataset.mealKey === key);
+        if (!target || target === active) { error.textContent = 'Elige otra casilla de esta semana.'; return; }
+        const destination = mealAt(target);
+        if (destination.status === 'consumed') { error.textContent = 'La comida destino ya fue consumida.'; return; }
+        if (action === 'swap') {
+          if (!destination.items.length) { error.textContent = 'Para intercambiar elige una casilla con comida.'; return; }
+          updateSlot(active, destination); updateSlot(target, source);
+        } else {
+          updateSlot(target, destination.items.length ? {...destination, items:[...destination.items, ...source.items]} : source);
+          if (action === 'move') updateSlot(active, emptyMeal());
+        }
+      }
+      actionLayer.hidden = true; active.closest('.lt-meal-card').querySelector('.lt-meal-card__actions > button').focus(); return;
+    }
     const stateAction = event.target.closest('[data-meal-set-status]');
     if (stateAction) {
       status.value = stateAction.dataset.mealSetStatus;
@@ -168,6 +221,10 @@ function mountMealComposer(root, scope) {
     const slot = event.target.closest('[data-meal-key]');
     if (slot) {
       active = slot;
+      find('[data-meal-target-date]').value = '2026-09-' + slot.dataset.mealKey.split('-')[0].padStart(2,'0');
+      find('[data-meal-target-type]').value = slot.dataset.mealKey.split('-')[1];
+      find('[data-meal-action-error]').textContent = '';
+      find('[data-meal-delete-confirm]').hidden = true;
       draft = structuredClone(saved.get(slot.dataset.mealKey) || {items: slot.dataset.mealRecipe ? [{kind:'recipe', name:slot.dataset.mealRecipe, quantity:1, unit:'porción'}] : [], notes:''});
       find('#meal-composition-title').textContent = slot.dataset.mealLabel;
       find('[data-meal-notes]').value = draft.notes;
@@ -208,6 +265,7 @@ function mountMealComposer(root, scope) {
       saved.set(active.dataset.mealKey, structuredClone(draft));
       active.querySelector('[data-meal-status-label]').textContent = {planned:'Planeada', home:'Consumida', outside:'Comida por fuera'}[status.value];
       active.querySelector('[data-meal-caption]').textContent = draft.items.map(item => item.name).join(' + ') || (status.value === 'outside' ? 'Comida por fuera' : 'Planificar comida');
+      active.querySelector('[data-meal-status-label]').dataset.mealState = status.value;
       active.classList.toggle('lt-meal-slot--empty', !draft.items.length && draft.status === 'planned');
       layer.hidden = true; active.focus();
     }

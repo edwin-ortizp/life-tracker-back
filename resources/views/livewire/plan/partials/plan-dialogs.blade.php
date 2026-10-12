@@ -18,7 +18,7 @@
                 <x-ui.field name="planTitle" label="Nombre" :required="true" wire:model.blur="planTitle" />
             </div>
             <x-ui.select name="planType" label="Tipo" :options="$typeOptions" :selected="$planType" icon="bi-tag" :required="true" wire:model="planType" />
-            <x-ui.field name="planCategory" label="Categoría" icon="bi-bookmark" wire:model.blur="planCategory" />
+            <x-ui.select name="planCategoryId" label="Categoría" :options="$planCategoryOptions" :selected="$planCategoryId" placeholder="Sin categoría" icon="bi-bookmark" wire:model.live="planCategoryId" />
             <x-ui.field name="planCity" label="Ciudad" icon="bi-geo-alt" wire:model.blur="planCity" />
             <x-ui.field name="planAddress" label="Dirección" wire:model.blur="planAddress" />
             <x-ui.field name="planScheduledOn" type="date" label="Fecha (opcional)" wire:model.blur="planScheduledOn" />

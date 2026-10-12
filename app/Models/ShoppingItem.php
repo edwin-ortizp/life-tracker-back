@@ -41,7 +41,7 @@ class ShoppingItem extends Model
         'stock',
         'min_stock',
         'to_buy',
-        'category',
+        'category_id',
         'consume_by',
         'status',
         'next_purchase',
@@ -65,6 +65,23 @@ class ShoppingItem extends Model
             'carbs' => 'float',
             'fat' => 'float',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $item) {
+            if ($item->category_id !== null && ($item->isDirty('category_id') || $item->isDirty('user_id'))) {
+                $userId = $item->user_id ?? auth()->id();
+                if (! MealCategory::withoutGlobalScopes()->where('user_id', $userId)->whereKey($item->category_id)->exists()) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['category_id' => 'Selecciona una categoría de tu catálogo.']);
+                }
+            }
+        });
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(MealCategory::class);
     }
 
     public function variants()

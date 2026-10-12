@@ -16,7 +16,7 @@
             <div class="md-chip-menu" :class="{ 'open': openMenu === 'category' }">
                 <button @click="openMenu = openMenu === 'category' ? null : 'category'"
                         class="md-chip md-chip-filter {{ $categoryFilter ? 'selected' : '' }}">
-                    {{ $categoryFilter ? $this->categoryOptions[$categoryFilter] : 'Categoría' }}
+                    {{ $categoryFilter ? ($this->categoryOptions[$categoryFilter] ?? 'Categoría no disponible') : 'Categoría' }}
                     <i class="bi bi-chevron-down md-chip-menu__arrow"></i>
                 </button>
                 <div x-show="openMenu === 'category'" x-transition x-cloak class="md-chip-menu__dropdown">
@@ -216,7 +216,7 @@
                     </p>
                 @endif
                 <div class="md-field-pair">
-                    <x-ui.select name="category" label="Categoría" placeholder="Sin categoría" :options="$this->categoryOptions" :selected="$category" wire:model="category" />
+                    <x-ui.select name="categoryId" label="Categoría" placeholder="Sin categoría" :options="$this->categoryOptions" :selected="$categoryId" wire:model="categoryId" />
                     <x-ui.select name="baseUnit" label="Unidad base" placeholder="Elige g, ml o unidad" :required="true"
                                  :options="\App\Models\ShoppingItem::BASE_UNITS" :selected="$baseUnit" :disabled="$baseUnitLocked"
                                  :help="$baseUnitLocked ? 'La unidad base no cambia una vez definida.' : 'Todo lo de este producto se guarda en esta unidad.'"

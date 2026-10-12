@@ -4,6 +4,7 @@ namespace App\Livewire\Meal;
 
 use App\Models\Store;
 use App\Services\Meal\CatalogNames;
+use App\Services\Meal\StoreCatalogManager;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -75,22 +76,14 @@ class StoreCatalog extends Component
 
     public function rename(): void
     {
-        $store = Store::find($this->editingId);
-        $name = trim($this->editingName);
-        if (! $store || $name === '') {
-            $this->addError('editingName', 'El nombre de la tienda es obligatorio.');
+        try {
+            StoreCatalogManager::rename((string) $this->editingId, $this->editingName);
+        } catch (\Illuminate\Validation\ValidationException $exception) {
+            $this->addError('editingName', $exception->getMessage());
 
             return;
         }
 
-        $existing = CatalogNames::findStore($name);
-        if ($existing && $existing->id !== $store->id) {
-            $this->addError('editingName', "Ya existe \"{$existing->name}\". Si son la misma tienda, únelas.");
-
-            return;
-        }
-
-        $store->update(['name' => $name]);
         $this->editingId = null;
         $this->dispatch('stores-updated');
     }
@@ -120,16 +113,14 @@ class StoreCatalog extends Component
 
     public function delete(string $id): void
     {
-        $store = Store::withCount(['prices', 'purchases'])->find($id);
-        if ($store && $store->purchases_count > 0) {
-            $this->addError('storeName', 'Esta tienda tiene compras registradas; puedes fusionarla con otra.');
+        try {
+            StoreCatalogManager::delete($id);
+        } catch (\Illuminate\Validation\ValidationException $exception) {
+            $this->addError('storeName', $exception->getMessage());
 
             return;
         }
-        if ($store && $store->prices_count === 0) {
-            $store->delete();
-            $this->dispatch('stores-updated');
-        }
+        $this->dispatch('stores-updated');
     }
 
     public function render()

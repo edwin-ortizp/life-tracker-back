@@ -10,7 +10,10 @@
       "screens": [
         "plans-index",
         "plans-show",
-        "plans-settings"
+        "plans-settings",
+        "plans-scheduled",
+        "plans-history",
+        "plans-contact"
       ],
       "output": "plans.html"
     }
@@ -30,6 +33,21 @@
       "template": "screens/plans-settings.html.jinja",
       "title": "Ajustes de Planes",
       "bodyClass": ""
+    },
+    "plans-scheduled": {
+      "template": "screens/plans-scheduled.html.jinja",
+      "title": "Programados",
+      "bodyClass": ""
+    },
+    "plans-history": {
+      "template": "screens/plans-history.html.jinja",
+      "title": "Historial",
+      "bodyClass": ""
+    },
+    "plans-contact": {
+      "template": "screens/plans-contact.html.jinja",
+      "title": "Contacto",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -44,6 +62,18 @@
     {
       "path": "/plans-settings",
       "screen": "plans-settings"
+    },
+    {
+      "path": "/plans-scheduled",
+      "screen": "plans-scheduled"
+    },
+    {
+      "path": "/plans-history",
+      "screen": "plans-history"
+    },
+    {
+      "path": "/relationships-show",
+      "screen": "plans-contact"
     }
   ],
   "datasets": {

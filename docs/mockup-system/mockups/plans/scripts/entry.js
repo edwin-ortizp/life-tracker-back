@@ -2,7 +2,51 @@ import icons from './icons.json';
 import {startMockup} from '@mockup-system/runtime/bootstrap.js';
 import {mountLifeShell} from '@project/project-assets/life-shell.js';
 import {mountLogSort} from '@project/project-assets/log-sort.js';
-startMockup({'plans-index': context => { mountLifeShell(context); mountLogSort(context, 'plans'); }, 'plans-show': mountLifeShell, 'plans-settings': context => {
+function mountPlanActivity(context) {
+  mountLifeShell(context);
+  mountLogSort(context, 'plan-activity');
+  const {root, scope} = context;
+  function refresh() {
+    const query = root.querySelector('.lt-mcard__search input').value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const rows = [...root.querySelectorAll('[data-plan-activity-row]')];
+    rows.forEach(row => { row.hidden = !row.querySelector('.lt-list-item__body').textContent.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(query); });
+    const count = rows.filter(row => !row.hidden).length;
+    root.querySelector('[data-lt-visible-count]').textContent = `(${count} / ${rows.length})`;
+    root.querySelector('[data-plan-activity-empty]').hidden = count !== 0;
+    root.querySelector('.lt-mcard__range').textContent = count ? `1–${count} de ${count}` : '0 de 0';
+  }
+  scope.on(root, 'input', event => {
+    if (event.target.matches('.lt-mcard__search input')) refresh();
+  });
+  scope.on(root, 'click', event => {
+    const button = event.target.closest('[data-lt-action^="activity-delete-"]');
+    if (!button) return;
+    const id = button.dataset.ltAction.slice('activity-delete-'.length);
+    root.querySelector(`[data-entry-id="${id}"]`)?.remove();
+    root.querySelector(`#activity-delete-${id}`).hidden = true;
+    refresh();
+    context.toast('Visita eliminada del historial de demostración.');
+  });
+}
+startMockup({'plans-contact': context => {
+  mountLifeShell(context);
+  const {root} = context;
+  const people = {'Camila':'Camila Rojas','María':'María Ortiz','Daniel':'Daniel Pérez'};
+  const person = context.params.get('person') || '';
+  const name = people[person] || 'Contacto no disponible';
+  root.querySelector('[data-contact-name]').textContent = name;
+  root.querySelector('.lt-topbar__title').textContent = name;
+  root.querySelector('[data-contact-initial]').textContent = name[0];
+  const template = document.querySelector('template[data-screen="plans-index"]');
+  const rows = template ? [...template.content.querySelectorAll('.lt-plan')] : [];
+  const matches = rows.filter(row => [...row.querySelectorAll('.lt-plan__person')].some(link => link.textContent.trim().slice(1).trim() === person));
+  matches.forEach(row => {
+    const link = document.createElement('a'); link.className = 'lt-list-item'; link.href = '#/plans-index';
+    link.textContent = row.querySelector('.lt-plan__body strong').textContent;
+    root.querySelector('[data-contact-plans]').append(link);
+  });
+  root.querySelector('[data-contact-empty]').hidden = matches.length > 0;
+}, 'plans-scheduled': mountPlanActivity, 'plans-history': mountPlanActivity, 'plans-index': context => { mountLifeShell(context); mountLogSort(context, 'plans'); }, 'plans-show': mountLifeShell, 'plans-settings': context => {
   mountLifeShell(context);
   const {root, scope} = context;
   const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();

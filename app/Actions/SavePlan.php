@@ -24,6 +24,21 @@ class SavePlan
     public static function handle(Plan $plan, array $attributes, ?iterable $circleIds = null, ?iterable $relationshipIds = null, ?array $links = null, ?array $images = null, ?array $tagIds = null): Plan
     {
         return DB::transaction(function () use ($plan, $attributes, $circleIds, $relationshipIds, $links, $images, $tagIds): Plan {
+            $owner = $plan->user_id ?: auth()->id();
+            abort_unless($owner, 403);
+            if (array_key_exists('plan_category_id', $attributes)) {
+                $category = filled($attributes['plan_category_id'])
+                    ? \App\Models\PlanCategory::withoutGlobalScopes()->where('user_id', $owner)->findOrFail($attributes['plan_category_id']) : null;
+                $attributes['category'] = $category?->name;
+            } elseif (array_key_exists('category', $attributes)) {
+                $name = preg_replace('/\s+/u', ' ', trim($attributes['category'] ?? ''));
+                $category = $name === '' ? null : \App\Models\PlanCategory::withoutGlobalScopes()->firstOrCreate(
+                    ['user_id' => $owner, 'normalized_name' => \App\Models\PlanCategory::normalized($name)],
+                    ['name' => $name, 'icon' => 'bi-grid'],
+                );
+                $attributes['plan_category_id'] = $category?->id;
+                $attributes['category'] = $category?->name;
+            }
             $plan->fill($attributes);
 
             // A date turns an open plan into a scheduled one, and removing it undoes that.

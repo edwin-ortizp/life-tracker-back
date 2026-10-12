@@ -38,6 +38,7 @@ class ListShoppingItemsTool extends Tool
         $items = $query->orderBy('name')->limit(100)->get();
 
         return Response::structured([
+            'category_options' => \App\Models\MealCategory::options(),
             'items' => $items->map(fn ($item) => [
                 'id' => $item->id,
                 'name' => $item->name,
@@ -45,7 +46,7 @@ class ListShoppingItemsTool extends Tool
                 'quantity' => $item->to_buy,
                 'stock' => $item->stock,
                 'min_stock' => $item->min_stock,
-                'category' => $item->category,
+                'category_id' => $item->category_id,
                 'purchase_history' => $item->purchaseHistorySummary(),
                 'estimated_price' => $item->estimatedPrice(),
                 'variants' => $item->variants->map(fn ($variant) => [
