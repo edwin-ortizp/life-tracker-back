@@ -264,8 +264,8 @@ class MealInventoryTest extends TestCase
     public function test_web_consumption_and_preparation_use_shared_services(): void
     {
         $milk = $this->product();
-        Livewire::test(MealWeekly::class)->call('openForm', '2026-10-05', 'cena')->call('addCustomItem')->set('formItems.0.name', 'Leche')
-            ->call('addIngredient', 0)->set('formItems.0.ingredients.0.shopping_item_id', $milk->id)->set('formItems.0.ingredients.0.quantity', 250)
+        Livewire::test(MealWeekly::class)->call('openForm', '2026-10-05', 'cena')->call('addRow')->set('formItems.0.kind', 'ingredient')
+            ->set('formItems.0.product_id', $milk->id)->set('formItems.0.quantity', 250)
             ->call('consume', 'home')->assertHasNoErrors()->assertSet('formStatus', 'consumed')->call('revertConsumption')->assertSet('formStatus', 'planned');
         $this->assertSame(1000.0, $milk->fresh()->stock);
         Livewire::test(MealPreparations::class)->call('openForm')->set('recipeId', $this->recipe($milk)->id)->set('portions', 6)->call('save')->assertHasNoErrors();

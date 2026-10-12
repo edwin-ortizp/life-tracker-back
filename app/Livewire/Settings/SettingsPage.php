@@ -2,12 +2,18 @@
 
 namespace App\Livewire\Settings;
 
+use App\Mcp\Support\ToolCatalog;
 use App\Models\IntegrationToken;
+use Composer\InstalledVersions;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Passport\Token;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
@@ -44,8 +50,28 @@ class SettingsPage extends Component
 
     public ?string $aiIntegrationToken = null;
 
-    public function mount()
+    public const SECTIONS = ['profile', 'body', 'security', 'oauth', 'integrations', 'mcp', 'about'];
+
+    public string $section = 'profile';
+
+    #[Url(as: 'q', except: '')]
+    public string $toolSearch = '';
+
+    #[Url(as: 'tipo', except: '')]
+    public string $toolKind = '';
+
+    #[Url(as: 'modulo', except: '')]
+    public string $toolModule = '';
+
+    public ?string $selectedTool = null;
+
+    public bool $toolOpen = false;
+
+    public function mount(string $section = 'profile')
     {
+        abort_unless(in_array($section, self::SECTIONS, true), 404);
+        $this->section = $section;
+
         $user = Auth::user();
         $this->fullName = $user->full_name ?? $user->name ?? '';
         $this->email = $user->email;
@@ -216,29 +242,100 @@ class SettingsPage extends Component
         $this->successMessage = "{$name} ya no tiene acceso a tu cuenta.";
     }
 
+    /** Cierra otra sesión del usuario; la actual se termina con «Cerrar sesión». */
+    public function closeSession(string $sessionId): void
+    {
+        if ($sessionId === session()->getId()) {
+            return;
+        }
+
+        DB::table('sessions')->where('user_id', Auth::id())->where('id', $sessionId)->delete();
+        $this->successMessage = 'Sesión cerrada.';
+    }
+
+    public function showTool(string $name): void
+    {
+        $this->selectedTool = $name;
+        $this->toolOpen = true;
+    }
+
+    public function closeTool(): void
+    {
+        $this->toolOpen = false;
+        $this->selectedTool = null;
+    }
+
+    public function clearToolFilters(): void
+    {
+        $this->reset('toolSearch', 'toolKind', 'toolModule');
+    }
+
     public function render()
     {
-        return view('livewire.settings.settings-page', [
-            'activeObsidianToken' => IntegrationToken::query()
-                ->where('user_id', Auth::id())
-                ->where('purpose', 'obsidian')
-                ->whereNull('revoked_at')
-                ->latest('created_at')
-                ->first(),
-            'activeCalDavToken' => IntegrationToken::query()
-                ->where('user_id', Auth::id())
-                ->where('purpose', 'caldav')
-                ->whereNull('revoked_at')
-                ->latest('created_at')
-                ->first(),
-            'calDavUrl' => rtrim(config('app.url'), '/').'/dav/',
-            'activeAiToken' => IntegrationToken::query()
-                ->where('user_id', Auth::id())
-                ->where('purpose', 'ai')
-                ->whereNull('revoked_at')
-                ->latest('created_at')
-                ->first(),
-            'mcpUrl' => rtrim(config('app.url'), '/').'/life-tracker',
+        return view('livewire.settings.settings-page', match ($this->section) {
+            'body' => $this->bodyData(),
+            'security' => ['sessions' => $this->sessions()],
+            'oauth' => $this->oauthData(),
+            'integrations' => $this->integrationsData(),
+            'mcp' => $this->mcpData(),
+            'about' => ['about' => $this->aboutData()],
+            default => [],
+        });
+    }
+
+    private function bodyData(): array
+    {
+        $user = Auth::user();
+        $bmi = $user->height_cm && $user->current_weight_kg
+            ? round($user->current_weight_kg / (($user->height_cm / 100) ** 2), 1)
+            : null;
+
+        return ['age' => $user->birth_date?->age, 'bmi' => $bmi, 'waterGoal' => $user->daily_water_goal];
+    }
+
+    private function sessions(): Collection
+    {
+        if (config('session.driver') !== 'database') {
+            return collect();
+        }
+
+        return DB::table('sessions')
+            ->where('user_id', Auth::id())
+            ->orderByDesc('last_activity')
+            ->get()
+            ->map(fn ($row) => (object) [
+                'id' => $row->id,
+                'device' => $this->deviceLabel((string) $row->user_agent),
+                'ip' => $row->ip_address,
+                'lastActivity' => Carbon::createFromTimestamp($row->last_activity),
+                'current' => $row->id === session()->getId(),
+            ]);
+    }
+
+    private function deviceLabel(string $agent): string
+    {
+        $browser = collect(['Edg' => 'Edge', 'OPR' => 'Opera', 'Chrome' => 'Chrome', 'Firefox' => 'Firefox', 'Safari' => 'Safari'])
+            ->first(fn ($label, $needle) => str_contains($agent, $needle), 'Navegador');
+        $os = collect(['Android' => 'Android', 'iPhone' => 'iPhone', 'iPad' => 'iPad', 'Windows' => 'Windows', 'Mac OS' => 'macOS', 'Linux' => 'Linux'])
+            ->first(fn ($label, $needle) => str_contains($agent, $needle), 'otro sistema');
+
+        return "{$browser} en {$os}";
+    }
+
+    private function activeToken(string $purpose): ?IntegrationToken
+    {
+        return IntegrationToken::query()
+            ->where('user_id', Auth::id())
+            ->where('purpose', $purpose)
+            ->whereNull('revoked_at')
+            ->latest('created_at')
+            ->first();
+    }
+
+    private function oauthData(): array
+    {
+        return [
+            'activeAiToken' => $this->activeToken('ai'),
             'connectedApps' => Auth::user()->tokens()
                 ->with('client')
                 ->where('revoked', false)
@@ -246,6 +343,62 @@ class SettingsPage extends Component
                 ->latest('created_at')
                 ->get()
                 ->filter(fn (Token $token) => $token->client !== null),
-        ]);
+        ];
+    }
+
+    private function integrationsData(): array
+    {
+        return [
+            'activeObsidianToken' => $this->activeToken('obsidian'),
+            'activeCalDavToken' => $this->activeToken('caldav'),
+            'calDavUrl' => rtrim(config('app.url'), '/').'/dav/',
+        ];
+    }
+
+    private function mcpData(): array
+    {
+        $catalog = app(ToolCatalog::class);
+        $all = collect($catalog->tools());
+        $search = mb_strtolower(trim($this->toolSearch));
+
+        $tools = $all
+            ->when($search !== '', fn ($tools) => $tools->filter(fn ($tool) => str_contains(
+                mb_strtolower($tool['name'].' '.$tool['moduleLabel'].' '.$tool['description']), $search)))
+            ->when($this->toolKind !== '', fn ($tools) => $tools->where('readOnly', $this->toolKind === 'read'))
+            ->when($this->toolModule !== '', fn ($tools) => $tools->where('module', $this->toolModule))
+            ->values();
+
+        return [
+            'mcpUrl' => rtrim(config('app.url'), '/').'/life-tracker',
+            'tools' => $tools,
+            'toolTotal' => $all->count(),
+            'moduleCounts' => $all->countBy('module'),
+            'promptCount' => $catalog->promptCount(),
+            'resourceCount' => $catalog->resourceCount(),
+            'instructions' => $catalog->instructions(),
+            'tool' => $this->selectedTool ? $catalog->find($this->selectedTool) : null,
+        ];
+    }
+
+    private function aboutData(): array
+    {
+        $connection = DB::connection();
+        try {
+            $dbVersion = $connection->getPdo()->getAttribute(\PDO::ATTR_SERVER_VERSION);
+        } catch (\Throwable) {
+            $dbVersion = null;
+        }
+
+        $package = fn (string $name) => InstalledVersions::isInstalled($name) ? InstalledVersions::getPrettyVersion($name) : '—';
+
+        return [
+            ['Life Tracker', config('app.version'), 'bi-activity'],
+            ['Laravel', app()->version(), 'bi-box'],
+            ['PHP', PHP_VERSION, 'bi-filetype-php'],
+            ['Livewire', $package('livewire/livewire'), 'bi-lightning'],
+            ['laravel/mcp', $package('laravel/mcp'), 'bi-robot'],
+            ['Base de datos', trim($connection->getDriverName().' '.$dbVersion), 'bi-database'],
+            ['Entorno', app()->environment().' · '.config('app.timezone'), 'bi-hdd-network'],
+        ];
     }
 }

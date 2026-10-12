@@ -4,6 +4,7 @@ namespace App\Livewire\Meal;
 
 use App\Livewire\Concerns\HasUrlDate;
 use App\Models\MealPlanEntry;
+use App\Models\MealPlanEntryItem;
 use App\Models\Recipe;
 use App\Models\MealPreparation;
 use App\Models\ShoppingItem;
@@ -28,7 +29,6 @@ class MealWeekly extends Component
     public string $formNotes = '';
     public ?int $formCalories = null;
     public ?int $editingId = null;
-    public string $recipeSearch = '';
     public array $formItems = [];
     public string $formStatus = 'planned';
     public array $consumption = [];
@@ -38,8 +38,15 @@ class MealWeekly extends Component
     public string $targetDate = '';
     public string $targetMealType = 'cena';
     public string $selectedPreparation = '';
+    public bool $showOutside = false;
+    public bool $actionOpen = false;
+    public string $actionType = 'move';
     #[Locked]
     public string $operationKey = '';
+
+    public const KINDS = ['recipe' => 'Receta', 'preparation' => 'Preparación', 'ingredient' => 'Ingrediente', 'free' => 'Elemento libre'];
+
+    public const INGREDIENT_UNITS = ['g' => 'g', 'kg' => 'kg', 'ml' => 'ml', 'L' => 'L', 'unit' => 'unidad'];
 
     public array $mealTypes = [
         'desayuno' => 'Desayuno',
@@ -85,24 +92,14 @@ class MealWeekly extends Component
         $this->consumptionMode = $existing?->consumption_mode ?? '';
         $this->outsideNotes = '';
         $this->outsideCalories = null;
+        $this->showOutside = false;
         $this->operationKey = (string) str()->uuid();
         $this->targetDate = $date;
         $this->targetMealType = $mealType;
         $this->selectedPreparation = '';
         $this->formNotes = $existing?->notes ?? '';
         $this->formCalories = $existing?->calories;
-        $this->formItems = $existing?->items->map(fn ($item) => [
-            'key' => 'item-'.$item->id,
-            'id' => $item->id,
-            'recipe_id' => $item->recipe_id,
-            'preparation_id' => $item->preparation_id,
-            'ingredients' => $item->ingredients ?? [],
-            'name' => $item->recipe?->name ?? $item->name ?? '',
-            'portions' => ($item->recipe_id || $item->preparation_id) ? (float) ($item->portions ?? 1) : null,
-            'calories' => $item->recipe_id ? null : $item->calories,
-            'recipe_calories' => $item->preparation_id ? ($item->preparation?->nutrition['calories'] ?? null) : ($item->recipe?->nutrition['calories'] ?? null),
-        ])->values()->toArray() ?? [];
-        $this->recipeSearch = '';
+        $this->formItems = $existing?->items->map(fn ($item) => $this->rowFromItem($item))->values()->toArray() ?? [];
         $this->formDate = $date;
         $this->formMealType = $mealType;
         $this->showForm = true;
@@ -112,46 +109,79 @@ class MealWeekly extends Component
     {
         $this->showForm = false;
         $this->editingId = null;
-        $this->recipeSearch = '';
         $this->resetValidation();
     }
 
-    public function addRecipe(string $recipeId): void
+    /** Fila vacía del compositor: Tipo · Elemento · Cantidad · Unidad. */
+    public function addRow(): void
     {
-        if (collect($this->formItems)->contains(fn ($item) => ($item['recipe_id'] ?? null) === $recipeId)) {
-            return;
-        }
-
-        $recipe = Recipe::find($recipeId);
-        if (!$recipe) {
-            return;
-        }
-
-        $this->formItems[] = [
-            'key' => 'recipe-'.$recipe->id,
-            'preparation_id' => null,
-            'ingredients' => [],
-            'recipe_id' => $recipe->id,
-            'name' => $recipe->name,
-            'portions' => 1,
-            'calories' => null,
-            'recipe_calories' => $recipe->nutrition['calories'] ?? null,
-        ];
-        $this->recipeSearch = '';
+        $this->formItems[] = $this->blankRow();
     }
 
-    public function addCustomItem(): void
+    /** Ajusta los campos dependientes cuando cambia el tipo o el elemento de una fila. */
+    public function updatedFormItems(mixed $value, string $key): void
     {
-        $this->formItems[] = [
-            'key' => 'custom-'.str()->uuid(),
-            'preparation_id' => null,
-            'ingredients' => [],
-            'recipe_id' => null,
-            'name' => '',
-            'portions' => null,
-            'calories' => null,
-            'recipe_calories' => null,
-        ];
+        [$index, $field] = array_pad(explode('.', $key, 2), 2, null);
+        if (! isset($this->formItems[$index])) {
+            return;
+        }
+        $row = $this->formItems[$index];
+
+        if ($field === 'kind') {
+            $row = array_merge($this->blankRow(), ['key' => $row['key'], 'id' => $row['id'] ?? null, 'kind' => (string) $value]);
+            if (in_array($value, ['recipe', 'preparation'], true)) {
+                $row['portions'] = 1;
+            }
+        } elseif ($field === 'recipe_id') {
+            $recipe = $value ? Recipe::find($value) : null;
+            $row['name'] = $recipe?->name ?? '';
+            $row['recipe_calories'] = $recipe?->nutrition['calories'] ?? null;
+        } elseif ($field === 'preparation_id') {
+            $prep = $value ? MealPreparation::where('user_id', auth()->id())->where('cancelled', false)->find($value) : null;
+            $row['name'] = $prep?->name ?? '';
+            $row['recipe_calories'] = $prep?->nutrition['calories'] ?? null;
+        } elseif ($field === 'product_id') {
+            $product = $value ? ShoppingItem::where('user_id', auth()->id())->find($value) : null;
+            $row['name'] = $product?->name ?? '';
+            $row['unit'] = $product?->base_unit ?? '';
+        }
+
+        $this->formItems[$index] = $row;
+    }
+
+    private function blankRow(): array
+    {
+        return ['key' => 'row-'.str()->uuid(), 'id' => null, 'kind' => '', 'recipe_id' => null, 'preparation_id' => null, 'product_id' => null,
+            'quantity' => null, 'unit' => '', 'name' => '', 'portions' => null, 'calories' => null, 'recipe_calories' => null, 'ingredients' => []];
+    }
+
+    private function rowFromItem(MealPlanEntryItem $item): array
+    {
+        $ingredients = $item->ingredients ?? [];
+        $kind = match (true) {
+            (bool) $item->recipe_id => 'recipe',
+            (bool) $item->preparation_id => 'preparation',
+            count($ingredients) === 1 && ! $item->calories => 'ingredient',
+            default => 'free',
+        };
+        $link = $kind === 'ingredient' ? $ingredients[0] : null;
+
+        return array_merge($this->blankRow(), [
+            'key' => 'item-'.$item->id,
+            'id' => $item->id,
+            'kind' => $kind,
+            'recipe_id' => $item->recipe_id,
+            'preparation_id' => $item->preparation_id,
+            'product_id' => $link['shopping_item_id'] ?? null,
+            'quantity' => $link['quantity'] ?? null,
+            'unit' => $link['unit'] ?? '',
+            'name' => $item->recipe?->name ?? $item->name ?? '',
+            'portions' => in_array($kind, ['recipe', 'preparation'], true) ? (float) ($item->portions ?? 1) : null,
+            'calories' => $kind === 'free' ? $item->calories : null,
+            'recipe_calories' => $item->preparation_id ? ($item->preparation?->nutrition['calories'] ?? null) : ($item->recipe?->nutrition['calories'] ?? null),
+            // Un elemento libre heredado con varios ingredientes los conserva tal cual.
+            'ingredients' => $kind === 'free' ? $ingredients : [],
+        ]);
     }
 
     public function removeItem(int $index): void
@@ -183,7 +213,7 @@ class MealWeekly extends Component
     public function calculatedFormCalories(): int
     {
         return (int) round(collect($this->formItems)->sum(function ($item) {
-            if (!empty($item['recipe_id']) || !empty($item['preparation_id'])) {
+            if (in_array($item['kind'] ?? '', ['recipe', 'preparation'], true)) {
                 return ((float) ($item['recipe_calories'] ?? 0)) * ((float) ($item['portions'] ?? 1));
             }
 
@@ -194,7 +224,7 @@ class MealWeekly extends Component
     public function formHasIncompleteCalories(): bool
     {
         return collect($this->formItems)->contains(fn ($item) =>
-            (!empty($item['recipe_id']) || !empty($item['preparation_id'])) && $item['recipe_calories'] === null
+            in_array($item['kind'] ?? '', ['recipe', 'preparation'], true) && ($item['recipe_id'] || $item['preparation_id']) && $item['recipe_calories'] === null
         );
     }
 
@@ -206,11 +236,21 @@ class MealWeekly extends Component
             'formNotes' => ['nullable', 'string', 'max:5000'],
             'formCalories' => ['nullable', 'integer', 'min:0'],
             'formItems' => ['required', 'array', 'min:1'],
-            'formItems.*.recipe_id' => ['nullable', 'uuid'],
-            'formItems.*.name' => ['nullable', 'string', 'max:255'],
+            'formItems.*.kind' => ['required', Rule::in(array_keys(self::KINDS))],
+            'formItems.*.recipe_id' => ['nullable', 'required_if:formItems.*.kind,recipe', 'uuid'],
+            'formItems.*.preparation_id' => ['nullable', 'required_if:formItems.*.kind,preparation', 'uuid'],
+            'formItems.*.product_id' => ['nullable', 'required_if:formItems.*.kind,ingredient', 'uuid'],
+            'formItems.*.quantity' => ['nullable', 'required_if:formItems.*.kind,ingredient', 'numeric', 'gt:0'],
+            'formItems.*.name' => ['nullable', 'required_if:formItems.*.kind,free', 'string', 'max:255'],
             'formItems.*.portions' => ['nullable', 'numeric', 'gt:0'],
             'formItems.*.calories' => ['nullable', 'integer', 'min:0'],
         ], [
+            'formItems.*.kind.required' => 'Elige el tipo.',
+            'formItems.*.recipe_id.required_if' => 'Elige la receta.',
+            'formItems.*.preparation_id.required_if' => 'Elige la preparación.',
+            'formItems.*.product_id.required_if' => 'Elige el ingrediente.',
+            'formItems.*.quantity.required_if' => 'Indica la cantidad.',
+            'formItems.*.name.required_if' => 'Escribe el nombre del elemento.',
             'formItems.required' => 'Agrega al menos una receta o un elemento libre.',
             'formItems.min' => 'Agrega al menos una receta o un elemento libre.',
         ]);
@@ -227,13 +267,6 @@ class MealWeekly extends Component
             return;
         }
 
-        foreach ($this->formItems as $index => $item) {
-            if (empty($item['recipe_id']) && trim((string) ($item['name'] ?? '')) === '') {
-                $this->addError("formItems.$index.name", 'Escribe el nombre del elemento.');
-                return;
-            }
-        }
-
         app(MealInventory::class)->plan((int) auth()->id(), $this->planData(), $this->operationKey.':save');
 
         $this->closeForm();
@@ -248,31 +281,21 @@ class MealWeekly extends Component
     private function planData(): array
     {
         return ['entry_id' => $this->editingId, 'date' => $this->formDate, 'meal_type' => $this->formMealType, 'mode' => 'replace',
-            'notes' => trim($this->formNotes) ?: null, 'calories' => $this->formCalories, 'items' => $this->formItems];
+            'notes' => trim($this->formNotes) ?: null, 'calories' => $this->formCalories,
+            'items' => collect($this->formItems)->map(fn ($row) => $this->itemFromRow($row))->values()->all()];
     }
 
-    public function addPreparation(): void
+    /** Traduce una fila del compositor a la estructura de componentes que guarda MealInventory. */
+    private function itemFromRow(array $row): array
     {
-        $prep = MealPreparation::where('user_id', auth()->id())->where('cancelled', false)->find($this->selectedPreparation);
-        if (! $prep) {
-            $this->addError('inventory', 'Elige una preparación disponible.');
-            return;
-        }
-        $this->formItems[] = ['key' => 'prepared-'.str()->uuid(), 'recipe_id' => null, 'preparation_id' => $prep->id,
-            'name' => $prep->name, 'portions' => 1, 'calories' => null, 'recipe_calories' => $prep->nutrition['calories'] ?? null, 'ingredients' => []];
-    }
+        $item = ['id' => $row['id'] ?? null, 'recipe_id' => null, 'preparation_id' => null, 'name' => $row['name'] ?? null, 'portions' => null, 'calories' => null, 'ingredients' => []];
 
-    public function addIngredient(int $index): void
-    {
-        if (isset($this->formItems[$index]) && empty($this->formItems[$index]['recipe_id']) && empty($this->formItems[$index]['preparation_id'])) {
-            $this->formItems[$index]['ingredients'][] = ['shopping_item_id' => '', 'quantity' => null, 'unit' => ''];
-        }
-    }
-
-    public function removeIngredient(int $index, int $ingredient): void
-    {
-        unset($this->formItems[$index]['ingredients'][$ingredient]);
-        $this->formItems[$index]['ingredients'] = array_values($this->formItems[$index]['ingredients']);
+        return match ($row['kind'] ?? 'free') {
+            'recipe' => ['recipe_id' => $row['recipe_id'], 'portions' => $row['portions'] ?: 1] + $item,
+            'preparation' => ['preparation_id' => $row['preparation_id'], 'portions' => $row['portions'] ?: 1] + $item,
+            'ingredient' => ['ingredients' => [['shopping_item_id' => $row['product_id'], 'quantity' => $row['quantity'], 'unit' => $row['unit'] ?: null]]] + $item,
+            default => ['calories' => $row['calories'] === '' ? null : $row['calories'], 'ingredients' => $row['ingredients'] ?? []] + $item,
+        };
     }
 
     public function consume(string $mode = 'home'): void
@@ -294,6 +317,44 @@ class MealWeekly extends Component
     {
         app(MealInventory::class)->revert((int) auth()->id(), (int) $this->editingId, $this->operationKey.':revert');
         $this->openForm($this->formDate, $this->formMealType);
+    }
+
+    /** Abre el diálogo de mover, copiar o intercambiar desde el menú ⋮ de la tarjeta. */
+    public function openAction(int $id, string $action): void
+    {
+        abort_unless(in_array($action, ['move', 'copy', 'swap'], true), 404);
+        $entry = MealPlanEntry::where('user_id', auth()->id())->findOrFail($id);
+
+        $this->resetValidation();
+        $this->editingId = $entry->id;
+        $this->actionType = $action;
+        $this->targetDate = $entry->date->toDateString();
+        $this->targetMealType = $entry->meal_type;
+        $this->operationKey = (string) str()->uuid();
+        $this->actionOpen = true;
+    }
+
+    public function closeAction(): void
+    {
+        $this->actionOpen = false;
+        $this->editingId = null;
+        $this->resetValidation();
+    }
+
+    public function runAction(): void
+    {
+        $this->validate([
+            'targetDate' => ['required', 'date'],
+            'targetMealType' => ['required', Rule::in(array_keys($this->mealTypes))],
+        ]);
+
+        $this->rearrange($this->actionType);
+        $this->actionOpen = false;
+    }
+
+    public function deleteEntry(int $id): void
+    {
+        app(MealInventory::class)->rearrange((int) auth()->id(), $id, 'delete', [], (string) str()->uuid().':delete');
     }
 
     public function rearrange(string $action): void
@@ -318,25 +379,30 @@ class MealWeekly extends Component
         $plannedDays = $dailyCalories->filter()->count();
         $weekCalories = $dailyCalories->sum();
 
+        $typeOrder = array_flip(array_keys($this->mealTypes));
+        $todayEntries = $entries->filter(fn ($entry) => $entry->date->isToday())
+            ->sortBy(fn ($entry) => $typeOrder[$entry->meal_type] ?? 99)->values();
+        $showToday = $weekDates->contains(fn ($date) => $date->isToday());
+
         $entries = $entries->groupBy(fn ($entry) => $entry->date->format('Y-m-d').'|'.$entry->meal_type);
 
-        $selectedRecipeIds = collect($this->formItems)->pluck('recipe_id')->filter();
-        $recipeResults = collect();
-        if ($this->showForm) {
-            $term = trim($this->recipeSearch);
-            $recipeResults = Recipe::query()
-                ->when($term !== '', fn ($query) => $query->where('name', 'like', '%'.$term.'%'))
-                ->when($selectedRecipeIds->isNotEmpty(), fn ($query) => $query->whereNotIn('id', $selectedRecipeIds))
-                ->orderByRaw('CASE WHEN meal_type = ? THEN 0 ELSE 1 END', [$this->formMealType])
-                ->orderByDesc('favorite')
-                ->orderBy('name')
-                ->limit(12)
-                ->get(['id', 'name', 'meal_type', 'favorite', 'nutrition']);
-        }
+        $recipeOptions = $this->showForm
+            ? Recipe::query()->orderByRaw('CASE WHEN meal_type = ? THEN 0 ELSE 1 END', [$this->formMealType])->orderByDesc('favorite')->orderBy('name')->get(['id', 'name', 'meal_type', 'favorite', 'nutrition'])
+            : collect();
 
-        return view('livewire.meal.meal-weekly', compact('weekDates', 'entries', 'weekStart', 'recipeResults', 'dailyCalories', 'consumedCalories', 'plannedDays', 'weekCalories') + [
+        return view('livewire.meal.meal-weekly', compact('weekDates', 'entries', 'weekStart', 'dailyCalories', 'consumedCalories', 'plannedDays', 'weekCalories', 'todayEntries', 'showToday', 'recipeOptions') + [
+            'weekLabel' => $this->weekLabel($weekStart),
             'products' => $this->showForm ? ShoppingItem::where('user_id', auth()->id())->orderBy('name')->get(['id', 'name', 'base_unit']) : collect(),
             'preparations' => $this->showForm ? MealPreparation::where('user_id', auth()->id())->where('cancelled', false)->orderByDesc('cooked_at')->get()->filter(fn ($p) => $p->remaining() > 0) : collect(),
         ]);
+    }
+
+    private function weekLabel(Carbon $start): string
+    {
+        $end = $start->copy()->endOfWeek();
+
+        return $start->month === $end->month
+            ? 'Semana del '.$start->day.' al '.$end->translatedFormat('j \d\e F')
+            : 'Semana del '.$start->translatedFormat('j \d\e F').' al '.$end->translatedFormat('j \d\e F');
     }
 }

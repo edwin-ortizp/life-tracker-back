@@ -58,7 +58,7 @@ class MealNeeds
             $needs = $this->aggregate($userId, $rows);
             $incomplete = $rows === [] || collect($needs)->contains(fn ($row) => $row['missing'] === null);
 
-            return ['id' => $recipe->id, 'name' => $recipe->name, 'portions' => $portions, 'can_cook' => ! $incomplete && collect($needs)->every(fn ($row) => $row['missing'] === 0.0),
+            return ['id' => $recipe->id, 'name' => $recipe->name, 'prep_time' => $recipe->prep_time, 'portions' => $portions, 'can_cook' => ! $incomplete && collect($needs)->every(fn ($row) => $row['missing'] === 0.0),
                 'incomplete' => $incomplete, 'expiring_products' => collect($needs)->pluck('shopping_item_id')->intersect($products->pluck('id'))->count(), 'ingredients' => $needs];
         })->sortBy([['can_cook', 'desc'], ['expiring_products', 'desc'], ['name', 'asc']])->values()->all();
         $productDates = $products->map(fn ($p) => ['id' => $p->id, 'name' => $p->name, 'stock' => $p->stock, 'unit' => $p->base_unit, 'consume_by' => $p->consume_by->toDateString()]);

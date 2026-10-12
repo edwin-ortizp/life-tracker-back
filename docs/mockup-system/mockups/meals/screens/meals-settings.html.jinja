@@ -1,10 +1,10 @@
-{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, manage_card, dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, manage_card, dialog, fab, row_split %}
 {% set catalogs = [('stores','Tiendas','bi-shop','tienda',['Éxito Calle 80','D1','Plaza de mercado']),('categories','Categorías de productos','bi-tags','categoría',['Verduras y frutas','Proteínas','Despensa'])] %}
 {% call shell('meals','Ajustes de Comidas','bi-gear') %}
 {{ meals_tabs('/meals-settings') }}
 <div class="lt-meal-settings">
 <div>{% for key,title,icon,singular,items in catalogs %}<section data-meal-panel="{{ key }}"{% if not loop.first %} hidden{% endif %} aria-label="{{ title }}">
-{% call(zone) manage_card('meal-' ~ key,title,icon,count='(3 / 3)',total=3,search='Buscar ' ~ title|lower,footer={'from':1,'to':3,'total':3,'noun':title|lower,'page':1,'pages':1,'per_page':25}) %}{% if zone == 'content' %}<div class="lt-list">{% for name in items %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ name }}</strong></div><button class="lt-icon-button" type="button" data-lt-toggle="{{ key }}-edit-{{ loop.index }}" aria-label="Editar {{ name }}" aria-haspopup="dialog"><i class="bi bi-pencil" aria-hidden="true"></i></button><button class="lt-icon-button" type="button" data-lt-toggle="{{ key }}-delete-{{ loop.index }}" aria-label="Eliminar {{ name }}" aria-haspopup="dialog"><i class="bi bi-trash" aria-hidden="true"></i></button></div>{% endfor %}</div>{% endif %}{% endcall %}
+{% call(zone) manage_card('meal-' ~ key,title,icon,count='(3 / 3)',total=3,search='Buscar ' ~ title|lower,footer={'from':1,'to':3,'total':3,'noun':title|lower,'page':1,'pages':1,'per_page':25}) %}{% if zone == 'content' %}<div class="lt-list">{% for name in items %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ name }}</strong></div>{% set actions = [('Eliminar','bi-trash',true,None,key ~ '-delete-' ~ loop.index)] %}{% if key == 'stores' %}{% set actions = [('Fusionar con otra tienda','bi-intersect',false,None,key ~ '-merge-' ~ loop.index)] + actions %}{% endif %}{{ row_split('meal-' ~ key ~ '-menu-' ~ loop.index,'Editar',actions,name,dialog=key ~ '-edit-' ~ loop.index) }}</div>{% endfor %}</div>{% endif %}{% endcall %}
 {{ fab('Crear ' ~ singular,'bi-plus-lg',key ~ '-new') }}
 </section>{% endfor %}</div>
 <nav class="lt-meal-settings__nav lt-panel" aria-label="Secciones de Ajustes de Comidas">{% for key,title,icon,singular,items in catalogs %}<button class="lt-button lt-button--text" type="button" data-meal-section="{{ key }}"{% if loop.first %} aria-current="page"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i>{{ title }}</button>{% endfor %}</nav>
@@ -13,6 +13,9 @@
 {% call dialog(key ~ '-new','Crear ' ~ singular,icon=icon) %}<label class="lt-field"><span>Nombre *</span><input type="text" required placeholder="Nombre de la {{ singular }}"></label>{% endcall %}
 {% for name in items %}
 {% call dialog(key ~ '-edit-' ~ loop.index,'Editar ' ~ singular,icon=icon) %}<label class="lt-field"><span>Nombre *</span><input type="text" required value="{{ name }}"></label>{% endcall %}
+{% if key == 'stores' %}
+{% call dialog(key ~ '-merge-' ~ loop.index,'Fusionar tiendas',submit='Fusionar',icon='bi-intersect') %}<p>Fusionar «{{ name }}» con otra tienda.</p><label class="lt-field"><span>Tienda que se conserva *</span><select required><option value="">Selecciona una tienda</option>{% for target in items %}{% if target != name %}<option>{{ target }}</option>{% endif %}{% endfor %}</select></label><p>Los precios, compras y marcas pasarán a la tienda elegida. Esta demostración no modifica los datos.</p>{% endcall %}
+{% endif %}
 {% call dialog(key ~ '-delete-' ~ loop.index,'Eliminar ' ~ singular,submit='Eliminar',icon='bi-trash') %}<p>¿Eliminar «{{ name }}»?</p><p>Esta es una demostración visual. El listado de ejemplo no se modificará.</p>{% endcall %}
 {% endfor %}{% endfor %}
 {% endcall %}

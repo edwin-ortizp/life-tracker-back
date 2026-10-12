@@ -46,6 +46,12 @@ class ComponentCatalog
             'description' => 'Entrada de varias líneas para contenido largo.',
             'usage' => '<x-ui.textarea name="notes" label="Notas" rows="3" wire:model="notes" />',
         ],
+        'switch' => [
+            'layer' => 'primitives',
+            'title' => 'Interruptor',
+            'description' => 'Activa o desactiva una opción binaria; reemplaza al checkbox suelto en formularios.',
+            'usage' => '<x-ui.switch name="nextPurchase" label="Incluir en lista de compras" wire:model="nextPurchase" />',
+        ],
         'chip' => [
             'layer' => 'primitives',
             'title' => 'Chip',
@@ -223,6 +229,18 @@ class ComponentCatalog
             'title' => 'Selección múltiple',
             'description' => 'Campo outlined que abre una lista de checkboxes enlazada a una propiedad array.',
             'usage' => '<x-ui.multi-select name="types" label="Tipo" :options="$types" all-label="Todos los tipos" />',
+        ],
+        'combobox' => [
+            'layer' => 'primitives',
+            'title' => 'Select con buscador',
+            'description' => 'Campo outlined que filtra sus opciones sin distinguir mayúsculas ni tildes; flechas, Enter y Escape.',
+            'usage' => '<x-ui.combobox name="categoryId" label="Categoría" :options="$categories" placeholder="Sin categoría" wire:model="categoryId" />',
+        ],
+        'inline-fields' => [
+            'layer' => 'primitives',
+            'title' => 'Campos en línea',
+            'description' => 'Campos secundarios plegados como texto; al pulsarlos se muestran sus controles y se pliegan al hacer clic fuera.',
+            'usage' => '<x-ui.inline-fields :summary="[\'Fuente: Manual\', \'Fecha: 12/10/2026\']"><x-ui.field name="date" label="Fecha" type="date" /></x-ui.inline-fields>',
         ],
         'sheet' => [
             'layer' => 'patterns',

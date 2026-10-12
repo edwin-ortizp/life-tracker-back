@@ -1,0 +1,15 @@
+{% from '@project/components/life-shell.html.jinja' import shell %}
+{% from '@project/components/settings-nav.html.jinja' import settings_layout, section_head %}
+{% call shell('settings', 'Ajustes', 'bi-gear') %}{% call settings_layout('/settings-security') %}
+{{ section_head('Contraseña y seguridad', 'Cambia tu contraseña y revisa las sesiones abiertas.') }}
+<section class="lt-settings-box lt-settings-form"><div class="lt-form">
+  <label class="lt-field lt-form--full"><span>Contraseña actual</span><input type="password" value="secreto123"></label>
+  <label class="lt-field"><span>Nueva contraseña</span><input type="password" placeholder="Mínimo 8 caracteres"></label>
+  <label class="lt-field"><span>Confirmar nueva contraseña</span><input type="password"></label>
+</div><div class="lt-actions"><button class="lt-button" type="button" data-lt-static-nav>Actualizar contraseña</button></div></section>
+<h3 class="lt-settings-subhead">Sesiones activas</h3>
+<ul class="lt-settings-box">
+  <li class="lt-settings-row"><span class="lt-list-item__icon"><i class="bi bi-laptop"></i></span><div class="lt-list-item__body"><strong>Chrome en Windows</strong><span>Bogotá · esta sesión</span></div><span class="lt-chip lt-chip--success">Actual</span></li>
+  <li class="lt-settings-row"><span class="lt-list-item__icon"><i class="bi bi-phone"></i></span><div class="lt-list-item__body"><strong>Safari en iPhone</strong><span>Bogotá · hace 2 días</span></div><button class="lt-button lt-button--text" type="button" data-lt-static-nav>Cerrar</button></li>
+</ul>
+{% endcall %}{% endcall %}

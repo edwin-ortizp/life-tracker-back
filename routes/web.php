@@ -156,4 +156,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/statistics', StatisticsDashboard::class)->name('statistics');
     Route::get('/negative-habits', NegativeHabitWeekly::class)->name('negative-habits');
     Route::get('/settings', SettingsPage::class)->name('settings');
+    Route::get('/settings/{section}', SettingsPage::class)
+        ->whereIn('section', ['body', 'security', 'oauth', 'integrations', 'mcp', 'about'])
+        ->name('settings.section');
 });

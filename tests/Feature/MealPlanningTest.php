@@ -88,9 +88,12 @@ class MealPlanningTest extends TestCase
 
         Livewire::test(MealWeekly::class)
             ->call('openForm', '2026-07-20', 'desayuno')
-            ->call('addRecipe', $recipe->id)
+            ->call('addRow')
+            ->set('formItems.0.kind', 'recipe')
+            ->set('formItems.0.recipe_id', $recipe->id)
             ->set('formItems.0.portions', 2)
-            ->call('addCustomItem')
+            ->call('addRow')
+            ->set('formItems.1.kind', 'free')
             ->set('formItems.1.name', 'Café con leche')
             ->set('formItems.1.calories', 50)
             ->call('save')
@@ -112,7 +115,7 @@ class MealPlanningTest extends TestCase
         ]);
     }
 
-    public function test_recipe_search_excludes_selected_and_other_users_recipes(): void
+    public function test_recipe_options_exclude_recipes_used_in_other_rows_and_other_users_recipes(): void
     {
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
@@ -130,11 +133,14 @@ class MealPlanningTest extends TestCase
 
         Livewire::test(MealWeekly::class)
             ->call('openForm', '2026-07-20', 'desayuno')
-            ->call('addRecipe', $selected->id)
-            ->set('recipeSearch', 'Arepa')
-            ->assertSee($available->name)
-            ->assertDontSeeHtml('recipe-result-'.$selected->id)
-            ->assertDontSee('Arepa privada');
+            ->call('addRow')
+            ->set('formItems.0.kind', 'recipe')
+            ->set('formItems.0.recipe_id', $selected->id)
+            ->call('addRow')
+            ->set('formItems.1.kind', 'recipe')
+            ->assertSeeHtml('value="'.$available->id.'"')
+            ->assertDontSee('Arepa privada')
+            ->assertSet('formItems.0.name', 'Arepa de casa');
     }
 
     public function test_shopping_requirements_include_all_recipes_and_multiply_portions(): void
@@ -170,19 +176,21 @@ class MealPlanningTest extends TestCase
         $exito = Store::create(['name' => 'Éxito']);
         $price = $variant->prices()->create(['store_id' => Store::create(['name' => 'D1'])->id, 'amount' => 4500, 'observed_on' => '2026-10-01', 'source' => 'manual']);
 
-        Livewire::test(MealIngredients::class)
+        $component = Livewire::test(MealIngredients::class)
             ->call('openForm', $ingredient->id)
             ->assertSet('baseUnitLocked', true)
             ->assertSet('variants.0.id', $variant->id)
-            ->assertSet('variants.0.prices.0.store_id', $price->store_id)
-            ->set('variants.0.prices.0.amount', 4700)
+            ->assertSet('prices.0.store_id', $price->store_id)
+            ->assertSet('prices.0.variant_key', $variant->id)
+            ->set('prices.0.amount', '4.700')
             ->call('addVariant')
             ->set('variants.1.brand', 'Diana')
             ->set('variants.1.content', 1)
             ->set('variants.1.content_unit', 'kg')
-            ->call('addPrice', 1)
-            ->set('variants.1.prices.0.store_id', $exito->id)
-            ->set('variants.1.prices.0.amount', 5200)
+            ->call('addPrice');
+        $component->set('prices.1.variant_key', $component->get('variants.1.key'))
+            ->set('prices.1.store_id', $exito->id)
+            ->set('prices.1.amount', '5.200')
             ->call('save')
             ->assertHasNoErrors();
 
@@ -190,6 +198,35 @@ class MealPlanningTest extends TestCase
         $this->assertSame(2, ShoppingItemVariant::count());
         $this->assertSame(1000.0, ShoppingItemVariant::whereNotNull('brand_id')->first()->content);
         $this->assertSame(2, Store::count());
+    }
+
+    public function test_removing_a_variant_drops_its_prices_and_prices_require_a_variant(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $ingredient = ShoppingItem::create(['name' => 'Arroz', 'base_unit' => 'g', 'status' => 'available', 'stock' => 0, 'to_buy' => 0]);
+        $store = Store::create(['name' => 'D1']);
+        $kept = $ingredient->variants()->create(['content' => 500]);
+        $removed = $ingredient->variants()->create(['content' => 1000]);
+        $removed->prices()->create(['store_id' => $store->id, 'amount' => 9000, 'observed_on' => '2026-10-01', 'source' => 'manual']);
+
+        Livewire::test(MealIngredients::class)
+            ->call('openForm', $ingredient->id)
+            ->assertCount('prices', 1)
+            ->call('removeVariant', 1)
+            ->assertCount('prices', 0)
+            ->call('addPrice')
+            ->assertSet('prices.0.variant_key', $kept->id)
+            ->set('prices.0.variant_key', '')
+            ->set('prices.0.store_id', $store->id)
+            ->set('prices.0.amount', '3.500')
+            ->call('save')
+            ->assertHasErrors('prices.0.variant_key')
+            ->set('prices.0.variant_key', $kept->id)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(1, $ingredient->variants()->count());
+        $this->assertDatabaseHas('shopping_item_prices', ['shopping_item_variant_id' => $kept->id, 'amount' => 3500]);
     }
 
     public function test_manual_calorie_override_can_be_reset_to_the_component_calculation(): void
@@ -200,7 +237,9 @@ class MealPlanningTest extends TestCase
 
         Livewire::test(MealWeekly::class)
             ->call('openForm', '2026-07-20', 'desayuno')
-            ->call('addRecipe', $recipe->id)
+            ->call('addRow')
+            ->set('formItems.0.kind', 'recipe')
+            ->set('formItems.0.recipe_id', $recipe->id)
             ->set('formCalories', 275)
             ->call('useCalculatedCalories')
             ->assertSet('formCalories', null)

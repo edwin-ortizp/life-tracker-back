@@ -1,11 +1,17 @@
-{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog, fab %}
+{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog, fab, manage_card, row_split %}
 {% call shell('meals', 'Recetas', 'bi-book') %}
 {{ meals_tabs('/meals-recipes') }}
-<section class="lt-toolbar" aria-label="Filtros de recetas">
-  <label class="lt-field"><span class="lt-sr-only">Buscar recetas</span><input type="search" placeholder="Buscar recetas..."></label>
-  {% for c, sel in [('Todas',true),('Desayuno',false),('Almuerzo',false),('Cena',false),('Vegetarianas',false),('Rápidas',false)] %}<button class="lt-button {% if sel %}lt-button--tonal{% else %}lt-button--text{% endif %}" type="button" data-lt-static-nav>{{ c }}</button>{% endfor %}
-</section>
-<section class="lt-recipe-grid">
+{% call(zone) manage_card('meal-recipes-list','Recetas','bi-book',count='(8 / 8)',total=8,search='Buscar recetas') %}{% if zone == 'filters' %}
+<div class="lt-popover" id="meal-recipes-list-filters" role="dialog" aria-labelledby="meal-recipes-list-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
+  <div class="lt-popover__head"><h4 id="meal-recipes-list-filters-title">Filtros de recetas</h4><button class="lt-icon-button" type="button" data-lt-toggle="meal-recipes-list-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
+<div class="lt-chip-row" aria-label="Filtros de recetas">
+{% for label in ['Todas','Desayuno','Almuerzo','Cena','Vegetarianas','Rápidas'] %}<button class="lt-button {{ 'lt-button--tonal' if loop.first else 'lt-button--text' }}" type="button" data-recipe-filter="{{ label }}" aria-pressed="{{ 'true' if loop.first else 'false' }}">{{ label }}</button>{% endfor %}
+</div>
+  <div class="lt-popover__actions"><button class="lt-button" type="button" data-lt-toggle="meal-recipes-list-filters"><i class="bi bi-check-lg" aria-hidden="true"></i> Listo</button></div>
+</div>
+{% else %}
+
+<div class="lt-meal-table-scroll"><table class="lt-mtable"><thead><tr><th scope="col">Receta</th><th scope="col">Tiempo</th><th scope="col">Porciones</th><th scope="col">Etiquetas</th><th scope="col">En el plan semanal</th><th scope="col">Acciones</th></tr></thead><tbody>
   {% for emoji, name, desc, time, portions, tags, planned in [
     ('🍛','Pollo al curry','Con leche de coco y arroz basmati.','40 min','4 porciones',['Almuerzo'],2),
     ('🥣','Lentejas con arroz','Receta de la abuela, rinde para dos días.','45 min','6 porciones',['Almuerzo','Económica'],2),
@@ -16,13 +22,10 @@
     ('🍲','Ajiaco','Tres papas, guascas, mazorca y alcaparras.','90 min','6 porciones',['Almuerzo','Fin de semana'],1),
     ('🍕','Pizza casera','Masa de 24 h, tomate y mozzarella.','35 min','2 porciones',['Cena'],1)
   ] %}
-  <article class="lt-recipe-card"><div class="lt-recipe-card__media" aria-hidden="true">{{ emoji }}</div><div class="lt-recipe-card__body">
-    <h3>{{ name }}</h3><p>{{ desc }}</p>
-    <div class="lt-chip-row"><span class="lt-chip lt-chip--neutral"><i class="bi bi-clock"></i>&nbsp;{{ time }}</span><span class="lt-chip lt-chip--neutral">{{ portions }}</span>{% for t in tags %}<span class="lt-chip">{{ t }}</span>{% endfor %}</div>
-    <div class="lt-list-item__body"><span>En el plan esta semana: {{ planned }} {{ 'vez' if planned == 1 else 'veces' }}</span></div>
-  </div></article>
+  <tr data-recipe-row data-recipe-name="{{ name }} {{ desc }}" data-recipe-tags="{{ tags|join(' ') }}"><td data-label="Receta"><strong>{{ name }}</strong><small class="lt-recipe-description">{{ desc }}</small></td><td data-label="Tiempo">{{ time }}</td><td data-label="Porciones">{{ portions }}</td><td data-label="Etiquetas"><div class="lt-chip-row">{% for tag in tags %}<span class="lt-chip">{{ tag }}</span>{% endfor %}</div></td><td data-label="En el plan semanal">{{ planned }} {{ 'vez' if planned == 1 else 'veces' }}</td><td data-label="Acciones">{{ row_split('recipe-actions-' ~ loop.index, 'Editar', [], name, dialog='recipe-new') }}</td></tr>
   {% endfor %}
-</section>
+</tbody></table></div><p data-recipe-empty hidden role="status">No hay recetas que coincidan.</p>
+{% endif %}{% endcall %}
 {{ fab('Crear receta', 'bi-book', 'recipe-new') }}
 {% call dialog('recipe-new', 'Crear receta', icon='bi-book', sections=[('basic','Información básica','bi-card-heading'),('ingredients','Ingredientes','bi-basket'),('preparation','Preparación','bi-list-ol'),('nutrition','Información nutricional','bi-fire')]) %}
 <section class="lt-dialog__section" data-section="basic">

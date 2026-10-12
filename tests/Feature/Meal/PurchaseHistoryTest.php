@@ -266,7 +266,7 @@ class PurchaseHistoryTest extends TestCase
         Livewire::test(MealIngredients::class)
             ->call('openForm', $this->item->id)
             ->assertSee('Última compra')
-            ->set('variants.0.prices', [])
+            ->set('prices', [])
             ->call('save')->assertHasNoErrors();
         $this->assertSame('10.00', $price->fresh()->amount);
         Livewire::test(MealIngredients::class)

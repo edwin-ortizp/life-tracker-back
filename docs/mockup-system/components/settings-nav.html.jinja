@@ -1,0 +1,18 @@
+{#- Panel de control con disposición de ajustes tipo GitHub: menú lateral agrupado + contenido. -#}
+{% macro settings_layout(current) -%}
+{% set groups = [
+  (None, [('Perfil público','/settings-profile','bi-person'),('Datos físicos','/settings-body','bi-rulers')]),
+  ('Acceso', [('Contraseña y seguridad','/settings-security','bi-shield-lock'),('Aplicaciones OAuth','/settings-oauth','bi-key')]),
+  ('Integraciones', [('Calendario y notas','/settings-integrations','bi-plug'),('Servidor MCP','/settings-mcp','bi-robot')]),
+  ('Sistema', [('Acerca de','/settings-about','bi-info-circle')])
+] %}
+<div class="lt-settings">
+  <aside class="lt-settings__aside">
+    <div class="lt-settings__who"><span class="lt-avatar">EO</span><div class="lt-list-item__body"><strong>Edwin Ortiz</strong><span>Tu cuenta personal</span></div></div>
+    <nav class="lt-settings__nav" aria-label="Secciones de ajustes">{% for label, items in groups %}<div class="lt-settings__group">{% if label %}<span class="lt-settings__label">{{ label }}</span>{% endif %}{% for item_label, route, icon in items %}<a class="lt-settings__link{% if route == current %} is-active{% endif %}" href="#{{ route }}"{% if route == current %} aria-current="page"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i><span>{{ item_label }}</span></a>{% endfor %}</div>{% endfor %}</nav>
+  </aside>
+  <div class="lt-settings__content">{{ caller() }}</div>
+</div>
+{%- endmacro %}
+
+{% macro section_head(title, subtitle=None) -%}<header class="lt-settings-head"><h2>{{ title }}</h2>{% if subtitle %}<p>{{ subtitle }}</p>{% endif %}</header>{%- endmacro %}

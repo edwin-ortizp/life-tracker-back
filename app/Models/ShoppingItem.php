@@ -108,6 +108,11 @@ class ShoppingItem extends Model
         ];
     }
 
+    public function recipeIngredients()
+    {
+        return $this->hasMany(RecipeIngredient::class);
+    }
+
     public function aliases()
     {
         return $this->hasMany(ShoppingItemAlias::class);

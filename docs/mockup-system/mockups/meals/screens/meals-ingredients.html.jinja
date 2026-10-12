@@ -1,44 +1,49 @@
-{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog, fab, manage_card %}
+{% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog, fab, manage_card, row_split %}
 {% call shell('meals', 'Ingredientes', 'bi-basket') %}
 {{ meals_tabs('/meals-ingredients') }}
-<section class="lt-grid-main">
+<section class="lt-stack">
   {% call(zone) manage_card('ingredients', 'Catálogo de ingredientes', 'bi-basket', count='(14 / 86)', total=86, search='Buscar ingredientes', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':14,'total':86,'noun':'ingredientes','page':1,'pages':4,'per_page':25}) %}{% if zone == 'filters' %}
       <div class="lt-popover" id="ingredients-filters" role="dialog" aria-labelledby="ingredients-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>
         <div class="lt-popover__head"><h4 id="ingredients-filters-title">Filtros</h4><button class="lt-icon-button" type="button" data-lt-toggle="ingredients-filters" aria-label="Cerrar filtros"><i class="bi bi-x-lg"></i></button></div>
         <div class="lt-field"><span>Inventario</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Todos</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>En stock</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Por agotarse</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Sin stock</button></div></div>
-        <label class="lt-field"><span>Categoría</span><select><option>Todas</option><option>Verduras y frutas</option><option>Proteínas</option><option>Lácteos</option><option>Despensa</option><option>Especias</option></select></label>
+        <div class="lt-field"><span id="ingredients-category-label">Categoría</span>
+          <div class="lt-multiselect"><button class="lt-multiselect__trigger" type="button" data-lt-toggle="ingredients-category-options" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="ingredients-category-label"><span>Todas las categorías</span><i class="bi bi-chevron-down"></i></button>
+            <div class="lt-multiselect__panel" id="ingredients-category-options" role="listbox" aria-multiselectable="true" hidden>{% for c in ['Verduras y frutas', 'Proteínas', 'Lácteos', 'Despensa', 'Especias'] %}<label class="lt-multiselect__option"><input type="checkbox"> {{ c }}</label>{% endfor %}</div>
+          </div>
+        </div>
+        <div class="lt-field"><span>Uso</span><div class="lt-chip-row"><button class="lt-chip lt-chip--filter is-selected" type="button" data-lt-static-nav aria-pressed="true">Todos</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Usados en recetas</button><button class="lt-chip lt-chip--filter" type="button" data-lt-static-nav>Sin usar en recetas</button></div></div>
         <div class="lt-popover__actions"><button class="lt-button lt-button--outlined" type="button" data-lt-static-nav><i class="bi bi-eraser" aria-hidden="true"></i>Limpiar</button><button class="lt-button" type="button" data-lt-toggle="ingredients-filters"><i class="bi bi-funnel-fill" aria-hidden="true"></i>Filtrar</button></div>
       </div>
     {% else %}
-
-    {% for cat, items in [
-      ('Verduras y frutas', [('Banano','6 unidades','En stock','success','Alias: guineo'),('Ahuyama','0,5 kg','Por agotarse','warning',''),('Cilantro','—','Sin stock','danger','Usado en 7 recetas'),('Limones','6 unidades','En stock','success',''),('Frutos rojos','200 g','En stock','success','')]),
-      ('Proteínas', [('Pechuga de pollo','1,2 kg','En stock','success','Variantes: filete, molida'),('Lentejas','250 g','Por agotarse','warning',''),('Tilapia','—','Sin stock','danger','Necesario por una receta'),('Huevos','30 unidades','En stock','success','')]),
-      ('Despensa', [('Avena en hojuelas','800 g','En stock','success',''),('Leche de coco','2 latas','En stock','success',''),('Arroz basmati','—','Sin stock','danger',''),('Café','500 g','En stock','success',''),('Harina de trigo','1 kg','En stock','success','')])
-    ] %}
-    <p class="lt-section-label">{{ cat }}</p>
-    <div class="lt-list">{% for name, qty, chip, tone, note in items %}<button class="lt-list-item" type="button" data-lt-toggle="ingredient-new" aria-haspopup="dialog" data-ingredient="{{ name }}"><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ qty }}{% if note %} · {{ note }}{% endif %}</span><span data-ingredient-offers>Éxito · $4.500 · Carulla · $5.200 · presentación por unidad (ejemplo)</span></div><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></button>{% endfor %}</div>
-    {% endfor %}
+    <table class="lt-mtable">
+      <thead><tr><th scope="col">Ingrediente</th><th scope="col">Categoría</th><th scope="col">Stock</th><th scope="col">Estado</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead>
+      <tbody>
+      {% for cat, items in [
+        ('Verduras y frutas', [('Banano','6 unidades','En stock','success','Alias: guineo'),('Ahuyama','0,5 kg','Por agotarse','warning',''),('Cilantro','—','Sin stock','danger','Usado en 7 recetas'),('Limones','6 unidades','En stock','success',''),('Frutos rojos','200 g','En stock','success','')]),
+        ('Proteínas', [('Pechuga de pollo','1,2 kg','En stock','success','Variantes: filete, molida'),('Lentejas','250 g','Por agotarse','warning',''),('Tilapia','—','Sin stock','danger','Necesario por una receta'),('Huevos','30 unidades','En stock','success','')]),
+        ('Despensa', [('Avena en hojuelas','800 g','En stock','success',''),('Leche de coco','2 latas','En stock','success',''),('Arroz basmati','—','Sin stock','danger',''),('Café','500 g','En stock','success',''),('Harina de trigo','1 kg','En stock','success','')])
+      ] %}{% set outer = loop.index %}{% for name, qty, chip, tone, note in items %}
+        <tr data-ingredient="{{ name }}">
+          <td data-label="Ingrediente"><strong>{{ name }}</strong>{% if note %}<span class="lt-mtable__sub" data-ingredient-detail>{{ note }}</span>{% endif %}<span class="lt-mtable__sub" data-ingredient-offers>Éxito · $4.500 · Carulla · $5.200</span></td>
+          <td data-label="Categoría" data-ingredient-category>{{ cat }}</td>
+          <td data-label="Stock" data-ingredient-stock>{{ qty }}</td>
+          <td data-label="Estado"><span class="lt-chip lt-chip--{{ tone }}">{{ chip }}</span></td>
+          <td class="lt-mtable__actions">{{ row_split('ingredient-menu-' ~ outer ~ '-' ~ loop.index, 'Editar', [('Comparar precios','bi-bar-chart-steps'),('Agregar a compras','bi-cart-plus'),('Eliminar','bi-trash',true,None,'ingredient-delete')], name, dialog='ingredient-new') }}</td>
+        </tr>
+      {% endfor %}{% endfor %}
+      </tbody>
+    </table>
   {% endif %}{% endcall %}
-  <aside class="lt-stack">
-    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-pie-chart"></i><h3>Resumen</h3></div><div class="lt-panel__body">
-      <div class="lt-stack-bar" role="img" aria-label="62 en stock, 14 por agotarse, 10 sin stock"><span style="--value:72%"></span><span style="--value:16%"></span><span style="--value:12%"></span></div>
-      <dl class="lt-dl"><div><dt>En stock</dt><dd>62</dd></div><div><dt>Por agotarse</dt><dd>14</dd></div><div><dt>Sin stock</dt><dd>10</dd></div><div><dt>Sin usar en recetas</dt><dd>9</dd></div></dl>
-    </div></article>
-    <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-tags"></i><h3>Por categoría</h3></div><div class="lt-panel__body"><div class="lt-list">
-      {% for c, n in [('Verduras y frutas',28),('Proteínas',14),('Lácteos',9),('Despensa',25),('Especias',10)] %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ c }}</strong></div><span class="lt-chip lt-chip--neutral">{{ n }}</span></div>{% endfor %}
-    </div><div class="lt-route-links"><a class="lt-button lt-button--tonal" href="#/meals-shopping"><i class="bi bi-cart3"></i> Ir a compras</a></div></div></article>
-  </aside>
 </section>
 {{ fab('Agregar ingrediente', 'bi-basket', 'ingredient-new', actions=[('Agregar en bloque', 'bi-magic', None)], split=True) }}
 {% call dialog('ingredient-new', 'Agregar ingrediente', icon='bi-basket', submit_action='save-ingredient', sections=[('basic','Información básica','bi-basket'),('inventory','Inventario','bi-box-seam'),('variants','Variantes','bi-box'),('prices','Precios por tienda','bi-shop'),('aliases','Alias y equivalencias','bi-tags')]) %}
 <section class="lt-dialog__section" data-section="basic">
   <header class="lt-dialog__section-head"><h3>Información básica</h3></header>
-  <div class="lt-form"><label class="lt-field lt-form--full"><span>Nombre *</span><input data-ingredient-name type="text" required placeholder="Ej. Aguacate"></label><label class="lt-field "><span>Categoría</span><select><option>Frutas y verduras</option><option>Lácteos y huevos</option></select></label><label class="lt-field "><span>Unidad base</span><input type="text" placeholder="unidades"></label></div>
+  <div class="lt-form"><label class="lt-field lt-form--full"><span>Nombre *</span><input data-ingredient-name type="text" required placeholder="Ej. Aguacate"></label><label class="lt-field lt-combobox" data-lt-combobox><span>Categoría</span><input type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ingredient-categories" autocomplete="off" placeholder="Buscar categoría"><i class="bi bi-chevron-down" aria-hidden="true"></i><ul role="listbox" id="ingredient-categories" hidden><li role="option">Frutas y verduras</li><li role="option">Lácteos y huevos</li><li role="option">Carnes y pescados</li><li role="option">Granos y cereales</li><li role="option">Panadería</li><li role="option">Despensa</li><li role="option">Condimentos y especias</li><li role="option">Bebidas</li><li role="option">Congelados</li><li role="option">Snacks</li><li class="lt-combobox__empty" aria-disabled="true" hidden>Sin resultados</li></ul></label><label class="lt-field "><span>Unidad base</span><select><option value="">Seleccionar</option><option>unidad</option><option>g</option><option>kg</option><option>ml</option><option>L</option><option>porción</option></select></label></div>
 </section>
 <section class="lt-dialog__section" data-section="inventory" hidden>
   <header class="lt-dialog__section-head"><h3>Inventario</h3></header>
-  <div class="lt-form"><label class="lt-field "><span>Stock</span><input type="number" value="0"></label><label class="lt-field "><span>Por comprar</span><input type="number" value="2"></label></div>
+  <div class="lt-form"><label class="lt-field "><span>Stock</span><input type="number" value="0"></label><label class="lt-field "><span>Por comprar</span><input type="number" value="2"></label><label class="lt-field "><span>Stock mínimo</span><input type="number" min="0" step="any" placeholder="0"></label><label class="lt-field "><span>Consumir antes de</span><input type="date"></label><label class="lt-switch lt-form--full"><input type="checkbox" role="switch" data-ingredient-in-shopping><span class="lt-switch__track" aria-hidden="true"><span class="lt-switch__thumb"></span></span><span>Incluir en lista de compras</span></label></div>
 </section>
 <section class="lt-dialog__section" data-section="variants" hidden>
   <header class="lt-dialog__section-head"><h3>Variantes</h3></header>
@@ -53,24 +58,36 @@
 </section>
 <template data-ingredient-variant-template>
   <article class="lt-ingredient-editor-card"><header><strong data-variant-title></strong><button class="lt-icon-button" type="button" data-remove-variant aria-label="Quitar variante"><i class="bi bi-trash" aria-hidden="true"></i></button></header><div class="lt-form">
-    {% for key, label, type in [('brand','Marca','text'),('packaging','Empaque','text'),('content','Contenido','number'),('content_unit','Unidad del contenido','text'),('units_per_pack','Unidades por paquete','number'),('kcal','Calorías propias','number'),('barcode','Código de barras','text')] %}
-    <label class="lt-field"><span>{{ label }}</span><input data-variant-field="{{ key }}" type="{{ type }}"{% if type == 'number' %} min="{{ 1 if key == 'units_per_pack' else 0 }}" step="{{ 1 if key == 'units_per_pack' else 'any' }}"{% endif %}></label>
+    {% for key, label, type in [('brand','Marca','text'),('packaging','Empaque','text'),('content','Contenido','number'),('content_unit','Unidad del contenido','text')] %}
+    {% set options = {'packaging':['Unidad','Paquete','Bolsa','Caja','Botella','Lata','Frasco'],'content_unit':['unidad','g','kg','ml','L']}.get(key) %}
+    <label class="lt-field"><span>{{ label }}</span>{% if options %}<select data-variant-field="{{ key }}"><option value="">Seleccionar</option>{% for option in options %}<option>{{ option }}</option>{% endfor %}</select>{% else %}<input data-variant-field="{{ key }}" type="{{ type }}"{% if type == 'number' %} min="0" step="any"{% endif %}>{% endif %}</label>
     {% endfor %}
+    <div class="lt-price-metadata">
+      {% for key, label, type in [('units_per_pack','Unidades por paquete','number'),('kcal','Calorías propias','number'),('barcode','Código de barras','text')] %}
+      <div data-price-inline="{{ key }}"><button type="button" data-price-edit aria-label="Editar {{ label|lower }}"></button><label class="lt-field" data-price-control hidden><span>{{ label }}</span><input data-variant-field="{{ key }}" type="{{ type }}"{% if type == 'number' %} min="{{ 1 if key == 'units_per_pack' else 0 }}" step="{{ 1 if key == 'units_per_pack' else 'any' }}"{% endif %} placeholder="{{ label }}"></label></div>
+      {% endfor %}
+    </div>
   </div></article>
 </template>
 <template data-ingredient-price-template>
   <article class="lt-ingredient-editor-card"><header><strong>Precio por tienda</strong><button class="lt-icon-button" type="button" data-remove-price aria-label="Quitar precio"><i class="bi bi-trash" aria-hidden="true"></i></button></header><div class="lt-form">
     <label class="lt-field lt-form--full"><span>Variante</span><select data-price-field="variant" required></select></label>
-    <label class="lt-field"><span>Tienda</span><input data-price-field="store" required></label>
-    <label class="lt-field"><span>Precio</span><input data-price-field="amount" type="number" min="0" step="0.01" required></label>
-    <label class="lt-field"><span>Fuente del precio</span><select data-price-field="source" required><option value="">Seleccionar</option><option value="manual">Manual</option><option value="web">Web</option><option value="ticket">Ticket</option></select></label>
-    <label class="lt-field"><span>Fecha</span><input data-price-field="date" type="date" required></label>
-    <label><input data-price-field="verified" type="checkbox"> Verificado</label>
+    <label class="lt-field"><span>Tienda</span><select data-price-field="store" required><option value="">Seleccionar</option><option>Éxito</option><option>Carulla</option><option>D1</option><option>Ara</option><option>Olímpica</option><option>Jumbo</option><option>PriceSmart</option></select></label>
+    <label class="lt-field"><span>Precio</span><input data-price-field="amount" type="text" inputmode="numeric" pattern="[0-9.]+" placeholder="$ 0" required></label>
+    <div class="lt-price-metadata">
+      <div data-price-inline="source"><button type="button" data-price-edit aria-label="Editar fuente del precio"></button><label class="lt-field" data-price-control hidden><span>Fuente</span><select data-price-field="source" required><option value="">Seleccionar</option><option value="manual">Manual</option><option value="web">Web</option><option value="ticket">Ticket</option></select></label></div>
+      <div data-price-inline="date"><button type="button" data-price-edit aria-label="Editar fecha del precio"></button><label class="lt-field" data-price-control hidden><span>Fecha</span><input data-price-field="date" type="date" required></label></div>
+      <div data-price-inline="verified"><button type="button" data-price-edit aria-label="Editar verificación del precio"></button><label data-price-control hidden><input data-price-field="verified" type="checkbox"> Verificado</label></div>
+    </div>
   </div></article>
 </template>
 <section class="lt-dialog__section" data-section="aliases" hidden>
   <header class="lt-dialog__section-head"><h3>Alias y equivalencias</h3></header>
-  <div class="lt-form"><label class="lt-field "><span>Alias 1</span><input type="text" placeholder="palta"></label></div>
+  <div class="lt-stack" data-ingredient-aliases><div class="lt-alias-row"><label class="lt-field"><span>Alias 1</span><input type="text" placeholder="palta"></label><button class="lt-icon-button" type="button" data-remove-alias aria-label="Quitar alias"><i class="bi bi-trash" aria-hidden="true"></i></button></div></div>
+  <button class="lt-button lt-button--tonal" type="button" data-ingredient-add-alias><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar alias</button>
 </section>
+{% endcall %}
+{% call dialog('ingredient-delete', 'Eliminar ingrediente', submit='Eliminar', icon='bi-trash', submit_action='delete-ingredient') %}
+<p class="lt-page-head__subtitle"><strong data-ingredient-delete-name></strong> se eliminará de tu catálogo junto con sus variantes, precios y alias.</p>
 {% endcall %}
 {% endcall %}

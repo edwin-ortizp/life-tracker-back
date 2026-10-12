@@ -22,4 +22,4 @@ $person = Relationship::factory()->for($user)->create(['full_name' => 'Contacto 
 $plan = SavePlan::handle(new Plan, ['title' => 'Cena programada', 'type' => 'restaurant', 'category' => 'Gastronomía', 'scheduled_on' => today()->addDay()->toDateString()], null, [$person->id]);
 SavePlan::handle(new Plan, ['title' => 'Plan vencido', 'type' => 'activity', 'scheduled_on' => today()->subDay()->toDateString()]);
 $done = SavePlan::handle(new Plan, ['title' => 'Plan realizado', 'type' => 'dessert']);
-RecordPlanVisit::handle($done, today()->subDay()->toDateString(), collect([$person->id]), 'Comentario de visita');
+foreach ([1440, 390] as $width) RecordPlanVisit::handle($done, today()->subDay()->toDateString(), collect([$person->id]), 'Comentario de visita '.$width);

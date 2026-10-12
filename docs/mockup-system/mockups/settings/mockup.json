@@ -9,7 +9,12 @@
       "template": "pages/main.html.jinja",
       "screens": [
         "settings-profile",
-        "settings-integrations"
+        "settings-body",
+        "settings-security",
+        "settings-oauth",
+        "settings-integrations",
+        "settings-mcp",
+        "settings-about"
       ],
       "output": "settings.html"
     }
@@ -17,12 +22,37 @@
   "screens": {
     "settings-profile": {
       "template": "screens/settings-profile.html.jinja",
-      "title": "Perfil y datos",
+      "title": "Perfil público",
+      "bodyClass": ""
+    },
+    "settings-body": {
+      "template": "screens/settings-body.html.jinja",
+      "title": "Datos físicos",
+      "bodyClass": ""
+    },
+    "settings-security": {
+      "template": "screens/settings-security.html.jinja",
+      "title": "Contraseña y seguridad",
+      "bodyClass": ""
+    },
+    "settings-oauth": {
+      "template": "screens/settings-oauth.html.jinja",
+      "title": "Aplicaciones OAuth",
       "bodyClass": ""
     },
     "settings-integrations": {
       "template": "screens/settings-integrations.html.jinja",
-      "title": "Integraciones",
+      "title": "Calendario y notas",
+      "bodyClass": ""
+    },
+    "settings-mcp": {
+      "template": "screens/settings-mcp.html.jinja",
+      "title": "Servidor MCP",
+      "bodyClass": ""
+    },
+    "settings-about": {
+      "template": "screens/settings-about.html.jinja",
+      "title": "Acerca de",
       "bodyClass": ""
     }
   },
@@ -32,8 +62,28 @@
       "screen": "settings-profile"
     },
     {
+      "path": "/settings-body",
+      "screen": "settings-body"
+    },
+    {
+      "path": "/settings-security",
+      "screen": "settings-security"
+    },
+    {
+      "path": "/settings-oauth",
+      "screen": "settings-oauth"
+    },
+    {
       "path": "/settings-integrations",
       "screen": "settings-integrations"
+    },
+    {
+      "path": "/settings-mcp",
+      "screen": "settings-mcp"
+    },
+    {
+      "path": "/settings-about",
+      "screen": "settings-about"
     }
   ],
   "datasets": {
@@ -52,7 +102,8 @@
   "entryRoute": "/settings-profile",
   "entryScript": "scripts/entry.js",
   "styles": [
-    "@project/project-assets/mockups.css"
+    "@project/project-assets/mockups.css",
+    "styles/settings.css"
   ],
   "runtime": {
     "persistence": "none",

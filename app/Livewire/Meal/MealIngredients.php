@@ -16,6 +16,7 @@ use App\Services\Meal\IngredientImportService;
 use App\Services\Meal\RecipeCalculator;
 use App\Services\Meal\UnitConverter;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
@@ -43,8 +44,9 @@ class MealIngredients extends Component
     #[Url(as: 'ingredient')]
     public string $ingredientId = '';
 
-    #[Url(as: 'category_id', history: true, keep: true)]
-    public string $categoryFilter = '';
+    /** Categorías seleccionadas (varias); vacío = todas. */
+    #[Url(as: 'categories', history: true, keep: true)]
+    public array $categoryFilter = [];
 
     // '' todas, '__none' sin ningún precio, o el id de la tienda.
     #[Url(as: 'store', history: true, keep: true)]
@@ -61,6 +63,10 @@ class MealIngredients extends Component
     // '' todos, 'pending' sin unidad base o con variantes sin contenido.
     #[Url(as: 'data', history: true, keep: true)]
     public string $dataFilter = '';
+
+    // '' todos, 'used' usados en recetas, 'unused' sin usar en recetas.
+    #[Url(as: 'usage', history: true, keep: true)]
+    public string $usageFilter = '';
 
     public bool $showForm = false;
 
@@ -99,6 +105,9 @@ class MealIngredients extends Component
 
     // Variants (dynamic rows), each with its own prices.
     public array $variants = [];
+
+    /** Precios en lista plana; cada uno apunta a su variante por `variant_key`. */
+    public array $prices = [];
 
     // Alternative names used by the bulk import assistant
     public array $aliases = [];
@@ -140,7 +149,7 @@ class MealIngredients extends Component
 
     public function clearFilters(): void
     {
-        $this->reset(['ingredientId', 'categoryFilter', 'storeFilter', 'priceFilter', 'cartFilter', 'dataFilter']);
+        $this->reset(['ingredientId', 'categoryFilter', 'storeFilter', 'priceFilter', 'cartFilter', 'dataFilter', 'usageFilter']);
         $this->resetPage();
     }
 
@@ -177,8 +186,20 @@ class MealIngredients extends Component
             $this->protein = $item->protein;
             $this->carbs = $item->carbs;
             $this->fat = $item->fat;
+            $this->prices = $item->variants->flatMap(fn (ShoppingItemVariant $v) => $v->prices->map(fn (ShoppingItemPrice $p) => [
+                'id' => $p->id,
+                'variant_key' => $v->id,
+                'purchase_line_id' => $p->purchase_line_id,
+                'store_id' => $p->store_id,
+                // Entero sin decimales: el campo lo muestra con separador de miles ("4.500").
+                'amount' => (string) round((float) $p->amount),
+                'observed_on' => $p->observed_on->format('Y-m-d'),
+                'source' => $p->source,
+                'verified' => $p->isVerified(),
+            ]))->sortByDesc('observed_on')->values()->toArray();
             $this->variants = $item->variants->map(fn (ShoppingItemVariant $v) => [
                 'id' => $v->id,
+                'key' => $v->id,
                 'brand' => $v->brand?->name ?? '',
                 'packaging' => $v->packaging ?? '',
                 'content' => $v->content,
@@ -187,22 +208,13 @@ class MealIngredients extends Component
                 'barcode' => $v->barcode ?? '',
                 'is_preferred' => $v->is_preferred,
                 'kcal' => $v->kcal,
-                'prices' => $v->prices->sortByDesc('observed_on')->map(fn (ShoppingItemPrice $p) => [
-                    'id' => $p->id,
-                    'purchase_line_id' => $p->purchase_line_id,
-                    'store_id' => $p->store_id,
-                    'amount' => $p->amount,
-                    'observed_on' => $p->observed_on->format('Y-m-d'),
-                    'source' => $p->source,
-                    'verified' => $p->isVerified(),
-                ])->values()->toArray(),
             ])->toArray();
             $this->aliases = $item->aliases->map(fn ($alias) => [
                 'id' => $alias->id,
                 'alias' => $alias->alias,
             ])->toArray();
         } else {
-            $this->reset(['editingId', 'name', 'baseUnit', 'baseUnitLocked', 'gramsPerPiece', 'stock', 'minStock', 'toBuy', 'categoryId', 'consumeBy', 'status', 'nextPurchase', 'kcal', 'protein', 'carbs', 'fat', 'variants', 'aliases']);
+            $this->reset(['editingId', 'name', 'baseUnit', 'baseUnitLocked', 'gramsPerPiece', 'stock', 'minStock', 'toBuy', 'categoryId', 'consumeBy', 'status', 'nextPurchase', 'kcal', 'protein', 'carbs', 'fat', 'variants', 'prices', 'aliases']);
         }
 
         $this->showForm = true;
@@ -217,28 +229,35 @@ class MealIngredients extends Component
     public function addVariant()
     {
         $this->variants[] = [
-            'id' => null, 'brand' => '', 'packaging' => '', 'content' => null, 'content_unit' => $this->defaultContentUnit(),
-            'units_per_pack' => null, 'barcode' => '', 'is_preferred' => false, 'kcal' => null, 'prices' => [],
+            'id' => null, 'key' => 'new-'.Str::uuid(), 'brand' => '', 'packaging' => '', 'content' => null, 'content_unit' => $this->defaultContentUnit(),
+            'units_per_pack' => null, 'barcode' => '', 'is_preferred' => false, 'kcal' => null,
         ];
     }
 
     public function removeVariant(int $index)
     {
+        $key = $this->variants[$index]['key'] ?? null;
         unset($this->variants[$index]);
         $this->variants = array_values($this->variants);
+        $this->prices = array_values(array_filter($this->prices, fn ($price) => ($price['variant_key'] ?? null) !== $key));
     }
 
-    public function addPrice(int $variantIndex): void
+    public function addPrice(): void
     {
-        $this->variants[$variantIndex]['prices'][] = [
-            'id' => null, 'store_id' => '', 'amount' => null, 'observed_on' => now()->toDateString(), 'source' => 'manual', 'verified' => false,
+        if ($this->variants === []) {
+            return;
+        }
+
+        $this->prices[] = [
+            'id' => null, 'variant_key' => count($this->variants) === 1 ? $this->variants[0]['key'] : '', 'store_id' => '', 'amount' => null,
+            'observed_on' => now()->toDateString(), 'source' => 'manual', 'verified' => false,
         ];
     }
 
-    public function removePrice(int $variantIndex, int $priceIndex): void
+    public function removePrice(int $index): void
     {
-        unset($this->variants[$variantIndex]['prices'][$priceIndex]);
-        $this->variants[$variantIndex]['prices'] = array_values($this->variants[$variantIndex]['prices']);
+        unset($this->prices[$index]);
+        $this->prices = array_values($this->prices);
     }
 
     public function addAlias(): void
@@ -254,6 +273,17 @@ class MealIngredients extends Component
 
     public function save(IngredientImportService $importer)
     {
+        // Los precios de variantes que ya no están en el formulario se van con ellas.
+        $variantKeys = array_column($this->variants, 'key');
+        $this->prices = array_values(array_filter($this->prices, fn ($price) => blank($price['variant_key'] ?? null) || in_array($price['variant_key'], $variantKeys, true)));
+
+        // El precio llega con separador de miles ("4.500") desde el campo formateado.
+        foreach ($this->prices as $index => $price) {
+            if (is_string($price['amount'] ?? null)) {
+                $this->prices[$index]['amount'] = str_replace('.', '', $price['amount']);
+            }
+        }
+
         $this->validate([
             'name' => 'required|string|max:255',
             'categoryId' => ['nullable', \Illuminate\Validation\Rule::in(array_keys($this->categoryOptions))],
@@ -272,16 +302,18 @@ class MealIngredients extends Component
             'variants.*.units_per_pack' => 'nullable|integer|min:1',
             'variants.*.barcode' => 'nullable|string|max:255',
             'variants.*.kcal' => 'nullable|numeric|min:0',
-            'variants.*.prices.*.store_id' => ['required', Rule::in(Store::pluck('id'))],
-            'variants.*.prices.*.amount' => 'required|numeric|min:0',
-            'variants.*.prices.*.observed_on' => 'required|date',
-            'variants.*.prices.*.source' => ['required', Rule::in(array_keys(ShoppingItemPrice::SOURCES))],
+            'prices.*.variant_key' => ['required', Rule::in(array_column($this->variants, 'key'))],
+            'prices.*.store_id' => ['required', Rule::in(Store::pluck('id'))],
+            'prices.*.amount' => 'required|numeric|min:0',
+            'prices.*.observed_on' => 'required|date',
+            'prices.*.source' => ['required', Rule::in(array_keys(ShoppingItemPrice::SOURCES))],
             'aliases.*.alias' => 'nullable|string|max:255',
         ], attributes: [
             'baseUnit' => 'unidad base',
-            'variants.*.prices.*.store_id' => 'tienda',
-            'variants.*.prices.*.amount' => 'precio',
-            'variants.*.prices.*.observed_on' => 'fecha del precio',
+            'prices.*.variant_key' => 'variante',
+            'prices.*.store_id' => 'tienda',
+            'prices.*.amount' => 'precio',
+            'prices.*.observed_on' => 'fecha del precio',
         ]);
 
         $importer->assertNameAvailable(trim($this->name), $this->editingId);
@@ -341,7 +373,7 @@ class MealIngredients extends Component
                 $keptIds[] = $model->id;
 
                 $keptPriceIds = [];
-                foreach ($variant['prices'] ?? [] as $price) {
+                foreach (array_filter($this->prices, fn ($price) => ($price['variant_key'] ?? null) === $variant['key']) as $price) {
                     $priceData = [
                         'store_id' => $price['store_id'],
                         'amount' => $price['amount'],
@@ -425,7 +457,7 @@ class MealIngredients extends Component
         $base = ShoppingItem::where('user_id', auth()->id())
             ->when($this->ingredientId, fn ($q, $id) => $q->whereKey($id))
             ->when($this->search, fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
-            ->when($this->categoryFilter, fn ($q, $c) => $q->where('category_id', $c))
+            ->when($this->categoryFilter, fn ($q, $c) => $q->whereIn('category_id', $c))
             ->when($this->storeFilter === '__none', fn ($q) => $q->whereDoesntHave('prices'))
             ->when($this->storeFilter !== '' && $this->storeFilter !== '__none', fn ($q) => $q->whereHas('prices', fn ($pq) => $pq->where('store_id', $this->storeFilter)))
             ->when($this->priceFilter === 'with', fn ($q) => $q->whereHas('prices'))
@@ -434,18 +466,13 @@ class MealIngredients extends Component
             ->when($this->cartFilter === 'no', fn ($q) => $q->where('next_purchase', false))
             ->when($this->dataFilter === 'pending', fn ($q) => $q->where(fn ($pending) => $pending
                 ->whereNull('base_unit')
-                ->orWhereHas('variants', fn ($vq) => $vq->whereNull('content'))));
+                ->orWhereHas('variants', fn ($vq) => $vq->whereNull('content'))))
+            ->when($this->usageFilter === 'used', fn ($q) => $q->whereHas('recipeIngredients'))
+            ->when($this->usageFilter === 'unused', fn ($q) => $q->whereDoesntHave('recipeIngredients'));
 
-        // La página se agrupa por categoría; los totales del resumen siguen calculándose sobre todo el resultado.
-        $ingredients = (clone $base)->withOffers()
-            ->orderBy('category_id')->orderBy('name')
+        $ingredients = (clone $base)->withOffers()->with('category')
+            ->orderBy('name')
             ->paginate($this->perPage());
-        $grouped = $ingredients->getCollection()->groupBy('category_id')->sortKeys();
-        $items = (clone $base)->get(['id', 'category_id', 'next_purchase', 'stock', 'min_stock']);
-
-        $byCategory = $items->groupBy('category_id')->map->count()->sortKeys();
-        $nextPurchaseCount = $items->where('next_purchase', true)->count();
-        $lowStockCount = $items->filter(fn ($item) => (float) $item->stock <= 0 || $item->isBelowMinimum())->count();
 
         $nameSuggestions = ! $this->editingId && $this->showForm && trim($this->name) !== ''
             ? CatalogNames::similar($this->name, ShoppingItem::pluck('name'))
@@ -453,17 +480,12 @@ class MealIngredients extends Component
 
         return view('livewire.meal.meal-ingredients', [
             'purchaseHistory' => $this->showForm && $this->editingId ? ShoppingItem::where('user_id', auth()->id())->with('purchaseLines.purchase.store')->findOrFail($this->editingId)->purchaseHistorySummary() : null,
-            'grouped' => $grouped,
             'ingredients' => $ingredients,
             'catalogTotal' => ShoppingItem::query()->count(),
-            'totalItems' => $items->count(),
-            'byCategory' => $byCategory,
-            'nextPurchaseCount' => $nextPurchaseCount,
-            'lowStockCount' => $lowStockCount,
             'stores' => Store::orderBy('name')->pluck('name', 'id'),
             'brands' => $this->showForm ? Brand::orderBy('name')->pluck('name') : collect(),
             'nameSuggestions' => $nameSuggestions,
-            'activeFilters' => collect([$this->ingredientId, $this->categoryFilter, $this->storeFilter, $this->priceFilter, $this->cartFilter, $this->dataFilter])->filter()->count(),
+            'activeFilters' => collect([$this->ingredientId, $this->categoryFilter, $this->storeFilter, $this->priceFilter, $this->cartFilter, $this->dataFilter, $this->usageFilter])->filter()->count(),
         ]);
     }
 }

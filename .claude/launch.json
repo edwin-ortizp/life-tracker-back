@@ -24,6 +24,21 @@
       "port": 8765
     },
     {
+      "name": "settings-browser",
+      "runtimeExecutable": "php",
+      "runtimeArgs": [
+        "artisan",
+        "serve",
+        "--port=8029"
+      ],
+      "env": {
+        "DB_CONNECTION": "sqlite",
+        "DB_DATABASE": "C:/laragon/www/life-tracker-back/storage/framework/testing/settings-browser.sqlite",
+        "SESSION_DRIVER": "database"
+      },
+      "port": 8029
+    },
+    {
       "name": "laravel-dev-alt",
       "runtimeExecutable": "php",
       "runtimeArgs": [

@@ -28,3 +28,55 @@
 .lt-ingredient-editor-card{padding:16px;border:1px solid var(--md-outline-variant);border-radius:12px;margin-bottom:16px}.lt-ingredient-editor-card>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.lt-ingredient-editor-card .lt-form{row-gap:20px}[data-ingredient-offers]{margin-top:6px;font-size:.75rem!important;color:var(--lt-accent)!important}#ingredient-new .lt-dialog__body>.lt-dialog__section>.lt-button{margin-top:16px}
 
 .lt-meal-add-label{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600}.lt-meal-slot--empty [data-meal-status-label]{display:none}.lt-week-plan .lt-meal-slot--empty{justify-items:center;text-align:center}
+
+.lt-meal-table-scroll{max-width:100%;overflow-x:auto}.lt-recipe-description{display:block;margin-top:4px;color:var(--md-on-surface-variant);font-size:.75rem}[data-recipe-row][hidden],[data-cook-card][hidden],[data-recipe-empty][hidden]{display:none}#meal-recipes-list .lt-toolbar,#meal-cook-list .lt-toolbar{padding:12px 16px}#meal-cook-list>.lt-mcard__body>.lt-cook-hint{padding:0 16px 12px}
+
+.lt-shopping-info{display:flex;align-items:flex-start;gap:12px;margin:16px;padding:14px 16px;border:1px solid #bed2f2;border-radius:12px;background:#e8f0fc;color:#17477e;font-size:.85rem}.lt-shopping-info>i{font-size:1.2rem}.lt-shopping-info small{display:block;margin-top:4px;font-size:.72rem}.lt-shopping-stores{margin-top:8px;margin-bottom:6px;flex-wrap:wrap}.lt-shopping-stores .lt-chip{font-size:.7rem;gap:5px}
+
+.lt-week-plan [data-meal-caption]{font-size:.72rem;line-height:1.35;font-weight:500;overflow-wrap:anywhere}
+.lt-meal-calories{display:block;margin-top:5px;font-size:.65rem;font-weight:400;color:var(--md-on-surface-variant)}
+.lt-meal-calories[hidden]{display:none}
+.lt-meal-more{font-weight:700;color:var(--md-primary);cursor:help}
+.lt-meal-tooltip{display:none;position:absolute;left:4px;right:4px;top:100%;z-index:40;padding:8px;border-radius:8px;background:var(--md-inverse-surface,#303030);color:var(--md-inverse-on-surface,#fff);font-size:.7rem;line-height:1.4;font-weight:400;box-shadow:0 3px 10px #0003;pointer-events:none}
+.lt-meal-more:hover .lt-meal-tooltip,.lt-meal-slot:focus-visible .lt-meal-tooltip{display:block}
+.lt-meal-card:has(.lt-meal-more:hover),.lt-meal-card:has(.lt-meal-slot:focus-visible){z-index:30}
+
+[data-ingredient-prices]>.lt-ingredient-editor-card{display:grid;grid-template-columns:minmax(0,1fr) 32px;gap:8px;align-items:center;padding:16px 10px;margin-bottom:10px}
+[data-ingredient-prices]>.lt-ingredient-editor-card>header{display:contents}
+[data-ingredient-prices]>.lt-ingredient-editor-card>header>strong{display:none}
+[data-ingredient-prices] [data-remove-price]{grid-column:2;grid-row:1;width:32px;height:36px}
+[data-ingredient-prices] .lt-form{grid-column:1;grid-row:1;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,.8fr) minmax(0,.9fr) 110px auto;gap:8px;align-items:center}
+[data-ingredient-prices] .lt-form--full{grid-column:auto}
+[data-ingredient-prices] .lt-field{margin:0;min-width:0}
+[data-ingredient-prices] .lt-field :is(input,select){min-height:40px;padding:0 8px;font-size:.78rem;width:100%;box-sizing:border-box}
+[data-ingredient-prices] .lt-field>span{font-size:.65rem;left:5px}
+[data-ingredient-prices] .lt-form>label:last-child{display:flex;align-items:center;gap:4px;font-size:.7rem;white-space:nowrap}
+
+@media(max-width:767.98px){[data-ingredient-prices] .lt-form{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px}}
+
+.lt-cook-radio-group{display:grid;gap:2px;margin:0;padding:4px 0;border:0;min-width:0}.lt-cook-radio{display:flex;align-items:center;gap:9px;min-height:40px;padding:0 8px;border-radius:8px;cursor:pointer;font-size:.8rem}.lt-cook-radio:hover,.lt-cook-radio:has(input:checked){background:var(--md-surface-container)}.lt-cook-radio input{width:16px;height:16px;margin:0;accent-color:var(--lt-accent)}.lt-cook-radio:has(input:focus-visible){outline:2px solid var(--lt-accent);outline-offset:1px}
+
+[data-ingredient-prices] .lt-form{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(80px,.8fr)}
+.lt-price-metadata{grid-column:1 / -1;display:flex;align-items:center;flex-wrap:wrap;gap:6px 16px;margin-top:4px;font-size:.7rem;color:var(--md-on-surface-variant)}
+.lt-price-metadata [hidden]{display:none!important}.lt-price-metadata [data-price-edit]{border:0;border-bottom:1px dashed var(--md-outline-variant);padding:4px 0;background:transparent;color:inherit;font:inherit;cursor:pointer}.lt-price-metadata [data-price-edit]:hover{color:var(--lt-accent);border-bottom-color:var(--lt-accent)}.lt-price-metadata [data-price-edit]:focus-visible{outline:2px solid var(--lt-accent);outline-offset:3px}.lt-price-metadata [data-price-control]{font-size:.7rem}.lt-price-metadata [data-price-control] :is(input:not([type=checkbox]),select){min-height:32px;font-size:.72rem;width:auto;max-width:160px}.lt-price-metadata [data-price-control]>span{display:none}.lt-price-metadata [data-price-control]:has([type=checkbox]){display:flex;align-items:center;gap:5px}
+@media(max-width:767.98px){[data-ingredient-prices] .lt-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+:is(#meal-recipes-list,#meal-cook-list) .lt-row-more__edit{display:inline-flex}
+
+.lt-week-toolbar{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:8px}
+.lt-week-toolbar .lt-toolbar__label{margin:0;text-align:center;order:0;min-width:0}
+
+[data-ingredient-variants]>.lt-ingredient-editor-card{display:grid;grid-template-columns:minmax(0,1fr) 32px;gap:8px;align-items:center;padding:16px 10px;margin-bottom:10px}
+[data-ingredient-variants]>.lt-ingredient-editor-card>header{display:contents}
+[data-ingredient-variants] [data-variant-title]{display:none}
+[data-ingredient-variants] [data-remove-variant]{grid-column:2;grid-row:1;width:32px;height:36px}
+[data-ingredient-variants] .lt-form{grid-column:1;grid-row:1;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,.8fr) minmax(0,1fr);gap:8px;align-items:center}
+[data-ingredient-variants] .lt-field{margin:0;min-width:0}
+[data-ingredient-variants] .lt-field :is(input,select){min-height:40px;padding:0 8px;font-size:.78rem;width:100%;box-sizing:border-box}
+[data-ingredient-variants] .lt-field>span{font-size:.65rem;left:5px}
+@media(max-width:767.98px){[data-ingredient-variants] .lt-form{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px}}
+
+[data-section="aliases"]>.lt-button{margin-top:16px}
+.lt-alias-row{display:grid;grid-template-columns:minmax(0,1fr) 32px;gap:8px;align-items:center}.lt-alias-row .lt-field{margin:0}
+.lt-combobox{position:relative}.lt-combobox>input{padding-right:36px!important}.lt-combobox>.bi-chevron-down{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--md-on-surface-variant);font-size:.8rem}.lt-combobox>[role=listbox]{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);max-height:240px;overflow-y:auto;margin:0;padding:6px 0;list-style:none;background:var(--md-surface-container,var(--md-surface));border:1px solid var(--md-outline-variant);border-radius:12px;box-shadow:0 6px 20px rgb(0 0 0 / .14)}.lt-combobox>[role=listbox][hidden]{display:none}.lt-combobox [role=option]{padding:10px 16px;font-size:.88rem;color:var(--md-on-surface);cursor:pointer}.lt-combobox [role=option][hidden]{display:none}.lt-combobox [role=option]:hover,.lt-combobox [role=option].is-active{background:color-mix(in srgb,var(--lt-accent) 12%,transparent)}.lt-combobox__empty{padding:10px 16px;font-size:.82rem;color:var(--md-on-surface-variant)}.lt-combobox__empty[hidden]{display:none}
+#ingredients .lt-mtable td>strong{display:block}.lt-mtable__sub{display:block;margin-top:2px;font-size:.75rem;color:var(--md-on-surface-variant)}[data-ingredient-offers]{color:var(--lt-accent)}

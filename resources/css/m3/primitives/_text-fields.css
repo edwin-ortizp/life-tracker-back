@@ -198,3 +198,37 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Combobox: select con buscador (x-ui.combobox) */
+.md-combobox { position: relative; }
+.md-combobox > .md-field__control { padding-right: 40px; }
+.md-combobox__chevron { position: absolute; right: 14px; top: 28px; transform: translateY(-50%); pointer-events: none; color: var(--md-sys-color-on-surface-variant); font-size: .8rem; }
+.md-combobox__list { position: absolute; z-index: 40; left: 0; right: 0; top: calc(56px + 4px); max-height: 260px; overflow-y: auto; margin: 0; padding: 6px 0; list-style: none; background: var(--md-sys-color-surface-container); border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); box-shadow: 0 6px 20px rgb(0 0 0 / .16); }
+.md-combobox__option { padding: 10px 16px; font-size: .9rem; color: var(--md-sys-color-on-surface); cursor: pointer; }
+.md-combobox__option:hover, .md-combobox__option.is-active { background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent); }
+.md-combobox__option.is-selected { font-weight: 600; }
+.md-combobox__option--muted, .md-combobox__empty { color: var(--md-sys-color-on-surface-variant); }
+.md-combobox__empty { padding: 10px 16px; font-size: .85rem; }
+
+/* Campos plegados en línea (x-ui.inline-fields) */
+.md-inline-fields { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; font-size: .75rem; color: var(--md-sys-color-on-surface-variant); }
+.md-inline-fields__summary { display: contents; }
+.md-inline-fields__toggle { padding: 4px 0; border: 0; border-bottom: 1px dashed var(--md-sys-color-outline-variant); background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.md-inline-fields__toggle:hover { color: var(--md-sys-color-primary); border-bottom-color: currentColor; }
+.md-inline-fields__toggle:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 3px; }
+.md-inline-fields__controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.md-inline-fields__controls .md-field { margin: 0; width: 180px; }
+@media (max-width: 767.98px) { .md-inline-fields__controls, .md-inline-fields__controls .md-field { width: 100%; } }
+
+/* Interruptor (x-ui.switch): checkbox nativo con role="switch" pintado como pista y pulgar M3. */
+.md-switch { display: inline-flex; align-items: center; gap: 12px; cursor: pointer; }
+.md-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.md-switch__track { position: relative; flex: none; width: 52px; height: 32px; border: 2px solid var(--md-sys-color-outline); border-radius: 999px; background: var(--md-sys-color-surface-container-highest); transition: background-color .2s ease, border-color .2s ease; }
+.md-switch__thumb { position: absolute; top: 50%; left: 6px; width: 16px; height: 16px; border-radius: 50%; background: var(--md-sys-color-outline); transform: translateY(-50%); transition: left .2s ease, width .2s ease, height .2s ease, background-color .2s ease; }
+.md-switch input:checked + .md-switch__track { border-color: var(--md-sys-color-primary); background: var(--md-sys-color-primary); }
+.md-switch input:checked + .md-switch__track .md-switch__thumb { left: 22px; width: 24px; height: 24px; background: var(--md-sys-color-on-primary); }
+.md-switch input:focus-visible + .md-switch__track { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.md-switch input:disabled + .md-switch__track { opacity: .38; }
+.md-switch:has(input:disabled) { cursor: not-allowed; }
+.md-switch__text { display: grid; gap: 2px; }
+@media (prefers-reduced-motion: reduce) { .md-switch__track, .md-switch__thumb { transition: none; } }

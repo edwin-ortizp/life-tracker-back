@@ -1,4 +1,18 @@
 {% from '@project/components/life-shell.html.jinja' import shell, meals_tabs, metric, dialog, fab, manage_card %}
+{% set offers = {
+'Cilantro': {'stores':['Éxito','Carulla'], 'amount':2500},
+'Ahuyama': {'stores':['Éxito','D1'], 'amount':5000},
+'Repollo morado': {'stores':['Carulla'], 'amount':none},
+'Limones': {'stores':['Éxito','D1'], 'amount':4000},
+'Tilapia': {'stores':['Éxito','Carulla'], 'amount':18000},
+'Salmón': {'stores':['Carulla'], 'amount':24000},
+'Huevos': {'stores':['D1','Éxito'], 'amount':18000},
+'Arroz basmati': {'stores':['Éxito','Carulla'], 'amount':14500},
+'Harina de trigo': {'stores':['D1','Éxito'], 'amount':none},
+'Café': {'stores':['D1','Éxito'], 'amount':15000}
+} %}
+{% set estimate = namespace(total=0, missing=0) %}
+{% for name in ['Cilantro','Ahuyama','Repollo morado','Tilapia','Salmón','Arroz basmati','Harina de trigo'] %}{% if offers[name].amount is none %}{% set estimate.missing = estimate.missing + 1 %}{% else %}{% set estimate.total = estimate.total + offers[name].amount %}{% endif %}{% endfor %}
 {% call shell('meals', 'Lista de compras', 'bi-cart3') %}
 {{ meals_tabs('/meals-shopping') }}
 <section class="lt-grid-main">
@@ -11,19 +25,20 @@
       </div>
     {% else %}
 
+    <div class="lt-shopping-info" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i><div>Total estimado por comprar: <strong>$ {{ '{:,.0f}'.format(estimate.total).replace(',', '.') }}</strong> · <strong>{{ estimate.missing }} artículos sin precio</strong><small>Precios ilustrativos para las cantidades pendientes; los artículos sin precio no se incluyen en el total.</small></div></div>
     {% for cat, items in [
       ('Verduras y frutas', [('Cilantro','1 atado','Tacos de pescado',false),('Ahuyama','1 kg','Crema de ahuyama',false),('Repollo morado','1/2 unidad','Tacos de pescado',false),('Limones','6 unidades','',true)]),
       ('Proteínas', [('Tilapia','500 g','Tacos de pescado',false),('Salmón','400 g','Salmón al horno',false),('Huevos','30 unidades','',true)]),
       ('Despensa', [('Arroz basmati','1 kg','Pollo al curry',false),('Harina de trigo','1 kg','Pizza casera',false),('Café','500 g','',true)])
     ] %}
     <p class="lt-section-label">{{ cat }}</p>
-    <div class="lt-list">{% for name, qty, recipe, done in items %}<div class="lt-list-item"><span class="lt-check{% if done %} is-done{% endif %}" title="Marcar como comprado">{% if done %}✓{% endif %}</span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ qty }}{% if done %} · comprado{% endif %}</span></div>{% if recipe %}<span class="lt-chip lt-chip--neutral" title="Necesario por una receta"><i class="bi bi-book"></i>&nbsp;{{ recipe }}</span>{% endif %}<button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Ver tiendas y precios de {{ name }}"><i class="bi bi-shop"></i></button></div>{% endfor %}</div>
+    <div class="lt-list">{% for name, qty, recipe, done in items %}<div class="lt-list-item"><span class="lt-check{% if done %} is-done{% endif %}" title="Marcar como comprado">{% if done %}✓{% endif %}</span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ qty }}{% if done %} · comprado{% endif %}</span><div class="lt-chip-row lt-shopping-stores" aria-label="Tiendas que venden {{ name }}">{% for store in offers[name].stores %}<span class="lt-chip lt-chip--neutral"><i class="bi bi-shop" aria-hidden="true"></i> {{ store }}</span>{% endfor %}</div><span>{% if offers[name].amount is none %}Sin precio{% else %}Estimado: $ {{ '{:,.0f}'.format(offers[name].amount).replace(',', '.') }}{% endif %}</span></div>{% if recipe %}<span class="lt-chip lt-chip--neutral" title="Necesario por una receta"><i class="bi bi-book"></i>&nbsp;{{ recipe }}</span>{% endif %}<button class="lt-icon-button" type="button" data-lt-static-nav aria-label="Ver tiendas y precios de {{ name }}"><i class="bi bi-shop"></i></button></div>{% endfor %}</div>
     {% endfor %}
   {% endif %}{% endcall %}
   <aside class="lt-stack">
     <article class="lt-panel"><div class="lt-panel__head"><i class="bi bi-receipt"></i><h3>Resumen</h3></div><div class="lt-panel__body">
       <div class="lt-progress"><span style="width:22%"></span></div>
-      <dl class="lt-dl"><div><dt>Comprados</dt><dd>4 de 18</dd></div><div><dt>Costo estimado</dt><dd>$ 186.500</dd></div><div><dt>Tienda sugerida</dt><dd>Éxito Calle 80</dd></div><div><dt>Por recetas</dt><dd>9 ítems</dd></div></dl>
+      <dl class="lt-dl"><div><dt>Comprados</dt><dd>4 de 18</dd></div><div><dt>Costo estimado</dt><dd>$ {{ '{:,.0f}'.format(estimate.total).replace(',', '.') }}</dd></div><div><dt>Tienda sugerida</dt><dd>Éxito Calle 80</dd></div><div><dt>Por recetas</dt><dd>9 ítems</dd></div></dl>
       <div class="lt-route-links"><a class="lt-button lt-button--tonal" href="#/meals-weekly">Ver planificación</a></div>
     </div></article>
   </aside>

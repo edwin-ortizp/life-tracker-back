@@ -1,0 +1,13 @@
+{% from '@project/components/life-shell.html.jinja' import shell %}
+{% from '@project/components/settings-nav.html.jinja' import settings_layout, section_head %}
+{% call shell('settings', 'Ajustes', 'bi-gear') %}{% call settings_layout('/settings-oauth') %}
+{{ section_head('Aplicaciones OAuth', 'Aplicaciones a las que autorizaste el acceso a tu cuenta. Revoca las que ya no uses.') }}
+<ul class="lt-settings-box">
+{% for name, client, last, active in [('Claude','claude.ai · registro dinámico','hace 3 h',true),('Claude Code','CLI · registro dinámico','ayer',true),('ChatGPT','chatgpt.com · conector','hace 41 días',false)] %}
+  <li class="lt-settings-row"><span class="lt-list-item__icon"><i class="bi bi-app-indicator"></i></span><div class="lt-list-item__body"><strong>{{ name }}</strong><span>{{ client }} · permisos <code class="lt-settings-code">mcp:use</code> · último uso {{ last }}</span></div><span class="lt-chip lt-chip--{{ 'success' if active else 'warning' }}">{{ 'Activa' if active else 'Sin uso' }}</span><button class="lt-button lt-button--danger" type="button" data-lt-static-nav>Revocar</button></li>
+{% endfor %}
+</ul>
+<h3 class="lt-settings-subhead">Tokens de integración</h3>
+<ul class="lt-settings-box"><li class="lt-settings-row"><span class="lt-list-item__icon"><i class="bi bi-key"></i></span><div class="lt-list-item__body"><code class="lt-settings-code">lt_ai_4f9a…2c1b</code><span>Creado el 2 sep. · último uso hoy 09:12</span></div><button class="lt-button lt-button--danger" type="button" data-lt-static-nav>Revocar</button></li></ul>
+<div class="lt-actions"><button class="lt-button lt-button--tonal" type="button" data-lt-static-nav><i class="bi bi-plus-lg"></i> Generar token</button></div>
+{% endcall %}{% endcall %}

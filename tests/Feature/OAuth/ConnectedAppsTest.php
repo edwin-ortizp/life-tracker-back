@@ -21,8 +21,8 @@ class ConnectedAppsTest extends TestCase
         $this->actingAs($user);
         $this->tokenFor($user, 'Claude');
 
-        Livewire::test(SettingsPage::class)
-            ->assertSee('Aplicaciones conectadas')
+        Livewire::test(SettingsPage::class, ['section' => 'oauth'])
+            ->assertSee('Aplicaciones OAuth')
             ->assertSee('Claude');
     }
 
@@ -32,7 +32,7 @@ class ConnectedAppsTest extends TestCase
         $this->actingAs($user);
         $token = $this->tokenFor($user, 'Claude');
 
-        Livewire::test(SettingsPage::class)
+        Livewire::test(SettingsPage::class, ['section' => 'oauth'])
             ->call('revokeConnectedApp', $token->id)
             ->assertSee('ya no tiene acceso');
 
@@ -47,7 +47,7 @@ class ConnectedAppsTest extends TestCase
 
         $this->actingAs($mine);
 
-        Livewire::test(SettingsPage::class)
+        Livewire::test(SettingsPage::class, ['section' => 'oauth'])
             ->assertDontSee('Claude de otro')
             ->call('revokeConnectedApp', $foreign->id);
 

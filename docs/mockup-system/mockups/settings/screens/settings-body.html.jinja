@@ -1,0 +1,13 @@
+{% from '@project/components/life-shell.html.jinja' import shell %}
+{% from '@project/components/settings-nav.html.jinja' import settings_layout, section_head %}
+{% call shell('settings', 'Ajustes', 'bi-gear') %}{% call settings_layout('/settings-body') %}
+{{ section_head('Datos físicos', 'Se usan para calcular calorías, hidratación y la vista de vida en semanas.') }}
+<section class="lt-settings-box lt-settings-form"><div class="lt-form">
+  <label class="lt-field"><span>Fecha de nacimiento</span><input type="date" value="1994-03-18"></label>
+  <label class="lt-field"><span>Expectativa de vida (años)</span><input type="number" value="80"></label>
+  <label class="lt-field"><span>Estatura (cm)</span><input type="number" value="176"></label>
+  <label class="lt-field"><span>Peso actual (kg)</span><input type="number" value="74.5" step="0.1"></label>
+  <label class="lt-field lt-form--full"><span>Nivel de actividad</span><select><option>Moderado · 3–5 días por semana</option><option>Sedentario</option><option>Ligero</option><option>Intenso</option></select><small>Ajusta la meta diaria de agua y el gasto calórico estimado.</small></label>
+</div><div class="lt-actions"><button class="lt-button" type="button" data-lt-static-nav><i class="bi bi-check2"></i> Guardar datos</button></div></section>
+<section class="lt-settings-box"><dl class="lt-dl lt-settings-dl"><div><dt>Edad</dt><dd>32 años</dd></div><div><dt>IMC</dt><dd>24,1</dd></div><div><dt>Meta de agua</dt><dd>2,6 L</dd></div><div><dt>Semanas vividas</dt><dd>1.694</dd></div></dl></section>
+{% endcall %}{% endcall %}
