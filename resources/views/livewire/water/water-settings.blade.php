@@ -16,6 +16,7 @@
         <div class="md-card-filled mb-3 py-3" role="status">{{ $message }}</div>
     @endif
 
+    <nav aria-label="Ajustes de categorías"><x-ui.action variant="text" icon="bi-diagram-3" :href="route('categories.settings', 'drinks')">Gestionar categorías</x-ui.action></nav>
     <x-ui.management-card id="water-drink-types" title="Tipos de bebida" icon="bi-cup-straw"
                           :count="'('.$drinkTypes->total().' / '.$totalTypes.')'" search="search" search-placeholder="Buscar bebida"
                           :active-filters="count($activeFilters)" :paginator="$drinkTypes" noun="bebidas"
@@ -96,6 +97,7 @@
         <div class="d-flex flex-column gap-3">
             <x-ui.field name="icon" label="Ícono" :required="true" maxlength="40" help="Un emoji basta." wire:model="icon" />
             <x-ui.field name="name" label="Nombre" :required="true" maxlength="255" wire:model="name" />
+        <x-ui.category-select name="category" label="Categoría" placeholder="Sin categoría" :options="\App\Support\CategoryCatalog::options('drinks')" wire:model="category" />
             <x-ui.field name="hydrationFactor" label="Factor de hidratación" type="number" :required="true" min="0" max="9.99" step="0.01"
                         help="Multiplica los ml registrados: 1,00 hidrata igual que el agua." wire:model="hydrationFactor" />
         </div>

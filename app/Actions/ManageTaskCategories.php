@@ -14,11 +14,12 @@ use InvalidArgumentException;
  */
 class ManageTaskCategories
 {
-    public function create(User $user, string $name, ?string $icon = null): TaskCategory
+    public function create(User $user, string $name, ?string $icon = null, ?string $parentId = null): TaskCategory
     {
         $name = $this->validName($user, $name);
 
         return $user->taskCategories()->create([
+            'parent_id' => $parentId,
             'key' => TaskCategory::uniqueKey($name, $user->id),
             'name' => $name,
             'icon' => $icon ?: 'bi-tag',
@@ -26,9 +27,10 @@ class ManageTaskCategories
         ]);
     }
 
-    public function update(TaskCategory $category, string $name, ?string $icon = null): TaskCategory
+    public function update(TaskCategory $category, string $name, ?string $icon = null, ?string $parentId = null): TaskCategory
     {
         $category->update([
+            'parent_id' => func_num_args() >= 4 ? $parentId : $category->parent_id,
             'name' => $this->validName($category->user, $name, $category),
             'icon' => $icon ?: $category->icon,
         ]);
@@ -39,6 +41,7 @@ class ManageTaskCategories
     /** @return int Tareas reasignadas. */
     public function delete(TaskCategory $category, ?TaskCategory $reassignTo = null): int
     {
+        $category->ensureHasNoChildren();
         if ($reassignTo && ($reassignTo->is($category) || $reassignTo->user_id !== $category->user_id)) {
             throw new InvalidArgumentException('Elige otra categoría para reasignar las tareas.');
         }
@@ -61,7 +64,7 @@ class ManageTaskCategories
     /** Mueve la categoría una posición arriba (-1) o abajo (+1). */
     public function move(TaskCategory $category, int $direction): void
     {
-        $ordered = $category->user->taskCategories()->withoutGlobalScopes()->orderBy('sort_order')->orderBy('name')->get()->values();
+        $ordered = $category->user->taskCategories()->withoutGlobalScopes()->where('parent_id', $category->parent_id)->orderBy('sort_order')->orderBy('name')->get()->values();
         $index = $ordered->search(fn (TaskCategory $item) => $item->is($category));
         $target = $index + ($direction < 0 ? -1 : 1);
 

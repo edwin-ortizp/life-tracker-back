@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class MaintenanceTemplate extends Model
 {
+    use \App\Models\Traits\ResolvesCategoryCatalog;
+
     use HasUuids;
 
     protected $fillable = ['user_id', 'name', 'category', 'vehicle_types', 'power_sources', 'transmission_types', 'default_interval_days', 'default_interval_usage', 'description'];

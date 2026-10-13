@@ -3,6 +3,7 @@
 {% call shell('hydration', 'Ajustes', 'bi-droplet') %}
 {{ header('Ajustes', 'Tipos de bebida y meta diaria de hidratación.', 'bi-droplet') }}
 {{ module_tabs([('Registro diario','/water-daily','bi-droplet-half'),('Resumen semanal','/water-weekly','bi-bar-chart-line'),('Ajustes','/water-settings','bi-sliders')], '/water-settings') }}
+<p><a class="lt-link" href="#/drinks-categories">Categorías de Bebidas</a></p>
 <section class="lt-grid-main">
 {% call(zone) manage_card('drink-types', 'Tipos de bebida', 'bi-cup-straw', count='(8 / 8)', total=8, search='Buscar bebida', filters=0, menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':8,'total':8,'noun':'bebidas','page':1,'pages':1,'per_page':25}, sort=[('name','Nombre (A–Z)','bi-sort-alpha-down'),('factor','Mayor factor','bi-sort-numeric-down-alt'),('logs','Más registros','bi-sort-down')]) %}{% if zone == 'filters' %}
       <div class="lt-popover" id="drink-types-filters" role="dialog" aria-labelledby="drink-types-filters-title" hidden><span class="lt-popover__handle" aria-hidden="true"></span>

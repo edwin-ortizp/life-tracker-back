@@ -79,7 +79,7 @@ class RelationshipHistory extends Component
     public function render()
     {
         $this->type = array_key_exists($this->type, RelationshipHistoryEntries::TYPES) ? $this->type : '';
-        $this->category = array_key_exists($this->category, RelationshipEvent::CATEGORIES) ? $this->category : '';
+        $this->category = array_key_exists($this->category, \App\Support\CategoryCatalog::options('relationship-events')) ? $this->category : '';
 
         $relationship = $this->relationship();
         $entries = RelationshipHistoryEntries::for($relationship, [
@@ -94,7 +94,7 @@ class RelationshipHistory extends Component
             'entries' => $this->paginateCollection($entries),
             'total' => RelationshipHistoryEntries::for($relationship)->count(),
             'typeFilters' => RelationshipHistoryEntries::TYPES,
-            'categories' => RelationshipEvent::CATEGORIES,
+            'categories' => \App\Support\CategoryCatalog::options('relationship-events'),
         ]);
     }
 }

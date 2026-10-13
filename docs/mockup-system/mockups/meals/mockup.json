@@ -15,7 +15,8 @@
         "meals-history",
         "meals-settings",
         "meals-purchase",
-        "meals-cook"
+        "meals-cook",
+        "meals-categories"
       ],
       "output": "meals.html"
     }
@@ -60,6 +61,11 @@
       "template": "screens/meals-cook.html.jinja",
       "title": "Qué cocinar",
       "bodyClass": ""
+    },
+    "meals-categories": {
+      "template": "screens/meals-categories.html.jinja",
+      "title": "Categorías de Ingredientes",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -94,6 +100,10 @@
     {
       "path": "/meals-cook",
       "screen": "meals-cook"
+    },
+    {
+      "path": "/meals-categories",
+      "screen": "meals-categories"
     }
   ],
   "datasets": {

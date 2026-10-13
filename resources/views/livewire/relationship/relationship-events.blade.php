@@ -7,6 +7,7 @@
     </div>
 
     @php($eventFilterCount = collect([$showArchived, $includeSensitive, $relationFilter, $categoryFilter])->filter()->count())
+    <nav aria-label="Ajustes de categorías"><x-ui.action variant="text" icon="bi-diagram-3" :href="route('categories.settings', 'relationship-events')">Gestionar categorías</x-ui.action></nav>
     <x-ui.management-card id="relationship-events" title="Acontecimientos" icon="bi-calendar-event" :count="'('.$events->total().')'"
                           search="search" search-placeholder="Buscar acontecimientos" :active-filters="$eventFilterCount"
                           :paginator="$events" noun="acontecimientos" alpine="openMenu: null">
@@ -51,13 +52,13 @@
             <div class="md-chip-menu" :class="{ 'open': openMenu === 'category' }">
                 <button @click="openMenu = openMenu === 'category' ? null : 'category'"
                         class="md-chip md-chip-filter {{ $categoryFilter ? 'selected' : '' }}">
-                    {{ $categoryFilter ? \App\Models\RelationshipEvent::CATEGORIES[$categoryFilter] : 'Categoría' }}
+                    {{ $categoryFilter ? \App\Support\CategoryCatalog::options('relationship-events')[$categoryFilter] : 'Categoría' }}
                     <i class="bi bi-chevron-down md-chip-menu__arrow"></i>
                 </button>
                 <div x-show="openMenu === 'category'" x-transition x-cloak class="md-chip-menu__dropdown">
                     <button wire:click="$set('categoryFilter', '')" @click="openMenu = null"
                             class="md-chip-menu__item {{ $categoryFilter === '' ? 'active' : '' }}">Todas</button>
-                    @foreach (\App\Models\RelationshipEvent::CATEGORIES as $key => $label)
+                    @foreach (\App\Support\CategoryCatalog::options('relationship-events') as $key => $label)
                         <button wire:click="$set('categoryFilter', '{{ $key }}')" @click="openMenu = null"
                                 class="md-chip-menu__item {{ $categoryFilter === $key ? 'active' : '' }}">{{ $label }}</button>
                     @endforeach

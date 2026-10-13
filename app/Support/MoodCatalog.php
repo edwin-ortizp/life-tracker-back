@@ -30,7 +30,7 @@ class MoodCatalog
                     ->where(fn ($query) => $query->where('user_id', $user->id))
                     ->ignore($ignoreId),
             ],
-            'category' => ['required', Rule::in(DefaultMoodStates::categories())],
+            'category' => ['required', Rule::in(array_keys(CategoryCatalog::options('mood', $user->id)))],
             'value' => ['required', 'integer', 'between:1,10'],
         ];
     }

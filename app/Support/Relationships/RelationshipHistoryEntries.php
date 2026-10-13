@@ -40,7 +40,7 @@ final class RelationshipHistoryEntries
                         $query->orWhere('is_archived', true);
                     }
                 })
-                ->when($category !== '', fn (Builder $query) => $query->where('category', $category))
+                ->when($category !== '', fn (Builder $query) => $query->whereIn('category', \App\Support\CategoryCatalog::expand('relationship-events', [$category])))
                 ->get()
                 ->each(fn (RelationshipEvent $event) => $rows->push([
                     'kind' => 'event',

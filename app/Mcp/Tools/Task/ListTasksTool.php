@@ -41,7 +41,7 @@ class ListTasksTool extends Tool
         if (! empty($data['uncategorized'])) {
             $query->where(fn ($query) => $query->whereNull('category')->orWhere('category', ''));
         } elseif (! empty($data['category'])) {
-            $query->where('category', $data['category']);
+            $query->whereIn('category', \App\Models\TaskCategory::expandSelection([$data['category']], Auth::id(), 'key'));
         }
 
         if (filled($data['search'] ?? null)) {

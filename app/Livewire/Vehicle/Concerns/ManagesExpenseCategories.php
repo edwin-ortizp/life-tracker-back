@@ -16,6 +16,8 @@ trait ManagesExpenseCategories
 {
     public bool $showCategoryManager = false;
 
+    public string $parent_id = '';
+
     public string $newCategoryName = '';
 
     public ?string $renamingCategoryId = null;
@@ -55,12 +57,14 @@ trait ManagesExpenseCategories
         }
 
         VehicleExpenseCategory::create([
+            'parent_id' => $this->parent_id ?: null,
             'name' => $this->newCategoryName,
             'icon' => 'bi-tag',
             'sort_order' => (int) VehicleExpenseCategory::query()->max('sort_order') + 1,
         ]);
         $this->categoryMessage = "«{$this->newCategoryName}» ya está disponible al registrar gastos.";
         $this->newCategoryName = '';
+        $this->parent_id = '';
     }
 
     public function startCategoryRename(string $id): void
@@ -73,10 +77,12 @@ trait ManagesExpenseCategories
         $this->deletingCategoryId = null;
         $this->renamingCategoryId = $category->id;
         $this->renamingCategoryName = $category->name;
+        $this->parent_id = $category->parent_id ?? '';
     }
 
     public function cancelCategoryRename(): void
     {
+        $this->parent_id = '';
         $this->renamingCategoryId = null;
         $this->renamingCategoryName = '';
         $this->resetValidation('renamingCategoryName');
@@ -102,7 +108,7 @@ trait ManagesExpenseCategories
             return;
         }
 
-        $category->update(['name' => $this->renamingCategoryName]);
+        $category->update(['name' => $this->renamingCategoryName, 'parent_id' => $this->parent_id ?: null]);
         $this->categoryMessage = 'Categoría renombrada. Sus gastos conservan la categoría.';
         $this->cancelCategoryRename();
     }
@@ -116,6 +122,10 @@ trait ManagesExpenseCategories
         }
         $this->cancelCategoryRename();
 
+        if ($category->children()->exists()) {
+            $this->categoryMessage = 'Mueve primero las subcategorías antes de eliminar esta categoría.';
+            return;
+        }
         if ($category->expenses_count > 0) {
             $this->deletingCategoryId = $category->id;
             $this->reassignCategoryTo = '';
@@ -150,6 +160,7 @@ trait ManagesExpenseCategories
         );
         $target = VehicleExpenseCategory::query()->findOrFail($this->reassignCategoryTo);
 
+        $category->ensureHasNoChildren();
         $moved = DB::transaction(function () use ($category, $target) {
             $moved = VehicleExpense::query()->where('vehicle_expense_category_id', $category->id)->update(['vehicle_expense_category_id' => $target->id]);
             $category->delete();
@@ -180,7 +191,7 @@ trait ManagesExpenseCategories
 
     private function resetCategoryManager(): void
     {
-        $this->reset('newCategoryName', 'renamingCategoryId', 'renamingCategoryName', 'deletingCategoryId', 'reassignCategoryTo', 'categoryMessage');
+        $this->reset('parent_id', 'newCategoryName', 'renamingCategoryId', 'renamingCategoryName', 'deletingCategoryId', 'reassignCategoryTo', 'categoryMessage');
         $this->resetValidation();
     }
 }

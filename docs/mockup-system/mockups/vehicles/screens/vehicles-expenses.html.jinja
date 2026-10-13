@@ -3,6 +3,7 @@
 {% from '@project/components/life-shell.html.jinja' import shell, vehicle_tabs %}
 {% call shell('vehicles', 'Chevrolet Cruze', 'bi-car-front', status='Activo') %}
 {{ vehicle_tabs('/vehicles-expenses') }}
+<p><a class="lt-link" href="#/vehicle-expenses-categories">Categorías de Gastos de vehículos</a></p>
 <section class="lt-vehicle-bar">
   <p>Todos los gastos del vehículo excepto combustible. Los de mantenimiento quedan vinculados a su registro.</p>
   <div class="lt-menu-anchor"><button class="lt-select-button" type="button" data-lt-toggle="expenses-period" aria-haspopup="menu" aria-expanded="false"><i class="bi bi-calendar3"></i> Últimos 6 meses <i class="bi bi-chevron-down"></i></button>

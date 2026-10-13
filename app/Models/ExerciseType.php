@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExerciseType extends Model
 {
+    use \App\Models\Traits\ResolvesCategoryCatalog;
+
     use BelongsToUser, HasUuids;
 
     protected $fillable = [

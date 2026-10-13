@@ -13,7 +13,9 @@
         "vehicles-fuel",
         "vehicles-maintenance",
         "vehicles-maintenance-history",
-        "vehicles-expenses"
+        "vehicles-expenses",
+        "maintenance-categories",
+        "vehicle-expenses-categories"
       ],
       "output": "vehicles.html"
     }
@@ -48,6 +50,16 @@
       "template": "screens/vehicles-expenses.html.jinja",
       "title": "Gastos",
       "bodyClass": ""
+    },
+    "maintenance-categories": {
+      "template": "screens/maintenance-categories.html.jinja",
+      "title": "Categorías de Mantenimiento",
+      "bodyClass": ""
+    },
+    "vehicle-expenses-categories": {
+      "template": "screens/vehicle-expenses-categories.html.jinja",
+      "title": "Categorías de Gastos de vehículos",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -74,6 +86,14 @@
     {
       "path": "/vehicles-expenses",
       "screen": "vehicles-expenses"
+    },
+    {
+      "path": "/maintenance-categories",
+      "screen": "maintenance-categories"
+    },
+    {
+      "path": "/vehicle-expenses-categories",
+      "screen": "vehicle-expenses-categories"
     }
   ],
   "datasets": {

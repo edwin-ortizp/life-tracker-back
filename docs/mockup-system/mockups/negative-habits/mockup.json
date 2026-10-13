@@ -9,7 +9,8 @@
       "template": "pages/main.html.jinja",
       "screens": [
         "negative-weekly",
-        "negative-trend"
+        "negative-trend",
+        "negative-habits-categories"
       ],
       "output": "negative-habits.html"
     }
@@ -24,6 +25,11 @@
       "template": "screens/negative-trend.html.jinja",
       "title": "Tendencia",
       "bodyClass": ""
+    },
+    "negative-habits-categories": {
+      "template": "screens/negative-habits-categories.html.jinja",
+      "title": "Categorías de Hábitos a evitar",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -34,6 +40,10 @@
     {
       "path": "/negative-trend",
       "screen": "negative-trend"
+    },
+    {
+      "path": "/negative-habits-categories",
+      "screen": "negative-habits-categories"
     }
   ],
   "datasets": {

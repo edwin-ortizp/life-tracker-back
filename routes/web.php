@@ -155,6 +155,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/goals/{goal}', GoalDetail::class)->name('goals.show');
     Route::get('/statistics', StatisticsDashboard::class)->name('statistics');
     Route::get('/negative-habits', NegativeHabitWeekly::class)->name('negative-habits');
+    Route::get('/categories/{domain}', \App\Livewire\Category\CategorySettings::class)->name('categories.settings');
     Route::get('/settings', SettingsPage::class)->name('settings');
     Route::get('/settings/{section}', SettingsPage::class)
         ->whereIn('section', ['body', 'security', 'oauth', 'integrations', 'mcp', 'about'])

@@ -48,7 +48,7 @@
 
     <div x-show="step === 1" x-cloak class="lt-cm-form">
         <div class="lt-cm-row lt-cm-row--3">
-            <div class="md-text-field"><select wire:model="category" id="{{ $dialogId }}-category"><option value="">Sin categoría</option>@foreach ($categories as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select><label for="{{ $dialogId }}-category">Categoría</label></div>
+            <x-ui.category-select name="category" :id="$dialogId.'-category'" :options="$categories" wire:model="category" />
             <div class="md-text-field"><select wire:model="priority" id="{{ $dialogId }}-priority"><option value="">Sin prioridad</option>@foreach ($priorities as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select><label for="{{ $dialogId }}-priority">Prioridad</label></div>
             <div class="md-text-field"><select wire:model="size" id="{{ $dialogId }}-size"><option value="">Sin tamaño</option>@foreach ($sizes as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select><label for="{{ $dialogId }}-size">Tamaño</label></div>
         </div>

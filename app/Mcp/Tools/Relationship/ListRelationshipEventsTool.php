@@ -24,7 +24,7 @@ class ListRelationshipEventsTool extends Tool
         $data = $request->validate([
             'contact_id' => ['nullable', 'string'],
             'name' => ['nullable', 'string'],
-            'category' => ['nullable', 'string', Rule::in(array_keys(RelationshipEvent::CATEGORIES))],
+            'category' => ['nullable', 'string', Rule::in(array_keys(\App\Support\CategoryCatalog::options('relationship-events')))],
             'search' => ['nullable', 'string', 'max:120'],
             'since' => ['nullable', 'date'],
             'until' => ['nullable', 'date'],
@@ -48,7 +48,7 @@ class ListRelationshipEventsTool extends Tool
             ->whereHas('relationship')
             ->when($contact, fn ($query) => $query->where('relationship_id', $contact->id))
             ->when(empty($data['include_archived']), fn ($query) => $query->active())
-            ->when(filled($data['category'] ?? null), fn ($query) => $query->where('category', $data['category']))
+            ->when(filled($data['category'] ?? null), fn ($query) => $query->whereIn('category', \App\Support\CategoryCatalog::expand('relationship-events', [$data['category']])))
             ->when(filled($data['search'] ?? null), function ($query) use ($data) {
                 $like = '%'.addcslashes(trim($data['search']), '%_').'%';
                 $query->where(fn ($match) => $match->where('title', 'like', $like)->orWhere('notes', 'like', $like));
@@ -89,7 +89,7 @@ class ListRelationshipEventsTool extends Tool
         return [
             'contact_id' => $schema->string()->description('Id de la persona. Alternativa a "name".'),
             'name' => $schema->string()->description('Nombre, apodo o alias de la persona. Sin persona, lista los eventos de todos.'),
-            'category' => $schema->string()->enum(array_keys(RelationshipEvent::CATEGORIES))->description('Filtra por categoría.'),
+            'category' => $schema->string()->enum(array_keys(\App\Support\CategoryCatalog::options('relationship-events')))->description('Filtra por categoría.'),
             'search' => $schema->string()->description('Texto en el título o las notas.'),
             'since' => $schema->string()->description('Desde esta fecha (YYYY-MM-DD).'),
             'until' => $schema->string()->description('Hasta esta fecha (YYYY-MM-DD).'),

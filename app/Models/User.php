@@ -50,6 +50,7 @@ class User extends Authenticatable
         static::created(function (self $user) {
             SeedDefaultCircles::for($user);
             SeedDefaultMealCategories::for($user);
+            \App\Support\CategoryCatalog::seedFor($user->id);
         });
     }
 

@@ -44,7 +44,7 @@ class LogRelationshipEventAction extends HabitAction
 
         return [
             HabitActionField::select('relationship_id', 'Contacto', $contacts, ['required', 'string'], array_key_first($contacts)),
-            HabitActionField::select('category', 'Categoría', RelationshipEvent::CATEGORIES, ['required', 'string'], array_key_first(RelationshipEvent::CATEGORIES)),
+            HabitActionField::select('category', 'Categoría', \App\Support\CategoryCatalog::options('relationship-events'), ['required', 'string'], array_key_first(\App\Support\CategoryCatalog::options('relationship-events'))),
             HabitActionField::text('title', '¿Qué pasó?', ['required', 'string', 'max:255'], null, ask: true),
         ];
     }

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class DrinkType extends Model
 {
+    use \App\Models\Traits\ResolvesCategoryCatalog;
+
     use BelongsToUser, HasUuids;
 
     protected $fillable = [

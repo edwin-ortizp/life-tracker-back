@@ -29,7 +29,7 @@
                             ? (int) $row->pending.' '.((int) $row->pending === 1 ? 'pendiente' : 'pendientes').' · '.(int) $row->total.' en total'
                             : 'Sin tareas';
                     @endphp
-                    <x-ui.list-item :headline="$category->name" :supporting="$usage" wire:key="task-category-{{ $category->id }}">
+                    <x-ui.list-item :headline="$category->path_label" :supporting="$usage" wire:key="task-category-{{ $category->id }}">
                         <x-slot:leading>
                             <span class="md-list-icon-circle" aria-hidden="true"><i class="bi {{ $category->icon ?: 'bi-tag' }}"></i></span>
                         </x-slot:leading>
@@ -47,7 +47,7 @@
                                     <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete('{{ $category->id }}')">Eliminar</x-ui.menu-item>
                                 @else
                                     <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete('{{ $category->id }}')"
-                                                    wire:confirm="“{{ $category->name }}” no tiene tareas; se eliminará de tu catálogo.">Eliminar</x-ui.menu-item>
+                                                    wire:confirm="“{{ $category->path_label ?? $category->name }}” no tiene tareas; se eliminará de tu catálogo.">Eliminar</x-ui.menu-item>
                                 @endif
                             </x-ui.row-actions>
                         </x-slot:trailing>
@@ -68,6 +68,7 @@
                       :submit="$editingId ? 'Actualizar' : 'Crear categoría'">
         <div class="d-flex flex-column gap-3">
             <x-ui.field name="name" label="Nombre" :required="true" maxlength="60" wire:model="name" />
+        <x-ui.category-parent model="TaskCategory" :editing-id="$editingId" />
             <x-ui.select name="icon" label="Icono" :selected="$icon" :options="$icons" :icon="$icon" wire:model.live="icon" />
         </div>
     </x-ui.form-dialog>

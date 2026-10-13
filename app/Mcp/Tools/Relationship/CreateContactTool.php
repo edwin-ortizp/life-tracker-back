@@ -18,8 +18,6 @@ class CreateContactTool extends Tool
 {
     use ResolvesContact;
 
-    private const CATEGORIES = ['familia', 'amigo', 'trabajo', 'pareja', 'otro'];
-
     public function handle(Request $request): Response
     {
         $currentYear = (int) now()->year;
@@ -27,7 +25,7 @@ class CreateContactTool extends Tool
         $data = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
             'nickname' => ['nullable', 'string', 'max:120'],
-            'category' => ['nullable', 'string', 'in:'.implode(',', self::CATEGORIES)],
+            'category' => ['nullable', 'string', \Illuminate\Validation\Rule::in(array_keys(\App\Support\CategoryCatalog::options('contacts')))],
             'circle_name' => ['nullable', 'string'],
             'birthday_month' => ['nullable', 'integer', 'between:1,12', 'required_with:birthday_day'],
             'birthday_day' => ['nullable', 'integer', 'between:1,31', 'required_with:birthday_month'],
@@ -112,7 +110,7 @@ class CreateContactTool extends Tool
             'nickname' => $schema->string()
                 ->description('Apodo o nombre corto.'),
             'category' => $schema->string()
-                ->enum(self::CATEGORIES)
+                ->enum(array_keys(\App\Support\CategoryCatalog::options('contacts')))
                 ->description('Categoría del contacto. Por defecto "otro".'),
             'circle_name' => $schema->string()
                 ->description('Nombre de un círculo existente al que pertenece el contacto.'),

@@ -8,12 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class MealCategory extends Model
 {
-    use BelongsToUser, HasUuids;
+    use BelongsToUser, HasUuids, \App\Models\Traits\HasCategoryHierarchy;
 
-    protected $fillable = ['key', 'name', 'normalized_name'];
+    protected $fillable = ['parent_id', 'key', 'name', 'normalized_name'];
 
     public static function options(): array
     {
-        return static::where('user_id', auth()->id())->orderBy('name')->pluck('name', 'id')->all();
+        return auth()->id() ? static::hierarchyOptions(auth()->id()) : [];
     }
 }

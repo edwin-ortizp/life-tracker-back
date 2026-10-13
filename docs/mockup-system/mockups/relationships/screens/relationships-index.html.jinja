@@ -2,6 +2,8 @@
 {% call shell('relationships', 'Relaciones', 'bi-people') %}
 {{ header('Relaciones', 'Personas, círculos y momentos que quieres cuidar.', 'bi-people') }}
 {{ module_tabs([('Relaciones','/relationships-index','bi-people'),('Acontecimientos','/relationships-events','bi-calendar-event'),('Cumpleaños','/relationships-birthdays','bi-cake2')], '/relationships-index') }}
+<p><a class="lt-link" href="#/contacts-categories">Categorías de Contactos</a></p>
+<p><a class="lt-link" href="#/relationship-events-categories">Categorías de Eventos de relaciones</a></p>
 <section class="lt-metrics">{{ metric('Contactos activos','46') }}{{ metric('Seguimiento vencido','4','warning') }}{{ metric('Contactados este mes','17','success') }}</section>
 <section class="lt-grid-main">
   {% call(zone) manage_card('people', 'Personas', 'bi-people', count='(5 / 46)', total=46, search='Buscar por nombre, apodo, teléfono o correo', menu=[('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':5,'total':46,'noun':'personas','page':1,'pages':2,'per_page':25}, sort=[('name','Nombre (A–Z)','bi-sort-alpha-down'),('last','Último contacto','bi-clock-history'),('next','Próximo contacto','bi-calendar-event')]) %}{% if zone == 'filters' %}

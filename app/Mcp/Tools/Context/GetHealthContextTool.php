@@ -108,7 +108,7 @@ class GetHealthContextTool extends Tool
         $tasks = Auth::user()->tasks()
             ->where('completed', false)
             ->where(fn ($query) => $query
-                ->whereIn('category', $categories)
+                ->whereIn('category', \App\Models\TaskCategory::expandSelection($categories->all(), Auth::id(), 'key'))
                 ->orWhereHas('healthEvents'))
             ->limit(30)
             ->get()

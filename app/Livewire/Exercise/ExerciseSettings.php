@@ -114,7 +114,7 @@ class ExerciseSettings extends Component
                 ->where('user_id', auth()->id())
                 ->ignore($type?->id)],
             'icon' => ['nullable', 'string', 'max:16'],
-            'formCategory' => ['nullable', Rule::in(array_keys(DefaultExerciseTypes::CATEGORIES))],
+            'formCategory' => ['nullable', Rule::in(array_keys(\App\Support\CategoryCatalog::options('exercise')))],
             'caloriesPerHour' => ['required', 'integer', 'min:0', 'max:3000'],
             'stepsEquivalent' => ['nullable', 'integer', 'min:0', 'max:50000'],
         ]);
@@ -230,11 +230,11 @@ class ExerciseSettings extends Component
             ->withMax('logs', 'date')
             ->when($term !== '', fn ($query) => $query->where('name', 'like', "%{$term}%"))
             ->when($this->category === 'none', fn ($query) => $query->whereNull('category'))
-            ->when(! in_array($this->category, ['', 'none'], true), fn ($query) => $query->where('category', $this->category))
+            ->when(! in_array($this->category, ['', 'none'], true), fn ($query) => $query->whereIn('category', \App\Support\CategoryCatalog::expand('exercise', [$this->category])))
             ->orderBy('name')
             ->paginate($this->perPage());
 
-        $order = array_flip(array_keys(DefaultExerciseTypes::CATEGORIES));
+        $order = array_flip(array_keys(\App\Support\CategoryCatalog::options('exercise')));
         $groups = $types->getCollection()->groupBy(fn (ExerciseType $type) => $type->category ?? '')
             ->sortBy(fn ($group, $key) => $order[$key] ?? PHP_INT_MAX);
 
@@ -243,7 +243,7 @@ class ExerciseSettings extends Component
         return view('livewire.exercise.exercise-settings', [
             'groups' => $groups,
             'types' => $types,
-            'categories' => DefaultExerciseTypes::CATEGORIES,
+            'categories' => \App\Support\CategoryCatalog::options('exercise'),
             'totalCount' => ExerciseType::count(),
             'usedCount' => ExerciseType::has('logs')->count(),
             'deleting' => $deleting,

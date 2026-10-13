@@ -212,7 +212,7 @@ class MoodSettings extends Component
 
         $states = MoodState::query()
             ->when($term !== '', fn ($query) => $query->where('text', 'like', "%{$term}%"))
-            ->when($this->category !== '', fn ($query) => $query->where('category', $this->category))
+            ->when($this->category !== '', fn ($query) => $query->whereIn('category', \App\Support\CategoryCatalog::expand('mood', [$this->category])))
             ->when($this->status !== '', fn ($query) => $query->where('is_active', $this->status === 'active'))
             ->prioritized()
             ->withCount('entries')
@@ -220,7 +220,7 @@ class MoodSettings extends Component
 
         return view('livewire.mood.mood-settings', [
             'states' => $states,
-            'categories' => DefaultMoodStates::categories(),
+            'categories' => \App\Support\CategoryCatalog::options('mood'),
             'activeCount' => MoodState::active()->count(),
             'totalCount' => MoodState::count(),
             'pinnedCount' => MoodState::active()->where('is_pinned', true)->count(),

@@ -157,7 +157,7 @@ class VehicleExpensesTest extends TestCase
             ->assertSee('tiene 2 gastos')
             ->call('reassignAndDeleteCategory')
             ->assertHasErrors(['reassignCategoryTo' => 'required'])
-            ->set('reassignCategoryTo', $other->vehicleExpenseCategories()->first()->id)
+            ->set('reassignCategoryTo', $other->vehicleExpenseCategories()->withoutGlobalScopes()->first()->id)
             ->call('reassignAndDeleteCategory')
             ->assertHasErrors(['reassignCategoryTo'])
             ->set('reassignCategoryTo', $others->id)
@@ -170,6 +170,6 @@ class VehicleExpensesTest extends TestCase
 
         $component->call('restoreDefaultCategories');
         $this->assertTrue(VehicleExpenseCategory::where('name', 'Seguros')->exists());
-        $this->assertSame(count(DefaultVehicleExpenseCategories::all()), $other->vehicleExpenseCategories()->count());
+        $this->assertSame(count(DefaultVehicleExpenseCategories::all()), $other->vehicleExpenseCategories()->withoutGlobalScopes()->count());
     }
 }

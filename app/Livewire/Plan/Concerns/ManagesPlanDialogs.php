@@ -312,7 +312,7 @@ trait ManagesPlanDialogs
     protected function planDialogOptions(): array
     {
         return [
-            'planCategoryOptions' => PlanCategory::query()->orderBy('name')->pluck('name', 'id')->all(),
+            'planCategoryOptions' => PlanCategory::hierarchyOptions(auth()->id()),
             'typeOptions' => Plan::TYPES,
             'circleOptions' => Circle::query()->orderBy('sort_order')->orderBy('name')->pluck('name', 'id')->all(),
             'peopleOptions' => Relationship::query()->active()->orderBy('full_name')->pluck('full_name', 'id')->all(),

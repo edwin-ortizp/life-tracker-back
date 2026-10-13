@@ -93,7 +93,7 @@ class RelationshipEvents extends Component
         }
 
         if ($this->categoryFilter !== '') {
-            $query->where('category', $this->categoryFilter);
+            $query->whereIn('category', \App\Support\CategoryCatalog::expand('relationship-events', [$this->categoryFilter]));
         }
 
         if ($this->periodFilter === 'upcoming') {
@@ -121,7 +121,7 @@ class RelationshipEvents extends Component
             $this->periodFilter = 'upcoming';
         }
 
-        if ($this->categoryFilter !== '' && ! array_key_exists($this->categoryFilter, RelationshipEvent::CATEGORIES)) {
+        if ($this->categoryFilter !== '' && ! array_key_exists($this->categoryFilter, \App\Support\CategoryCatalog::options('relationship-events'))) {
             $this->categoryFilter = '';
         }
 

@@ -49,7 +49,7 @@ class DefaultExerciseTypes
 
     public static function categoryLabel(?string $category): string
     {
-        return self::CATEGORIES[$category] ?? ($category ? ucfirst($category) : 'Sin categoría');
+        return (auth()->id() ? (\App\Support\CategoryCatalog::options('exercise')[$category] ?? null) : null) ?? self::CATEGORIES[$category] ?? ($category ? ucfirst($category) : 'Sin categoría');
     }
 
     /**

@@ -13,7 +13,9 @@
         "relationships-plans",
         "relationships-history",
         "relationships-events",
-        "relationships-birthdays"
+        "relationships-birthdays",
+        "contacts-categories",
+        "relationship-events-categories"
       ],
       "output": "relationships.html"
     }
@@ -48,6 +50,16 @@
       "template": "screens/relationships-history.html.jinja",
       "title": "Historial de la relación",
       "bodyClass": ""
+    },
+    "contacts-categories": {
+      "template": "screens/contacts-categories.html.jinja",
+      "title": "Categorías de Contactos",
+      "bodyClass": ""
+    },
+    "relationship-events-categories": {
+      "template": "screens/relationship-events-categories.html.jinja",
+      "title": "Categorías de Eventos de relaciones",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -74,6 +86,14 @@
     {
       "path": "/relationships-birthdays",
       "screen": "relationships-birthdays"
+    },
+    {
+      "path": "/contacts-categories",
+      "screen": "contacts-categories"
+    },
+    {
+      "path": "/relationship-events-categories",
+      "screen": "relationship-events-categories"
     }
   ],
   "datasets": {

@@ -8,6 +8,7 @@
         @endif
 
         <x-ui.field name="newCategoryName" label="Nueva categoría" maxlength="60" icon="bi-plus-lg" wire:model="newCategoryName" />
+        @if (!$renamingCategoryId)<x-ui.category-parent model="VehicleExpenseCategory" />@endif
 
         @if ($deletingCategory)
             <div class="md-card-filled vehicle-category-reassign" role="group" aria-label="Eliminar {{ $deletingCategory->name }}">
@@ -29,12 +30,13 @@
                         @if ($renamingCategoryId === $category->id)
                             <div class="vehicle-category-row__body">
                                 <x-ui.field name="renamingCategoryName" label="Nombre de la categoría" maxlength="60" wire:model="renamingCategoryName" wire:keydown.enter.prevent="saveCategoryRename" />
+                                <x-ui.category-parent model="VehicleExpenseCategory" :editing-id="$renamingCategoryId" />
                             </div>
                             <x-ui.icon-action icon="bi-check-lg" label="Guardar nombre" size="sm" wire:click="saveCategoryRename" />
                             <x-ui.icon-action icon="bi-x-lg" label="Cancelar cambio de nombre" size="sm" wire:click="cancelCategoryRename" />
                         @else
                             <div class="vehicle-category-row__body">
-                                <strong>{{ $category->name }}</strong>
+                                <strong>{{ $category->path_label }}</strong>
                                 <small>{{ $category->expenses_count ? $category->expenses_count.' '.($category->expenses_count === 1 ? 'gasto' : 'gastos') : 'Sin gastos' }}</small>
                             </div>
                             <x-ui.icon-action icon="bi-pencil" label="Renombrar {{ $category->name }}" size="sm" wire:click="startCategoryRename('{{ $category->id }}')" />

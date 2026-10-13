@@ -1,6 +1,7 @@
 {% from '@project/components/life-shell.html.jinja' import shell, tabs as module_tabs, metric, dialog, fab, manage_card, row_split %}
 {% call shell('exercise', 'Ejercicio', 'bi-activity') %}
 {{ module_tabs([('Registro diario','/exercise-daily','bi-activity'),('Estadísticas','/exercise-statistics','bi-bar-chart-line'),('Ajustes','/exercise-settings','bi-sliders')], '/exercise-settings') }}
+<p><a class="lt-link" href="#/exercise-categories">Categorías de Ejercicios</a></p>
 <section class="lt-metrics">{{ metric('Tipos de ejercicio','21') }}{{ metric('Con registros','8 de 21','success') }}{{ metric('Sin registros','13','warning') }}</section>
 <section class="lt-grid-main">
 {% call(zone) manage_card('exercise-types', 'Tipos de ejercicio', 'bi-activity', count='(13 / 21)', total=21, search='Buscar tipo de ejercicio', menu=[('Restaurar predeterminados', 'bi-arrow-counterclockwise', 'exercise-type-restore'), ('Exportar CSV', 'bi-filetype-csv')], footer={'from':1,'to':13,'total':21,'noun':'tipos','page':1,'pages':1,'per_page':25}) %}{% if zone == 'filters' %}

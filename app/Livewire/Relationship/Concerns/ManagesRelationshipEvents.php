@@ -63,7 +63,7 @@ trait ManagesRelationshipEvents
     {
         $validated = $this->validate([
             'eventTitle' => ['required', 'string', 'max:255'],
-            'eventCategory' => ['required', 'in:'.implode(',', array_keys(RelationshipEvent::CATEGORIES))],
+            'eventCategory' => ['required', 'in:'.implode(',', array_keys(\App\Support\CategoryCatalog::options('relationship-events')))],
             'eventNotes' => ['nullable', 'string', 'max:5000'],
             'eventPrecision' => ['required', 'in:'.implode(',', array_keys(EventDate::PRECISIONS))],
             'eventDate' => ['nullable', 'date'],

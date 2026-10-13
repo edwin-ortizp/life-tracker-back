@@ -176,7 +176,7 @@ class MealSettingsTest extends TestCase
         $category = MealCategory::firstOrFail();
         $other = User::factory()->create();
         $this->actingAs($other);
-        $item = ShoppingItem::create(['name' => 'Sin categoría']);
+        $item = ShoppingItem::create(['name' => 'Sin categoría', 'status' => 'active']);
         $this->expectException(\Illuminate\Database\QueryException::class);
         \Illuminate\Support\Facades\DB::table('shopping_items')->where('id', $item->id)->update(['category_id' => $category->id]);
     }

@@ -39,7 +39,7 @@ class ListContactsTool extends Tool
 
         $contacts = $query
             ->with(['circle', 'aliases', 'contactMethods'])
-            ->when(filled($data['category'] ?? null), fn ($query) => $query->where('category', $data['category']))
+            ->when(filled($data['category'] ?? null), fn ($query) => $query->whereIn('category', \App\Support\CategoryCatalog::expand('contacts', [$data['category']])))
             ->when($circleId, fn ($query) => $query->where('circle_id', $circleId))
             ->orderBy('full_name')
             ->limit(50)

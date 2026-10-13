@@ -144,7 +144,7 @@ class PlanIndex extends Component
         )->take(3);
 
         $options = $this->planDialogOptions();
-        $options['categoryOptions'] = PlanCategory::query()->orderBy('name')->pluck('name', 'id')->all();
+        $options['categoryOptions'] = PlanCategory::hierarchyOptions(auth()->id());
         $options['tagOptions'] = PlanTag::query()->orderBy('name')->pluck('name', 'id')->all();
 
         return view('livewire.plan.plan-index', [
@@ -176,7 +176,7 @@ class PlanIndex extends Component
             ->when($this->scheduled, fn (Builder $query) => $query->where('status', 'scheduled')->whereNotNull('scheduled_on')
                 ->when($this->from !== '', fn ($q) => $q->whereDate('scheduled_on', '>=', $this->from))
                 ->when($this->to !== '', fn ($q) => $q->whereDate('scheduled_on', '<=', $this->to)))
-            ->when($this->category !== '', fn ($q) => $q->where('plan_category_id', $this->category))
+            ->when($this->category !== '', fn ($q) => $q->whereIn('plan_category_id', \App\Models\PlanCategory::expandSelection([$this->category], auth()->id(), 'id')))
             ->when($this->status === '', fn (Builder $query) => $query->where('status', '!=', 'archived'), fn (Builder $query) => $query->where('status', $this->status))
             ->when($this->group !== '', fn (Builder $query) => $query->whereIn('type', Plan::GROUPS[$this->group]['types']))
             ->when($this->types !== [], fn (Builder $query) => $query->whereIn('type', $this->types))

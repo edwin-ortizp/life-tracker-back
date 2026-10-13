@@ -566,7 +566,7 @@ class MealIngredients extends Component
         $base = ShoppingItem::where('user_id', auth()->id())
             ->when($this->ingredientId, fn ($q, $id) => $q->whereKey($id))
             ->when($this->search, fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
-            ->when($this->categoryFilter, fn ($q, $c) => $q->whereIn('category_id', $c))
+            ->when($this->categoryFilter, fn ($q, $c) => $q->whereIn('category_id', \App\Models\MealCategory::expandSelection($c, auth()->id())))
             ->when($this->storeFilter === '__none', fn ($q) => $q->whereDoesntHave('prices'))
             ->when($this->storeFilter !== '' && $this->storeFilter !== '__none', fn ($q) => $q->whereHas('prices', fn ($pq) => $pq->where('store_id', $this->storeFilter)))
             ->when($this->priceFilter === 'with', fn ($q) => $q->whereHas('prices'))

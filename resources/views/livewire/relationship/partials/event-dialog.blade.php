@@ -9,7 +9,7 @@
         <div class="d-flex flex-column gap-3">
             <x-ui.field name="eventTitle" label="Título" :required="true" wire:model="eventTitle" />
             <div class="md-field-pair">
-                <x-ui.select name="eventCategory" label="Categoría" :options="\App\Models\RelationshipEvent::CATEGORIES" :selected="$eventCategory" wire:model="eventCategory" />
+                <x-ui.category-select name="eventCategory" label="Categoría" :options="\App\Support\CategoryCatalog::options('relationship-events')" :selected="$eventCategory" wire:model="eventCategory" />
                 <x-ui.select name="eventPrecision" label="Precisión de la fecha" :options="\App\Support\EventDate::PRECISIONS" :selected="$eventPrecision" wire:model.live="eventPrecision" />
             </div>
             @if ($eventPrecision === \App\Support\EventDate::DAY)

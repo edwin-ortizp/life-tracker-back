@@ -10,7 +10,8 @@
       "screens": [
         "water-daily",
         "water-weekly",
-        "water-settings"
+        "water-settings",
+        "drinks-categories"
       ],
       "output": "hydration.html"
     }
@@ -30,6 +31,11 @@
       "template": "screens/water-settings.html.jinja",
       "title": "Ajustes",
       "bodyClass": ""
+    },
+    "drinks-categories": {
+      "template": "screens/drinks-categories.html.jinja",
+      "title": "Categorías de Bebidas",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -44,6 +50,10 @@
     {
       "path": "/water-settings",
       "screen": "water-settings"
+    },
+    {
+      "path": "/drinks-categories",
+      "screen": "drinks-categories"
     }
   ],
   "datasets": {

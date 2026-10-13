@@ -216,7 +216,7 @@
                     <x-ui.select name="itemBaseUnit" label="Unidad base" placeholder="g, ml o unidad" :options="\App\Models\ShoppingItem::BASE_UNITS"
                                  :selected="$itemBaseUnit" help="Solo para productos nuevos." wire:model="itemBaseUnit" />
                 </div>
-                <x-ui.select name="itemCategory" label="Categoría" placeholder="Sin categoría" :options="$this->categoryOptions" :selected="$itemCategory" wire:model="itemCategory" />
+                <x-ui.category-select name="itemCategory" label="Categoría" placeholder="Sin categoría" :options="$this->categoryOptions" :selected="$itemCategory" wire:model="itemCategory" />
             </div>
         </x-ui.form-dialog-section>
 

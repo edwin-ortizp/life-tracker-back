@@ -31,6 +31,8 @@ class TaskSettings extends Component
 
     public ?string $editingId = null;
 
+    public string $parent_id = '';
+
     public string $name = '';
 
     public string $icon = 'bi-tag';
@@ -44,6 +46,7 @@ class TaskSettings extends Component
     public function openForm(?string $id = null): void
     {
         $this->resetValidation();
+        $this->parent_id = '';
         $this->message = '';
         $this->editingId = null;
         $this->name = '';
@@ -52,6 +55,7 @@ class TaskSettings extends Component
         if ($id && ($category = TaskCategory::find($id))) {
             $this->editingId = $category->id;
             $this->name = $category->name;
+            $this->parent_id = $category->parent_id ?? '';
             $this->icon = $category->icon ?: 'bi-tag';
         }
 
@@ -76,10 +80,10 @@ class TaskSettings extends Component
 
         try {
             if ($category) {
-                $categories->update($category, $this->name, $this->icon);
+                $categories->update($category, $this->name, $this->icon, $this->parent_id ?: null);
                 $this->message = "“{$category->name}” actualizada. Sus tareas la conservan.";
             } else {
-                $category = $categories->create(auth()->user(), $this->name, $this->icon);
+                $category = $categories->create(auth()->user(), $this->name, $this->icon, $this->parent_id ?: null);
                 $this->message = "“{$category->name}” ya está disponible al crear tareas.";
             }
         } catch (InvalidArgumentException $exception) {
@@ -107,6 +111,10 @@ class TaskSettings extends Component
             return;
         }
 
+        if ($category->children()->exists()) {
+            $this->message = 'Mueve primero las subcategorías antes de eliminar esta categoría.';
+            return;
+        }
         if (Task::where('category', $category->key)->exists()) {
             $this->resetValidation();
             $this->deletingId = $category->id;
@@ -166,7 +174,8 @@ class TaskSettings extends Component
             ->get()
             ->keyBy(fn ($row) => (string) $row->category);
 
-        $categories = TaskCategory::query()->orderBy('sort_order')->orderBy('name')->get();
+        $categoryOrder = array_flip(array_keys(TaskCategory::hierarchyOptions(auth()->id())));
+        $categories = TaskCategory::query()->with('parent')->orderBy('sort_order')->orderBy('name')->get()->sortBy(fn ($category) => $categoryOrder[$category->id] ?? PHP_INT_MAX);
         $deleting = $this->deletingId ? $categories->firstWhere('id', $this->deletingId) : null;
 
         return view('livewire.task.task-settings', [

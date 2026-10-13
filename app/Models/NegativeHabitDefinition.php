@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class NegativeHabitDefinition extends Model
 {
+    use \App\Models\Traits\ResolvesCategoryCatalog;
+
     use BelongsToUser;
 
     protected $fillable = [

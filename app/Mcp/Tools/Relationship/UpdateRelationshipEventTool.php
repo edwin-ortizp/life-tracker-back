@@ -21,7 +21,7 @@ class UpdateRelationshipEventTool extends Tool
         $data = $request->validate([
             'event_id' => ['required', 'string'],
             'title' => ['nullable', 'string', 'max:255'],
-            'category' => ['nullable', 'string', Rule::in(array_keys(RelationshipEvent::CATEGORIES))],
+            'category' => ['nullable', 'string', Rule::in(array_keys(\App\Support\CategoryCatalog::options('relationship-events')))],
             'date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'append_notes' => ['nullable', 'string', 'max:2000'],
@@ -73,7 +73,7 @@ class UpdateRelationshipEventTool extends Tool
         return [
             'event_id' => $schema->string()->description('Id del evento.')->required(),
             'title' => $schema->string()->description('Nuevo título.'),
-            'category' => $schema->string()->enum(array_keys(RelationshipEvent::CATEGORIES))->description('Nueva categoría.'),
+            'category' => $schema->string()->enum(array_keys(\App\Support\CategoryCatalog::options('relationship-events')))->description('Nueva categoría.'),
             'date' => $schema->string()->description('Nueva fecha (YYYY-MM-DD).'),
             'notes' => $schema->string()->description('Reemplaza las notas. "" las borra.'),
             'append_notes' => $schema->string()->description('Agrega texto al final de las notas.'),

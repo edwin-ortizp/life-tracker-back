@@ -21,13 +21,14 @@
     @endif
 
     @php($catalogActive = count(array_filter([$catalogCategory, $catalogSource, $catalogVehicleType, $catalogPowerSource, $catalogTransmissionType], static fn ($value) => $value !== '')))
+    <nav aria-label="Ajustes de categorías"><x-ui.action variant="text" icon="bi-diagram-3" :href="route('categories.settings', 'maintenance')">Gestionar categorías</x-ui.action></nav>
     <x-ui.management-card id="vehicle-catalog" title="Plantillas" icon="bi-tools" :count="'('.$catalogTemplates->total().')'"
                           search="catalogSearch" search-placeholder="Buscar nombre o descripción" :active-filters="$catalogActive"
                           :paginator="$catalogTemplates" noun="plantillas" alpine="openMenu: null">
         <x-slot:filters>
             <div class="md-chip-rail md-mcard__filter-chips" role="group" aria-label="Filtros del catálogo" @click.outside="openMenu = null">
                 <x-ui.filter-menu name="catalogCategory" label="Categorías" allLabel="Todas las categorías"
-                                  :options="collect($catalogCategories)->mapWithKeys(fn ($category) => [$category => $category])->all()"
+                                  :options="$catalogCategories"
                                   :selected="$catalogCategory" />
 
                 <x-ui.filter-menu name="catalogSource" label="Origen" allLabel="Base y personal"
@@ -60,7 +61,7 @@
                     <article class="md-card-outlined" wire:key="template-{{ $template->id }}">
                         <header>
                             <div>
-                                <span>{{ $template->category }}</span>
+                                <span>{{ $template->category_label }}</span>
                                 <h3>{{ $template->name }}</h3>
                             </div>
                             <small>{{ $template->user_id ? 'Personal' : 'Base' }}</small>

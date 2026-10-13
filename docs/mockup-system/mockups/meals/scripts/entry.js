@@ -102,7 +102,7 @@ function mountMeals(context) {
     root.querySelectorAll('[data-meal-panel]').forEach(panel => { panel.hidden = panel.dataset.mealPanel !== button.dataset.mealSection; });
   });
 }
-startMockup({'meals-weekly': mountMeals, 'meals-recipes': mountMeals, 'meals-ingredients': mountMeals, 'meals-shopping': mountMeals, 'meals-history': mountMeals, 'meals-settings': mountMeals, 'meals-purchase': mountMeals, 'meals-cook': mountMeals});
+startMockup({'meals-categories': mountLifeShell, 'meals-weekly': mountMeals, 'meals-recipes': mountMeals, 'meals-ingredients': mountMeals, 'meals-shopping': mountMeals, 'meals-history': mountMeals, 'meals-settings': mountMeals, 'meals-purchase': mountMeals, 'meals-cook': mountMeals});
 
 function mountMealComposer(root, scope) {
   const layer = root.querySelector('#meal-composition');

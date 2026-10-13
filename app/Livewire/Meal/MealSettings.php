@@ -31,6 +31,8 @@ class MealSettings extends Component
 
     public bool $showForm = false;
     public ?string $editingId = null;
+    public string $parent_id = '';
+
     public string $name = '';
     public bool $confirmSimilar = false;
     public string $message = '';
@@ -57,12 +59,14 @@ class MealSettings extends Component
     public function openForm(?string $id = null): void
     {
         $this->resetValidation();
+        $this->parent_id = '';
         $this->reset(['editingId', 'name', 'confirmSimilar', 'message']);
         if ($id) {
             $model = $this->section === 'stores' ? Store::class : MealCategory::class;
             $record = $model::where('user_id', auth()->id())->findOrFail($id);
             $this->editingId = $record->id;
             $this->name = $record->name;
+            $this->parent_id = $record->parent_id ?? '';
         }
         $this->showForm = true;
     }
@@ -105,7 +109,7 @@ class MealSettings extends Component
             if (! $category->exists) {
                 $category->key = 'cat_'.Str::uuid();
             }
-            $category->fill(['name' => $this->name, 'normalized_name' => $normalized])->save();
+            $category->fill(['parent_id' => $this->parent_id ?: null, 'name' => $this->name, 'normalized_name' => $normalized])->save();
         }
         $this->message = 'Cambios guardados.';
         $this->closeForm();
@@ -124,6 +128,10 @@ class MealSettings extends Component
             $this->dispatch('stores-updated');
         } else {
             $category = MealCategory::where('user_id', auth()->id())->findOrFail($id);
+            if ($category->children()->exists()) {
+                $this->message = 'Mueve primero las subcategorías antes de eliminar esta categoría.';
+                return;
+            }
             if (ShoppingItem::where('user_id', auth()->id())->where('category_id', $category->id)->exists()) {
                 $this->message = 'Esta categoría tiene ingredientes asociados y no se puede eliminar.';
                 return;
@@ -168,6 +176,9 @@ class MealSettings extends Component
         $query = $model::where('user_id', auth()->id())->when($this->search !== '', fn ($q) => $q->where('name', 'like', '%'.$this->search.'%'));
         if ($this->section === 'stores') {
             $query->withCount(['prices', 'purchases']);
+        }
+        if ($this->section === 'categories') {
+            $query->with('parent')->orderByRaw('COALESCE((SELECT parent.name FROM meal_categories AS parent WHERE parent.id = meal_categories.parent_id), name)')->orderByRaw('parent_id IS NOT NULL');
         }
         return view('livewire.meal.meal-settings', [
             'records' => $query->orderBy('name')->paginate($this->perPage()),

@@ -24,7 +24,7 @@ class LogRelationshipEventTool extends Tool
             'contact_id' => ['nullable', 'string'],
             'name' => ['nullable', 'string'],
             'title' => ['required', 'string', 'max:255'],
-            'category' => ['required', 'string', Rule::in(array_keys(RelationshipEvent::CATEGORIES))],
+            'category' => ['required', 'string', Rule::in(array_keys(\App\Support\CategoryCatalog::options('relationship-events')))],
             'date' => ['required', 'date'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'is_sensitive' => ['nullable', 'boolean'],
@@ -57,7 +57,7 @@ class LogRelationshipEventTool extends Tool
                 ->description('Título del evento.')
                 ->required(),
             'category' => $schema->string()
-                ->enum(array_keys(RelationshipEvent::CATEGORIES))
+                ->enum(array_keys(\App\Support\CategoryCatalog::options('relationship-events')))
                 ->description('Categoría del evento.')
                 ->required(),
             'date' => $schema->string()

@@ -28,7 +28,7 @@ function mountPlanActivity(context) {
     context.toast('Visita eliminada del historial de demostración.');
   });
 }
-startMockup({'plans-contact': context => {
+startMockup({'plans-categories': mountLifeShell, 'plans-contact': context => {
   mountLifeShell(context);
   const {root} = context;
   const people = {'Camila':'Camila Rojas','María':'María Ortiz','Daniel':'Daniel Pérez'};

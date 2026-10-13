@@ -16,8 +16,6 @@ class UpdateContactTool extends Tool
 {
     use ResolvesContact;
 
-    private const CATEGORIES = ['familia', 'amigo', 'trabajo', 'pareja', 'otro'];
-
     public function handle(Request $request): Response
     {
         $currentYear = (int) now()->year;
@@ -27,7 +25,7 @@ class UpdateContactTool extends Tool
             'name' => ['nullable', 'string'],
             'full_name' => ['sometimes', 'string', 'max:255'],
             'nickname' => ['sometimes', 'nullable', 'string', 'max:120'],
-            'category' => ['sometimes', 'string', 'in:'.implode(',', self::CATEGORIES)],
+            'category' => ['sometimes', 'string', \Illuminate\Validation\Rule::in(array_keys(\App\Support\CategoryCatalog::options('contacts')))],
             'circle_name' => ['sometimes', 'nullable', 'string'],
             'birthday_month' => ['sometimes', 'nullable', 'integer', 'between:1,12'],
             'birthday_day' => ['sometimes', 'nullable', 'integer', 'between:1,31'],
@@ -114,7 +112,7 @@ class UpdateContactTool extends Tool
             'nickname' => $schema->string()
                 ->description('Nuevo apodo.'),
             'category' => $schema->string()
-                ->enum(self::CATEGORIES)
+                ->enum(array_keys(\App\Support\CategoryCatalog::options('contacts')))
                 ->description('Nueva categoría del contacto.'),
             'circle_name' => $schema->string()
                 ->description('Nombre de un círculo existente al que mover el contacto.'),

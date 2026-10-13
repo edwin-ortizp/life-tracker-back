@@ -10,9 +10,9 @@ use Illuminate\Support\Str;
 
 class PlanCategory extends Model
 {
-    use BelongsToUser, HasUuids;
+    use BelongsToUser, HasUuids, \App\Models\Traits\HasCategoryHierarchy;
 
-    protected $fillable = ['user_id', 'name', 'icon', 'normalized_name'];
+    protected $fillable = ['parent_id', 'user_id', 'name', 'icon', 'normalized_name'];
 
     public static function normalized(string $name): string
     {

@@ -5,7 +5,7 @@ namespace App\Livewire\Task;
 class TaskEditor extends TaskList
 {
     public string $filter = 'pending';
-    public string $categoryFilter = '';
+    public $categoryFilter = [];
     public string $priorityFilter = '';
     public string $dateFilter = '';
     public string $sizeFilter = '';

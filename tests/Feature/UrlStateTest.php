@@ -74,13 +74,16 @@ class UrlStateTest extends TestCase
 
     public function test_task_filters_hydrate_from_the_url_and_invalid_values_reset(): void
     {
+        $user = \App\Models\User::factory()->create();
+        \App\Support\DefaultTaskCategories::createFor($user);
+        $this->actingAs($user);
         Livewire::withQueryParams([
             'status' => 'completed',
             'category' => 'salud',
             'priority' => 'urgent-important',
         ])->test(TaskList::class)
             ->assertSet('filter', 'completed')
-            ->assertSet('categoryFilter', 'salud')
+            ->assertSet('categoryFilter', ['salud'])
             ->assertSet('priorityFilter', 'urgent-important');
 
         Livewire::withQueryParams([
@@ -89,7 +92,7 @@ class UrlStateTest extends TestCase
             'priority' => 'unknown',
         ])->test(TaskList::class)
             ->assertSet('filter', 'pending')
-            ->assertSet('categoryFilter', '')
+            ->assertSet('categoryFilter', [])
             ->assertSet('priorityFilter', '');
     }
 

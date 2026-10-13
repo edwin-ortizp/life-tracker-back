@@ -140,6 +140,7 @@ class LifeTrackerServer extends Server
         ListTaskCategoriesTool::class,
         LinkTaskTool::class,
         ManageTaskCategoryTool::class,
+        \App\Mcp\Tools\Common\ManageCategoryCatalogTool::class,
         CompleteHabitTool::class,
         ListHabitsTool::class,
         LogHealthEventTool::class,

@@ -13,6 +13,8 @@ use Illuminate\Support\Carbon;
 
 class RelationshipEvent extends Model
 {
+    use \App\Models\Traits\ResolvesCategoryCatalog;
+
     use BelongsToUser, HasFactory, HasUuids;
 
     public const CATEGORIES = [
@@ -115,7 +117,7 @@ class RelationshipEvent extends Model
 
     public function categoryLabel(): string
     {
-        return self::CATEGORIES[$this->category] ?? self::CATEGORIES['other'];
+        return $this->category_label;
     }
 
     public function isUpcoming(?Carbon $reference = null): bool

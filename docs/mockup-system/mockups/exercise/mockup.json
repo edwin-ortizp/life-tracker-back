@@ -10,7 +10,8 @@
       "screens": [
         "exercise-daily",
         "exercise-statistics",
-        "exercise-settings"
+        "exercise-settings",
+        "exercise-categories"
       ],
       "output": "exercise.html"
     }
@@ -30,6 +31,11 @@
       "template": "screens/exercise-settings.html.jinja",
       "title": "Ajustes",
       "bodyClass": ""
+    },
+    "exercise-categories": {
+      "template": "screens/exercise-categories.html.jinja",
+      "title": "Categorías de Ejercicios",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -44,6 +50,10 @@
     {
       "path": "/exercise-settings",
       "screen": "exercise-settings"
+    },
+    {
+      "path": "/exercise-categories",
+      "screen": "exercise-categories"
     }
   ],
   "datasets": {

@@ -1,0 +1,19 @@
+{% from '@project/components/life-shell.html.jinja' import shell, tabs, manage_card, dialog, fab, row_split %}
+{% macro category_catalog(module, domain, title, back, names=['Personal','Trabajo','Proyectos']) -%}
+{% call shell(module, 'Categorías · ' ~ title, 'bi-diagram-3') %}
+{{ tabs([('Volver al módulo',back,'bi-arrow-left'),('Categorías','/' ~ domain ~ '-categories','bi-diagram-3')], '/' ~ domain ~ '-categories') }}
+<div data-category-catalog="{{ domain }}" data-category-names='{{ names|tojson }}'>
+{% call(zone) manage_card('category-catalog','Categorías de ' ~ title,'bi-diagram-3',search='Buscar categorías') %}{% if zone == 'content' %}
+<p role="status" data-category-message>Dos niveles: padre e hija. Reorganiza las hijas antes de eliminar un padre.</p>
+<table class="lt-mtable"><thead><tr><th scope="col">Nombre</th><th scope="col">Categoría padre</th><th scope="col" class="lt-mtable__actions">Acciones</th></tr></thead><tbody data-category-rows></tbody></table>
+{% endif %}{% endcall %}
+<template data-category-row><tr><td data-category-name></td><td data-category-parent></td><td class="lt-mtable__actions">{{ row_split('category-menu-ROW', 'Editar', [('Eliminar','bi-trash',true,'category-delete-ROW')], 'categoría', action='category-edit-ROW') }}</td></tr></template>
+{% call dialog('category-editor','Categoría',icon='bi-diagram-3',submit_action='category-save') %}
+<label class="lt-field"><span>Nombre *</span><input type="text" data-category-input maxlength="100" required></label>
+<label class="lt-field"><span>Categoría padre</span><select data-category-parent-input><option value="">Sin padre</option></select></label>
+<p role="alert" data-category-error hidden></p>
+{% endcall %}
+{{ fab('Crear categoría','bi-plus-lg','category-editor') }}
+</div>
+{% endcall %}
+{%- endmacro %}

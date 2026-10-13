@@ -9,14 +9,14 @@ use Illuminate\Support\Str;
 
 class TaskCategory extends Model
 {
-    use BelongsToUser, HasUuids;
+    use BelongsToUser, HasUuids, \App\Models\Traits\HasCategoryHierarchy;
 
-    protected $fillable = ['key', 'name', 'icon', 'sort_order'];
+    protected $fillable = ['parent_id', 'key', 'name', 'icon', 'sort_order'];
 
     /** Catálogo del usuario autenticado como key => nombre, en su orden. */
     public static function options(): array
     {
-        return static::query()->orderBy('sort_order')->orderBy('name')->pluck('name', 'key')->all();
+        return auth()->id() ? static::hierarchyOptions(auth()->id(), 'key') : [];
     }
 
     /** Genera un key único para el usuario a partir del nombre. */

@@ -13,7 +13,8 @@
         "plans-settings",
         "plans-scheduled",
         "plans-history",
-        "plans-contact"
+        "plans-contact",
+        "plans-categories"
       ],
       "output": "plans.html"
     }
@@ -48,6 +49,11 @@
       "template": "screens/plans-contact.html.jinja",
       "title": "Contacto",
       "bodyClass": ""
+    },
+    "plans-categories": {
+      "template": "screens/plans-categories.html.jinja",
+      "title": "Categorías de Planes",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -74,6 +80,10 @@
     {
       "path": "/relationships-show",
       "screen": "plans-contact"
+    },
+    {
+      "path": "/plans-categories",
+      "screen": "plans-categories"
     }
   ],
   "datasets": {

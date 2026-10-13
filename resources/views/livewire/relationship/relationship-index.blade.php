@@ -11,6 +11,7 @@
 
 
     @php($activeFilterCount = collect([$showArchived, $circleFilter, $tagFilter])->filter()->count())
+    <nav aria-label="Ajustes de categorías"><x-ui.action variant="text" icon="bi-diagram-3" :href="route('categories.settings', 'contacts')">Gestionar categorías</x-ui.action></nav>
     <x-ui.management-card id="relationship-people" title="Personas" icon="bi-people" :count="'('.$relationships->total().' / '.($activeCount + $archivedCount).')'"
                           search="search" search-placeholder="Buscar por nombre, apodo, teléfono o correo" :active-filters="$activeFilterCount"
                           :paginator="$relationships" noun="personas" alpine="openMenu: null"

@@ -10,7 +10,8 @@
       "screens": [
         "tasks-list",
         "tasks-kanban",
-        "tasks-planning"
+        "tasks-planning",
+        "tasks-categories"
       ],
       "output": "tasks.html"
     }
@@ -30,6 +31,11 @@
       "template": "screens/tasks-planning.html.jinja",
       "title": "Planificación",
       "bodyClass": ""
+    },
+    "tasks-categories": {
+      "template": "screens/tasks-categories.html.jinja",
+      "title": "Categorías de Tareas",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -44,6 +50,10 @@
     {
       "path": "/tasks-planning",
       "screen": "tasks-planning"
+    },
+    {
+      "path": "/tasks-categories",
+      "screen": "tasks-categories"
     }
   ],
   "datasets": {

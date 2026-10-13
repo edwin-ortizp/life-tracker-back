@@ -73,6 +73,12 @@ class NegativeHabitWeekly extends Component
         NegativeHabitLog::where('id', $id)->delete();
     }
 
+    public function assignCategory(int $id, string $category): void
+    {
+        validator(['category' => $category], ['category' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Support\CategoryCatalog::options('negative-habits')))]])->validate();
+        NegativeHabitDefinition::where('user_id', auth()->id())->findOrFail($id)->update(['category' => $category]);
+    }
+
     public function render()
     {
         $weekStart = Carbon::parse($this->selectedDate)->startOfWeek();

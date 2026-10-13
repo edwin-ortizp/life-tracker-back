@@ -12,12 +12,12 @@
                 @else
                     <x-ui.list :label="$section === 'stores' ? 'Tiendas del catálogo' : 'Categorías del catálogo'">
                         @foreach ($records as $record)
-                            <x-ui.list-item :headline="$record->name" :supporting="$section === 'stores' ? $record->prices_count.' precios · '.$record->purchases_count.' compras' : ($categoryCounts[$record->id] ?? 0).' ingredientes'" wire:key="meal-setting-{{ $record->id }}">
+                            <x-ui.list-item :headline="$section === 'categories' ? $record->path_label : $record->name" :supporting="$section === 'stores' ? $record->prices_count.' precios · '.$record->purchases_count.' compras' : ($categoryCounts[$record->id] ?? 0).' ingredientes'" wire:key="meal-setting-{{ $record->id }}">
                                 <x-slot:trailing>
                                     <x-ui.row-actions :label="'Acciones de '.$record->name">
                                         <x-slot:primary wire:click="openForm('{{ $record->id }}')">Editar</x-slot:primary>
                                         @if ($section === 'stores')<x-ui.menu-item icon="bi-intersect" wire:click="openMerge('{{ $record->id }}')">Fusionar con otra tienda</x-ui.menu-item>@endif
-                                        <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete('{{ $record->id }}')" wire:confirm="¿Eliminar «{{ $record->name }}»?">Eliminar</x-ui.menu-item>
+                                        <x-ui.menu-item icon="bi-trash" tone="danger" wire:click="delete('{{ $record->id }}')" wire:confirm="¿Eliminar «{{ $record->path_label ?? $record->name }}»?">Eliminar</x-ui.menu-item>
                                     </x-ui.row-actions>
                                 </x-slot:trailing>
                             </x-ui.list-item>
@@ -33,6 +33,9 @@
     </div>
     <x-ui.form-dialog :open="$showForm" close="closeForm" submit-action="save" id="meal-settings-form" :title="($editingId ? 'Editar ' : 'Crear ').($section === 'stores' ? 'tienda' : 'categoría')" :icon="$section === 'stores' ? 'bi-shop' : 'bi-tags'" :submit="$confirmSimilar ? 'Crear de todos modos' : 'Guardar'">
         <x-ui.field name="name" label="Nombre" :required="true" maxlength="255" wire:model.live.debounce.300ms="name" />
+        @if ($section === 'categories')
+        <x-ui.category-parent model="MealCategory" :editing-id="$editingId" />
+        @endif
     </x-ui.form-dialog>
     <x-ui.form-dialog :open="$showMerge" close="closeMerge" submit-action="merge" id="meal-store-merge" title="Fusionar tiendas" icon="bi-intersect" submit="Fusionar">
         <p>Los precios, compras y marcas de la tienda de origen pasarán a la tienda elegida. La tienda de origen se eliminará.</p>

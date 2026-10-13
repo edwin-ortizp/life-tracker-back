@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class VehicleExpenseCategory extends Model
 {
-    use BelongsToUser, HasUuids;
+    use BelongsToUser, HasUuids, \App\Models\Traits\HasCategoryHierarchy;
 
-    protected $fillable = ['name', 'icon', 'sort_order'];
+    protected $fillable = ['parent_id', 'name', 'icon', 'sort_order'];
 
     public function expenses() { return $this->hasMany(VehicleExpense::class); }
 }

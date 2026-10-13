@@ -10,6 +10,7 @@
     @endif
 
     @php($moodFilterCount = collect([$status, $category])->filter()->count())
+    <nav aria-label="Ajustes de categorías"><x-ui.action variant="text" icon="bi-diagram-3" :href="route('categories.settings', 'mood')">Gestionar categorías</x-ui.action></nav>
     <x-ui.management-card id="mood-catalog" title="Catálogo de emociones" icon="bi-emoji-smile" :count="'('.$states->total().' / '.$totalCount.')'"
                           search="search" search-placeholder="Buscar una emoción" :active-filters="$moodFilterCount"
                           :paginator="$states" noun="emociones" alpine="openMenu: null" flush>
@@ -33,9 +34,9 @@
                 <div x-show="openMenu === 'category'" x-transition x-cloak class="md-chip-menu__dropdown">
                     <button wire:click="$set('category', '')" @click="openMenu = null"
                             class="md-chip-menu__item {{ ! $category ? 'active' : '' }}">Todas</button>
-                    @foreach ($categories as $option)
+                    @foreach ($categories as $option => $categoryLabel)
                         <button wire:click="$set('category', '{{ $option }}')" @click="openMenu = null"
-                                class="md-chip-menu__item {{ $category === $option ? 'active' : '' }}">{{ $option }}</button>
+                                class="md-chip-menu__item {{ $category === $option ? 'active' : '' }}">{{ $categoryLabel }}</button>
                     @endforeach
                 </div>
             </div>
@@ -63,7 +64,7 @@
                         @endunless
                     </div>
                     <div class="md-list-item-supporting">
-                        {{ $state->category ?: 'Sin categoría' }} · Valencia {{ $state->value }}/10
+                        {{ $state->category_label ?: 'Sin categoría' }} · Valencia {{ $state->value }}/10
                         · {{ $state->isDefault() ? 'Predeterminada' : 'Personalizada' }}
                         @if ($state->entries_count)
                             · {{ $state->entries_count }} {{ $state->entries_count === 1 ? 'registro' : 'registros' }}
@@ -183,10 +184,10 @@
                     <fieldset class="mt-3">
                         <legend class="md-label-medium">Categoría</legend>
                         <div class="d-flex flex-wrap gap-2">
-                            @foreach ($categories as $option)
+                            @foreach ($categories as $option => $categoryLabel)
                                 <button type="button" wire:click="$set('formCategory', '{{ $option }}')"
                                         class="md-chip md-chip-filter {{ $formCategory === $option ? 'selected' : '' }}"
-                                        aria-pressed="{{ $formCategory === $option ? 'true' : 'false' }}">{{ $option }}</button>
+                                        aria-pressed="{{ $formCategory === $option ? 'true' : 'false' }}">{{ $categoryLabel }}</button>
                             @endforeach
                         </div>
                         @error('formCategory') <small style="color: var(--md-sys-color-error);">{{ $message }}</small> @enderror

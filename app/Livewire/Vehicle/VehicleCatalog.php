@@ -140,14 +140,14 @@ class VehicleCatalog extends Component
 
     public function render()
     {
-        $catalogCategories = $this->visibleTemplates()->orderBy('category')->distinct()->pluck('category');
+        $catalogCategories = \App\Support\CategoryCatalog::options('maintenance');
         $query = $this->visibleTemplates();
         if (trim($this->catalogSearch) !== '') {
             $search = '%'.trim($this->catalogSearch).'%';
             $query->where(fn ($templates) => $templates->where('name', 'like', $search)->orWhere('description', 'like', $search));
         }
         if ($this->catalogCategory !== '') {
-            $query->where('category', $this->catalogCategory);
+            $query->whereIn('category', \App\Support\CategoryCatalog::expand('maintenance', [$this->catalogCategory]));
         }
         if ($this->catalogSource === 'base') {
             $query->whereNull('user_id');

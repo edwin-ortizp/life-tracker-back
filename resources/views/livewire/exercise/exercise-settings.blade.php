@@ -13,6 +13,7 @@
         <div class="md-card-filled mb-3 py-3" role="status" aria-live="polite">{{ $message }}</div>
     @endif
 
+    <nav aria-label="Ajustes de categorías"><x-ui.action variant="text" icon="bi-diagram-3" :href="route('categories.settings', 'exercise')">Gestionar categorías</x-ui.action></nav>
     <x-ui.management-card id="exercise-types" title="Tipos de ejercicio" icon="bi-tags" :count="'('.$types->total().' / '.$totalCount.')'"
                           search="search" search-placeholder="Buscar tipo de ejercicio" :active-filters="$category !== '' ? 1 : 0"
                           :paginator="$types" noun="tipos">
@@ -101,7 +102,7 @@
                 <x-ui.field name="icon" label="Emoji" maxlength="16" wire:model="icon" />
                 <x-ui.field name="name" label="Nombre" :required="true" maxlength="60" wire:model="name" />
             </div>
-            <x-ui.select name="formCategory" label="Categoría" placeholder="Sin categoría" :selected="$formCategory"
+            <x-ui.category-select name="formCategory" label="Categoría" placeholder="Sin categoría" :selected="$formCategory"
                          :options="$categories" wire:model="formCategory" />
             <div class="md-field-pair">
                 <x-ui.field name="caloriesPerHour" label="Calorías por hora" type="number" min="0" :required="true" wire:model="caloriesPerHour" />

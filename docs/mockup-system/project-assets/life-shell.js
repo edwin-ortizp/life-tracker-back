@@ -1,4 +1,6 @@
+import {mountCategoryCatalog} from './category-catalog.js';
 export function mountLifeShell({root, scope, toast}) {
+  mountCategoryCatalog({root, scope, toast});
   const compact = () => window.matchMedia('(max-width: 767.98px)').matches;
   const closePopups = except => [...new Set([...root.querySelectorAll('[data-lt-toggle]')].map(b => b.dataset.ltToggle))].forEach(id => { const el = root.querySelector('#' + id); if (el && el !== except && !(except && el.contains(except)) && !el.hidden) { el.hidden = true; root.querySelectorAll('[data-lt-toggle="' + id + '"][aria-expanded]').forEach(b => b.setAttribute('aria-expanded', 'false')); } });
   const syncFilterCount = () => { const count = root.querySelectorAll('[data-lt-remove-filter]').length; const badge = root.querySelector('[data-lt-filter-count]'); if (badge) { badge.textContent = count; badge.hidden = count === 0; badge.setAttribute('aria-label', count + (count === 1 ? ' filtro activo' : ' filtros activos')); } const link = root.querySelector('[data-lt-clear-filters].lt-link'); if (link) link.hidden = count === 0; };
@@ -31,7 +33,7 @@ export function mountLifeShell({root, scope, toast}) {
     const mSearch = event.target.closest('[data-lt-mcard-search]');
     if (mSearch) { const card = mSearch.closest('.lt-mcard'); const on = card.classList.toggle('is-searching'); card.querySelectorAll('[data-lt-mcard-search]').forEach(b => b.setAttribute('aria-expanded', String(on))); if (on) card.querySelector('.lt-mcard__search input')?.focus(); return; }
     const toggle = event.target.closest('[data-lt-toggle]');
-    if (toggle) { const el = root.querySelector('#' + toggle.dataset.ltToggle); if (el) { closePopups(el); el.hidden = !el.hidden; root.querySelectorAll('[data-lt-toggle="' + toggle.dataset.ltToggle + '"][aria-expanded]').forEach(b => b.setAttribute('aria-expanded', String(!el.hidden))); } return; }
+    if (toggle) { const el = root.querySelector('#' + toggle.dataset.ltToggle); if (el) { closePopups(el); if (el.classList.contains('lt-multiselect__panel')) { const rect = toggle.getBoundingClientRect(); const above = !compact() && innerHeight - rect.bottom < 280 && rect.top > innerHeight - rect.bottom; el.style.top = above ? 'auto' : ''; el.style.bottom = above ? 'calc(100% + 4px)' : ''; } el.hidden = !el.hidden; root.querySelectorAll('[data-lt-toggle="' + toggle.dataset.ltToggle + '"][aria-expanded]').forEach(b => b.setAttribute('aria-expanded', String(!el.hidden))); } return; }
     const remove = event.target.closest('[data-lt-remove-filter]');
     const clear = event.target.closest('[data-lt-clear-filters]');
     if (remove || clear) {

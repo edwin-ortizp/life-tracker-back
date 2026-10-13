@@ -16,6 +16,8 @@ use Illuminate\Support\Carbon;
 
 class Relationship extends Model
 {
+    use \App\Models\Traits\ResolvesCategoryCatalog;
+
     use BelongsToUser, HasFactory, HasUuids;
 
     protected $fillable = [

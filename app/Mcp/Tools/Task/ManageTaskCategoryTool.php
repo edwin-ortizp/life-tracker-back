@@ -24,12 +24,13 @@ class ManageTaskCategoryTool extends Tool
             'action' => ['required', 'string', Rule::in(['create', 'rename', 'delete'])],
             'category' => ['required_unless:action,create', 'nullable', 'string', 'max:80'],
             'name' => ['required_unless:action,delete', 'nullable', 'string', 'max:60'],
+            'parent_id' => ['nullable', 'uuid'],
             'reassign_to' => ['nullable', 'string', 'max:80'],
         ]);
 
         try {
             if ($data['action'] === 'create') {
-                $category = $categories->create(Auth::user(), $data['name']);
+                $category = $categories->create(Auth::user(), $data['name'], null, $data['parent_id'] ?? null);
 
                 return Response::text("Categoría \"{$category->name}\" creada (key: {$category->key}).");
             }
@@ -41,7 +42,7 @@ class ManageTaskCategoryTool extends Tool
 
             if ($data['action'] === 'rename') {
                 $previous = $category->name;
-                $categories->update($category, $data['name']);
+                $categories->update($category, $data['name'], null, array_key_exists('parent_id', $data) ? $data['parent_id'] : $category->parent_id);
 
                 return Response::text("Categoría \"{$previous}\" renombrada a \"{$category->name}\". Sus tareas la conservan.");
             }
@@ -55,7 +56,7 @@ class ManageTaskCategoryTool extends Tool
             }
 
             $moved = $categories->delete($category, $target);
-        } catch (InvalidArgumentException $exception) {
+        } catch (InvalidArgumentException|\Illuminate\Validation\ValidationException $exception) {
             return Response::error($exception->getMessage());
         }
 
@@ -75,6 +76,7 @@ class ManageTaskCategoryTool extends Tool
                 ->description('Key o nombre de la categoría existente (rename y delete).'),
             'name' => $schema->string()
                 ->description('Nombre de la nueva categoría o nuevo nombre (create y rename).'),
+            'parent_id' => $schema->string()->nullable()->description('UUID de la categoría padre; null la convierte en raíz.'),
             'reassign_to' => $schema->string()
                 ->description('Al eliminar: key o nombre de la categoría que recibe sus tareas. Si se omite, quedan sin categoría.'),
         ];

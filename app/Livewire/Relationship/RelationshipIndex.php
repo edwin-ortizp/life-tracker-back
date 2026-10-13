@@ -115,6 +115,7 @@ class RelationshipIndex extends Component
 
     public function mount(): void
     {
+        $this->categories = \App\Support\CategoryCatalog::options('contacts');
         $this->normalizeFilters();
 
         // «Editar contacto» desde el detalle abre aquí el formulario de la persona.

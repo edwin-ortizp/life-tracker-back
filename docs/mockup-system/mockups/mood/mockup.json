@@ -9,7 +9,8 @@
       "template": "pages/main.html.jinja",
       "screens": [
         "mood-daily",
-        "mood-trend"
+        "mood-trend",
+        "mood-categories"
       ],
       "output": "mood.html"
     }
@@ -24,6 +25,11 @@
       "template": "screens/mood-trend.html.jinja",
       "title": "Tendencia reciente",
       "bodyClass": ""
+    },
+    "mood-categories": {
+      "template": "screens/mood-categories.html.jinja",
+      "title": "Categorías de Estados de ánimo",
+      "bodyClass": ""
     }
   },
   "routes": [
@@ -34,6 +40,10 @@
     {
       "path": "/mood-trend",
       "screen": "mood-trend"
+    },
+    {
+      "path": "/mood-categories",
+      "screen": "mood-categories"
     }
   ],
   "datasets": {

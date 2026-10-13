@@ -71,8 +71,9 @@ class VehicleExpenses extends Component
     public function render()
     {
         $vehicle = $this->vehicle();
-        $categories = VehicleExpenseCategory::query()->withCount('expenses')->orderBy('sort_order')->orderBy('name')->get();
-        $categoryOptions = $categories->mapWithKeys(fn (VehicleExpenseCategory $category) => [$category->id => $category->name])->all();
+        $categoryOptions = VehicleExpenseCategory::hierarchyOptions(auth()->id());
+        $categoryOrder = array_flip(array_keys($categoryOptions));
+        $categories = VehicleExpenseCategory::query()->with('parent')->withCount('expenses')->orderBy('sort_order')->orderBy('name')->get()->sortBy(fn ($category) => $categoryOrder[$category->id] ?? PHP_INT_MAX);
         $totalCount = VehicleExpense::query()->where('vehicle_id', $vehicle->id)->count();
         $expenses = $this->filteredExpenses($vehicle->id)
             ->with('category')
@@ -100,7 +101,7 @@ class VehicleExpenses extends Component
         $term = trim($this->expenseSearch);
 
         return $this->applyPeriod(VehicleExpense::query()->where('vehicle_id', $vehicleId), 'spent_on', $this->expensePeriod)
-            ->when($this->expenseCategory !== '', fn (Builder $query) => $query->where('vehicle_expense_category_id', $this->expenseCategory))
+            ->when($this->expenseCategory !== '', fn (Builder $query) => $query->whereIn('vehicle_expense_category_id', \App\Models\VehicleExpenseCategory::expandSelection([$this->expenseCategory], auth()->id(), 'id')))
             ->when($term !== '', fn (Builder $query) => $query->where(fn (Builder $match) => $match
                 ->where('description', 'like', "%{$term}%")->orWhere('provider', 'like', "%{$term}%")));
     }

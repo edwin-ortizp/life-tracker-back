@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MoodState extends Model
 {
+    use \App\Models\Traits\ResolvesCategoryCatalog;
+
     use BelongsToUser, HasFactory, HasUuids;
 
     protected $fillable = [

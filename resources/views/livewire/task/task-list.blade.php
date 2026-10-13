@@ -22,13 +22,7 @@
                                     </div>
                                 </div>
                                 <div class="ltm-section">
-                                    <span class="ltm-section__label">Categoría</span>
-                                    <div class="ltm-chips">
-                                        @foreach (['__none__' => 'Sin categoría'] + $categories as $value => $label)
-                                            <x-ui.chip variant="filter" :selected="$categoryFilter === $value"
-                                                       wire:click="$set('categoryFilter', '{{ $categoryFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
-                                        @endforeach
-                                    </div>
+                                    <x-ui.multi-select name="categoryFilter" label="Categoría" :options="['__none__' => 'Sin categoría'] + $categories" all-label="Todas las categorías" icon="bi-tag" />
                                 </div>
                                 <div class="ltm-section">
                                     <span class="ltm-section__label">Estado</span>

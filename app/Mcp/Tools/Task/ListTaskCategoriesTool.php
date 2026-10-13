@@ -22,6 +22,8 @@ class ListTaskCategoriesTool extends Tool
         return Response::structured([
             'categories' => $user->taskCategories()->orderBy('sort_order')->orderBy('name')->get()
                 ->map(fn ($category) => [
+                    'id' => $category->id,
+                    'parent_id' => $category->parent_id,
                     'key' => $category->key,
                     'name' => $category->name,
                     'pending_tasks' => (int) ($pending[$category->key] ?? 0),

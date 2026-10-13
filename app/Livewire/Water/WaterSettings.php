@@ -55,6 +55,8 @@ class WaterSettings extends Component
 
     public ?string $editingId = null;
 
+    public string $category = '';
+
     public string $name = '';
 
     public string $icon = '💧';
@@ -102,6 +104,7 @@ class WaterSettings extends Component
 
             $this->editingId = $type->id;
             $this->name = $type->name;
+            $this->category = $type->category ?? '';
             $this->icon = $type->icon ?: '💧';
             $this->hydrationFactor = number_format((float) $type->hydration_factor, 2, '.', '');
         }
@@ -132,6 +135,7 @@ class WaterSettings extends Component
         $data = $this->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('drink_types', 'name')->where(fn ($query) => $query->where('user_id', auth()->id()))->ignore($type->id)],
             'icon' => ['required', 'string', 'max:40'],
+            'category' => ['nullable', Rule::in(array_keys(\App\Support\CategoryCatalog::options('drinks')))],
             'hydrationFactor' => ['required', 'numeric', 'min:0', 'max:9.99'],
         ], [], [
             'name' => 'nombre',
@@ -139,7 +143,7 @@ class WaterSettings extends Component
             'hydrationFactor' => 'factor de hidratación',
         ]);
 
-        $type->fill(['name' => $data['name'], 'icon' => $data['icon'], 'hydration_factor' => $data['hydrationFactor']])->save();
+        $type->fill(['category' => $this->category ?: null, 'name' => $data['name'], 'icon' => $data['icon'], 'hydration_factor' => $data['hydrationFactor']])->save();
 
         $this->message = $this->editingId ? 'Bebida actualizada.' : 'Bebida creada.';
         $this->closeForm();
@@ -250,6 +254,7 @@ class WaterSettings extends Component
     {
         $this->resetValidation();
         $this->editingId = null;
+        $this->category = '';
         $this->name = '';
         $this->icon = '💧';
         $this->hydrationFactor = '1.00';

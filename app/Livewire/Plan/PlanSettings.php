@@ -31,6 +31,8 @@ class PlanSettings extends Component
     #[Locked]
     public ?string $editingId = null;
 
+    public string $parent_id = '';
+
     public string $name = '';
 
     public string $icon = 'bi-tag';
@@ -59,6 +61,7 @@ class PlanSettings extends Component
     public function openForm(?string $id = null): void
     {
         $this->resetValidation();
+        $this->parent_id = '';
         $this->message = '';
         $this->editingId = null;
         $this->name = '';
@@ -67,6 +70,7 @@ class PlanSettings extends Component
             $record = $this->model()::query()->findOrFail($id);
             $this->editingId = $record->id;
             $this->name = $record->name;
+            $this->parent_id = $record->parent_id ?? '';
             $this->icon = $record->icon;
         }
         $this->showForm = true;
@@ -95,6 +99,7 @@ class PlanSettings extends Component
         $model = $this->model();
         $record = $this->editingId ? $model::query()->findOrFail($this->editingId) : new $model;
         DB::transaction(function () use ($record) {
+            if ($this->section === 'categories') { $record->parent_id = $this->parent_id ?: null; }
             $record->fill(['name' => $this->name, 'icon' => $this->icon]);
             $record->save();
         });
@@ -106,6 +111,10 @@ class PlanSettings extends Component
     {
         DB::transaction(function () use ($id) {
             $record = $this->model()::query()->lockForUpdate()->withCount('plans')->findOrFail($id);
+            if ($this->section === 'categories' && $record->children()->exists()) {
+                $this->message = 'Mueve primero las subcategorías antes de eliminar esta categoría.';
+                return;
+            }
             if ($record->plans_count > 0) {
                 $this->message = "No se puede eliminar «{$record->name}»: está asociada a {$record->plans_count} ".($record->plans_count === 1 ? 'plan.' : 'planes.');
 
@@ -120,7 +129,7 @@ class PlanSettings extends Component
     public function render()
     {
         return view('livewire.plan.plan-settings', [
-            'records' => $this->model()::query()->withCount('plans')->when(trim($this->q) !== '', fn ($q) => $q->where('name', 'like', '%'.trim($this->q).'%'))->orderBy('name')->paginate($this->perPage()),
+            'records' => $this->model()::query()->when($this->section === 'categories', fn ($q) => $q->with('parent')->orderByRaw('COALESCE((SELECT parent.name FROM plan_categories AS parent WHERE parent.id = plan_categories.parent_id), name)')->orderByRaw('parent_id IS NOT NULL'))->withCount('plans')->when(trim($this->q) !== '', fn ($q) => $q->where('name', 'like', '%'.trim($this->q).'%'))->orderBy('name')->paginate($this->perPage()),
             'icons' => BootstrapIcons::options(),
         ]);
     }

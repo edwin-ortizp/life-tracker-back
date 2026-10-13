@@ -27,7 +27,7 @@ class TaskList extends Component
     public string $filter = 'pending'; // pending, completed, all
 
     #[Url(as: 'category', history: true, keep: true)]
-    public string $categoryFilter = '';
+    public $categoryFilter = [];
 
     #[Url(as: 'priority', history: true, keep: true)]
     public string $priorityFilter = '';
@@ -156,7 +156,7 @@ class TaskList extends Component
     {
         $this->filter = 'pending';
         $this->dateFilter = '';
-        $this->categoryFilter = '';
+        $this->categoryFilter = [];
         $this->priorityFilter = '';
         $this->sizeFilter = '';
         $this->normalizeFilters();
@@ -369,9 +369,9 @@ class TaskList extends Component
             $this->filter = 'pending';
         }
 
-        if ($this->categoryFilter !== '' && $this->categoryFilter !== '__none__' && ! array_key_exists($this->categoryFilter, $this->categories)) {
-            $this->categoryFilter = '';
-        }
+        $values = is_array($this->categoryFilter) ? $this->categoryFilter : [$this->categoryFilter];
+        $this->categoryFilter = array_values(array_unique(array_filter($values,
+            fn ($value) => is_string($value) && ($value === '__none__' || array_key_exists($value, $this->categories)))));
 
         if ($this->priorityFilter !== '' && ! array_key_exists($this->priorityFilter, $this->priorities)) {
             $this->priorityFilter = '';
@@ -399,10 +399,14 @@ class TaskList extends Component
             $query->where('completed', true);
         }
 
-        if ($this->categoryFilter === '__none__') {
-            $query->whereNull('category');
-        } elseif ($this->categoryFilter) {
-            $query->where('category', $this->categoryFilter);
+        if ($this->categoryFilter) {
+            $values = \App\Models\TaskCategory::expandSelection($this->categoryFilter, auth()->id(), 'key');
+            $query->where(function ($q) use ($values) {
+                $q->whereIn('category', array_values(array_diff($values, ['__none__'])));
+                if (in_array('__none__', $values, true)) {
+                    $q->orWhereNull('category');
+                }
+            });
         }
 
         if ($this->priorityFilter) {

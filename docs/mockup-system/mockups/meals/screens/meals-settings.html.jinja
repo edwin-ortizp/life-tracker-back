@@ -3,14 +3,15 @@
 {% call shell('meals','Ajustes de Comidas','bi-gear') %}
 {{ meals_tabs('/meals-settings') }}
 <div class="lt-meal-settings">
-<div>{% for key,title,icon,singular,items in catalogs %}<section data-meal-panel="{{ key }}"{% if not loop.first %} hidden{% endif %} aria-label="{{ title }}">
+<div>{% for key,title,icon,singular,items in catalogs %}<p><a class="lt-link" href="#/meals-categories">Categorías de Ingredientes</a></p>
+<section data-meal-panel="{{ key }}"{% if not loop.first %} hidden{% endif %} aria-label="{{ title }}">
 {% call(zone) manage_card('meal-' ~ key,title,icon,count='(3 / 3)',total=3,search='Buscar ' ~ title|lower,footer={'from':1,'to':3,'total':3,'noun':title|lower,'page':1,'pages':1,'per_page':25}) %}{% if zone == 'content' %}<div class="lt-list">{% for name in items %}<div class="lt-list-item"><div class="lt-list-item__body"><strong>{{ name }}</strong></div>{% set actions = [('Eliminar','bi-trash',true,None,key ~ '-delete-' ~ loop.index)] %}{% if key == 'stores' %}{% set actions = [('Fusionar con otra tienda','bi-intersect',false,None,key ~ '-merge-' ~ loop.index)] + actions %}{% endif %}{{ row_split('meal-' ~ key ~ '-menu-' ~ loop.index,'Editar',actions,name,dialog=key ~ '-edit-' ~ loop.index) }}</div>{% endfor %}</div>{% endif %}{% endcall %}
 {{ fab('Crear ' ~ singular,'bi-plus-lg',key ~ '-new') }}
 </section>{% endfor %}</div>
 <nav class="lt-meal-settings__nav lt-panel" aria-label="Secciones de Ajustes de Comidas">{% for key,title,icon,singular,items in catalogs %}<button class="lt-button lt-button--text" type="button" data-meal-section="{{ key }}"{% if loop.first %} aria-current="page"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i>{{ title }}</button>{% endfor %}</nav>
 </div>
 {% for key,title,icon,singular,items in catalogs %}
-{% call dialog(key ~ '-new','Crear ' ~ singular,icon=icon) %}<label class="lt-field"><span>Nombre *</span><input type="text" required placeholder="Nombre de la {{ singular }}"></label>{% endcall %}
+{% call dialog(key ~ '-new','Crear ' ~ singular,icon=icon) %}<label class="lt-field"><span>Nombre *</span><input type="text" required placeholder="Nombre de la {{ singular }}"></label>{% if key == 'categories' %}<label class="lt-field"><span>Categoría padre</span><select><option>Sin padre</option><option>Personal</option><option>Trabajo</option></select></label>{% endif %}{% endcall %}
 {% for name in items %}
 {% call dialog(key ~ '-edit-' ~ loop.index,'Editar ' ~ singular,icon=icon) %}<label class="lt-field"><span>Nombre *</span><input type="text" required value="{{ name }}"></label>{% endcall %}
 {% if key == 'stores' %}

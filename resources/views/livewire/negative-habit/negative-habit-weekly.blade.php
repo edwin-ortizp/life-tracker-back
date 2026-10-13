@@ -12,9 +12,10 @@
     {{-- Habits grouped by category --}}
     @php $grouped = $habits->getCollection()->groupBy('category'); @endphp
 
+    <nav aria-label="Ajustes de categorías"><x-ui.action variant="text" icon="bi-diagram-3" :href="route('categories.settings', 'negative-habits')">Gestionar categorías</x-ui.action></nav>
     <x-ui.management-card id="negative-habits" title="Hábitos a evitar" icon="bi-shield-check" :count="'('.$habits->total().')'" :paginator="$habits" noun="hábitos">
     @foreach ($grouped as $category => $categoryHabits)
-            <p class="md-mcard__section-label text-capitalize">{{ $category }}</p>
+            <p class="md-mcard__section-label text-capitalize">{{ \App\Support\CategoryCatalog::options('negative-habits')[$category] ?? $category }}</p>
             @foreach ($categoryHabits as $habit)
                 @php
                     $habitLogs = $logs->get($habit->id, collect());
@@ -25,6 +26,7 @@
                         <span style="font-size: 1.2rem;">{{ $habit->icon }}</span>
                         <div class="md-list-item-content">
                             <div class="md-list-item-headline">{{ $habit->name }}</div>
+                            <x-ui.select :id="'habit-category-'.$habit->id" :label="'Categoría de '.$habit->name" :options="\App\Support\CategoryCatalog::options('negative-habits')" :selected="$habit->category" wire:change="assignCategory({{ $habit->id }}, $event.target.value)" />
                         </div>
                         @if ($count > 0)
                             <span class="md-badge" style="min-width: 20px; height: 20px;">{{ $count }}</span>
