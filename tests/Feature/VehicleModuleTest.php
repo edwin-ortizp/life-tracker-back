@@ -261,6 +261,47 @@ class VehicleModuleTest extends TestCase
             ->assertSet('energyCalculatedField', 'cost');
     }
 
+    public function test_energy_pricing_draft_is_recalculated_on_save_for_each_input_pair(): void
+    {
+        $user = User::factory()->create();
+        $vehicle = $user->vehicles()->create(['name' => 'Auto', 'vehicle_type' => 'automovil', 'power_source' => 'gasolina', 'fuel_volume_unit' => 'gal']);
+        $this->actingAs($user);
+        foreach ([['quantity', 'unit_price'], ['quantity', 'cost'], ['unit_price', 'cost']] as $pair) {
+            foreach ([$pair, array_reverse($pair)] as $order) {
+                $target = array_values(array_diff(['quantity', 'unit_price', 'cost'], $pair))[0];
+                $draft = ['quantity' => '10', 'unit_price' => '5000,50', 'cost' => '50005', 'order' => $order, 'calculated' => $target];
+                $draft[$target] = '999'; // Ignore a stale/tampered browser preview.
+                Livewire::test(VehicleFuel::class, ['vehicle' => $vehicle->id])
+                    ->call('openEnergyForm')
+                    ->call('saveEnergyLog', $draft)
+                    ->assertHasNoErrors()
+                    ->assertSet('showEnergyForm', false);
+                $log = $vehicle->energyLogs()->latest('created_at')->first();
+                $this->assertEquals(10, $log->quantity);
+                $this->assertEquals(50005, $log->cost);
+            }
+        }
+        $this->assertSame(6, $vehicle->energyLogs()->count());
+    }
+
+    public function test_energy_pricing_draft_rejects_partial_numbers_and_zero_divisors_without_saving(): void
+    {
+        $user = User::factory()->create();
+        $vehicle = $user->vehicles()->create(['name' => 'Auto', 'vehicle_type' => 'automovil', 'power_source' => 'gasolina', 'fuel_volume_unit' => 'gal']);
+        $this->actingAs($user);
+        Livewire::test(VehicleFuel::class, ['vehicle' => $vehicle->id])
+            ->call('openEnergyForm')
+            ->call('saveEnergyLog', ['quantity' => '', 'unit_price' => '', 'cost' => '', 'order' => [], 'calculated' => null])
+            ->assertHasErrors(['energyQuantity'])
+            ->call('saveEnergyLog', ['quantity' => '', 'unit_price' => '.', 'cost' => '95000', 'order' => ['unit_price', 'cost'], 'calculated' => 'quantity'])
+            ->assertHasErrors(['energyUnitPrice'])
+            ->assertSet('showEnergyForm', true)
+            ->call('saveEnergyLog', ['quantity' => '', 'unit_price' => '0', 'cost' => '95000', 'order' => ['unit_price', 'cost'], 'calculated' => 'quantity'])
+            ->assertHasErrors(['energyUnitPrice'])
+            ->assertSet('showEnergyForm', true);
+        $this->assertSame(0, $vehicle->energyLogs()->count());
+    }
+
     public function test_energy_pricing_recovers_when_livewire_sends_partial_input_order(): void
     {
         $user = User::factory()->create();

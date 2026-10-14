@@ -1,4 +1,6 @@
 import { registerFormEditor } from './form-editor';
+import { registerEnergyPricing } from './energy-pricing';
+import { registerDialogViewport } from './dialog-viewport';
 import { Alpine, Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
 import { registerPomodoroTimer } from './pomodoro-timer';
 import { registerUiSurfaces } from './ui-surfaces';
@@ -9,6 +11,8 @@ import { registerHealthBodyMap } from './health-body-map';
 
 registerPomodoroTimer(Alpine);
 registerUiSurfaces(Alpine);
+registerEnergyPricing(Alpine);
+registerDialogViewport(Alpine);
 registerFormEditor(Alpine);
 registerAppFrame(Alpine);
 registerFeedback(Alpine);

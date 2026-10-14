@@ -146,6 +146,8 @@ Patrón común y obligatorio para todo modal que crea o edita información, y de
 - **Footer** separado por una línea divisoria: `Cancelar` (text) completamente a la izquierda y `Guardar` (filled) completamente a la derecha. Sin otras variantes de texto.
 - **Expandir** ocupa casi todo el viewport manteniendo el overlay; no usa el fullscreen del navegador. Restaurar conserva los datos y la sección activa.
 - Se cierra con la ×, Cancelar, clic en el overlay o Esc.
+- En móvil, cabecera y acciones permanecen fuera del scroll; solo se desplaza el contenido central. La capa usa la altura y el desplazamiento de `visualViewport` mientras está abierta, con respaldo `100dvh`, y respeta las áreas seguras. El teclado no debe desplazar las acciones fuera del área visible. Este ajuste no cambia las dimensiones de escritorio.
+- `submit-action` conserva el guardado Livewire habitual. Para borradores Alpine que deben enviarse juntos, `submit-expression` declara la expresión de envío en el formulario; el servidor sigue validando y calculando los valores persistidos.
 
 ### Campos (outlined, Material Design 3)
 

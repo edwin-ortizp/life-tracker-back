@@ -97,12 +97,42 @@ trait ManagesEnergyLogs
         $this->syncEnergyPricing('cost');
     }
 
-    public function saveEnergyLog(): void
+    public function saveEnergyLog(?array $pricing = null): void
     {
         $vehicle = $this->vehicle();
         $log = $this->editingEnergyLogId ? $vehicle->energyLogs()->find($this->editingEnergyLogId) : null;
         if ($this->editingEnergyLogId && ! $log) {
             return;
+        }
+        if ($pricing !== null) {
+            $fields = ['quantity' => 'energyQuantity', 'unit_price' => 'energyUnitPrice', 'cost' => 'energyCost'];
+            $draft = [];
+            foreach ($fields as $field => $property) {
+                $value = $pricing[$field] ?? null;
+                $draft[$property] = is_string($value) ? str_replace(',', '.', trim($value)) : $value;
+                if ($draft[$property] === '') {
+                    $draft[$property] = null;
+                }
+            }
+            $validated = validator($draft, [
+                'energyQuantity' => ['nullable', 'numeric', 'gt:0'],
+                'energyUnitPrice' => ['nullable', 'numeric', 'min:0'],
+                'energyCost' => ['nullable', 'numeric', 'min:0'],
+            ])->validate();
+            $metadata = validator($pricing, [
+                'order' => ['present', 'array', 'max:3'],
+                'order.*' => ['string', 'distinct', Rule::in(array_keys($fields))],
+                'calculated' => ['nullable', 'string', Rule::in(array_keys($fields))],
+            ])->validate();
+            foreach ($validated as $property => $value) {
+                $this->{$property} = $value === null ? null : (float) $value;
+            }
+            $this->energyInputOrder = array_values($metadata['order']);
+            $this->energyCalculatedField = $metadata['calculated'] ?? null;
+            // A derived browser value is a preview, never an authoritative input.
+            if ($this->energyCalculatedField !== null) {
+                $this->{$fields[$this->energyCalculatedField]} = null;
+            }
         }
         $expectedUnit = $this->energyUnitFor($vehicle, $this->energySource);
         $allowedUnits = [$expectedUnit];

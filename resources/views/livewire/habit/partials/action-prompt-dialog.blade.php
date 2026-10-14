@@ -11,7 +11,11 @@
 
         @foreach ($habitActionFields as $field)
             <div wire:key="habit-prompt-{{ $field['key'] }}">
-                @if ($field['type'] === 'select')
+                @if ($field['type'] === 'select' && $field['key'] === 'exercise_type_id')
+                    <x-ui.combobox :name="'habitActionInput.'.$field['key']" :label="$field['label']"
+                                   :options="$field['options']" :help="$field['help']"
+                                   wire:model="habitActionInput.{{ $field['key'] }}" />
+                @elseif ($field['type'] === 'select')
                     <x-ui.select :name="'habitActionInput.'.$field['key']" :label="$field['label']"
                                  :options="$field['options']" :selected="data_get($habitActionInput, $field['key'])"
                                  :help="$field['help']" wire:model="habitActionInput.{{ $field['key'] }}" />

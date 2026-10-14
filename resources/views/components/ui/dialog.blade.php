@@ -19,10 +19,12 @@
     ];
 @endphp
 
+@if ($size !== 'md') @teleport('body') @endif
 <template x-if="{{ $state }}">
-    <div>
+    <div @if ($size !== 'md') data-module="{{ \App\Support\Ui\ModuleContext::current() }}" @endif>
         <div class="md-dialog-scrim" @click="{{ $state }} = false"></div>
         <div {{ $attributes->class($surfaceClasses) }}
+             @if ($size !== 'md') x-dialog-viewport @endif
              role="dialog"
              aria-modal="true"
              aria-labelledby="{{ $headingId }}"
@@ -30,11 +32,16 @@
              x-md-surface
              @md-surface-close="{{ $state }} = false"
              @click.stop>
+            @if ($size !== 'md') <header class="md-dialog-responsive-head"> @endif
             @if ($icon)
                 <div class="md-dialog-icon"><i class="bi {{ $icon }}" aria-hidden="true"></i></div>
             @endif
 
             <h2 id="{{ $headingId }}" class="md-dialog-headline md-headline-small">{{ $title }}</h2>
+            @if ($size !== 'md')
+                <button type="button" class="md-btn-icon md-dialog-mobile-close" aria-label="Cerrar" @click="$dispatch('md-surface-close')"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                </header>
+            @endif
 
             <div class="md-dialog-content">{{ $slot }}</div>
 
@@ -44,3 +51,4 @@
         </div>
     </div>
 </template>
+@if ($size !== 'md') @endteleport @endif

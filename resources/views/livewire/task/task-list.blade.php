@@ -2,7 +2,7 @@
     <x-page-header subtitle="Decide, ordena y completa el trabajo con claridad." :tabs="config('modules.tasks.tabs')" :preserve="config('modules.tasks.preserve')">
     </x-page-header>
 
-    <div class="lt-cols">
+    <div class="lt-cols task-list-layout">
     <div class="lt-stack">
     @php
         $activeFilterCount = collect([$dateFilter, $categoryFilter, $priorityFilter, $sizeFilter, $filter !== 'pending' ? $filter : ''])->filter()->count();

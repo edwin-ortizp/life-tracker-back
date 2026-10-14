@@ -1,5 +1,9 @@
 /* ===== M3 task module navigation and Gantt ===== */
 
+@media (min-width: 1280px) {
+  .task-list-layout { grid-template-columns: minmax(0, 1fr) 320px; }
+}
+
 .md-tabs {
   display: flex;
   gap: 8px;

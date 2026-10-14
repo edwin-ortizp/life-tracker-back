@@ -360,5 +360,62 @@
 }
 
 /* Conditional fields keep their positions in the form grid. */
+.md-dialog-responsive-head { display: contents; }
+.md-dialog-mobile-close { display: none; }
+
+/* Mobile modal contract: only the middle region scrolls, including with an IME. */
+@media (max-width: 767.98px) {
+  .md-form-dialog-layer {
+    inset: var(--dialog-viewport-top, 0px) 0 auto;
+    height: var(--dialog-viewport-height, 100dvh);
+  }
+  .md-form-dialog, .md-form-dialog--sections {
+    max-height: 100%; min-height: 0; overflow: hidden; padding-bottom: 0;
+  }
+  .md-form-dialog--sections { height: 100%; }
+  .md-form-dialog__form { max-height: 100%; overflow: hidden; }
+  .md-form-dialog__head {
+    padding-top: max(14px, env(safe-area-inset-top));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  .md-form-dialog__head .md-btn-icon { flex: 0 0 auto; }
+  .md-form-dialog__title { overflow-wrap: anywhere; }
+  .md-form-dialog__body { min-height: 0; overscroll-behavior: contain; }
+  .md-form-dialog__actions {
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  .md-dialog--large, .md-dialog-fullscreen, .md-dialog--mobile-frame {
+    inset: var(--dialog-viewport-top, 0px) 0 auto;
+    transform: none; width: 100%; max-width: none;
+    height: var(--dialog-viewport-height, 100dvh); max-height: none;
+    min-height: 0; overflow: hidden; border-radius: 0;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .md-dialog--large > .md-dialog-content, .md-dialog-fullscreen > .md-dialog-content {
+    flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain;
+  }
+  .md-dialog--large > .lt-cm-body { overflow: auto; overscroll-behavior: contain; }
+  .md-dialog--large > .md-dialog-header,
+  .md-dialog--large > .ingredient-assistant__progress,
+  .md-dialog-fullscreen > .md-dialog-top-bar,
+  .md-dialog-fullscreen > .md-dialog-actions { flex: 0 0 auto; }
+  .md-dialog-responsive-head { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; padding: 16px; }
+  .md-dialog-responsive-head .md-dialog-headline { flex: 1; min-width: 0; margin: 0; overflow-wrap: anywhere; }
+  .md-dialog-responsive-head .md-dialog-icon { margin: 0; }
+  .md-dialog-mobile-close { display: inline-flex; flex: 0 0 auto; }
+  .md-dialog--mobile-frame { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+  .md-dialog--mobile-frame > .md-dialog-mobile-head { margin: 0 !important; padding: 16px; gap: 12px; }
+  .md-dialog-mobile-head > :first-child { min-width: 0; overflow-wrap: anywhere; }
+  .md-dialog-mobile-head .md-btn-icon { flex: 0 0 auto; }
+  .md-dialog--mobile-frame > .md-dialog-mobile-body { min-height: 0; overflow: auto; margin: 0; padding: 0 12px 16px; overscroll-behavior: contain; }
+  .md-dialog--mobile-frame > .md-dialog-actions { margin: 0 !important; padding: 12px 24px; border-top: 1px solid var(--md-sys-color-outline-variant); }
+}
+
 .lt-field-condition { display: contents; }
 .lt-editor-pristine .md-error [role="alert"] { display: none; }

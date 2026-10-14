@@ -9,6 +9,7 @@
     'sections' => [],
     'submit' => 'Guardar',
     'submitAction' => null,
+    'submitExpression' => null,
     'id' => null,
     'module' => null,
 ])
@@ -33,18 +34,19 @@
 --}}
 @if ($state || $open)
     @teleport('body')
-        <div class="md-form-dialog-layer" data-module="{{ $moduleKey }}"
+        <div class="md-form-dialog-layer" data-module="{{ $moduleKey }}" x-dialog-viewport="{{ $state ?? '' }}"
              @if($state) x-show="{{ $state }}" x-cloak :class="{'lt-editor-pristine': !submitted}" @endif
              x-data="{ section: @js($firstSection), navCollapsed: window.matchMedia('(max-width: 767.98px)').matches, expanded: false }" @if($state) x-effect="if ({{ $state }}) { section = @js($firstSection); expanded = false; navCollapsed = window.matchMedia('(max-width: 767.98px)').matches }" @endif>
             <div class="md-dialog-scrim" @if($state) x-on:click="closeEditor()" @else wire:click="{{ $close }}" @endif></div>
             <section {{ $attributes->class(['md-form-dialog', 'md-form-dialog--sections' => $sections !== []]) }}
+                     id="{{ $dialogId }}"
                      :class="{ 'is-expanded': expanded, 'is-nav-collapsed': navCollapsed }"
                      role="dialog"
                      aria-modal="true"
                      aria-labelledby="{{ $dialogId }}-title"
                      x-md-surface="{{ $state ?? '' }}"
                      @md-surface-close="{{ $state ? 'closeEditor()' : '$refs.cancel.click()' }}">
-                <form class="md-form-dialog__form" novalidate @if($state) @submit="submitted = true" @endif @if ($submitAction) wire:submit="{{ $submitAction }}" @else @submit.prevent @endif>
+                <form class="md-form-dialog__form" novalidate @if($state) @submit="submitted = true" @endif @if ($submitExpression) @submit.prevent="{{ $submitExpression }}" @elseif ($submitAction) wire:submit="{{ $submitAction }}" @else @submit.prevent @endif>
                     <header class="md-form-dialog__head">
                         @if ($sections !== [])
                             <button type="button" class="md-btn-icon" @click="navCollapsed = !navCollapsed"

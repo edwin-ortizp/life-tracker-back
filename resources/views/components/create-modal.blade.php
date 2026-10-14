@@ -27,7 +27,9 @@
      quedaría congelado en lo que había la primera vez que se abrió el modal.
      Con `x-show` el elemento vive siempre en el DOM real y Livewire lo
      actualiza con el diffing normal en cada render. --}}
-<div x-data="{ step: 0, bulk: false }" x-show="{{ $state }}" x-cloak
+@unless($clientClose) @teleport('body') @endunless
+<div data-module="{{ \App\Support\Ui\ModuleContext::current($module) }}" x-data="{ step: 0, bulk: false }" x-show="{{ $state }}" x-cloak
+     x-dialog-viewport="{{ $state }}"
      x-effect="if ({{ $state }}) { step = 0; bulk = false }">
         <div class="md-dialog-scrim" @click="{{ $close }}"></div>
         <div {{ $attributes->class(['md-dialog', 'md-dialog--large', $wide ? 'lt-cm-modal--wide' : '']) }}
@@ -98,3 +100,4 @@
             </div>
         </div>
 </div>
+@unless($clientClose) @endteleport @endunless

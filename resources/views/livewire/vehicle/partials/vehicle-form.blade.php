@@ -1,7 +1,7 @@
 @if($showVehicleForm)
-    <div class="md-dialog-backdrop"><div class="md-dialog vehicle-form-dialog">
-        <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="md-title-large mb-0">{{ $editingVehicleId ? 'Editar vehículo' : 'Nuevo vehículo' }}</h2><button wire:click="$set('showVehicleForm', false)" class="md-btn-icon"><i class="bi bi-x-lg"></i></button></div>
-        <div class="row g-3">
+    @teleport('body')<div class="md-dialog-backdrop" x-data x-dialog-viewport><div role="dialog" aria-modal="true" aria-label="Vehículo" class="md-dialog md-dialog--mobile-frame vehicle-form-dialog">
+        <div class="md-dialog-mobile-head d-flex justify-content-between align-items-center mb-3"><h2 class="md-title-large mb-0">{{ $editingVehicleId ? 'Editar vehículo' : 'Nuevo vehículo' }}</h2><button wire:click="$set('showVehicleForm', false)" class="md-btn-icon" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button></div>
+        <div class="md-dialog-mobile-body row g-3">
             <div class="col-md-6"><label class="form-label">Nombre *</label><input wire:model="vehicleName" class="form-control" placeholder="Ej. Mazda 2"></div>
             <div class="col-md-3"><label class="form-label">Tipo *</label><select wire:model="vehicleType" class="form-select"><option value="automovil">Automóvil</option><option value="motocicleta">Motocicleta</option><option value="bicicleta">Bicicleta</option><option value="patineta">Patineta</option><option value="otro">Otro</option></select></div>
             <div class="col-md-3"><label class="form-label">Fuente de propulsión *</label><select wire:model.live="powerSource" class="form-select"><option value="gasolina">Gasolina</option><option value="diesel">Diésel</option><option value="electrico">Eléctrica</option><option value="hibrido">Híbrida</option><option value="humana">Humana</option><option value="ninguna">Ninguna</option></select></div>
@@ -18,4 +18,5 @@
         </div>
         <div class="md-dialog-actions mt-4"><button wire:click="$set('showVehicleForm', false)" class="md-btn-text">Cancelar</button><button wire:click="saveVehicle" class="md-btn-filled">Guardar vehículo</button></div>
     </div></div>
+@endteleport
 @endif

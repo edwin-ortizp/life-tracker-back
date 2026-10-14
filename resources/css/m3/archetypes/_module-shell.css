@@ -1,6 +1,6 @@
 /* Module workspace — a calm, information-dense cockpit for every feature. */
 .md-module-shell {
-  width: min(100%, 1540px);
+  width: 100%;
   margin-inline: auto;
 }
 .md-responsive-actions__desktop { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }

@@ -4,7 +4,7 @@
     </button>
 
     @teleport('body')
-        <div x-show="assistantOpen" x-cloak>
+        <div x-show="assistantOpen" x-cloak x-dialog-viewport="assistantOpen">
             <div class="md-dialog-scrim" @click="$wire.close()"></div>
             <section class="md-dialog md-dialog--large ingredient-assistant" role="dialog" aria-modal="true" aria-labelledby="ingredient-assistant-title" @click.stop>
                 <header class="md-dialog-header ingredient-assistant__header">
