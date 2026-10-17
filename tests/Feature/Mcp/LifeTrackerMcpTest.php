@@ -53,6 +53,7 @@ class LifeTrackerMcpTest extends TestCase
 
     public function test_mcp_endpoint_rejects_requests_without_a_valid_token(): void
     {
+        $this->postJson('/miso', [])->assertUnauthorized();
         $this->postJson('/life-tracker', [])->assertUnauthorized();
         $this->withToken('lt_ai_not-a-real-token')->postJson('/life-tracker', [])->assertUnauthorized();
     }

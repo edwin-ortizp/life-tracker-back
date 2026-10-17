@@ -6,7 +6,7 @@
          areas seguras se respetan despues con los tokens `--lt-safe-*`. --}}
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Life Tracker' }}</title>
+    <title>{{ $title ?? 'MiSo' }}</title>
 
     <link rel="manifest" href="{{ asset('manifest.json') }}">
     {{-- Mismo color que declara el manifest: si difieren, la barra de estado
@@ -19,7 +19,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Life Tracker">
+    <meta name="apple-mobile-web-app-title" content="MiSo">
     <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('icons/icon-192x192.png') }}">
 
     @include('partials.app-styles')
@@ -40,7 +40,7 @@
             }
         }
     }
-    $activeModuleTitle = $activeModuleKey ? (config("modules.{$activeModuleKey}.title") ?? 'Life Tracker') : 'Life Tracker';
+    $activeModuleTitle = $activeModuleKey ? (config("modules.{$activeModuleKey}.title") ?? 'MiSo') : 'MiSo';
 
     $searchIndex = collect(config('modules.navigation', []))
         ->flatMap(fn ($section) => $section['items'] ?? [])
@@ -80,10 +80,10 @@
     </div>
 
     {{-- Sidebar: expandida, raíl o superpuesta en compacto, según config('modules.navigation') --}}
-    <aside class="lt-sidebar" :class="{ 'is-open': sidebarOpen }" aria-label="Módulos de Life Tracker">
+    <aside class="lt-sidebar" :class="{ 'is-open': sidebarOpen }" aria-label="Módulos de MiSo">
         <div class="lt-sidebar__brand">
             <span class="lt-sidebar__mark" aria-hidden="true"><i class="bi bi-activity"></i></span>
-            <span class="lt-sidebar__name">Life Tracker</span>
+            <span class="lt-sidebar__name">MiSo</span>
         </div>
         <nav class="lt-sidebar__scroll">
             @foreach (config('modules.navigation', []) as $section)
@@ -206,7 +206,7 @@
          lanzar el dialogo del sistema; iOS no lo expone, asi que solo cabe
          explicar los pasos de Safari. El descarte se recuerda 30 dias. --}}
     <div x-data="ltInstallPrompt()">
-        <x-ui.sheet state="open" title="Ten Life Tracker a mano" class="lt-install">
+        <x-ui.sheet state="open" title="Ten MiSo a mano" class="lt-install">
             <img src="{{ asset('icons/icon-128x128.png') }}" alt="" width="72" height="72" class="lt-install__icon">
 
             <template x-if="platform === 'android'">

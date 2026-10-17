@@ -12,7 +12,7 @@ use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Devuelve el detalle completo de una tarea: descripción en markdown, progreso de subtareas, referencias externas, categoría, fechas, estimación y recurrencia con la próxima fecha sugerida. Úsala para leer el contenido antes de recomendar, editar o completar una tarea recurrente.')]
+#[Description('Devuelve el detalle completo de una tarea: estado (nombre y tipo todo/ready/in_progress/done), descripción en markdown, progreso de subtareas, referencias externas, categoría, fechas, estimación y recurrencia con la próxima fecha sugerida. Úsala para leer el contenido antes de recomendar, editar o completar una tarea recurrente.')]
 class GetTaskTool extends Tool
 {
     public function handle(Request $request, TaskRecurrenceService $recurrence): Response|ResponseFactory
@@ -40,6 +40,7 @@ class GetTaskTool extends Tool
             'priority' => $task->priority,
             'size' => $task->size,
             'estimated_minutes' => $task->estimated_time,
+            'status' => $task->status ? ['id' => $task->status->id, 'name' => $task->status->name, 'type' => $task->status->type] : null,
             'completed' => $task->completed,
             'completed_at' => $task->completed_at?->toIso8601String(),
             'start_date' => $task->start_date?->format($task->start_is_date ? 'Y-m-d' : 'Y-m-d H:i'),

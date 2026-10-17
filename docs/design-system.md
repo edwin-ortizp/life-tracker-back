@@ -1,4 +1,4 @@
-# Sistema de experiencia de Life Tracker
+# Sistema de experiencia de MiSo
 
 ## Dirección
 

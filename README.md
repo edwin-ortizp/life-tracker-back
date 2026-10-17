@@ -1,4 +1,4 @@
-# Life Tracker
+# MiSo
 
 Una aplicación integral para el seguimiento y mejora de la productividad personal, que incluye múltiples módulos para gestionar diferentes aspectos de la vida diaria.
 

@@ -204,6 +204,11 @@ class User extends Authenticatable
         return $this->hasMany(TaskCategory::class);
     }
 
+    public function taskStatuses()
+    {
+        return $this->hasMany(TaskStatus::class);
+    }
+
     public function vehicleExpenseCategories()
     {
         return $this->hasMany(VehicleExpenseCategory::class);

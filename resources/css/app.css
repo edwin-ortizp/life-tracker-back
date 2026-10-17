@@ -25,7 +25,7 @@
 }
 
 /*
- * Sistema de diseño de Life Tracker.
+ * Sistema de diseño de MiSo.
  *
  * Las capas se importan en orden y cada una solo puede depender de las
  * anteriores: tokens -> primitives -> patterns -> archetypes -> modules.

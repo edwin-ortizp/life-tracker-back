@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Sin conexión · Life Tracker</title>
+    <title>Sin conexión · MiSo</title>
     <meta name="theme-color" content="#2B5BB5">
     @include('partials.app-styles')
 </head>

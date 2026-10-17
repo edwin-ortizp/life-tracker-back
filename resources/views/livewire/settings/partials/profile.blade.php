@@ -1,4 +1,4 @@
-<x-ui.section title="Perfil público" description="Tu nombre y correo dentro de Life Tracker." :level="2">
+<x-ui.section title="Perfil público" description="Tu nombre y correo dentro de MiSo." :level="2">
     <x-ui.card variant="outlined" icon="bi-person" iconTone="secondary">
         <x-ui.field name="fullName" label="Nombre completo" wire:model="fullName" />
         <x-ui.field name="settingsEmail" label="Email" type="email" :value="$email" :disabled="true"

@@ -369,7 +369,7 @@ class SettingsPage extends Component
             ->values();
 
         return [
-            'mcpUrl' => rtrim(config('app.url'), '/').'/life-tracker',
+            'mcpUrl' => rtrim(config('app.url'), '/').'/miso',
             'tools' => $tools,
             'toolTotal' => $all->count(),
             'moduleCounts' => $all->countBy('module'),
@@ -392,7 +392,7 @@ class SettingsPage extends Component
         $package = fn (string $name) => InstalledVersions::isInstalled($name) ? InstalledVersions::getPrettyVersion($name) : '—';
 
         return [
-            ['Life Tracker', config('app.version'), 'bi-activity'],
+            ['MiSo', config('app.version'), 'bi-activity'],
             ['Laravel', app()->version(), 'bi-box'],
             ['PHP', PHP_VERSION, 'bi-filetype-php'],
             ['Livewire', $package('livewire/livewire'), 'bi-lightning'],

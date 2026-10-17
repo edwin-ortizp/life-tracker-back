@@ -1,5 +1,5 @@
 /**
- * Service worker de Life Tracker.
+ * Service worker de MiSo.
  *
  * Objetivo: que la aplicacion abra al instante desde la pantalla de inicio y
  * siga siendo navegable sin cobertura, sin llegar nunca a servir una version

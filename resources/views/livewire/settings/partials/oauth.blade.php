@@ -38,7 +38,7 @@
         </x-slot:header>
 
         <p class="md-body-small">
-            Solo puede leer y modificar tus propios datos; LifeTracker nunca volverá a mostrar el token.
+            Solo puede leer y modificar tus propios datos; MiSo nunca volverá a mostrar el token.
         </p>
 
         @if ($aiIntegrationToken)

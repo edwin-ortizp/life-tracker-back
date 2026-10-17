@@ -82,6 +82,9 @@
                         <div class="md-list-item-supporting text-truncate">{{ $task->description }}</div>
                     @endif
                     <div class="d-flex flex-wrap gap-1 mt-1">
+                        @if ($task->status && ! $task->completed)
+                            <span class="md-chip-tonal" title="Estado"><i class="bi {{ $task->status->icon }}" aria-hidden="true"></i> {{ $task->status->name }}</span>
+                        @endif
                         @if ($task->priority)
                             @php
                                 $priorityChipClass = match($task->priority) {

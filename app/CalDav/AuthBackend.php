@@ -11,7 +11,7 @@ use Sabre\HTTP\ResponseInterface;
 
 class AuthBackend extends AbstractBasic
 {
-    protected $realm = 'Life Tracker CalDAV';
+    protected $realm = 'MiSo CalDAV';
 
     public function check(RequestInterface $request, ResponseInterface $response): array
     {

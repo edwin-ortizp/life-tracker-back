@@ -31,10 +31,12 @@ class TaskEditor extends TaskList
 
     public function render()
     {
-        $fields = ['editingId', 'title', 'description', 'descriptionMode', 'category', 'priority', 'size', 'startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime', 'isPrivate', 'isRecurrent', 'recurrenceIntervalDays', 'nativeRecurrenceRule', 'bulkTitles', 'editTask'];
+        $fields = ['editingId', 'title', 'description', 'descriptionMode', 'category', 'statusId', 'priority', 'size', 'startDate', 'startTime', 'endDate', 'endTime', 'estimatedTime', 'isPrivate', 'isRecurrent', 'recurrenceIntervalDays', 'nativeRecurrenceRule', 'bulkTitles', 'editTask'];
 
         return view('livewire.task.task-editor', [
             'defaults' => array_intersect_key(get_class_vars(self::class), array_flip($fields)),
+            'statusOptions' => \App\Models\TaskStatus::ensureFor(auth()->id())
+                ->where('type', '!=', \App\Models\TaskStatus::DONE)->pluck('name', 'id')->all(),
         ]);
     }
 

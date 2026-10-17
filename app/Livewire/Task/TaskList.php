@@ -69,6 +69,9 @@ class TaskList extends Component
 
     public string $priority = '';
 
+    /** Estado elegido en el editor (vacío = conservar o, al crear, el primer estado por hacer). */
+    public string $statusId = '';
+
     public string $size = '';
 
     public ?string $startDate = null;
@@ -176,6 +179,7 @@ class TaskList extends Component
                 $this->description = $task->description ?? '';
                 $this->category = $task->category ?? '';
                 $this->priority = $task->priority ?? '';
+                $this->statusId = $task->status && $task->status->type !== \App\Models\TaskStatus::DONE ? $task->status_id : '';
                 $this->size = $task->size ?? '';
                 $this->loadTaskSchedule($task);
                 $this->isPrivate = $task->is_private;
@@ -307,6 +311,11 @@ class TaskList extends Component
                 : null,
         ];
 
+        // Solo estados no terminados: completar sigue pasando por la casilla (XP y recurrencias).
+        if ($this->statusId !== '' && \App\Models\TaskStatus::whereKey($this->statusId)->where('type', '!=', \App\Models\TaskStatus::DONE)->exists()) {
+            $data['status_id'] = $this->statusId;
+        }
+
         if ($this->editingId) {
             $task = Task::find($this->editingId);
             if ($task) {
@@ -348,6 +357,7 @@ class TaskList extends Component
         $this->description = '';
         $this->category = '';
         $this->priority = '';
+        $this->statusId = '';
         $this->size = '';
         $this->startDate = null;
         $this->startTime = null;
@@ -391,7 +401,7 @@ class TaskList extends Component
 
     public function render()
     {
-        $query = Task::query();
+        $query = Task::query()->with('status');
 
         if ($this->filter === 'pending') {
             $query->where('completed', false);

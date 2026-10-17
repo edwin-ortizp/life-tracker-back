@@ -1,7 +1,7 @@
 {
-    "name": "Life Tracker",
-    "short_name": "LifeTrack",
-    "description": "Aplicación de seguimiento personal de productividad",
+    "name": "MiSo",
+    "short_name": "MiSo",
+    "description": "Tu socio de crecimiento personal",
     "start_url": "/",
     "display": "standalone",
     "orientation": "portrait",

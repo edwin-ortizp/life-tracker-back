@@ -40,7 +40,7 @@ class CreateTaskTool extends Tool
             'external_refs' => (new Task)->mergeExternalRefs($data['add_external_refs'] ?? []),
         ]);
 
-        $message = "Tarea creada: \"{$task->title}\" (id: {$task->id}).";
+        $message = "Tarea creada: \"{$task->title}\" (id: {$task->id}) en estado \"{$task->status?->name}\".";
         if (! $task->category) {
             $message .= ' Quedó sin categoría.';
         }

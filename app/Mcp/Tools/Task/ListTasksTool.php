@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools\Task;
 
 use App\Models\Task;
+use App\Models\TaskStatus;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -13,13 +14,16 @@ use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Lista las tareas del usuario (pendientes por defecto) con filtros de estado, categoría (o sin categoría), texto (título, descripción y referencias), referencia externa exacta y fecha de última modificación. Úsala cuando hable de pendientes, trabajo, un proyecto o qué hizo últimamente (updated_since). Para leer la descripción completa de una tarea usa get-task-tool.')]
+#[Description('Lista las tareas del usuario (pendientes por defecto) con filtros de estado (pendiente/completada, tipo de estado todo/ready/in_progress/done o nombre de estado), categoría (o sin categoría), texto (título, descripción y referencias), referencia externa exacta y fecha de última modificación. Úsala cuando hable de pendientes, trabajo, un proyecto o qué hizo últimamente (updated_since). Para leer la descripción completa de una tarea usa get-task-tool.')]
 class ListTasksTool extends Tool
 {
     public function handle(Request $request): ResponseFactory
     {
         $data = $request->validate([
             'status' => ['nullable', 'string', Rule::in(['pending', 'completed', 'all'])],
+            'status_type' => ['nullable', 'array', 'max:4'],
+            'status_type.*' => ['string', Rule::in(array_keys(TaskStatus::TYPES))],
+            'status_name' => ['nullable', 'string', 'max:60'],
             'category' => ['nullable', 'string'],
             'uncategorized' => ['nullable', 'boolean'],
             'search' => ['nullable', 'string', 'max:120'],
@@ -29,8 +33,23 @@ class ListTasksTool extends Tool
             'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
-        $query = Auth::user()->tasks()->chronological();
-        $status = $data['status'] ?? 'pending';
+        $query = Auth::user()->tasks()->with('status')->chronological();
+        $types = $data['status_type'] ?? [];
+        // Pedir un tipo o un estado concreto sustituye el filtro pendiente/completada por defecto.
+        $status = $data['status'] ?? ($types || filled($data['status_name'] ?? null) ? 'all' : 'pending');
+
+        if ($types) {
+            $query->withStatusType($types);
+        }
+
+        if (filled($data['status_name'] ?? null)) {
+            $named = TaskStatus::resolve(Auth::id(), $data['status_name']);
+            if (! $named) {
+                return Response::make(Response::error('El estado "'.$data['status_name'].'" no existe. Disponibles: '
+                    .TaskStatus::ensureFor(Auth::id())->map(fn ($s) => "{$s->name} ({$s->type})")->implode(', ').'.'));
+            }
+            $query->where('status_id', $named->id);
+        }
 
         if ($status === 'pending') {
             $query->where('completed', false);
@@ -78,6 +97,8 @@ class ListTasksTool extends Tool
                 'category' => $task->category,
                 'priority' => $task->priority,
                 'size' => $task->size,
+                'status' => $task->status?->name,
+                'status_type' => $task->status?->type,
                 'completed' => $task->completed,
                 'start_date' => $task->start_date?->toDateString(),
                 'end_date' => $task->end_date?->toDateString(),
@@ -96,7 +117,11 @@ class ListTasksTool extends Tool
         return [
             'status' => $schema->string()
                 ->enum(['pending', 'completed', 'all'])
-                ->description('Filtra por estado. Por defecto solo pendientes.'),
+                ->description('Filtra por completado. Por defecto solo pendientes (salvo que envíes status_type o status_name).'),
+            'status_type' => $schema->array()->items($schema->string()->enum(array_keys(TaskStatus::TYPES)))
+                ->description('Tipos de estado: todo (por hacer/borrador), ready (lista para ejecutar), in_progress (en curso), done. P. ej. ["todo"] para borradores por refinar.'),
+            'status_name' => $schema->string()
+                ->description('Nombre exacto (sin distinguir mayúsculas) o id de un estado del usuario.'),
             'category' => $schema->string()
                 ->description('Filtra por key de categoría exacta.'),
             'uncategorized' => $schema->boolean()

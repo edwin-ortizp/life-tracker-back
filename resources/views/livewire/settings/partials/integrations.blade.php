@@ -11,7 +11,7 @@
         <dl class="md-context-list">
             <div><dt>Servidor</dt><dd class="md-secret__value">{{ $calDavUrl }}</dd></div>
             <div><dt>Usuario</dt><dd class="md-secret__value">{{ auth()->user()->email }}</dd></div>
-            <div><dt>Lista</dt><dd>Life Tracker</dd></div>
+            <div><dt>Lista</dt><dd>MiSo</dd></div>
         </dl>
 
         <p class="md-body-small">
@@ -58,7 +58,7 @@
 
         <p class="md-body-small">
             El token sólo permite acceder al catálogo de ánimo y crear registros importados. Guárdalo en las
-            credenciales de n8n; LifeTracker nunca lo volverá a mostrar.
+            credenciales de n8n; MiSo nunca lo volverá a mostrar.
         </p>
 
         @if ($obsidianIntegrationToken)

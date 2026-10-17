@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/** An image shown from its original URL; Life Tracker never stores the file. */
+/** An image shown from its original URL; MiSo never stores the file. */
 class PlanImage extends Model
 {
     use HasUuids;

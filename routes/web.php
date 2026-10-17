@@ -139,6 +139,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/tasks/planning', TaskPlanning::class)->name('tasks.planning');
     Route::get('/tasks/progress', TaskProgress::class)->name('tasks.progress');
     Route::get('/tasks/settings', TaskSettings::class)->name('tasks.settings');
+    Route::get('/tasks/settings/statuses', TaskSettings::class)->defaults('section', 'statuses')->name('tasks.settings.statuses');
     Route::get('/relationships', RelationshipIndex::class)->name('relationships');
     Route::get('/relationships/events', RelationshipEvents::class)->name('relationships.events');
     Route::get('/relationships/birthdays', RelationshipBirthdays::class)->name('relationships.birthdays');

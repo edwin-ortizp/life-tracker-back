@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools\Task\Concerns;
 
 use App\Models\TaskCategory;
+use App\Models\TaskStatus;
 use App\Services\TaskRecurrenceService;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\Auth;
@@ -27,6 +28,7 @@ trait InteractsWithTaskFields
         return [
             'description' => ['nullable', 'string'],
             'category' => ['nullable', 'string', 'max:80'],
+            'status' => ['nullable', 'string', 'max:60'],
             'priority' => ['nullable', 'string', Rule::in(self::PRIORITIES)],
             'size' => ['nullable', 'string', Rule::in(self::SIZES)],
             'start_date' => ['nullable', 'date'],
@@ -71,6 +73,47 @@ trait InteractsWithTaskFields
             ?? Auth::user()->taskCategories()->whereRaw('LOWER(name) = ?', [mb_strtolower($value)])->first();
     }
 
+    /** Busca el estado por id o por nombre (sin distinguir mayúsculas). */
+    protected function resolveStatus(string $value): ?TaskStatus
+    {
+        return TaskStatus::resolve(Auth::id(), $value);
+    }
+
+    protected function statusNotFound(string $value): string
+    {
+        $available = TaskStatus::ensureFor(Auth::id())
+            ->map(fn (TaskStatus $status) => "{$status->name} ({$status->type})")->implode(', ');
+
+        return "El estado \"{$value}\" no existe. Disponibles: {$available}. Puedes crearlo con manage-task-status-tool.";
+    }
+
+    /**
+     * Atributo status_id para un estado no terminado. Pasar a done se hace con complete-task-tool,
+     * que calcula XP y programa recurrencias.
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function statusAttribute(string $value): string
+    {
+        $status = $this->resolveStatus($value);
+
+        if (! $status) {
+            throw new InvalidArgumentException($this->statusNotFound($value));
+        }
+
+        if ($status->type === TaskStatus::DONE) {
+            throw new InvalidArgumentException("\"{$status->name}\" es el estado terminado: usa complete-task-tool para completar la tarea (calcula XP y programa recurrencias).");
+        }
+
+        return $status->id;
+    }
+
+    /** @return array{id: string, name: string, type: string}|null */
+    protected function statusPayload(?TaskStatus $status): ?array
+    {
+        return $status ? ['id' => $status->id, 'name' => $status->name, 'type' => $status->type] : null;
+    }
+
     protected function categoryNotFound(string $value): string
     {
         $available = Auth::user()->taskCategories()->orderBy('sort_order')->pluck('name', 'key')
@@ -97,6 +140,10 @@ trait InteractsWithTaskFields
 
         if (array_key_exists('is_private', $data)) {
             $attributes['is_private'] = (bool) $data['is_private'];
+        }
+
+        if (filled($data['status'] ?? null)) {
+            $attributes['status_id'] = $this->statusAttribute($data['status']);
         }
 
         if (array_key_exists('category', $data)) {
@@ -144,6 +191,8 @@ trait InteractsWithTaskFields
                 ->description('Descripción en markdown. Admite listas de subtareas con "- [ ]" y "- [x]".'),
             'category' => $schema->string()
                 ->description('Key o nombre de una categoría del usuario (consulta list-task-categories-tool). Vacío deja la tarea sin categoría.'),
+            'status' => $schema->string()
+                ->description('Nombre o id de un estado del usuario (consulta manage-task-status-tool con action=list). Tipos: todo (por hacer/borrador), ready (listo para ejecutar), in_progress (en curso). Para terminar una tarea usa complete-task-tool.'),
             'priority' => $schema->string()
                 ->enum(self::PRIORITIES)
                 ->description('Cuadrante de Eisenhower de la tarea.'),
@@ -165,7 +214,7 @@ trait InteractsWithTaskFields
                 ->description('Cada cuántos días/semanas/meses se repite (por defecto 1).'),
             'rrule' => $schema->string()
                 ->description('Regla iCalendar avanzada, p. ej. "FREQ=WEEKLY;BYDAY=MO,TH" o "FREQ=MONTHLY;BYMONTHDAY=5". Tiene prioridad sobre recurrence.'),
-            'add_external_refs' => $this->externalRefsSchema($schema, 'Referencias a elementos equivalentes en sistemas externos (p. ej. [{"provider":"jira","type":"issue","id":"SGX-323"}]). No se duplican; Life Tracker no se conecta a esos sistemas.'),
+            'add_external_refs' => $this->externalRefsSchema($schema, 'Referencias a elementos equivalentes en sistemas externos (p. ej. [{"provider":"jira","type":"issue","id":"SGX-323"}]). No se duplican; MiSo no se conecta a esos sistemas.'),
         ];
     }
 }

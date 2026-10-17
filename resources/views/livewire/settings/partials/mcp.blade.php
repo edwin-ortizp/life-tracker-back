@@ -1,7 +1,7 @@
 @php($modules = \App\Mcp\Support\ToolCatalog::MODULES)
 
 <x-ui.section title="Servidor MCP"
-              description="Conecta tu asistente de IA (Claude, ChatGPT…) con Life Tracker mediante Model Context Protocol."
+              description="Conecta tu asistente de IA (Claude, ChatGPT…) con MiSo mediante Model Context Protocol."
               :level="2">
     <x-ui.card variant="outlined" icon="bi-robot" iconTone="secondary">
         <div class="settings-copy" x-data="{ copied: false, text: @js($mcpUrl) }">

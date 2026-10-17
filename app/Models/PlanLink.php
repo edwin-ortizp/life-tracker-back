@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
-/** A reference URL for a plan. Life Tracker only recognises the platform; it never fetches the link. */
+/** A reference URL for a plan. MiSo only recognises the platform; it never fetches the link. */
 class PlanLink extends Model
 {
     use HasUuids;

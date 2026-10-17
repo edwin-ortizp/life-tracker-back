@@ -1,6 +1,6 @@
-# Life Tracker: instrucciones compartidas
+# MiSo: instrucciones compartidas
 
-Life Tracker es una aplicación de productividad personal con Laravel, Livewire, Alpine.js y MySQL. La interfaz web usa CSS propio basado en Material Design 3 y Bootstrap Icons (`bi-*`). El entorno local habitual es Windows con PowerShell y Laragon. Consulta `composer.json` y `package.json` cuando necesites versiones o scripts; son la fuente vigente.
+MiSo ("mi socio") es un asistente de crecimiento personal con Laravel, Livewire, Alpine.js y MySQL. La interfaz web usa CSS propio basado en Material Design 3 y Bootstrap Icons (`bi-*`). El entorno local habitual es Windows con PowerShell y Laragon. Consulta `composer.json` y `package.json` cuando necesites versiones o scripts; son la fuente vigente.
 
 ## Contexto según la tarea
 

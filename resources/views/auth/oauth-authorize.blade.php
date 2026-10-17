@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conectar aplicación - Life Tracker</title>
+    <title>Conectar aplicación - MiSo</title>
     @include('partials.app-styles')
 </head>
 <body class="md-auth-shell">
@@ -12,7 +12,7 @@
             <span class="md-auth-head__icon" aria-hidden="true"><i class="bi bi-plug"></i></span>
             <h1 class="md-headline-medium">Conectar aplicación</h1>
             <p class="md-body-medium">
-                <strong>{{ $client->name }}</strong> quiere acceder a tu cuenta de Life Tracker
+                <strong>{{ $client->name }}</strong> quiere acceder a tu cuenta de MiSo
                 como <strong>{{ $user->name }}</strong>.
             </p>
         </header>

@@ -31,7 +31,7 @@ class TaskCalendarBackend extends AbstractBackend implements SyncSupport
             'id' => 'tasks:'.Auth::id(),
             'uri' => 'tasks',
             'principaluri' => $principalUri,
-            '{DAV:}displayname' => 'Life Tracker',
+            '{DAV:}displayname' => 'MiSo',
             '{http://calendarserver.org/ns/}getctag' => 'http://sabre.io/ns/sync/'.$token,
             '{http://sabredav.org/ns}sync-token' => $token,
             '{urn:ietf:params:xml:ns:caldav}supported-calendar-component-set' => new CalDAV\Xml\Property\SupportedCalendarComponentSet(['VTODO']),
@@ -40,12 +40,12 @@ class TaskCalendarBackend extends AbstractBackend implements SyncSupport
 
     public function createCalendar($principalUri, $calendarUri, array $properties): never
     {
-        throw new Forbidden('Life Tracker expone una única lista de tareas.');
+        throw new Forbidden('MiSo expone una única lista de tareas.');
     }
 
     public function deleteCalendar($calendarId): never
     {
-        throw new Forbidden('La lista de Life Tracker no se puede eliminar.');
+        throw new Forbidden('La lista de MiSo no se puede eliminar.');
     }
 
     public function getCalendarObjects($calendarId): array

@@ -12,7 +12,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Actualiza una tarea existente: título, descripción markdown (reemplazar o añadir al final), referencias externas (añadir o quitar), categoría, prioridad, tamaño, fechas, tiempo estimado, privacidad y recurrencia (asignarla, cambiarla o quitarla con recurrence=none). Solo se modifican los campos enviados; enviar null limpia el valor. Antes de reescribir la descripción, léela con get-task-tool.')]
+#[Description('Actualiza una tarea existente: título, descripción markdown (reemplazar o añadir al final), referencias externas (añadir o quitar), estado (borrador, ready, en curso; para terminar usa complete-task-tool), categoría, prioridad, tamaño, fechas, tiempo estimado, privacidad y recurrencia (asignarla, cambiarla o quitarla con recurrence=none). Solo se modifican los campos enviados; enviar null limpia el valor. Antes de reescribir la descripción, léela con get-task-tool.')]
 class UpdateTaskTool extends Tool
 {
     use InteractsWithTaskFields;
@@ -68,6 +68,7 @@ class UpdateTaskTool extends Tool
             ['updated_at', 'flow_position', 'start_is_date', 'end_is_date'],
         ));
 
+        $changed = array_map(fn ($field) => $field === 'status_id' ? 'estado → '.$task->status?->name : $field, $changed);
         $message = "Tarea \"{$task->title}\" actualizada".($changed ? ' ('.implode(', ', $changed).')' : ' (sin cambios)').'.';
         if (array_intersect(['recurrence', 'is_recurrent'], $changed)) {
             $message .= $task->is_recurrent

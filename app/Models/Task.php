@@ -6,6 +6,7 @@ use App\Models\Traits\BelongsToUser;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
@@ -23,6 +24,7 @@ class Task extends Model
         'description',
         'external_refs',
         'completed',
+        'status_id',
         'completed_at',
         'completion_xp',
         'category',
@@ -167,8 +169,67 @@ class Task extends Model
             ->orderByDesc('created_at');
     }
 
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(TaskStatus::class, 'status_id');
+    }
+
+    /** Tareas cuyo estado es de alguno de los tipos dados (todo, ready, in_progress, done). */
+    public function scopeWithStatusType(Builder $query, string|array $types): Builder
+    {
+        return $query->whereIn('status_id', TaskStatus::query()->select('id')->whereIn('type', (array) $types));
+    }
+
+    /**
+     * Mantiene status_id y completed coherentes desde cualquier punto de escritura
+     * (web, MCP, CalDAV, recurrencias): un estado done completa la tarea, salir de él la
+     * reabre, y completar o reabrir por el booleano mueve la tarea al estado correspondiente.
+     */
+    private static function syncStatus(self $task): void
+    {
+        if (! $task->user_id) {
+            return;
+        }
+
+        $statuses = TaskStatus::ensureFor($task->user_id);
+        $status = $task->status_id ? $statuses->firstWhere('id', $task->status_id) : null;
+
+        if ($task->status_id && ! $status) {
+            $task->status_id = $task->getOriginal('status_id');
+            $status = $task->status_id ? $statuses->firstWhere('id', $task->status_id) : null;
+        }
+
+        if ($status && $task->isDirty('status_id')) {
+            $done = $status->type === TaskStatus::DONE;
+            if ($done !== (bool) $task->completed) {
+                $task->completed = $done;
+                $task->completed_at = $done ? ($task->completed_at ?? now()) : null;
+                $task->progress = $done ? 100 : min((int) $task->progress, 99);
+                if (! $done) {
+                    $task->completion_xp = null;
+                }
+            }
+
+            return;
+        }
+
+        $done = (bool) $task->completed;
+        if (! $status || ($status->type === TaskStatus::DONE) !== $done) {
+            $task->status_id = ($statuses->firstWhere('type', $done ? TaskStatus::DONE : TaskStatus::TODO)
+                ?? $statuses->first())->id;
+        }
+    }
+
     protected static function booted(): void
     {
+        static::creating(fn (self $task) => static::syncStatus($task));
+
+        static::updating(function (self $task): void {
+            if ($task->isDirty(['status_id', 'completed']) || ! $task->status_id) {
+                static::syncStatus($task);
+            }
+        });
+
         static::creating(function (self $task): void {
             if ($task->flow_position !== null) {
                 return;

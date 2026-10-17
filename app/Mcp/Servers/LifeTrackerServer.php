@@ -71,6 +71,7 @@ use App\Mcp\Tools\Task\LinkTaskTool;
 use App\Mcp\Tools\Task\ListTaskCategoriesTool;
 use App\Mcp\Tools\Task\ListTasksTool;
 use App\Mcp\Tools\Task\ManageTaskCategoryTool;
+use App\Mcp\Tools\Task\ManageTaskStatusTool;
 use App\Mcp\Tools\Task\UpdateTaskTool;
 use App\Mcp\Tools\Vehicle\ListVehicleFillupsTool;
 use App\Mcp\Tools\Vehicle\ListVehiclesTool;
@@ -84,13 +85,13 @@ use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Version;
 
-#[Name('Life Tracker')]
+#[Name('MiSo')]
 #[Version('0.9.0')]
 #[Instructions(<<<'TXT'
-Life Tracker es la fuente de verdad de la vida personal del usuario: personas y relaciones, planes y lugares, salud, ánimo, energía, ejercicio, hidratación, hábitos (positivos y negativos), metas, diario, comidas y recetas, tiempo de foco, tareas, compras y vehículos. Úsalo como contexto para responder con su historia real, no solo cuando pida registrar o consultar algo. Todo queda restringido a los datos del usuario autenticado.
+MiSo ("mi socio") es el asistente de crecimiento personal del usuario y la fuente de verdad de su vida personal: personas y relaciones, planes y lugares, salud, ánimo, energía, ejercicio, hidratación, hábitos (positivos y negativos), metas, diario, comidas y recetas, tiempo de foco, tareas, compras y vehículos. Úsalo como contexto para responder con su historia real, no solo cuando pida registrar o consultar algo. Todo queda restringido a los datos del usuario autenticado.
 
 ## Cuándo consultar
-Consulta si un dato de Life Tracker cambiaría tu respuesta. Señales:
+Consulta si un dato de MiSo cambiaría tu respuesta. Señales:
 - Menciona a una persona por nombre, apodo o alias, un lugar o plan, un vehículo o un proyecto o categoría de trabajo.
 - Habla de su cuerpo o su salud en primera persona, o de cómo se ha sentido (ánimo, energía, estrés).
 - Pide planear o recomendar algo donde su historial importa (salidas, regalos, rutinas).
@@ -102,7 +103,7 @@ No consultes para preguntas generales que no dependen de su vida, si el dato ya 
 - Un síntoma, dolor, cita o examen → get-health-context-tool con palabras clave en "search" y la zona del cuerpo si aplica.
 - "¿Cómo me fue?", resumen del día o la semana → get-recent-activity-tool.
 - Recomendar planes → list-plans-tool (círculo, persona, ciudad, not_visited) + list-plan-visits-tool para no repetir lo reciente.
-- Trabajo y pendientes → list-tasks-tool por categoría o con updated_since; get-task-tool solo para la tarea en foco.
+- Trabajo y pendientes → list-tasks-tool por categoría, por tipo de estado (status_type: todo, ready, in_progress, done) o con updated_since; get-task-tool solo para la tarea en foco. Los estados son personalizables (manage-task-status-tool); para terminar una tarea usa complete-task-tool.
 - Metas, propósitos o progreso → list-goals-tool (con goal_id o title para el detalle).
 - Comida, qué cocinar o el mercado de la semana → list-meal-plan-tool y list-recipes-tool.
 - Planificar no registra consumo. plan-meal-tool admite ingredientes enlazados y preparation_id; consume-meal-tool registra consumo o comida por fuera y revierte descuentos. manage-preparation-tool cocina porciones una sola vez; manage-meal-tool edita/mueve/copia/intercambia/borrar planes. Usa operation_key estable para reintentos. suggest-meals-tool cruza stock y fechas; generate-meal-shopping-tool previsualiza antes de generar compras. Los textos libres sin ingredientes se consumen sin descuento y con advertencia.
@@ -140,6 +141,7 @@ class LifeTrackerServer extends Server
         ListTaskCategoriesTool::class,
         LinkTaskTool::class,
         ManageTaskCategoryTool::class,
+        ManageTaskStatusTool::class,
         \App\Mcp\Tools\Common\ManageCategoryCatalogTool::class,
         CompleteHabitTool::class,
         ListHabitsTool::class,

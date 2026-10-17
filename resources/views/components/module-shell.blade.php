@@ -20,7 +20,7 @@
     $definition = config("modules.{$moduleKey}", []);
     $screenArchetype = ScreenArchetype::resolve($archetype, $definition, $routeName);
     $archetypeSource = ScreenArchetype::isDeclared($archetype, $definition, $routeName) ? 'declared' : 'fallback';
-    $moduleTitle = $title ?? $definition['title'] ?? 'Life Tracker';
+    $moduleTitle = $title ?? $definition['title'] ?? 'MiSo';
     // El panel contextual se retiró en la v1; los módulos que lo recuperan lo declaran.
     $showRail = ($definition['rail'] ?? false) && (! isset($definition['rail_routes']) || \Illuminate\Support\Str::is($definition['rail_routes'], $routeName));
     // Un detalle declara sus propias pestañas; reemplazan a las del módulo en esa pantalla.

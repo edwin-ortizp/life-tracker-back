@@ -3,8 +3,10 @@
 namespace App\Livewire\Task;
 
 use App\Actions\ManageTaskCategories;
+use App\Actions\ManageTaskStatuses;
 use App\Models\Task;
 use App\Models\TaskCategory;
+use App\Models\TaskStatus;
 use App\Support\DefaultTaskCategories;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
@@ -13,6 +15,8 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /**
+ * Ajustes de tareas con dos secciones (navegación lateral): categorías y estados.
+ *
  * Catálogo personal de categorías de tareas. Renombrar no toca las tareas (guardan el key);
  * eliminar una categoría en uso pide a cuál pasar sus tareas o dejarlas sin categoría.
  */
@@ -27,7 +31,23 @@ class TaskSettings extends Component
         'bi-car-front' => 'Vehículo', 'bi-airplane' => 'Viaje', 'bi-star' => 'Estrella', 'bi-three-dots' => 'Otros',
     ];
 
+    public const SECTIONS = ['categories', 'statuses'];
+
+    public string $section = 'categories';
+
     public bool $showForm = false;
+
+    public bool $showStatusForm = false;
+
+    public ?string $editingStatusId = null;
+
+    public string $statusName = '';
+
+    public string $statusType = TaskStatus::TODO;
+
+    public ?string $deletingStatusId = null;
+
+    public string $statusReassignTo = '';
 
     public ?string $editingId = null;
 
@@ -43,8 +63,20 @@ class TaskSettings extends Component
 
     public string $message = '';
 
+    public function mount(string $section = 'categories'): void
+    {
+        abort_unless(in_array($section, self::SECTIONS, true), 404);
+        $this->section = $section;
+    }
+
     public function openForm(?string $id = null): void
     {
+        if ($this->section === 'statuses') {
+            $this->openStatusForm($id);
+
+            return;
+        }
+
         $this->resetValidation();
         $this->parent_id = '';
         $this->message = '';
@@ -165,8 +197,153 @@ class TaskSettings extends Component
             : "Se agregaron {$created} categorías predeterminadas. Tus categorías y tareas siguen intactas.";
     }
 
+    public function openStatusForm(?string $id = null): void
+    {
+        $this->resetValidation();
+        $this->message = '';
+        $this->editingStatusId = null;
+        $this->statusName = '';
+        $this->statusType = TaskStatus::TODO;
+
+        if ($id && ($status = TaskStatus::find($id))) {
+            $this->editingStatusId = $status->id;
+            $this->statusName = $status->name;
+            $this->statusType = $status->type;
+        }
+
+        $this->showStatusForm = true;
+    }
+
+    public function closeStatusForm(): void
+    {
+        $this->showStatusForm = false;
+        $this->editingStatusId = null;
+        $this->resetValidation();
+    }
+
+    public function saveStatus(ManageTaskStatuses $statuses): void
+    {
+        $this->validate([
+            'statusName' => ['required', 'string', 'max:60'],
+            'statusType' => ['required', Rule::in(array_keys(TaskStatus::TYPES))],
+        ], [], ['statusName' => 'nombre', 'statusType' => 'tipo']);
+
+        $status = $this->editingStatusId ? TaskStatus::find($this->editingStatusId) : null;
+
+        try {
+            if ($status) {
+                $statuses->update($status, $this->statusName, $this->statusType);
+                $this->message = "Estado “{$status->name}” actualizado.";
+            } else {
+                $status = $statuses->create(auth()->user(), $this->statusName, $this->statusType);
+                $this->message = "Estado “{$status->name}” creado como {$status->type_label}.";
+            }
+        } catch (InvalidArgumentException $exception) {
+            $this->addError(str_contains($exception->getMessage(), 'tipo') || str_contains($exception->getMessage(), 'terminado') ? 'statusType' : 'statusName', $exception->getMessage());
+
+            return;
+        }
+
+        $this->closeStatusForm();
+    }
+
+    public function moveStatus(string $id, int $direction, ManageTaskStatuses $statuses): void
+    {
+        if ($status = TaskStatus::find($id)) {
+            $statuses->move($status, $direction);
+        }
+    }
+
+    /** Sin tareas se elimina directamente (la vista confirma); con tareas, se pregunta a dónde pasarlas. */
+    public function deleteStatus(string $id, ManageTaskStatuses $statuses): void
+    {
+        $status = TaskStatus::find($id);
+
+        if (! $status) {
+            return;
+        }
+
+        if ($status->tasks()->exists() && $status->type !== TaskStatus::DONE) {
+            $this->resetValidation();
+            $this->deletingStatusId = $status->id;
+            $this->statusReassignTo = '';
+
+            return;
+        }
+
+        try {
+            $statuses->delete($status);
+            $this->message = "Estado “{$status->name}” eliminado.";
+        } catch (InvalidArgumentException $exception) {
+            $this->message = $exception->getMessage();
+        }
+    }
+
+    public function cancelStatusDelete(): void
+    {
+        $this->deletingStatusId = null;
+        $this->statusReassignTo = '';
+        $this->resetValidation();
+    }
+
+    public function reassignAndDeleteStatus(ManageTaskStatuses $statuses): void
+    {
+        $status = $this->deletingStatusId ? TaskStatus::find($this->deletingStatusId) : null;
+
+        if (! $status) {
+            $this->cancelStatusDelete();
+
+            return;
+        }
+
+        $this->validate([
+            'statusReassignTo' => ['required', Rule::in(TaskStatus::whereKeyNot($status->id)->where('type', '!=', TaskStatus::DONE)->pluck('id')->all())],
+        ], [], ['statusReassignTo' => 'estado destino']);
+
+        $target = TaskStatus::find($this->statusReassignTo);
+
+        try {
+            $moved = $statuses->delete($status, $target);
+        } catch (InvalidArgumentException $exception) {
+            $this->addError('statusReassignTo', $exception->getMessage());
+
+            return;
+        }
+
+        $this->message = "Estado “{$status->name}” eliminado. {$moved} ".($moved === 1 ? 'tarea pasó' : 'tareas pasaron')." a “{$target->name}”.";
+        $this->cancelStatusDelete();
+    }
+
+    private function statusData(): array
+    {
+        $statusList = TaskStatus::ensureFor(auth()->id());
+        $counts = Task::query()->where('is_recurrence_history', false)
+            ->selectRaw('status_id, COUNT(*) as total')->groupBy('status_id')->pluck('total', 'status_id');
+        $deleting = $this->deletingStatusId ? $statusList->firstWhere('id', $this->deletingStatusId) : null;
+
+        return [
+            'statusGroups' => collect(TaskStatus::TYPES)->map(fn ($definition, $type) => [
+                ...$definition,
+                'statuses' => $statusList->where('type', $type)->values(),
+            ]),
+            'statusCounts' => $counts,
+            'statusTypes' => collect(TaskStatus::TYPES)->mapWithKeys(fn ($definition, $type) => [$type => $definition['label']])->all(),
+            'editableStatusTypes' => collect(TaskStatus::TYPES)->except(TaskStatus::DONE)->mapWithKeys(fn ($definition, $type) => [$type => $definition['label']])->all(),
+            'editingStatus' => $this->editingStatusId ? $statusList->firstWhere('id', $this->editingStatusId) : null,
+            'deletingStatus' => $deleting,
+            'deletingStatusCount' => $deleting ? $deleting->tasks()->count() : 0,
+            'statusReassignOptions' => $deleting
+                ? $statusList->reject(fn ($status) => $status->is($deleting) || $status->type === TaskStatus::DONE)->pluck('name', 'id')->all()
+                : [],
+        ];
+    }
+
     public function render()
     {
+        if ($this->section === 'statuses') {
+            return view('livewire.task.task-settings', $this->statusData());
+        }
+
         $counts = Task::query()
             ->where('is_recurrence_history', false)
             ->selectRaw('category, SUM(CASE WHEN completed = 0 THEN 1 ELSE 0 END) as pending, COUNT(*) as total')

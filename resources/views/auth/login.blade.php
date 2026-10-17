@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - Life Tracker</title>
+    <title>Iniciar Sesión - MiSo</title>
     @include('partials.app-styles')
 </head>
 <body style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--md-sys-color-surface);">
@@ -13,8 +13,8 @@
                 <div class="md-card-icon md-card-icon--primary mx-auto mb-3" style="width: 64px; height: 64px; border-radius: var(--md-sys-shape-corner-large); font-size: 2rem;">
                     <i class="bi bi-heart-pulse"></i>
                 </div>
-                <h1 class="md-headline-medium" style="color: var(--md-sys-color-on-surface);">Life Tracker</h1>
-                <p class="md-body-medium" style="color: var(--md-sys-color-on-surface-variant);">Inicia sesión para continuar</p>
+                <h1 class="md-headline-medium" style="color: var(--md-sys-color-on-surface);">MiSo</h1>
+                <p class="md-body-medium" style="color: var(--md-sys-color-on-surface-variant);">Tu socio de crecimiento personal. Inicia sesión para continuar.</p>
             </div>
 
             @if ($errors->any())

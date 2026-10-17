@@ -15,5 +15,5 @@ return [
     'api_middleware' => [PreventLogViewerCaching::class, 'web', 'auth', AuthorizeLogViewer::class],
     'include_files' => ['*.log', '**/*.log'],
     'back_to_system_url' => '/',
-    'back_to_system_label' => 'Volver a Life Tracker',
+    'back_to_system_label' => 'Volver a MiSo',
 ];
