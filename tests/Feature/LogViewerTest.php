@@ -63,6 +63,36 @@ class LogViewerTest extends TestCase
         }
     }
 
+    public function test_settings_logs_section_links_to_the_viewer_for_authorized_users(): void
+    {
+        $this->signIn();
+
+        $this->get('/settings/logs')
+            ->assertOk()
+            ->assertSee('Logs de la aplicación')
+            ->assertSee('Abrir visor de logs')
+            ->assertSee(route('log-viewer.index'), false)
+            ->assertSee(route('settings.section', 'logs'), false);
+    }
+
+    public function test_settings_logs_section_is_restricted_without_authorization(): void
+    {
+        $this->signIn('other@example.com');
+
+        $this->get('/settings/logs')
+            ->assertOk()
+            ->assertDontSee('Abrir visor de logs')
+            ->assertDontSee(route('log-viewer.index'), false)
+            ->assertDontSee(route('settings.section', 'logs'), false);
+
+        config(['log-viewer.allowed_emails' => []]);
+
+        $this->get('/settings/logs')
+            ->assertOk()
+            ->assertDontSee('Abrir visor de logs')
+            ->assertDontSee(route('log-viewer.index'), false);
+    }
+
     public function test_authorized_user_can_read_download_and_delete_only_test_logs(): void
     {
         $path = $this->directory.'/integration.log';

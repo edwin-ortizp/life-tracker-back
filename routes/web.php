@@ -159,6 +159,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/categories/{domain}', \App\Livewire\Category\CategorySettings::class)->name('categories.settings');
     Route::get('/settings', SettingsPage::class)->name('settings');
     Route::get('/settings/{section}', SettingsPage::class)
-        ->whereIn('section', ['body', 'security', 'oauth', 'integrations', 'mcp', 'about'])
+        ->whereIn('section', ['body', 'security', 'oauth', 'integrations', 'mcp', 'logs', 'about'])
         ->name('settings.section');
 });

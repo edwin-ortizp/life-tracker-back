@@ -1,9 +1,15 @@
 @php
+    $canViewLogs = \Illuminate\Support\Facades\Gate::allows('viewLogViewer')
+        && \Illuminate\Support\Facades\Route::has('log-viewer.index');
+
     $groups = [
         null => [['profile', 'Perfil público', 'bi-person'], ['body', 'Datos físicos', 'bi-rulers']],
         'Acceso' => [['security', 'Contraseña y seguridad', 'bi-shield-lock'], ['oauth', 'Aplicaciones OAuth', 'bi-key']],
         'Integraciones' => [['integrations', 'Calendario y notas', 'bi-plug'], ['mcp', 'Servidor MCP', 'bi-robot']],
-        'Sistema' => [['about', 'Acerca de', 'bi-info-circle']],
+        'Sistema' => array_values(array_filter([
+            $canViewLogs ? ['logs', 'Logs de la aplicación', 'bi-journal-text'] : null,
+            ['about', 'Acerca de', 'bi-info-circle'],
+        ])),
     ];
     $user = auth()->user();
     $initials = collect(explode(' ', $user->full_name ?? $user->name ?? ''))->filter()->take(2)->map(fn ($part) => mb_substr($part, 0, 1))->implode('');

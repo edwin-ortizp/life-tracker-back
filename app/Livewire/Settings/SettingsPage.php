@@ -9,7 +9,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Token;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -50,7 +52,7 @@ class SettingsPage extends Component
 
     public ?string $aiIntegrationToken = null;
 
-    public const SECTIONS = ['profile', 'body', 'security', 'oauth', 'integrations', 'mcp', 'about'];
+    public const SECTIONS = ['profile', 'body', 'security', 'oauth', 'integrations', 'mcp', 'logs', 'about'];
 
     public string $section = 'profile';
 
@@ -278,6 +280,7 @@ class SettingsPage extends Component
             'oauth' => $this->oauthData(),
             'integrations' => $this->integrationsData(),
             'mcp' => $this->mcpData(),
+            'logs' => ['logs' => $this->logsData()],
             'about' => ['about' => $this->aboutData()],
             default => [],
         });
@@ -377,6 +380,24 @@ class SettingsPage extends Component
             'resourceCount' => $catalog->resourceCount(),
             'instructions' => $catalog->instructions(),
             'tool' => $this->selectedTool ? $catalog->find($this->selectedTool) : null,
+        ];
+    }
+
+    /** Datos del visor de logs: solo se muestran a cuentas autorizadas. */
+    private function logsData(): array
+    {
+        $file = storage_path('logs/laravel.log');
+        $exists = File::exists($file);
+
+        return [
+            'available' => (bool) config('log-viewer.enabled', true) && Route::has('log-viewer.index'),
+            'path' => storage_path('logs'),
+            'file' => $exists ? basename($file) : null,
+            'size' => $exists ? File::size($file) : null,
+            'modifiedAt' => $exists ? Carbon::createFromTimestamp(File::lastModified($file)) : null,
+            'version' => InstalledVersions::isInstalled('opcodesio/log-viewer')
+                ? InstalledVersions::getPrettyVersion('opcodesio/log-viewer')
+                : null,
         ];
     }
 
