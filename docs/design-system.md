@@ -216,7 +216,7 @@ Toda pantalla cuyo propósito principal sea consultar y administrar varios regis
 - **Acción por fila**: botón split **outline** (acción principal, p. ej. «Editar», + chevron con menú; en compacto se reemplaza por ⋮). Nunca con relleno. En mockups se usa la macro `row_split` de `life-shell.html.jinja`.
 - **Creación**: fuera de la card, con `x-module-actions` / `x-ui.fab`. Con varias creaciones relacionadas, FAB dividido (`:split="true"` y secundarias con `'create' => true`). No se duplican botones de crear en estados vacíos ni en barras.
 - **No usar** en dashboards, calendarios, Kanban/Gantt, formularios ni checklists diarios. Dentro de un detalle se usa para los registros que se gestionan (por ejemplo «Pendientes y próximos» e «Historial reciente» de una persona): sin búsqueda ni paginación, con el slot `headerAction` para «Ver todas» hacia la pestaña completa.
-- **Tablas**: `<table class="md-table md-table--stack">` (`resources/css/m3/patterns/_table.css`), con columnas compactas, chips tonales canónicos para tipo y estado, y ⋮ (`x-ui.menu size="sm"`) al final de cada fila. Bajo 640 px de ancho de la card cada fila se apila como tarjeta.
+- **Tablas**: `<table class="md-table md-table--stack">` (`resources/css/m3/patterns/_table.css`), con columnas compactas, chips tonales canónicos para tipo y estado, y ⋮ (`x-ui.menu size="sm"`) al final de cada fila. Bajo 640 px de ancho de la card cada fila se apila como tarjeta; cuando un menú de acciones (`x-ui.row-actions`) está abierto, su fila se eleva para que el menú no quede debajo de las filas siguientes.
 
 ### Inventario de pantallas migradas
 
@@ -229,6 +229,7 @@ Toda pantalla cuyo propósito principal sea consultar y administrar varios regis
 | Comidas | `Meal/MealIngredients` | Estándar | Categoría, acordeones por categoría, resumen del rail sobre todo el catálogo |
 | Comidas | `Meal/MealRecipes` | Pendiente | Grid de tarjetas, favoritos, tipo y dificultad |
 | Tareas | `Task/TaskList` | Estándar | Cuándo/categoría/estado/prioridad/tamaño, acciones por fila (`x-ui.row-actions`), recurrencia, editor por evento; Planificación y Progreso en ⋮ |
+| Tareas | `Task/TaskSettings` | Estándar | Navegación local de secciones (Categorías y Estados) junto a la card; orden jerárquico en categorías y por tipo en estados con Subir/Bajar derivados del catálogo completo; búsqueda por nombre o ruta visible; reasignar antes de eliminar; estados protegidos (terminado y último «por hacer») |
 | Relaciones | `Relationship/RelationshipIndex` | Estándar | Archivadas, círculo, etiqueta, acciones por fila, FAB dividido (persona, círculo, etiqueta) |
 | Relaciones | `Relationship/RelationshipEvents` | Pendiente | Periodo, archivados, sensibles, relación, categoría |
 | Relaciones | `Relationship/RelationshipBirthdays` | Pendiente | Filtro por mes, orden por próxima fecha, crear tarea |

@@ -33,6 +33,8 @@
   .md-table--stack td:empty { display: none; }
   .md-table--stack td.md-table__check { position: absolute; top: 4px; left: 0; width: auto; padding: 0; }
   .md-table--stack td.md-table__actions { position: absolute; top: 50%; right: 0; width: auto; padding: 0; transform: translateY(-50%); }
+  /* La fila con el menú de acciones abierto sube para que su menú no quede bajo las filas siguientes. */
+  .md-table--stack tr:has([aria-expanded="true"]) { z-index: 2; }
   .md-table--stack .md-table__title, .md-table--stack .md-table__date, .md-table--stack .md-table__notes { flex: 1 0 100%; min-width: 0; }
   .md-table--stack .md-table__title { min-width: 0; }
   .md-table--stack .md-table__notes { width: auto; max-width: none; white-space: normal; }

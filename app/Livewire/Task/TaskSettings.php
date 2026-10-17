@@ -4,14 +4,16 @@ namespace App\Livewire\Task;
 
 use App\Actions\ManageTaskCategories;
 use App\Actions\ManageTaskStatuses;
+use App\Livewire\Concerns\WithManagementCard;
 use App\Models\Task;
 use App\Models\TaskCategory;
 use App\Models\TaskStatus;
-use App\Support\DefaultTaskCategories;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
@@ -19,11 +21,18 @@ use Livewire\Component;
  *
  * Catálogo personal de categorías de tareas. Renombrar no toca las tareas (guardan el key);
  * eliminar una categoría en uso pide a cuál pasar sus tareas o dejarlas sin categoría.
+ *
+ * Cada sección se presenta con la Card de gestión compartida: búsqueda, contador y
+ * paginación sobre el catálogo completo, con el orden jerárquico (categorías) o el orden
+ * por tipo (estados) preservado. La disponibilidad de Subir/Bajar se calcula sobre ese
+ * catálogo completo, no sobre la página visible.
  */
 #[Layout('layouts.app')]
 #[Title('Ajustes de tareas')]
 class TaskSettings extends Component
 {
+    use WithManagementCard;
+
     public const ICONS = [
         'bi-tag' => 'Etiqueta', 'bi-person' => 'Persona', 'bi-briefcase' => 'Trabajo', 'bi-heart-pulse' => 'Salud',
         'bi-cash-coin' => 'Dinero', 'bi-mortarboard' => 'Estudio', 'bi-house' => 'Hogar', 'bi-people' => 'Social',
@@ -34,6 +43,9 @@ class TaskSettings extends Component
     public const SECTIONS = ['categories', 'statuses'];
 
     public string $section = 'categories';
+
+    #[Url(as: 'q', history: true, except: '')]
+    public string $q = '';
 
     public bool $showForm = false;
 
@@ -67,6 +79,11 @@ class TaskSettings extends Component
     {
         abort_unless(in_array($section, self::SECTIONS, true), 404);
         $this->section = $section;
+    }
+
+    public function updatedQ(): void
+    {
+        $this->resetPage();
     }
 
     public function openForm(?string $id = null): void
@@ -188,15 +205,6 @@ class TaskSettings extends Component
         $this->cancelDelete();
     }
 
-    public function restoreDefaults(): void
-    {
-        $created = DefaultTaskCategories::createFor(auth()->user());
-
-        $this->message = $created === 0
-            ? 'Ya tenías todas las categorías predeterminadas.'
-            : "Se agregaron {$created} categorías predeterminadas. Tus categorías y tareas siguen intactas.";
-    }
-
     public function openStatusForm(?string $id = null): void
     {
         $this->resetValidation();
@@ -314,21 +322,67 @@ class TaskSettings extends Component
         $this->cancelStatusDelete();
     }
 
-    private function statusData(): array
+    public function render()
+    {
+        return view('livewire.task.task-settings', $this->section === 'statuses' ? $this->statusesData() : $this->categoriesData());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function categoriesData(): array
+    {
+        $counts = Task::query()
+            ->where('is_recurrence_history', false)
+            ->selectRaw('category, SUM(CASE WHEN completed = 0 THEN 1 ELSE 0 END) as pending, COUNT(*) as total')
+            ->groupBy('category')
+            ->get()
+            ->keyBy(fn ($row) => (string) $row->category);
+
+        $full = $this->orderedCategories();
+        $filtered = $this->filterByNameOrPath($full);
+
+        [$canMoveUp, $canMoveDown] = $this->hierarchyMoveFlags($full);
+
+        $deleting = $this->deletingId ? $full->firstWhere('id', $this->deletingId) : null;
+
+        return [
+            'paginator' => $this->paginateCollection($filtered),
+            'catalogTotal' => $full->count(),
+            'counts' => $counts,
+            'uncategorized' => $counts[''] ?? null,
+            'canMoveUp' => $canMoveUp,
+            'canMoveDown' => $canMoveDown,
+            'deleting' => $deleting,
+            'deletingCount' => $deleting ? Task::where('category', $deleting->key)->count() : 0,
+            'reassignOptions' => $deleting
+                ? $full->reject(fn ($category) => $category->is($deleting))->pluck('name', 'id')->all()
+                : [],
+            'icons' => self::ICONS,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function statusesData(): array
     {
         $statusList = TaskStatus::ensureFor(auth()->id());
         $counts = Task::query()->where('is_recurrence_history', false)
             ->selectRaw('status_id, COUNT(*) as total')->groupBy('status_id')->pluck('total', 'status_id');
+        $filtered = $this->filterByName($statusList);
+        [$canMoveUp, $canMoveDown] = $this->typeMoveFlags($statusList);
         $deleting = $this->deletingStatusId ? $statusList->firstWhere('id', $this->deletingStatusId) : null;
 
         return [
-            'statusGroups' => collect(TaskStatus::TYPES)->map(fn ($definition, $type) => [
-                ...$definition,
-                'statuses' => $statusList->where('type', $type)->values(),
-            ]),
+            'paginator' => $this->paginateCollection($filtered),
+            'catalogTotal' => $statusList->count(),
             'statusCounts' => $counts,
             'statusTypes' => collect(TaskStatus::TYPES)->mapWithKeys(fn ($definition, $type) => [$type => $definition['label']])->all(),
             'editableStatusTypes' => collect(TaskStatus::TYPES)->except(TaskStatus::DONE)->mapWithKeys(fn ($definition, $type) => [$type => $definition['label']])->all(),
+            'canMoveUp' => $canMoveUp,
+            'canMoveDown' => $canMoveDown,
+            'todoStatusCount' => $statusList->where('type', TaskStatus::TODO)->count(),
             'editingStatus' => $this->editingStatusId ? $statusList->firstWhere('id', $this->editingStatusId) : null,
             'deletingStatus' => $deleting,
             'deletingStatusCount' => $deleting ? $deleting->tasks()->count() : 0,
@@ -338,33 +392,116 @@ class TaskSettings extends Component
         ];
     }
 
-    public function render()
+    /**
+     * Catálogo de categorías en su orden jerárquico completo (raíces y sus hijas,
+     * cada nivel por sort_order y nombre), sin filtrar ni paginar.
+     *
+     * @return Collection<int, TaskCategory>
+     */
+    private function orderedCategories(): Collection
     {
-        if ($this->section === 'statuses') {
-            return view('livewire.task.task-settings', $this->statusData());
+        $order = array_flip(array_keys(TaskCategory::hierarchyOptions(auth()->id())));
+
+        $categories = TaskCategory::query()
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->sortBy(fn (TaskCategory $category) => $order[$category->id] ?? PHP_INT_MAX)
+            ->values();
+
+        // La jerarquía es de dos niveles y el catálogo completo ya está cargado: la madre de
+        // cada hija es una raíz de esta misma colección, así que se resuelve sin consultas extra
+        // (la relación `parent` referencia $this->user_id y no se puede cargar con eager loading).
+        $byId = $categories->keyBy('id');
+
+        foreach ($categories as $category) {
+            if ($category->parent_id) {
+                $category->setRelation('parent', $byId->get($category->parent_id));
+            }
         }
 
-        $counts = Task::query()
-            ->where('is_recurrence_history', false)
-            ->selectRaw('category, SUM(CASE WHEN completed = 0 THEN 1 ELSE 0 END) as pending, COUNT(*) as total')
-            ->groupBy('category')
-            ->get()
-            ->keyBy(fn ($row) => (string) $row->category);
+        return $categories;
+    }
 
-        $categoryOrder = array_flip(array_keys(TaskCategory::hierarchyOptions(auth()->id())));
-        $categories = TaskCategory::query()->with('parent')->orderBy('sort_order')->orderBy('name')->get()->sortBy(fn ($category) => $categoryOrder[$category->id] ?? PHP_INT_MAX);
-        $deleting = $this->deletingId ? $categories->firstWhere('id', $this->deletingId) : null;
+    /**
+     * @param  Collection<int, TaskCategory>  $categories
+     * @return Collection<int, TaskCategory>
+     */
+    private function filterByNameOrPath(Collection $categories): Collection
+    {
+        $search = trim($this->q);
 
-        return view('livewire.task.task-settings', [
-            'categoryList' => $categories,
-            'counts' => $counts,
-            'uncategorized' => $counts[''] ?? null,
-            'deleting' => $deleting,
-            'deletingCount' => $deleting ? Task::where('category', $deleting->key)->count() : 0,
-            'reassignOptions' => $deleting
-                ? $categories->reject(fn ($category) => $category->is($deleting))->pluck('name', 'id')->all()
-                : [],
-            'icons' => self::ICONS,
-        ]);
+        if ($search === '') {
+            return $categories;
+        }
+
+        return $categories
+            ->filter(fn (TaskCategory $category) => mb_stripos($category->name, $search) !== false
+                || mb_stripos($category->path_label, $search) !== false)
+            ->values();
+    }
+
+    /**
+     * @param  Collection<int, TaskStatus>  $statuses
+     * @return Collection<int, TaskStatus>
+     */
+    private function filterByName(Collection $statuses): Collection
+    {
+        $search = trim($this->q);
+
+        if ($search === '') {
+            return $statuses;
+        }
+
+        return $statuses->filter(fn (TaskStatus $status) => mb_stripos($status->name, $search) !== false)->values();
+    }
+
+    /**
+     * Subir/Bajar disponibles según los vecinos reales dentro de cada rama (mismo padre),
+     * igual conjunto ordenable que ManageTaskCategories::move.
+     *
+     * @param  Collection<int, TaskCategory>  $categories
+     * @return array{0: array<string, bool>, 1: array<string, bool>}
+     */
+    private function hierarchyMoveFlags(Collection $categories): array
+    {
+        $up = [];
+        $down = [];
+
+        foreach ($categories->groupBy(fn (TaskCategory $category) => (string) ($category->parent_id ?? '')) as $siblings) {
+            $siblings = $siblings->values();
+            $last = $siblings->count() - 1;
+
+            foreach ($siblings as $index => $sibling) {
+                $up[$sibling->id] = $index > 0;
+                $down[$sibling->id] = $index < $last;
+            }
+        }
+
+        return [$up, $down];
+    }
+
+    /**
+     * Subir/Bajar disponibles dentro del tipo, igual conjunto ordenable que ManageTaskStatuses::move.
+     *
+     * @param  Collection<int, TaskStatus>  $statuses
+     * @return array{0: array<string, bool>, 1: array<string, bool>}
+     */
+    private function typeMoveFlags(Collection $statuses): array
+    {
+        $up = [];
+        $down = [];
+
+        foreach ($statuses->groupBy('type') as $siblings) {
+            $siblings = $siblings->values();
+            $last = $siblings->count() - 1;
+
+            foreach ($siblings as $index => $sibling) {
+                $up[$sibling->id] = $index > 0;
+                $down[$sibling->id] = $index < $last;
+            }
+        }
+
+        return [$up, $down];
     }
 }
