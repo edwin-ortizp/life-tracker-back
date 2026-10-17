@@ -7,6 +7,7 @@ use App\Services\TaskRecurrenceService;
 use App\Livewire\Concerns\HandlesRecurringTaskCompletion;
 use App\Livewire\Concerns\InteractsWithTaskSchedule;
 use App\Models\Task;
+use App\Models\TaskStatus;
 use App\Services\TaskGamificationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,9 @@ class TaskList extends Component
     use HandlesRecurringTaskCompletion, InteractsWithTaskSchedule, WithManagementCard;
 
     #[Url(as: 'status', history: true, keep: true)]
-    public string $filter = 'pending'; // pending, completed, all
+    public $statusQuery = 'pending';
+
+    public $filter = [];
 
     #[Url(as: 'category', history: true, keep: true)]
     public $categoryFilter = [];
@@ -110,8 +113,16 @@ class TaskList extends Component
 
     public function mount(): void
     {
+        $this->filter = $this->statusQuery;
         $this->normalizeFilters();
 
+    }
+
+    public function updatedStatusQuery(): void
+    {
+        $this->filter = $this->statusQuery;
+        $this->normalizeFilters();
+        $this->resetPage();
     }
 
     public function updatedFilter(): void
@@ -375,9 +386,18 @@ class TaskList extends Component
 
     private function normalizeFilters(): void
     {
-        if (! in_array($this->filter, ['pending', 'completed', 'all'], true)) {
-            $this->filter = 'pending';
-        }
+        $statuses = TaskStatus::query()->where('user_id', auth()->id())->ordered()->get();
+        $values = match (true) {
+            $this->filter === 'pending' => $statuses->where('type', '!=', TaskStatus::DONE)->pluck('id')->all(),
+            $this->filter === 'completed' => $statuses->where('type', TaskStatus::DONE)->pluck('id')->all(),
+            $this->filter === 'all' => [],
+            is_array($this->filter) => $this->filter,
+            default => [$this->filter],
+        };
+        $this->filter = array_values(array_unique(array_filter($values,
+            fn ($value) => is_string($value) && $statuses->contains('id', $value))));
+        // Livewire omits empty URL arrays; keep an explicit value so reload preserves all states.
+        $this->statusQuery = $this->filter ?: 'all';
 
         $values = is_array($this->categoryFilter) ? $this->categoryFilter : [$this->categoryFilter];
         $this->categoryFilter = array_values(array_unique(array_filter($values,
@@ -403,10 +423,8 @@ class TaskList extends Component
     {
         $query = Task::query()->with('status');
 
-        if ($this->filter === 'pending') {
-            $query->where('completed', false);
-        } elseif ($this->filter === 'completed') {
-            $query->where('completed', true);
+        if ($this->filter) {
+            $query->whereIn('status_id', $this->filter);
         }
 
         if ($this->categoryFilter) {
@@ -485,6 +503,7 @@ class TaskList extends Component
         return view('livewire.task.task-list', [
             'tasks' => $tasks,
             'sorts' => self::SORTS,
+            'statusOptions' => TaskStatus::query()->where('user_id', auth()->id())->ordered()->pluck('name', 'id')->all(),
             'pendingCount' => (int) $stats->pending_count,
             'completedCount' => (int) $stats->completed_count,
             'completedToday' => (int) $stats->completed_today,

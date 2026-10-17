@@ -5,7 +5,7 @@
     <div class="lt-cols task-list-layout">
     <div class="lt-stack">
     @php
-        $activeFilterCount = collect([$dateFilter, $categoryFilter, $priorityFilter, $sizeFilter, $filter !== 'pending' ? $filter : ''])->filter()->count();
+        $activeFilterCount = collect([$dateFilter, $categoryFilter, $priorityFilter, $sizeFilter, $filter])->filter()->count();
     @endphp
     <x-ui.management-card id="task-list" title="Tareas" icon="bi-list-task" :count="'('.$tasks->total().')'"
                           search="search" search-placeholder="Buscar tareas" :active-filters="$activeFilterCount"
@@ -13,42 +13,26 @@
                           :paginator="$tasks" noun="tareas" flush>
         <x-slot:filters>
             <div class="ltm-section">
-                                    <span class="ltm-section__label">Cuándo</span>
-                                    <div class="ltm-chips">
-                                        @foreach (['hoy' => 'Hoy', 'vencidas' => 'Vencidas', 'proximas' => 'Próximas', 'sin-fecha' => 'Sin fecha'] as $value => $label)
-                                            <x-ui.chip variant="filter" :selected="$dateFilter === $value"
-                                                       wire:click="$set('dateFilter', '{{ $dateFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
-                                        @endforeach
-                                    </div>
-                                </div>
-                                <div class="ltm-section">
-                                    <x-ui.multi-select name="categoryFilter" label="Categoría" :options="['__none__' => 'Sin categoría'] + $categories" all-label="Todas las categorías" icon="bi-tag" />
-                                </div>
-                                <div class="ltm-section">
-                                    <span class="ltm-section__label">Estado</span>
-                                    <div class="ltm-chips">
-                                        @foreach (['pending' => 'Pendientes', 'completed' => 'Completadas', 'all' => 'Todas'] as $value => $label)
-                                            <x-ui.chip variant="filter" :selected="$filter === $value" wire:click="$set('filter', '{{ $value }}')">{{ $label }}</x-ui.chip>
-                                        @endforeach
-                                    </div>
-                                </div>
-                                <div class="ltm-section">
-                                    <span class="ltm-section__label">Prioridad</span>
-                                    <div class="ltm-chips">
-                                        @foreach ($priorities as $value => $label)
-                                            <x-ui.chip variant="filter" :selected="$priorityFilter === $value"
-                                                       wire:click="$set('priorityFilter', '{{ $priorityFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
-                                        @endforeach
-                                    </div>
-                                </div>
-                                <div class="ltm-section">
-                                    <span class="ltm-section__label">Tamaño</span>
-                                    <div class="ltm-chips">
-                                        @foreach ($sizes as $value => $label)
-                                            <x-ui.chip variant="filter" :selected="$sizeFilter === $value"
-                                                       wire:click="$set('sizeFilter', '{{ $sizeFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
-                                        @endforeach
-                                    </div>
+                <span class="ltm-section__label">Cuándo</span>
+                <div class="ltm-chips">
+                    @foreach (['hoy' => 'Hoy', 'vencidas' => 'Vencidas', 'proximas' => 'Próximas', 'sin-fecha' => 'Sin fecha'] as $value => $label)
+                        <x-ui.chip variant="filter" :selected="$dateFilter === $value"
+                                   wire:click="$set('dateFilter', '{{ $dateFilter === $value ? '' : $value }}')">{{ $label }}</x-ui.chip>
+                    @endforeach
+                </div>
+            </div>
+            <div class="ltm-section">
+                <x-ui.multi-select name="categoryFilter" label="Categoría" :options="['__none__' => 'Sin categoría'] + $categories" all-label="Todas las categorías" icon="bi-tag" />
+            </div>
+            <div class="ltm-section">
+                <x-ui.multi-select name="filter" label="Estado" :options="$statusOptions" all-label="Todos los estados" icon="bi-circle" />
+            </div>
+            <div class="ltm-section">
+                <x-ui.select name="priorityFilter" label="Prioridad" wire:model.live="priorityFilter" :options="$priorities" placeholder="Todas las prioridades" />
+            </div>
+            <div class="ltm-section">
+                <x-ui.select name="sizeFilter" label="Tamaño" wire:model.live="sizeFilter" :options="$sizes" placeholder="Todos los tamaños" />
+            </div>
         </x-slot:filters>
         @if ($activeFilterCount)
             <x-slot:filterActions>
@@ -144,7 +128,7 @@
         @empty
             <div class="text-center py-5" style="color: var(--md-sys-color-on-surface-variant);">
                 <i class="bi bi-list-task" style="font-size: 3rem; opacity: 0.4;"></i>
-                <p class="md-body-large mt-3 mb-0">No hay tareas {{ $filter === 'pending' ? 'pendientes' : ($filter === 'completed' ? 'completadas' : '') }}</p>
+                <p class="md-body-large mt-3 mb-0">No hay tareas{{ $activeFilterCount || $search !== '' ? ' con los filtros actuales' : '' }}</p>
             </div>
         @endforelse
         </div>
